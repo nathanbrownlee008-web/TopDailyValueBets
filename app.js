@@ -1,6 +1,6 @@
 
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybW1tdXRjZWpuemRmdXBleHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MTAxMTksImV4cCI6MjA4NzI4NjExOX0.SlEqBr6yZkSEUZo2-XG-7-H0qHpKjQDL7VtN509GzDQ";
+const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 function pad2(n){return String(n).padStart(2,'0');}
@@ -12,26 +12,20 @@ function toLocalYMD(d=new Date()){
 }
 function normalizeDateOnly(value){
   if(!value) return null;
-
-  // If it's already a YYYY-MM-DD (Postgres date), keep it.
-  if(typeof value === "string"){
+  if(typeof value==='string'){
     if(/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-
-    // If it's an ISO timestamp, just slice date part (no timezone shifting)
-    if(/^\d{4}-\d{2}-\d{2}T/.test(value)) return value.slice(0,10);
+    const dt=new Date(value);
+    if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
+    return null;
   }
-
-  // Fallback
-  const dt = new Date(value);
-  if(Number.isNaN(dt.getTime())) return null;
-  return dt.toISOString().slice(0,10);
+  const dt=new Date(value);
+  if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
+  return null;
 }
 function isValueBetActiveToday(row){
-  const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD (UTC-safe)
-
-  const start = normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
-  const end   = normalizeDateOnly(row.bet_end_date) || start;
-
+  const today=toLocalYMD(new Date());
+  const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
+  const end=normalizeDateOnly(row.bet_end_date) || start;
   if(!start) return false;
   return today >= start && today <= end;
 }
@@ -76,10 +70,15 @@ const profitCard=document.getElementById("profitCard");
 const addedKeys = new Set();
 
 function makeBetKey(row){
+  // Prefer a stable unique feed id if available (prevents collisions when match/market/odds repeat)
+  const feedId = row?.feed_id ?? row?.value_bets_feed_id ?? row?.id ?? null;
+  if(feedId !== null && feedId !== undefined && String(feedId).trim() !== "") return `id:${feedId}`;
+
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
   const odds = (row?.odds ?? "").toString().trim();
-  return `k:${match}|${market}|${odds}`;
+  const created = row?.created_at ? String(row.created_at) : "";
+  return `k:${match}|${market}|${odds}|${created}`;
 }
 
 // Top navigation tabs
@@ -140,7 +139,7 @@ async function loadBets(){
   try{
     const { data: tdata, error: terr } = await client
       .from("bet_tracker")
-      .select("match,market,odds")
+      .select("feed_id,match,market,odds,created_at")
       .limit(1000);
     if(!terr && Array.isArray(tdata)){
       tdata.forEach(r => addedKeys.add(makeBetKey(r)));
@@ -149,17 +148,7 @@ async function loadBets(){
     // Ignore preload failures
   }
 
-const { data, error } = await client
-  .from("value_bets_feed")
-  .select("*")
-  .order("value_pct",{ascending:false,nullsFirst:false})
-  .order("created_at",{ascending:false});
-
-if(error){
-  betsGrid.innerHTML = `<div class="card">Feed error: ${escapeHtml(error.message)}</div>`;
-  return;
-}
-
+const {data}=await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
 betsGrid.innerHTML="";
 const betsTable=document.getElementById('betsTable');
 const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
@@ -218,10 +207,13 @@ async function addToTracker(btn, row){
   }
 
   const payload = {
+    feed_id: row.id ?? null,
     match: row.match,
     market: row.market,
     odds: row.odds,
-        stake: 10,
+    value_pct: row.value_pct ?? null,
+    bet_date: row.bet_date ?? null,
+    stake: 10,
     result: "pending"
   };
 
