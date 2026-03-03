@@ -1,6 +1,6 @@
 
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
-const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybW1tdXRjZWpuemRmdXBleHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MTAxMTksImV4cCI6MjA4NzI4NjExOX0.SlEqBr6yZkSEUZo2-XG-7-H0qHpKjQDL7VtN509GzDQ";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 function pad2(n){return String(n).padStart(2,'0');}
