@@ -1132,12 +1132,14 @@ if(startingInput){
       const active = !!j.active;
 
       if(active){
-        if(vipStatus) vipStatus.textContent = `VIP active for ${email}`;
-        vipButton.textContent = "VIP Active";
-      }else{
-        if(vipStatus) vipStatus.textContent = `VIP locked for ${email}`;
-        vipButton.textContent = "Go VIP";
-      }
+  if(vipStatus) vipStatus.textContent = "VIP active";
+  vipButton.textContent = "VIP Active";
+  vipButton.style.pointerEvents = "none";
+  vipButton.style.cursor = "default";
+}else{
+  if(vipStatus) vipStatus.textContent = "";
+  vipButton.textContent = "Go VIP";
+}
       vipButton.disabled = false;
       return active;
     }catch(err){
