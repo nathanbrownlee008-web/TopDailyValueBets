@@ -111,6 +111,10 @@ tabTracker.onclick=()=>switchTab("tracker");
 if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
 
 function switchTab(tab){
+  if(tab==="tracker" && !VIP_ACTIVE){
+    if(typeof window.__openVipModal === "function") window.__openVipModal();
+    tab = "bets";
+  }
   currentTopTab = tab;
   initChartTabs();
 
@@ -132,69 +136,95 @@ function switchTab(tab){
 
 
 async function loadBets(){
-  // Rebuild "Added" state from tracker every time we render the feed.
-  // This ensures that if a bet is deleted from the tracker, the feed button returns to "Add".
-  addedKeys.clear();
-  // Preload tracker rows so already-added bets render as "Added"
-  try{
-    const { data: tdata, error: terr } = await client
-      .from("bet_tracker")
-      .select("feed_id,match,market,odds,created_at")
-      .limit(1000);
-    if(!terr && Array.isArray(tdata)){
-      tdata.forEach(r => addedKeys.add(makeBetKey(r)));
-    }
-  }catch(e){
-    // Ignore preload failures
-  }
+  const today = todayStr();
+  let { data, error } = await db
+    .from('value_bets_feed')
+    .select('*')
+    .eq('date', today)
+    .order('created_at', { ascending: true });
 
-const {data}=await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
-betsGrid.innerHTML="";
-const betsTable=document.getElementById('betsTable');
-const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
-if(betsTbody) betsTbody.innerHTML = "";
-const active=(data||[]).filter(isValueBetActiveToday);
-if(!active.length){ betsGrid.innerHTML = `<div class="card">No bets for today.</div>`; return; }
- (active || []).forEach(row=>{
-  const key = makeBetKey(row);
-  const isAdded = addedKeys.has(key);
-betsGrid.innerHTML+=`
-<div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''}">
-  <h3 class="bet-title">${row.match}</h3>
-  <div class="bet-meta">
-    <span class="bet-market">${row.market}</span>
-    <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
-  </div>
-  <div class="bet-stats">
-    <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
-  </div>
-  <div class="bet-footer">
-    <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
-    <button class="bet-btn ${isAdded ? 'added' : ''}" ${isAdded ? 'disabled' : ''} onclick='addToTracker(this, ${JSON.stringify(row)})'>${isAdded ? 'Added' : 'Add'}</button>
-  </div>
-</div>`;
+  if(error){ console.error(error); return; }
 
-  // Desktop table row (shown via CSS in WIDE mode on large screens)
-  if(betsTbody){
-    const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
-    const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
-    const valTxt = val != null ? Number(val).toFixed(1)+'%' : '—';
-    betsTbody.innerHTML += `
-      <tr>
-        <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${escapeHtml(row.market||'')}</td>
-        <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td><span class="pill">${escapeHtml(valTxt)}</span></td>
-        <td>${escapeHtml(betDate)}</td>
-        <td>
-          <button class="btn ${isAdded ? 'added' : ''}" ${isAdded ? 'disabled' : ''} onclick='addToTracker(this, ${JSON.stringify(row)})'>${isAdded ? 'Added' : 'Add'}</button>
-        </td>
-      </tr>
-    `;
-  }
-});
+  const active = (data||[]).filter(b => String(b.status||'').toLowerCase()==='active');
+  BETS_CACHE = active;
+  renderBets(active);
 }
 
+function renderBets(active){
+  const grid = document.getElementById('betsGrid');
+  const tbody = document.querySelector('#betsTable tbody');
+  if(!grid || !tbody) return;
+
+  grid.innerHTML = '';
+  tbody.innerHTML = '';
+
+  if(!active || active.length===0){
+    grid.innerHTML = '<div class="empty">No bets for today.</div>';
+    return;
+  }
+
+  active.forEach((row, idx) => {
+    const locked = (!VIP_ACTIVE && idx >= 5);
+
+    // Wide table
+    const tr = document.createElement('tr');
+    if(locked) tr.classList.add('locked');
+    tr.innerHTML = `
+      <td>${row.match||''}</td>
+      <td>${row.market||''}</td>
+      <td>${row.odds||''}</td>
+      <td>${row.value||''}</td>
+      <td>${row.date||''}</td>
+      <td></td>
+    `;
+
+    const td = tr.querySelector('td:last-child');
+    const tbtn = document.createElement('button');
+    tbtn.className = 'btn ' + (locked ? 'vip-unlock' : '');
+    tbtn.textContent = locked ? 'Unlock VIP' : 'Add';
+    tbtn.addEventListener('click', () => {
+      if(locked){
+        if(typeof window.__openVipModal === 'function') window.__openVipModal();
+        return;
+      }
+      addToTracker(tbtn, row);
+    });
+    td.appendChild(tbtn);
+    tbody.appendChild(tr);
+
+    // Compact card
+    const card = document.createElement('div');
+    card.className = 'bet-card' + (locked ? ' locked' : '');
+    card.innerHTML = `
+      <div class="bet-card-content">
+        <div class="bet-main">
+          <div class="bet-match">${row.match||''}</div>
+          <div class="bet-market">${row.market||''}</div>
+        </div>
+        <div class="bet-meta">
+          <span class="tag">${row.odds||''}</span>
+          <span class="tag">${row.value||''}</span>
+          <span class="tag">${row.date||''}</span>
+        </div>
+      </div>
+      <div class="bet-actions">
+        <button class="btn ${locked ? 'vip-unlock':''}" type="button">${locked ? 'Unlock VIP' : 'Add'}</button>
+      </div>
+      ${locked ? '<div class="lock-overlay"><div class="lock-text">VIP locked</div></div>' : ''}
+    `;
+
+    const btn = card.querySelector('button');
+    btn.addEventListener('click', () => {
+      if(locked){
+        if(typeof window.__openVipModal === 'function') window.__openVipModal();
+        return;
+      }
+      addToTracker(btn, row);
+    });
+
+    grid.appendChild(card);
+  });
+}
 
 async function addToTracker(btn, row){
   const key = makeBetKey(row);
@@ -1131,15 +1161,15 @@ if(startingInput){
       const j = await r.json();
       const active = !!j.active;
 
+      setVipActive(active);
+
       if(active){
-  if(vipStatus) vipStatus.textContent = "VIP active";
-  vipButton.textContent = "VIP Active";
-  vipButton.style.pointerEvents = "none";
-  vipButton.style.cursor = "default";
-}else{
-  if(vipStatus) vipStatus.textContent = "";
-  vipButton.textContent = "Go VIP";
-}
+        if(vipStatus) vipStatus.textContent = `VIP active for ${email}`;
+        vipButton.textContent = "VIP Active";
+      }else{
+        if(vipStatus) vipStatus.textContent = `VIP locked for ${email}`;
+        vipButton.textContent = "Go VIP";
+      }
       vipButton.disabled = false;
       return active;
     }catch(err){

@@ -1523,3 +1523,53 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
 .plan-btn:active{ transform: scale(0.99); }
 .small-muted{ font-size: 12px; color: rgba(255,255,255,0.70); }
 .error-text{ color: #ffb3b3; font-size: 12px; }
+
+/* ===== VIP gating ===== */
+.bet-card{
+  position: relative;
+}
+.bet-card-content{ display:flex; flex-direction:column; gap:8px; }
+.bet-main{ display:flex; flex-direction:column; gap:4px; }
+.bet-match{ font-weight:700; }
+.bet-market{ opacity:.9; }
+.bet-meta{ display:flex; flex-wrap:wrap; gap:6px; }
+.tag{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.10);
+}
+
+.bet-card.locked .bet-card-content{
+  filter: blur(6px);
+}
+
+.lock-overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+}
+.lock-text{
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(0,0,0,0.45);
+  border:1px solid rgba(255,255,255,0.18);
+  font-weight:700;
+}
+
+#betsTable tr.locked td:not(:last-child){
+  filter: blur(5px);
+}
+
+.btn.vip-unlock{
+  border:1px solid rgba(255,255,255,0.25);
+}
+
+#vipButton.vip-active{
+  opacity:1;
+}
