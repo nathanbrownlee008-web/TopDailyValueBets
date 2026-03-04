@@ -1426,3 +1426,100 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
 
 
 
+
+
+/* VIP */
+.vip-bar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:center;
+  margin-top:10px;
+  margin-bottom:8px;
+  flex-wrap:wrap;
+}
+.vip-btn{
+  background: rgba(35, 209, 96, 0.14);
+  border: 1px solid rgba(35, 209, 96, 0.45);
+  color: #eafff3;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+.vip-btn:disabled{
+  opacity:0.65;
+}
+.vip-status{
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+}
+
+/* Simple modal */
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 18px;
+  z-index: 9999;
+}
+.modal-card{
+  width: 100%;
+  max-width: 420px;
+  background: rgba(10, 18, 35, 0.96);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  overflow: hidden;
+}
+.modal-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 14px 14px 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+}
+.modal-title{ font-weight:800; letter-spacing:0.2px; }
+.modal-close{
+  background: transparent;
+  border: 0;
+  color: rgba(255,255,255,0.85);
+  font-size: 18px;
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+.modal-body{ padding: 14px; }
+.field-label{
+  display:block;
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 6px;
+}
+.field-input{
+  width:100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 12px 12px;
+  border-radius: 12px;
+  outline: none;
+}
+.plan-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+.plan-btn{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color:#fff;
+  padding: 12px 12px;
+  border-radius: 14px;
+  font-weight: 800;
+}
+.plan-btn:active{ transform: scale(0.99); }
+.small-muted{ font-size: 12px; color: rgba(255,255,255,0.70); }
+.error-text{ color: #ffb3b3; font-size: 12px; }
