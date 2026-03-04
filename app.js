@@ -57,142 +57,6 @@ function applyLayout(mode){
 
 // (Install App / PWA install button removed for now)
 
-// =====================
-// VIP (Stripe) gate
-// =====================
-
-const FREE_BETS_LIMIT = 5;
-let VIP_ACTIVE = false;
-
-const vipButton = document.getElementById("vipButton");
-const vipStatus = document.getElementById("vipStatus");
-const vipModal = document.getElementById("vipModal");
-const vipClose = document.getElementById("vipClose");
-const vipEmail = document.getElementById("vipEmail");
-const vipMonthly = document.getElementById("vipMonthly");
-const vipYearly = document.getElementById("vipYearly");
-const vipError = document.getElementById("vipError");
-
-function showVipError(msg){
-  if(!vipError) return;
-  vipError.style.display = "block";
-  vipError.textContent = msg;
-}
-function clearVipError(){
-  if(!vipError) return;
-  vipError.style.display = "none";
-  vipError.textContent = "";
-}
-
-function openVipModal(){
-  clearVipError();
-  if(vipEmail){
-    const saved = localStorage.getItem("vip_email") || "";
-    if(!vipEmail.value) vipEmail.value = saved;
-  }
-  if(vipModal) vipModal.style.display = "flex";
-}
-function closeVipModal(){
-  if(vipModal) vipModal.style.display = "none";
-}
-
-function setVipUIActive(email){
-  VIP_ACTIVE = true;
-  if(vipStatus) vipStatus.textContent = email ? ("VIP active for " + email) : "VIP active";
-  if(vipButton){
-    vipButton.textContent = "VIP Active";
-    vipButton.disabled = true;
-    vipButton.style.pointerEvents = "none";
-    vipButton.style.cursor = "default";
-  }
-}
-
-function setVipUILocked(email){
-  VIP_ACTIVE = false;
-  if(vipStatus) vipStatus.textContent = email ? ("VIP locked for " + email) : "VIP locked — subscribe to unlock";
-  if(vipButton){
-    vipButton.textContent = "Go VIP";
-    vipButton.disabled = false;
-    vipButton.style.pointerEvents = "auto";
-    vipButton.style.cursor = "pointer";
-  }
-}
-
-async function checkVipStatus(){
-  const email = (localStorage.getItem("vip_email") || "").trim();
-  if(!email){
-    setVipUILocked("");
-    return false;
-  }
-
-  try{
-    const r = await fetch("/api/verify-subscription?email=" + encodeURIComponent(email));
-    const j = await r.json();
-    if(r.ok && j && j.active){
-      setVipUIActive(email);
-      return true;
-    }
-    setVipUILocked(email);
-    return false;
-  }catch(e){
-    // Don't break the app if the check fails
-    setVipUILocked(email);
-    if(vipStatus) vipStatus.textContent = "VIP status check failed";
-    return false;
-  }
-}
-
-async function startCheckout(plan){
-  clearVipError();
-  const email = (vipEmail && vipEmail.value ? vipEmail.value : "").trim();
-  if(!email || email.indexOf("@") === -1){
-    showVipError("Enter a valid email.");
-    return;
-  }
-  localStorage.setItem("vip_email", email);
-
-  try{
-    if(vipMonthly) vipMonthly.disabled = true;
-    if(vipYearly) vipYearly.disabled = true;
-
-    const r = await fetch("/api/create-checkout-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: plan, email: email })
-    });
-    const j = await r.json();
-    if(!r.ok) throw new Error((j && j.error) ? j.error : "Checkout failed");
-    if(!j || !j.url) throw new Error("No checkout URL returned");
-    window.location.href = j.url;
-  }catch(err){
-    showVipError(err && err.message ? err.message : "Could not start checkout");
-  }finally{
-    if(vipMonthly) vipMonthly.disabled = false;
-    if(vipYearly) vipYearly.disabled = false;
-  }
-}
-
-function initVip(){
-  if(vipButton) vipButton.addEventListener("click", function(){
-    if(!VIP_ACTIVE) openVipModal();
-  });
-  if(vipClose) vipClose.addEventListener("click", closeVipModal);
-  if(vipModal) vipModal.addEventListener("click", function(e){
-    if(e.target === vipModal) closeVipModal();
-  });
-  if(vipMonthly) vipMonthly.addEventListener("click", function(){ startCheckout("monthly"); });
-  if(vipYearly) vipYearly.addEventListener("click", function(){ startCheckout("yearly"); });
-
-  // Initial status check + refresh UI
-  checkVipStatus().then(function(){
-    // Re-render bets with correct blur state
-    loadBets();
-    // Tracker is VIP-only; load only if active
-    if(VIP_ACTIVE) loadTracker();
-  });
-}
-
-
 const bankrollElem=document.getElementById("bankroll");
 const profitElem=document.getElementById("profit");
 const roiElem=document.getElementById("roi");
@@ -242,12 +106,6 @@ tabTracker.onclick=()=>switchTab("tracker");
 if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
 
 function switchTab(tab){
-  // Tracker is VIP-only
-  if(tab === "tracker" && !VIP_ACTIVE){
-    openVipModal();
-    return;
-  }
-
   currentTopTab = tab;
   initChartTabs();
 
@@ -285,19 +143,54 @@ async function loadBets(){
     // Ignore preload failures
   }
 
-const {data}=await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
+// Fetch from Supabase (be tolerant if some columns don't exist in your table/view)
+let data = null;
+let error = null;
+
+// Try the "best" ordering first (value_pct then created_at)
+({ data, error } = await client
+  .from("value_bets_feed")
+  .select("*")
+  .order("value_pct", { ascending: false, nullsFirst: false })
+  .order("created_at", { ascending: false })
+);
+
+// If your table/view doesn't have created_at, retry with bet_date then id
+if (error) {
+  ({ data, error } = await client
+    .from("value_bets_feed")
+    .select("*")
+    .order("value_pct", { ascending: false, nullsFirst: false })
+    .order("bet_date", { ascending: false })
+  );
+}
+
+if (error) {
+  ({ data, error } = await client
+    .from("value_bets_feed")
+    .select("*")
+    .order("value_pct", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: false })
+  );
+}
+
+// Last fallback: no ordering at all
+if (error) {
+  ({ data, error } = await client.from("value_bets_feed").select("*"));
+}
+
+if (error) throw error;
 betsGrid.innerHTML="";
 const betsTable=document.getElementById('betsTable');
 const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
 if(betsTbody) betsTbody.innerHTML = "";
 const active=(data||[]).filter(isValueBetActiveToday);
 if(!active.length){ betsGrid.innerHTML = `<div class="card">No bets for today.</div>`; return; }
- (active || []).forEach((row, idx)=>{
+ (active || []).forEach(row=>{
   const key = makeBetKey(row);
   const isAdded = addedKeys.has(key);
-  const locked = (!VIP_ACTIVE && idx >= FREE_BETS_LIMIT);
 betsGrid.innerHTML+=`
-<div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'vip-blur' : ''}">
+<div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''}">
   <h3 class="bet-title">${row.match}</h3>
   <div class="bet-meta">
     <span class="bet-market">${row.market}</span>
@@ -310,7 +203,6 @@ betsGrid.innerHTML+=`
     <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
     <button class="bet-btn ${isAdded ? 'added' : ''}" ${isAdded ? 'disabled' : ''} onclick='addToTracker(this, ${JSON.stringify(row)})'>${isAdded ? 'Added' : 'Add'}</button>
   </div>
-  ${locked ? `<div class="vip-locked-badge">VIP</div>` : ``}
 </div>`;
 
   // Desktop table row (shown via CSS in WIDE mode on large screens)
@@ -319,7 +211,7 @@ betsGrid.innerHTML+=`
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valTxt = val != null ? Number(val).toFixed(1)+'%' : '—';
     betsTbody.innerHTML += `
-      <tr class="${locked ? 'vip-blur' : ''}">
+      <tr>
         <td><b>${escapeHtml(row.match||'')}</b></td>
         <td>${escapeHtml(row.market||'')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
@@ -737,12 +629,6 @@ borderWidth:2,
 }
 
 async function loadTracker(){
-  if(!VIP_ACTIVE){
-    // Don't load tracker data for non-VIP users
-    if(trackerWrap) trackerWrap.innerHTML = `<div class="empty">Tracker is VIP only. Tap <b>Go VIP</b> to unlock.</div>`;
-    return;
-  }
-
 const {data}=await client.from("bet_tracker").select("*").order("created_at",{ascending:true});
 const rows = data || [];
 trackerRowsCache = rows;
@@ -945,8 +831,7 @@ a.click();
 }
 
 loadBets();
-loadHistory();
-initVip();
+loadTracker();
 
 
 // Toggle with animation + memory
