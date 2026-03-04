@@ -17,21 +17,14 @@ function setVipUI(active,email){
     if(vipStatusEl) vipStatusEl.textContent=email?`VIP active for ${email}`:"VIP active";
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab-locked');
   }else{
-
-  // remove saved email so it doesn't keep showing "locked for..."
-  localStorage.removeItem("vip_email");
-
-  vipButtonEl.textContent="Go VIP";
-  vipButtonEl.disabled=false;
-  vipButtonEl.style.pointerEvents="auto";
-  vipButtonEl.style.cursor="pointer";
-
-  if(vipStatusEl) vipStatusEl.textContent="VIP locked — subscribe to unlock";
-
-  if(typeof tabTracker!=="undefined" && tabTracker){
-    tabTracker.classList.add("tab-locked");
+    vipButtonEl.textContent="Go VIP";
+    vipButtonEl.disabled=false;
+    vipButtonEl.style.pointerEvents="auto";
+    vipButtonEl.style.cursor="pointer";
+    // Keep the locked message generic (avoids confusion like "locked for <email>" right after clicking Go VIP)
+    if(vipStatusEl) vipStatusEl.textContent="VIP locked — subscribe to unlock";
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab-locked');
   }
-
 }
 
 function openVipModal(){
