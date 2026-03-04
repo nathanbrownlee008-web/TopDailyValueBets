@@ -2,6 +2,10 @@
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+// Global VIP state (used by tab gating + blur logic)
+let VIP_ACTIVE = false;
+
+
 
 function pad2(n){return String(n).padStart(2,'0');}
 function toLocalYMD(d=new Date()){
@@ -1121,6 +1125,16 @@ if(startingInput){
   const vipError   = document.getElementById("vipError");
 
   if(!vipButton || !vipModal) return;
+  function setVipActive(active){
+    VIP_ACTIVE = !!active;
+    if(vipStatus) vipStatus.textContent = VIP_ACTIVE ? "VIP active" : "";
+    vipButton.textContent = VIP_ACTIVE ? "VIP Active" : "Go VIP";
+    // When VIP is active, disable opening the purchase modal
+    vipButton.style.pointerEvents = VIP_ACTIVE ? "none" : "auto";
+    vipButton.style.cursor = VIP_ACTIVE ? "default" : "pointer";
+  }
+
+
 
   function showError(msg){
     if(!vipError) return;
@@ -1134,6 +1148,8 @@ if(startingInput){
   }
 
   function openModal(){
+    if(VIP_ACTIVE) return;
+
     clearError();
     vipModal.style.display="flex";
     const savedEmail = localStorage.getItem("vip_email") || "";
