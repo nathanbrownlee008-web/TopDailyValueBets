@@ -35,6 +35,7 @@ module.exports = async (req, res) => {
       customer_email: email,
       allow_promotion_codes: true,
       line_items: [{ price: priceId, quantity: 1 }],
+      ...(trialDays > 0 ? { subscription_data: { trial_period_days: trialDays } } : {}),
       success_url: `${baseUrl}/?vip=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/?vip=cancelled`,
     });
