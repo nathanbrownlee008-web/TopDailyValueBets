@@ -70,10 +70,15 @@ const profitCard=document.getElementById("profitCard");
 const addedKeys = new Set();
 
 function makeBetKey(row){
+  // Prefer a stable unique feed id if available (prevents collisions when match/market/odds repeat)
+  const feedId = row?.feed_id ?? row?.value_bets_feed_id ?? row?.id ?? null;
+  if(feedId !== null && feedId !== undefined && String(feedId).trim() !== "") return `id:${feedId}`;
+
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
   const odds = (row?.odds ?? "").toString().trim();
-  return `k:${match}|${market}|${odds}`;
+  const created = row?.created_at ? String(row.created_at) : "";
+  return `k:${match}|${market}|${odds}|${created}`;
 }
 
 // Top navigation tabs
@@ -134,7 +139,7 @@ async function loadBets(){
   try{
     const { data: tdata, error: terr } = await client
       .from("bet_tracker")
-      .select("match,market,odds")
+      .select("feed_id,match,market,odds,created_at")
       .limit(1000);
     if(!terr && Array.isArray(tdata)){
       tdata.forEach(r => addedKeys.add(makeBetKey(r)));
@@ -202,10 +207,13 @@ async function addToTracker(btn, row){
   }
 
   const payload = {
+    feed_id: row.id ?? null,
     match: row.match,
     market: row.market,
     odds: row.odds,
-        stake: 10,
+    value_pct: row.value_pct ?? null,
+    bet_date: row.bet_date ?? null,
+    stake: 10,
     result: "pending"
   };
 
