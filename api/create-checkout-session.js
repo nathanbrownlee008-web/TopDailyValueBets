@@ -28,7 +28,10 @@ module.exports = async (req, res) => {
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
 
-    const baseUrl = process.env.APP_ORIGIN || "https://top-daily-value-bets.vercel.app";
+        const proto = (req.headers['x-forwarded-proto'] || 'https').toString().split(',')[0].trim();
+    const host = (req.headers['x-forwarded-host'] || req.headers.host || '').toString().split(',')[0].trim();
+    const derived = host ? `${proto}://${host}` : null;
+    const baseUrl = (origin && typeof origin === 'string') ? origin : (process.env.APP_ORIGIN || derived || 'https://top-daily-value-bets.vercel.app');
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
