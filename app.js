@@ -2,10 +2,6 @@
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-// Global VIP state (used by tab gating + blur logic)
-let VIP_ACTIVE = false;
-
-
 
 function pad2(n){return String(n).padStart(2,'0');}
 function toLocalYMD(d=new Date()){
@@ -74,15 +70,10 @@ const profitCard=document.getElementById("profitCard");
 const addedKeys = new Set();
 
 function makeBetKey(row){
-  // Prefer a stable unique feed id if available (prevents collisions when match/market/odds repeat)
-  const feedId = row?.feed_id ?? row?.value_bets_feed_id ?? row?.id ?? null;
-  if(feedId !== null && feedId !== undefined && String(feedId).trim() !== "") return `id:${feedId}`;
-
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
   const odds = (row?.odds ?? "").toString().trim();
-  const created = row?.created_at ? String(row.created_at) : "";
-  return `k:${match}|${market}|${odds}|${created}`;
+  return `k:${match}|${market}|${odds}`;
 }
 
 // Top navigation tabs
@@ -115,10 +106,6 @@ tabTracker.onclick=()=>switchTab("tracker");
 if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
 
 function switchTab(tab){
-  if(tab==="tracker" && !VIP_ACTIVE){
-    if(typeof window.__openVipModal === "function") window.__openVipModal();
-    tab = "bets";
-  }
   currentTopTab = tab;
   initChartTabs();
 
@@ -140,95 +127,105 @@ function switchTab(tab){
 
 
 async function loadBets(){
-  const today = todayStr();
-  let { data, error } = await db
-    .from('value_bets_feed')
-    .select('*')
-    .eq('date', today)
-    .order('created_at', { ascending: true });
-
-  if(error){ console.error(error); return; }
-
-  const active = (data||[]).filter(b => String(b.status||'').toLowerCase()==='active');
-  BETS_CACHE = active;
-  renderBets(active);
-}
-
-function renderBets(active){
-  const grid = document.getElementById('betsGrid');
-  const tbody = document.querySelector('#betsTable tbody');
-  if(!grid || !tbody) return;
-
-  grid.innerHTML = '';
-  tbody.innerHTML = '';
-
-  if(!active || active.length===0){
-    grid.innerHTML = '<div class="empty">No bets for today.</div>';
-    return;
+  // Rebuild "Added" state from tracker every time we render the feed.
+  // This ensures that if a bet is deleted from the tracker, the feed button returns to "Add".
+  addedKeys.clear();
+  // Preload tracker rows so already-added bets render as "Added"
+  try{
+    const { data: tdata, error: terr } = await client
+      .from("bet_tracker")
+      .select("match,market,odds")
+      .limit(1000);
+    if(!terr && Array.isArray(tdata)){
+      tdata.forEach(r => addedKeys.add(makeBetKey(r)));
+    }
+  }catch(e){
+    // Ignore preload failures
   }
 
-  active.forEach((row, idx) => {
-    const locked = (!VIP_ACTIVE && idx >= 5);
+// Fetch from Supabase (be tolerant if some columns don't exist in your table/view)
+let data = null;
+let error = null;
 
-    // Wide table
-    const tr = document.createElement('tr');
-    if(locked) tr.classList.add('locked');
-    tr.innerHTML = `
-      <td>${row.match||''}</td>
-      <td>${row.market||''}</td>
-      <td>${row.odds||''}</td>
-      <td>${row.value||''}</td>
-      <td>${row.date||''}</td>
-      <td></td>
-    `;
+// Try the "best" ordering first (value_pct then created_at)
+({ data, error } = await client
+  .from("value_bets_feed")
+  .select("*")
+  .order("value_pct", { ascending: false, nullsFirst: false })
+  .order("created_at", { ascending: false })
+);
 
-    const td = tr.querySelector('td:last-child');
-    const tbtn = document.createElement('button');
-    tbtn.className = 'btn ' + (locked ? 'vip-unlock' : '');
-    tbtn.textContent = locked ? 'Unlock VIP' : 'Add';
-    tbtn.addEventListener('click', () => {
-      if(locked){
-        if(typeof window.__openVipModal === 'function') window.__openVipModal();
-        return;
-      }
-      addToTracker(tbtn, row);
-    });
-    td.appendChild(tbtn);
-    tbody.appendChild(tr);
-
-    // Compact card
-    const card = document.createElement('div');
-    card.className = 'bet-card' + (locked ? ' locked' : '');
-    card.innerHTML = `
-      <div class="bet-card-content">
-        <div class="bet-main">
-          <div class="bet-match">${row.match||''}</div>
-          <div class="bet-market">${row.market||''}</div>
-        </div>
-        <div class="bet-meta">
-          <span class="tag">${row.odds||''}</span>
-          <span class="tag">${row.value||''}</span>
-          <span class="tag">${row.date||''}</span>
-        </div>
-      </div>
-      <div class="bet-actions">
-        <button class="btn ${locked ? 'vip-unlock':''}" type="button">${locked ? 'Unlock VIP' : 'Add'}</button>
-      </div>
-      ${locked ? '<div class="lock-overlay"><div class="lock-text">VIP locked</div></div>' : ''}
-    `;
-
-    const btn = card.querySelector('button');
-    btn.addEventListener('click', () => {
-      if(locked){
-        if(typeof window.__openVipModal === 'function') window.__openVipModal();
-        return;
-      }
-      addToTracker(btn, row);
-    });
-
-    grid.appendChild(card);
-  });
+// If your table/view doesn't have created_at, retry with bet_date then id
+if (error) {
+  ({ data, error } = await client
+    .from("value_bets_feed")
+    .select("*")
+    .order("value_pct", { ascending: false, nullsFirst: false })
+    .order("bet_date", { ascending: false })
+  );
 }
+
+if (error) {
+  ({ data, error } = await client
+    .from("value_bets_feed")
+    .select("*")
+    .order("value_pct", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: false })
+  );
+}
+
+// Last fallback: no ordering at all
+if (error) {
+  ({ data, error } = await client.from("value_bets_feed").select("*"));
+}
+
+if (error) throw error;
+betsGrid.innerHTML="";
+const betsTable=document.getElementById('betsTable');
+const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
+if(betsTbody) betsTbody.innerHTML = "";
+const active=(data||[]).filter(isValueBetActiveToday);
+if(!active.length){ betsGrid.innerHTML = `<div class="card">No bets for today.</div>`; return; }
+ (active || []).forEach(row=>{
+  const key = makeBetKey(row);
+  const isAdded = addedKeys.has(key);
+betsGrid.innerHTML+=`
+<div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''}">
+  <h3 class="bet-title">${row.match}</h3>
+  <div class="bet-meta">
+    <span class="bet-market">${row.market}</span>
+    <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
+  </div>
+  <div class="bet-stats">
+    <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
+  </div>
+  <div class="bet-footer">
+    <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
+    <button class="bet-btn ${isAdded ? 'added' : ''}" ${isAdded ? 'disabled' : ''} onclick='addToTracker(this, ${JSON.stringify(row)})'>${isAdded ? 'Added' : 'Add'}</button>
+  </div>
+</div>`;
+
+  // Desktop table row (shown via CSS in WIDE mode on large screens)
+  if(betsTbody){
+    const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
+    const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
+    const valTxt = val != null ? Number(val).toFixed(1)+'%' : '—';
+    betsTbody.innerHTML += `
+      <tr>
+        <td><b>${escapeHtml(row.match||'')}</b></td>
+        <td>${escapeHtml(row.market||'')}</td>
+        <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
+        <td><span class="pill">${escapeHtml(valTxt)}</span></td>
+        <td>${escapeHtml(betDate)}</td>
+        <td>
+          <button class="btn ${isAdded ? 'added' : ''}" ${isAdded ? 'disabled' : ''} onclick='addToTracker(this, ${JSON.stringify(row)})'>${isAdded ? 'Added' : 'Add'}</button>
+        </td>
+      </tr>
+    `;
+  }
+});
+}
+
 
 async function addToTracker(btn, row){
   const key = makeBetKey(row);
@@ -241,13 +238,10 @@ async function addToTracker(btn, row){
   }
 
   const payload = {
-    feed_id: row.id ?? null,
     match: row.match,
     market: row.market,
     odds: row.odds,
-    value_pct: row.value_pct ?? null,
-    bet_date: row.bet_date ?? null,
-    stake: 10,
+        stake: 10,
     result: "pending"
   };
 
@@ -1108,126 +1102,3 @@ if(startingInput){
     localStorage.setItem("starting_bankroll", this.value);
   });
 }
-
-
-
-/* =========================
-   VIP / Stripe (MVP)
-   ========================= */
-(function initVip(){
-  const vipButton = document.getElementById("vipButton");
-  const vipStatus = document.getElementById("vipStatus");
-  const vipModal  = document.getElementById("vipModal");
-  const vipClose  = document.getElementById("vipClose");
-  const vipEmail  = document.getElementById("vipEmail");
-  const vipMonthly = document.getElementById("vipMonthly");
-  const vipYearly  = document.getElementById("vipYearly");
-  const vipError   = document.getElementById("vipError");
-
-  if(!vipButton || !vipModal) return;
-  function setVipActive(active){
-    VIP_ACTIVE = !!active;
-    if(vipStatus) vipStatus.textContent = VIP_ACTIVE ? "VIP active" : "";
-    vipButton.textContent = VIP_ACTIVE ? "VIP Active" : "Go VIP";
-    // When VIP is active, disable opening the purchase modal
-    vipButton.style.pointerEvents = VIP_ACTIVE ? "none" : "auto";
-    vipButton.style.cursor = VIP_ACTIVE ? "default" : "pointer";
-  }
-
-
-
-  function showError(msg){
-    if(!vipError) return;
-    vipError.style.display = "block";
-    vipError.textContent = msg;
-  }
-  function clearError(){
-    if(!vipError) return;
-    vipError.style.display = "none";
-    vipError.textContent = "";
-  }
-
-  function openModal(){
-    if(VIP_ACTIVE) return;
-
-    clearError();
-    vipModal.style.display="flex";
-    const savedEmail = localStorage.getItem("vip_email") || "";
-    if(vipEmail && !vipEmail.value) vipEmail.value = savedEmail;
-  }
-  function closeModal(){
-    vipModal.style.display="none";
-  }
-
-  vipButton.addEventListener("click", openModal);
-  if(vipClose) vipClose.addEventListener("click", closeModal);
-  vipModal.addEventListener("click", (e)=>{ if(e.target === vipModal) closeModal(); });
-
-  async function checkVip(){
-    const email = (localStorage.getItem("vip_email") || "").trim();
-    if(!email){
-      if(vipStatus) vipStatus.textContent = "VIP locked — subscribe to unlock";
-      vipButton.textContent = "Go VIP";
-      vipButton.disabled = false;
-      return false;
-    }
-
-    try{
-      const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
-      const j = await r.json();
-      const active = !!j.active;
-
-      setVipActive(active);
-
-      if(active){
-        if(vipStatus) vipStatus.textContent = `VIP active for ${email}`;
-        vipButton.textContent = "VIP Active";
-      }else{
-        if(vipStatus) vipStatus.textContent = `VIP locked for ${email}`;
-        vipButton.textContent = "Go VIP";
-      }
-      vipButton.disabled = false;
-      return active;
-    }catch(err){
-      if(vipStatus) vipStatus.textContent = "VIP status check failed";
-      vipButton.disabled = false;
-      return false;
-    }
-  }
-
-  async function startCheckout(plan){
-    clearError();
-    const email = (vipEmail?.value || "").trim();
-    if(!email || !email.includes("@")) return showError("Enter a valid email.");
-
-    vipButton.disabled = true;
-    vipButton.textContent = "Loading…";
-
-    localStorage.setItem("vip_email", email);
-
-    try{
-      const r = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ plan, email, origin: window.location.origin })
-      });
-
-      const j = await r.json();
-      if(!r.ok) throw new Error(j?.error || "Failed to create checkout session");
-      if(!j?.url) throw new Error("No checkout URL returned");
-
-      window.location.href = j.url;
-    }catch(err){
-      vipButton.disabled = false;
-      vipButton.textContent = "Go VIP";
-      showError(err.message || "Something went wrong");
-    }
-  }
-
-  if(vipMonthly) vipMonthly.addEventListener("click", ()=> startCheckout("monthly"));
-  if(vipYearly)  vipYearly.addEventListener("click", ()=> startCheckout("yearly"));
-
-  // On load: check VIP in background
-  checkVip();
-})();
-
