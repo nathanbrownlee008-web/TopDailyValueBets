@@ -21,10 +21,6 @@
   </div>
 
   <!-- VIP Bar -->
-  <div class="vip-bar">
-    <button id="vipButton" class="vip-button" type="button">Go VIP</button>
-    <div id="vipStatus" class="vip-status"></div>
-  </div>
 <div class="tabs">
 <button id="tabBets" class="active">Value Bets</button>
 <button id="tabTracker">Tracker</button>
@@ -154,30 +150,6 @@
 </div>
 
 <script src="app.js?v=1772410472"></script>
-
-<!-- VIP Modal -->
-<div id="vipModal" class="vip-modal" style="display:none;">
-  <div class="vip-modal-inner" role="dialog" aria-modal="true" aria-labelledby="vipModalTitle">
-    <div class="vip-modal-header">
-      <div id="vipModalTitle" class="vip-modal-title">Unlock VIP</div>
-      <button id="vipClose" class="vip-close" type="button" aria-label="Close">×</button>
-    </div>
-
-    <div class="vip-modal-sub">Get full access to today’s value bets + the tracker.</div>
-
-    <label class="vip-label" for="vipEmailInput">Email</label>
-    <input id="vipEmailInput" class="vip-input" type="email" placeholder="you@email.com" autocomplete="email" />
-
-    <div id="vipError" class="vip-error" style="display:none;"></div>
-
-    <div class="vip-plan-row">
-      <button id="vipMonthly" class="vip-plan" type="button">£12 / month</button>
-      <button id="vipYearly" class="vip-plan" type="button">£80 / year</button>
-    </div>
-
-    <div class="vip-fineprint">Cancel anytime. Secure checkout via Stripe.</div>
-  </div>
-</div>
 
 </body>
 </html>

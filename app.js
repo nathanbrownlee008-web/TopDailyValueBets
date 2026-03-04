@@ -49,6 +49,48 @@ const vipErrorEl = document.getElementById("vipError");
 
 let vipActive = false;
 
+
+// Update VIP UI + gating (used by verify-subscription)
+function setVipUI(active, email){
+  vipActive = !!active;
+
+  if(vipButtonEl){
+    if(vipActive){
+      vipButtonEl.textContent = "👑 VIP Access Active";
+      vipButtonEl.classList.add("is-active");
+      vipButtonEl.style.pointerEvents = "none";
+    }else{
+      vipButtonEl.textContent = "Go VIP";
+      vipButtonEl.classList.remove("is-active");
+      vipButtonEl.style.pointerEvents = "auto";
+    }
+  }
+
+  if(vipStatusEl){
+    if(vipActive){
+      vipStatusEl.textContent = email ? `VIP access active for ${email}` : "VIP access active";
+    }else{
+      vipStatusEl.textContent = "VIP locked — subscribe to unlock";
+    }
+  }
+
+  // Lock/unlock Tracker tab
+  if(typeof tabTracker !== "undefined" && tabTracker){
+    if(vipActive){
+      tabTracker.classList.remove("tab-locked");
+      tabTracker.removeAttribute("aria-disabled");
+    }else{
+      tabTracker.classList.add("tab-locked");
+      tabTracker.setAttribute("aria-disabled","true");
+    }
+  }
+
+  // Refresh current view (blur/limit updates immediately)
+  try{ if(typeof renderBets === "function") renderBets(); }catch(e){}
+  try{ if(typeof renderHistory === "function") renderHistory(); }catch(e){}
+  try{ if(typeof renderTracker === "function") renderTracker(); }catch(e){}
+}
+
 function applyLayout(mode){
   document.body.classList.remove("layout-compact","layout-wide");
   document.body.classList.add(mode === "wide" ? "layout-wide" : "layout-compact");
