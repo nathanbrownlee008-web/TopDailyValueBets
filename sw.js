@@ -1,44 +1,66 @@
-// Use absolute URLs so this works reliably on Vercel and ensures correct scope.
-const CACHE_NAME = "top-daily-tips-v2";
+// Service Worker (network-first for app shell to avoid stale UI)
+const CACHE_NAME = 'tdt-cache-v10-1772618090';
 const CORE_ASSETS = [
-  "/",
-  "/index.html",
-  "/styles.css",
-  "/app.js",
-  "/manifest.json",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png"
+  '/',
+  '/index.html',
+  '/styles.css',
+  '/app.js',
+  '/manifest.json'
 ];
 
-self.addEventListener("install",(event)=>{
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache=>cache.addAll(CORE_ASSETS)).then(()=>self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS)).catch(() => {})
   );
 });
 
-self.addEventListener("activate",(event)=>{
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys=>Promise.all(keys.map(k=>k===CACHE_NAME?null:caches.delete(k)))).then(()=>self.clients.claim())
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)));
+      await self.clients.claim();
+    })()
   );
 });
 
-self.addEventListener("fetch",(event)=>{
+self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if(req.method !== "GET") return;
+  const url = new URL(req.url);
+
+  // Only handle same-origin
+  if (url.origin !== self.location.origin) return;
+
+  // Network-first for navigations (HTML) and core JS/CSS so updates always land.
+  const isNav = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+  const isCore = url.pathname === '/app.js' || url.pathname === '/styles.css' || url.pathname === '/index.html' || url.pathname === '/';
+
+  if (isNav || isCore) {
+    event.respondWith(
+      (async () => {
+        try {
+          const fresh = await fetch(req);
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(req, fresh.clone());
+          return fresh;
+        } catch (e) {
+          const cached = await caches.match(req);
+          return cached || Response.error();
+        }
+      })()
+    );
+    return;
+  }
+
+  // Cache-first for everything else (images, etc.)
   event.respondWith(
-    caches.match(req).then(cached=>{
-      if(cached) return cached;
-      return fetch(req).then(res=>{
-        // Cache same-origin only
-        try{
-          const url = new URL(req.url);
-          if(url.origin === self.location.origin){
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then(cache=>cache.put(req, copy));
-          }
-        }catch(e){}
+    caches.match(req).then((cached) =>
+      cached || fetch(req).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
         return res;
-      }).catch(()=>cached);
-    })
+      })
+    )
   );
 });
