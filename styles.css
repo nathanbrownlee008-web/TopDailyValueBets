@@ -1460,7 +1460,8 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
   position:fixed;
   inset:0;
   background: rgba(0,0,0,0.55);
-  display:flex;
+  /* Hidden by default; JS switches to flex when opened */
+  display:none;
   align-items:center;
   justify-content:center;
   padding:16px;
@@ -1715,223 +1716,70 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
   box-sizing: border-box;
 }
 
-
-
-/* ===== VIP Premium Header + Modal ===== */
-
-html, body { max-width: 100%; overflow-x: hidden; }
-
+/* =========================
+   VIP Premium Bar (Top)
+   ========================= */
 .vip-bar{
-  width: 100%;
-  max-width: 460px;
-  margin: 10px auto 14px auto;
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,215,0,.35);
-  background: linear-gradient(135deg,#0f172a,#1e293b);
-  box-shadow: 0 0 18px rgba(255,215,0,.12), 0 12px 30px rgba(0,0,0,.35);
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  width: min(720px, calc(100% - 24px));
+  margin: 14px auto 12px;
+  padding: 14px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 215, 0, 0.22);
+  background: rgba(12, 16, 28, 0.65);
+  box-shadow:
+    0 0 0 1px rgba(255, 215, 0, 0.06) inset,
+    0 16px 44px rgba(0,0,0,0.35);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
   gap: 12px;
-}
-
-.vip-button{
-  background: linear-gradient(135deg,#facc15,#eab308);
-  color: #111;
-  border: none;
-  border-radius: 999px;
-  padding: 9px 14px;
-  font-weight: 900;
-  font-size: 13px;
-  letter-spacing: .2px;
-  white-space: nowrap;
-  cursor: pointer;
-  box-shadow: 0 0 12px rgba(250,204,21,.35);
-}
-
-.vip-button.is-active{
-  cursor: default;
-  opacity: 1;
 }
 
 .vip-status{
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 13px;
-  font-weight: 650;
-  opacity: .9;
-  text-align: right;
-  line-height: 1.25;
+  opacity: 0.9;
+  line-height: 1.2;
 }
 
-@media (max-width: 480px){
-  .vip-bar{
-    max-width: 100%;
-    margin: 8px auto 12px auto;
-    padding: 10px 12px;
-    flex-wrap: wrap;
-  }
-  .vip-status{
-    text-align: left;
-    flex-basis: 100%;
-  }
-}
-
-/* VIP Modal */
-.vip-modal{
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(0,0,0,.55);
-}
-
-.vip-modal-inner{
-  width: min(520px, 100%);
-  border-radius: 18px;
-  padding: 16px;
-  background: #0b1220;
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 18px 60px rgba(0,0,0,.45);
-}
-
-.vip-modal-header{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.vip-modal-title{
-  font-size: 18px;
-  font-weight: 900;
-}
-
-.vip-close{
-  background: transparent;
-  border: 0;
-  color: #fff;
-  font-size: 28px;
-  line-height: 1;
-  cursor: pointer;
-  opacity: .9;
-}
-
-.vip-modal-sub{
-  opacity: .85;
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-
-.vip-label{
-  display: block;
-  font-size: 12px;
-  opacity: .8;
-  margin: 8px 0 6px;
-}
-
-.vip-input{
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  color: #fff;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.vip-plan-row{
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.vip-plan{
-  flex: 1;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.06);
-  color: #fff;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.vip-error{
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(255,80,80,.15);
-  border: 1px solid rgba(255,80,80,.25);
-}
-
-.vip-fineprint{
-  margin-top: 10px;
-  font-size: 12px;
-  opacity: .75;
-}
-
-/* VIP Blur + teaser overlay after first 5 bets */
-.vip-blur{
+#vipButton{
+  flex: 0 0 auto;
+  min-width: 140px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.95), rgba(255, 184, 0, 0.92));
+  color: #0a0d14;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 24px rgba(255, 208, 0, 0.22);
   position: relative;
 }
 
-.vip-blur > :not(.vip-teaser){
-  filter: blur(7px);
-  opacity: .55;
-  pointer-events: none;
-  user-select: none;
+#vipButton::before{
+  content: "👑";
+  margin-right: 8px;
 }
 
-.vip-teaser{
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px;
-  border-radius: 14px;
-  background: rgba(15,23,42,.78);
-  border: 1px solid rgba(255,215,0,.22);
+#vipButton.vip-active{
+  background: linear-gradient(180deg, rgba(255, 230, 115, 0.95), rgba(255, 200, 0, 0.92));
 }
 
-.vip-teaser-content{
-  text-align: center;
+.vip-bar.vip-active{
+  border-color: rgba(255, 215, 0, 0.36);
+  box-shadow:
+    0 0 0 1px rgba(255, 215, 0, 0.10) inset,
+    0 18px 54px rgba(0,0,0,0.38);
 }
 
-.vip-teaser-badge{
-  display: inline-block;
-  background: linear-gradient(135deg,#facc15,#eab308);
-  color: #111;
-  font-weight: 950;
-  padding: 6px 12px;
-  border-radius: 999px;
-  margin-bottom: 8px;
-  font-size: 12px;
+@media (max-width: 520px){
+  .vip-bar{
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  #vipButton{
+    width: 100%;
+  }
 }
-
-.vip-teaser-msg{
-  opacity: .9;
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-
-.vip-unlock-btn{
-  background: linear-gradient(135deg,#facc15,#eab308);
-  color: #111;
-  border: 0;
-  border-radius: 999px;
-  padding: 9px 14px;
-  font-weight: 950;
-  cursor: pointer;
-}
-
-
-/* VIP blur for wide table rows */
-.bets-table tr.vip-blur td{ filter: blur(6px); opacity:.55; }
-.bets-table tr.vip-blur button{ pointer-events:none; opacity:.6; }

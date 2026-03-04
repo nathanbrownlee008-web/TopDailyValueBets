@@ -3,7 +3,95 @@ const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
+// =========================
+// VIP
+// =========================
 
+function setVipUI(active,email){
+  if(!vipButtonEl) return;
+  const vipBarEl = document.querySelector('.vip-bar');
+
+  if(active){
+    vipButtonEl.textContent="VIP Access Active";
+    vipButtonEl.disabled=true;
+    vipButtonEl.style.pointerEvents="none";
+    vipButtonEl.style.cursor="default";
+    vipButtonEl.classList.add('vip-active');
+    if(vipBarEl) vipBarEl.classList.add('vip-active');
+    if(vipStatusEl) vipStatusEl.textContent = email ? `Access unlocked for ${email}` : "Access unlocked";
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab-locked');
+  }else{
+    vipButtonEl.textContent="Go VIP";
+    vipButtonEl.disabled=false;
+    vipButtonEl.style.pointerEvents="auto";
+    vipButtonEl.style.cursor="pointer";
+    vipButtonEl.classList.remove('vip-active');
+    if(vipBarEl) vipBarEl.classList.remove('vip-active');
+    // Keep the locked message generic (avoids confusion like "locked for <email>" right after clicking Go VIP)
+    if(vipStatusEl) vipStatusEl.textContent="VIP locked — subscribe to unlock";
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab-locked');
+  }
+}
+
+function openVipModal(){
+  if(!vipModalEl) return;
+  if(vipErrorEl) vipErrorEl.textContent="";
+  const saved=(localStorage.getItem('vip_email')||"").trim();
+  if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
+  vipModalEl.style.display="flex";
+}
+
+function closeVipModal(){
+  if(!vipModalEl) return;
+  vipModalEl.style.display="none";
+}
+
+async function checkVIP(){
+  const email=(localStorage.getItem('vip_email')||"").trim();
+  if(!email){
+    vipActive=false;
+    setVipUI(false,"");
+    return false;
+  }
+  try{
+    const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+    const j=await r.json();
+    vipActive=!!j.active;
+    setVipUI(vipActive,email);
+    return vipActive;
+  }catch(e){
+    vipActive=false;
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
+    setVipUI(false,email);
+    return false;
+  }
+}
+
+async function startCheckout(plan){
+  if(vipErrorEl) vipErrorEl.textContent="";
+  const email=(vipEmailEl?.value||"").trim();
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
+    return;
+  }
+  localStorage.setItem('vip_email',email);
+  try{
+    if(vipMonthlyEl) vipMonthlyEl.disabled=true;
+    if(vipYearlyEl) vipYearlyEl.disabled=true;
+    const r=await fetch('/api/create-checkout-session',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,plan})
+    });
+    const j=await r.json();
+    if(!r.ok || !j.url) throw new Error(j.error||'Checkout failed');
+    window.location.href=j.url;
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
+    if(vipMonthlyEl) vipMonthlyEl.disabled=false;
+    if(vipYearlyEl) vipYearlyEl.disabled=false;
+  }
+}
 
 function pad2(n){return String(n).padStart(2,'0');}
 function toLocalYMD(d=new Date()){
@@ -48,48 +136,6 @@ const vipYearlyEl = document.getElementById("vipYearly");
 const vipErrorEl = document.getElementById("vipError");
 
 let vipActive = false;
-
-
-// Update VIP UI + gating (used by verify-subscription)
-function setVipUI(active, email){
-  vipActive = !!active;
-
-  if(vipButtonEl){
-    if(vipActive){
-      vipButtonEl.textContent = "👑 VIP Access Active";
-      vipButtonEl.classList.add("is-active");
-      vipButtonEl.style.pointerEvents = "none";
-    }else{
-      vipButtonEl.textContent = "Go VIP";
-      vipButtonEl.classList.remove("is-active");
-      vipButtonEl.style.pointerEvents = "auto";
-    }
-  }
-
-  if(vipStatusEl){
-    if(vipActive){
-      vipStatusEl.textContent = email ? `VIP access active for ${email}` : "VIP access active";
-    }else{
-      vipStatusEl.textContent = "VIP locked — subscribe to unlock";
-    }
-  }
-
-  // Lock/unlock Tracker tab
-  if(typeof tabTracker !== "undefined" && tabTracker){
-    if(vipActive){
-      tabTracker.classList.remove("tab-locked");
-      tabTracker.removeAttribute("aria-disabled");
-    }else{
-      tabTracker.classList.add("tab-locked");
-      tabTracker.setAttribute("aria-disabled","true");
-    }
-  }
-
-  // Refresh current view (blur/limit updates immediately)
-  try{ if(typeof renderBets === "function") renderBets(); }catch(e){}
-  try{ if(typeof renderHistory === "function") renderHistory(); }catch(e){}
-  try{ if(typeof renderTracker === "function") renderTracker(); }catch(e){}
-}
 
 function applyLayout(mode){
   document.body.classList.remove("layout-compact","layout-wide");
@@ -232,40 +278,30 @@ if(!active.length){ betsGrid.innerHTML = `<div class="card">No bets for today.</
   const locked = (!vipActive && idx >= 5);
   const key = makeBetKey(row);
   const isAdded = addedKeys.has(key);
-
-  const betDateShort = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
-
-  betsGrid.innerHTML += `
+betsGrid.innerHTML+=`
+<div class="bet-lock-wrap">
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'vip-blur' : ''}">
     <h3 class="bet-title">${row.match}</h3>
     <div class="bet-meta">
       <span class="bet-market">${row.market}</span>
-      <span class="bet-date">${betDateShort}</span>
+      <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
     </div>
     <div class="bet-stats">
-      <span class="stat-chip">
-        <span class="stat-chip__k">Value</span>
-        <span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span>
-      </span>
+      <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
     </div>
     <div class="bet-footer">
       <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
-      <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${(!isAdded && !locked) ? `onclick='addToTracker(this, ${JSON.stringify(row)})'` : ''}>${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}</button>
+      <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
+        ${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}
+      </button>
     </div>
-
-    ${locked ? `
-      <div class="vip-teaser">
-        <div class="vip-teaser-content">
-          <div class="vip-teaser-badge">🔒 VIP BET</div>
-          <div class="vip-teaser-msg">Unlock the remaining value bets</div>
-          <button class="vip-unlock-btn" type="button" data-open-vip="1">Go VIP</button>
-        </div>
-      </div>
-    ` : ``}
-  </div>`;
+  </div>
+  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">Unlock VIP</button>' : ''}
+</div>`;
 
   // Desktop table row (shown via CSS in WIDE mode on large screens)
   if(betsTbody){
+    const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valTxt = val != null ? Number(val).toFixed(1)+'%' : '—';
     betsTbody.innerHTML += `
@@ -274,9 +310,11 @@ if(!active.length){ betsGrid.innerHTML = `<div class="card">No bets for today.</
         <td>${escapeHtml(row.market||'')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill">${escapeHtml(valTxt)}</span></td>
-        <td>${escapeHtml(betDateShort)}</td>
+        <td>${escapeHtml(betDate)}</td>
         <td>
-          <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${(!isAdded && !locked) ? `onclick='addToTracker(this, ${JSON.stringify(row)})'` : ''}>${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}</button>
+          <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
+            ${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}
+          </button>
         </td>
       </tr>
     `;
@@ -290,16 +328,6 @@ document.querySelectorAll('[data-open-vip="1"]').forEach(el=>{
 }
 
 
-
-
-// Unlock VIP buttons inside blurred cards
-if(betsGrid){
-  betsGrid.addEventListener('click',(e)=>{
-    const btn = e.target.closest('[data-open-vip]');
-    if(!btn) return;
-    openVipModal();
-  });
-}
 async function addToTracker(btn, row){
   const key = makeBetKey(row);
   if(addedKeys.has(key)) return;
@@ -413,7 +441,7 @@ function _applyTrackerFilters(rows){
 
 function _buildTrackerTableHTML(rows){
   let html = `<table>
-    <tr class="${locked ? 'vip-blur' : ''}">
+    <tr>
       <th>Date</th>
       <th>Match</th>
       <th>Stake</th>
@@ -433,7 +461,7 @@ function _buildTrackerTableHTML(rows){
 
     const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
 
-    html += `<tr class="${locked ? 'vip-blur' : ''}">
+    html += `<tr>
       <td class="date-col">${dateLabel}</td>
       <td>${row.match || ""}</td>
       <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
@@ -621,7 +649,7 @@ function renderHistory(){
           <div class="history-table-wrap">
             <table class="history-table">
               <thead>
-                <tr class="${locked ? 'vip-blur' : ''}">
+                <tr>
                   <th>Match</th>
                   <th>Market</th>
                   <th class="th-odds">Odds</th>
@@ -715,7 +743,7 @@ wireTrackerFilters();
 let start=parseFloat(document.getElementById("startingBankroll").value);
 let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
 
-	let html="<table><tr class="${locked ? 'vip-blur' : ''}"><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+	let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 
 rows.forEach(row=>{
 let p=0;
@@ -725,7 +753,7 @@ profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
 bankroll=start+profit;history.push(bankroll);
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
-html+=`<tr class="${locked ? 'vip-blur' : ''}">
+html+=`<tr>
 <td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td>
@@ -807,11 +835,11 @@ const monthlyROI = monthKeys.map(k=>{
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr class="${locked ? 'vip-blur' : ''}"><th>Month</th><th>Profit</th><th>ROI</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
-    breakdownHTML += `<tr class="${locked ? 'vip-blur' : ''}">
+    breakdownHTML += `<tr>
       <td>${monthLabels[i]}</td>
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
