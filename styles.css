@@ -1677,3 +1677,22 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
   text-align:right;
   line-height:1.2;
 }
+/* ===== MOBILE VIP BAR FIX ===== */
+
+@media (max-width:480px){
+
+  .vip-bar{
+    margin:8px auto 6px auto;
+    padding:10px 12px;
+  }
+
+  .vip-button{
+    padding:6px 12px;
+    font-size:12px;
+  }
+
+  .vip-status{
+    font-size:12px;
+  }
+
+}
