@@ -1,4 +1,8 @@
-
+/* Prevent horizontal scrolling */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
 body{background:#0f172a;color:#e2e8f0;font-family:Inter,sans-serif;margin:0;padding:20px}
 .main-header{text-align:center;margin-bottom:30px}
 .logo-3d{font-size:42px;font-weight:800;color:#fff;text-shadow:0 0 20px rgba(0,255,140,.6)}
@@ -1695,4 +1699,18 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
     font-size:12px;
   }
 
+}
+/* Make layout mobile safe */
+.container,
+.main,
+.wrapper {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure cards never overflow */
+.bet-card,
+.vip-bar {
+  max-width: 100%;
+  box-sizing: border-box;
 }
