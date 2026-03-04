@@ -1530,6 +1530,51 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
   color:#eafff6;
   font-weight:800;
 }
+/* ---- VIP + Tabs spacing (safe) ---- */
 
+/* Give the whole header a bit more breathing room */
+.main-header{
+  padding-bottom: 14px;
+}
+
+/* Space under the title */
+.main-header .logo-3d{
+  margin-bottom: 10px;
+}
+
+/* VIP row: add spacing from title and from tabs */
+.vip-bar{
+  margin-top: 10px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* VIP status text spacing + readability */
+#vipStatus{
+  margin-left: 6px;
+  line-height: 1.2;
+}
+
+/* Tabs: push them slightly down */
+.tabs{
+  margin-top: 8px;
+}
+
+/* On small screens, stack VIP nicely and add a touch more space */
+@media (max-width: 480px){
+  .vip-bar{
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  #vipStatus{
+    flex-basis: 100%;
+    margin-left: 0;
+    margin-top: 6px;
+  }
+}
 
 
