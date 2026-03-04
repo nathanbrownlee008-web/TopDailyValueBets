@@ -1,8 +1,9 @@
 {
-  "name": "top-daily-tips-vip",
-  "private": true,
+  "name": "top-daily-value-bets",
   "version": "1.0.0",
+  "private": true,
+  "type": "module",
   "dependencies": {
-    "stripe": "^16.0.0"
+    "stripe": "^14.0.0"
   }
 }
