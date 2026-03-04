@@ -16,8 +16,9 @@
 <header class="main-header">
 <h1 class="logo-3d">Top Daily Tips</h1>
 
+  <!-- VIP Bar -->
   <div class="vip-bar">
-    <button id="vipButton" class="vip-btn">Go VIP</button>
+    <button id="vipButton" class="vip-button" type="button">Go VIP</button>
     <div id="vipStatus" class="vip-status"></div>
   </div>
 <div class="tabs">
@@ -126,29 +127,28 @@
 </section>
 
 <!-- VIP Modal -->
-<div id="vipModal" class="modal-overlay" style="display:none;">
-  <div class="modal-card">
+<div id="vipModal" class="modal-overlay" style="display:none">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Go VIP">
     <div class="modal-header">
       <div class="modal-title">Go VIP</div>
-      <button id="vipClose" class="modal-close">✕</button>
+      <button id="vipClose" class="modal-close" type="button">✕</button>
     </div>
     <div class="modal-body">
       <label class="field-label" for="vipEmail">Email for access</label>
       <input id="vipEmail" class="field-input" type="email" placeholder="you@example.com" autocomplete="email" />
 
       <div class="plan-grid">
-        <button id="vipMonthly" class="plan-btn">£12 / month</button>
-        <button id="vipYearly" class="plan-btn">£80 / year</button>
+        <button id="vipMonthly" class="plan-button" type="button">£12 / month</button>
+        <button id="vipYearly" class="plan-button" type="button">£80 / year</button>
       </div>
 
-      <div class="small-muted" style="margin-top:10px;">
-        Tip: if you create a promo code in Stripe (e.g. first month £5), you can enter it on the checkout page.
-      </div>
+      <div class="small-muted">Tip: if you create a promo code in Stripe (e.g. first month £5), you can enter it on the checkout page.</div>
 
-      <div id="vipError" class="error-text" style="display:none; margin-top:10px;"></div>
+      <div id="vipError" class="error-text"></div>
     </div>
   </div>
+</div>
 
-<script src="app.js?v=1772410471"></script>
+<script src="app.js?v=1772410472"></script>
 </body>
 </html>
