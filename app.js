@@ -291,7 +291,7 @@ betsGrid.innerHTML+=`
     <div class="bet-teaser">
       <h3 class="bet-title">${row.match}</h3>
       <div class="bet-meta">
-      <span class="bet-market">${row.market}</span>
+      ${locked ? '' : `<span class="bet-market">${row.market}</span>`}
       <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
     </div>
     </div>
@@ -318,7 +318,7 @@ betsGrid.innerHTML+=`
     betsTbody.innerHTML += `
       <tr class="${locked ? 'vip-blur' : ''}">
         <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${escapeHtml(row.market||'')}</td>
+        <td>${locked ? '—' : escapeHtml(row.market||'')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill">${escapeHtml(valTxt)}</span></td>
         <td>${escapeHtml(betDate)}</td>
