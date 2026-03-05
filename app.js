@@ -3,6 +3,103 @@ const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
+// =========================
+// VIP
+// =========================
+
+function setVipUI(active, email){
+  vipActive = !!active;
+
+  const titleEl = document.getElementById('vipTitle');
+  const statusEl = document.getElementById('vipStatus');
+  const btnEl = document.getElementById('vipButton');
+  const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
+
+  if(active){
+    if(titleEl) titleEl.textContent = 'VIP Access';
+    if(statusEl) statusEl.textContent = email ? `Access unlocked for ${email}` : 'Access unlocked';
+    if(btnEl){
+      if(btnTextEl) btnTextEl.textContent = 'VIP Access Active';
+      else btnEl.textContent = 'VIP Access Active';
+      btnEl.disabled = true;
+      btnEl.style.pointerEvents = "none";
+      btnEl.style.cursor = "default";
+    }
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
+  }else{
+    if(titleEl) titleEl.textContent = 'VIP Access';
+    if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
+    if(btnEl){
+      if(btnTextEl) btnTextEl.textContent = 'Go VIP';
+      else btnEl.textContent = 'Go VIP';
+      btnEl.disabled = false;
+      btnEl.style.pointerEvents = "";
+      btnEl.style.cursor = "pointer";
+    }
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
+  }
+}
+
+function openVipModal(){
+  if(!vipModalEl) return;
+  if(vipErrorEl) vipErrorEl.textContent="";
+  const saved=(localStorage.getItem('vip_email')||"").trim();
+  if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
+  vipModalEl.style.display="flex";
+}
+
+function closeVipModal(){
+  if(!vipModalEl) return;
+  vipModalEl.style.display="none";
+}
+
+async function checkVIP(){
+  const email=(localStorage.getItem('vip_email')||"").trim();
+  if(!email){
+    vipActive=false;
+    setVipUI(false,"");
+    return false;
+  }
+  try{
+    const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+    const j=await r.json();
+    vipActive=!!j.active;
+    setVipUI(vipActive,email);
+    return vipActive;
+  }catch(e){
+    vipActive=false;
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
+    setVipUI(false,email);
+    return false;
+  }
+}
+
+async function startCheckout(plan){
+  if(vipErrorEl) vipErrorEl.textContent="";
+  const email=(vipEmailEl?.value||"").trim();
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
+    return;
+  }
+  localStorage.setItem('vip_email',email);
+  try{
+    if(vipMonthlyEl) vipMonthlyEl.disabled=true;
+    if(vipYearlyEl) vipYearlyEl.disabled=true;
+    const r=await fetch('/api/create-checkout-session',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,plan})
+    });
+    const j=await r.json();
+    if(!r.ok || !j.url) throw new Error(j.error||'Checkout failed');
+    window.location.href=j.url;
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
+    if(vipMonthlyEl) vipMonthlyEl.disabled=false;
+    if(vipYearlyEl) vipYearlyEl.disabled=false;
+  }
+}
+
 function pad2(n){return String(n).padStart(2,'0');}
 function toLocalYMD(d=new Date()){
   const yr=d.getFullYear();
@@ -34,6 +131,18 @@ function isValueBetActiveToday(row){
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
+
+// VIP UI
+const vipButtonEl = document.getElementById("vipButton");
+const vipStatusEl = document.getElementById("vipStatus");
+const vipModalEl = document.getElementById("vipModal");
+const vipCloseEl = document.getElementById("vipClose");
+const vipEmailEl = document.getElementById("vipEmail");
+const vipMonthlyEl = document.getElementById("vipMonthly");
+const vipYearlyEl = document.getElementById("vipYearly");
+const vipErrorEl = document.getElementById("vipError");
+
+let vipActive = false;
 
 function applyLayout(mode){
   document.body.classList.remove("layout-compact","layout-wide");
@@ -102,8 +211,29 @@ let currentTopTab = "bets"; // 'bets' | 'tracker' | 'history'
 let trackerRowsCache = [];
 
 tabBets.onclick=()=>switchTab("bets");
-tabTracker.onclick=()=>switchTab("tracker");
+tabTracker.onclick=()=>{
+  if(!vipActive){
+    openVipModal();
+    return;
+  }
+  switchTab("tracker");
+};
 if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
+
+// VIP events
+if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
+if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
+if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
+if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
+if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+
+// On load: check VIP status (if email saved), then render.
+checkVIP().then(()=>{
+  // ensure tabs reflect VIP lock
+  setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+  // re-render bets so blur/limits apply
+  loadBets();
+});
 
 function switchTab(tab){
   currentTopTab = tab;
@@ -147,26 +277,37 @@ const {data}=await client.from("value_bets_feed").select("*").order("value_pct",
 betsGrid.innerHTML="";
 const betsTable=document.getElementById('betsTable');
 const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
+
 if(betsTbody) betsTbody.innerHTML = "";
 const active=(data||[]).filter(isValueBetActiveToday);
 if(!active.length){ betsGrid.innerHTML = `<div class="card">No bets for today.</div>`; return; }
- (active || []).forEach(row=>{
+(active || []).forEach((row, idx)=>{
+  const locked = (!vipActive && idx >= 5);
   const key = makeBetKey(row);
   const isAdded = addedKeys.has(key);
 betsGrid.innerHTML+=`
-<div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''}">
-  <h3 class="bet-title">${row.match}</h3>
-  <div class="bet-meta">
-    <span class="bet-market">${row.market}</span>
-    <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
+<div class="bet-lock-wrap">
+  <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'vip-blur' : ''}">
+    <div class="bet-teaser">
+      <h3 class="bet-title">${row.match}</h3>
+      <div class="bet-meta">
+      <span class="bet-market">${row.market}</span>
+      <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
+    </div>
+    </div>
+    <div class="bet-details">
+      <div class="bet-stats ${locked ? 'vip-blur-area' : ''}">
+      <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
+    </div>
+    <div class="bet-footer">
+      <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
+      <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
+        ${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}
+      </button>
+    </div>
+    </div>
   </div>
-  <div class="bet-stats">
-    <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
-  </div>
-  <div class="bet-footer">
-    <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
-    <button class="bet-btn ${isAdded ? 'added' : ''}" ${isAdded ? 'disabled' : ''} onclick='addToTracker(this, ${JSON.stringify(row)})'>${isAdded ? 'Added' : 'Add'}</button>
-  </div>
+  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">Unlock VIP</button>' : ''}
 </div>`;
 
   // Desktop table row (shown via CSS in WIDE mode on large screens)
@@ -175,18 +316,25 @@ betsGrid.innerHTML+=`
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valTxt = val != null ? Number(val).toFixed(1)+'%' : '—';
     betsTbody.innerHTML += `
-      <tr>
+      <tr class="${locked ? 'vip-blur' : ''}">
         <td><b>${escapeHtml(row.match||'')}</b></td>
         <td>${escapeHtml(row.market||'')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill">${escapeHtml(valTxt)}</span></td>
         <td>${escapeHtml(betDate)}</td>
         <td>
-          <button class="btn ${isAdded ? 'added' : ''}" ${isAdded ? 'disabled' : ''} onclick='addToTracker(this, ${JSON.stringify(row)})'>${isAdded ? 'Added' : 'Add'}</button>
+          <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
+            ${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}
+          </button>
         </td>
       </tr>
     `;
   }
+});
+
+// Hook VIP overlays after render
+document.querySelectorAll('[data-open-vip="1"]').forEach(el=>{
+  el.addEventListener('click', openVipModal);
 });
 }
 
