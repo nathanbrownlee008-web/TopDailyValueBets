@@ -1459,7 +1459,7 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:10px;
+  gap:4px;
 }
 
 
