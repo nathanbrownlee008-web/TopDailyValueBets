@@ -7,29 +7,33 @@ const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 // VIP
 // =========================
 
-function setVipUI(active,email){
-  if(!vipButtonEl) return;
-  const vipBarEl = document.querySelector('.vip-bar');
+function setVipUI(active, email){
+  vipActive = !!active;
+
+  const titleEl = document.getElementById('vipTitle');
+  const statusEl = document.getElementById('vipStatus');
+  const btnEl = document.getElementById('vipButton');
 
   if(active){
-    vipButtonEl.textContent="VIP Access Active";
-    vipButtonEl.disabled=true;
-    vipButtonEl.style.pointerEvents="none";
-    vipButtonEl.style.cursor="default";
-    vipButtonEl.classList.add('vip-active');
-    if(vipBarEl) vipBarEl.classList.add('vip-active');
-    if(vipStatusEl) vipStatusEl.textContent = email ? `Access unlocked for ${email}` : "Access unlocked";
-    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab-locked');
+    if(titleEl) titleEl.textContent = 'VIP Access';
+    if(statusEl) statusEl.textContent = email ? `Access unlocked for ${email}` : 'Access unlocked';
+    if(btnEl){
+      btnEl.textContent = 'VIP Access Active';
+      btnEl.disabled = true;
+      btnEl.style.pointerEvents = "none";
+      btnEl.style.cursor = "default";
+    }
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
   }else{
-    vipButtonEl.textContent="Go VIP";
-    vipButtonEl.disabled=false;
-    vipButtonEl.style.pointerEvents="auto";
-    vipButtonEl.style.cursor="pointer";
-    vipButtonEl.classList.remove('vip-active');
-    if(vipBarEl) vipBarEl.classList.remove('vip-active');
-    // Keep the locked message generic (avoids confusion like "locked for <email>" right after clicking Go VIP)
-    if(vipStatusEl) vipStatusEl.textContent="VIP locked — subscribe to unlock";
-    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab-locked');
+    if(titleEl) titleEl.textContent = 'VIP Access';
+    if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
+    if(btnEl){
+      btnEl.textContent = 'Go VIP';
+      btnEl.disabled = false;
+      btnEl.style.pointerEvents = "";
+      btnEl.style.cursor = "pointer";
+    }
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
   }
 }
 
@@ -288,8 +292,8 @@ betsGrid.innerHTML+=`
       <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
     </div>
     </div>
-    <div class="bet-details ${locked ? 'bet-details--blur' : ''}">
-      <div class="bet-stats">
+    <div class="bet-details">
+      <div class="bet-stats ${locked ? 'vip-blur-area' : ''}">
       <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
     </div>
     <div class="bet-footer">
