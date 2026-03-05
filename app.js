@@ -281,12 +281,15 @@ if(!active.length){ betsGrid.innerHTML = `<div class="card">No bets for today.</
 betsGrid.innerHTML+=`
 <div class="bet-lock-wrap">
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'vip-blur' : ''}">
-    <h3 class="bet-title">${row.match}</h3>
-    <div class="bet-meta">
+    <div class="bet-teaser">
+      <h3 class="bet-title">${row.match}</h3>
+      <div class="bet-meta">
       <span class="bet-market">${row.market}</span>
       <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
     </div>
-    <div class="bet-stats">
+    </div>
+    <div class="bet-details ${locked ? 'bet-details--blur' : ''}">
+      <div class="bet-stats">
       <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
     </div>
     <div class="bet-footer">
@@ -294,6 +297,7 @@ betsGrid.innerHTML+=`
       <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
         ${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}
       </button>
+    </div>
     </div>
   </div>
   ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">Unlock VIP</button>' : ''}
