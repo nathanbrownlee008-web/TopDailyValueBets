@@ -1778,6 +1778,10 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
 }
 
 #vipButton{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   flex: 0 0 auto;
   min-width: 140px;
   padding: 10px 14px;
@@ -1791,9 +1795,13 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
   position: relative;
 }
 
-#vipButton::before{
-  content: "👑";
-  margin-right: 8px;
+/* Keep a single crown inside the button via the HTML icon element.
+   (We previously had a ::before crown which duplicated it.) */
+
+#vipButton .vip-button__text{
+  /* Nudge the label slightly left so it reads visually centered next to the crown */
+  position: relative;
+  left: -2px;
 }
 
 #vipButton.vip-active{
