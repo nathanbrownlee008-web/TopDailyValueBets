@@ -17,10 +17,17 @@
 <h1 class="logo-3d">Top Daily Tips</h1>
 
   <!-- VIP Bar -->
-  <div class="vip-bar">
-    <button id="vipButton" class="vip-button" type="button">Go VIP</button>
-    <div id="vipStatus" class="vip-status"></div>
+  <div class="vip-bar" id="vipBar">
+    <div class="vip-bar__left">
+      <div class="vip-bar__title" id="vipTitle">VIP Access</div>
+      <div id="vipStatus" class="vip-bar__status">VIP locked — subscribe to unlock</div>
+    </div>
+    <button id="vipButton" class="vip-button" type="button">
+      <span class="vip-button__icon" aria-hidden="true">👑</span>
+      <span class="vip-button__text">Go VIP</span>
+    </button>
   </div>
+
 <div class="tabs">
 <button id="tabBets" class="active">Value Bets</button>
 <button id="tabTracker">Tracker</button>
