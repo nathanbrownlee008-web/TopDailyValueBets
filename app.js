@@ -302,12 +302,12 @@ betsGrid.innerHTML+=`
     <div class="bet-footer">
       <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
       <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
-        ${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}
+        ${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}
       </button>
     </div>
     </div>
   </div>
-  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">Unlock VIP</button>' : ''}
+  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 VIP</button>' : ''}
 </div>`;
 
   // Desktop table row (shown via CSS in WIDE mode on large screens)
@@ -324,7 +324,7 @@ betsGrid.innerHTML+=`
         <td>${escapeHtml(betDate)}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
-            ${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}
+            ${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}
           </button>
         </td>
       </tr>
