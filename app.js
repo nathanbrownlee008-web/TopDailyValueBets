@@ -27,7 +27,7 @@ function setVipUI(active,email){
     if(vipStatusEl) vipStatusEl.textContent="VIP locked — subscribe to unlock";
     if(typeof tabTracker!=='undefined' && tabTracker){
       tabTracker.classList.add('tab-locked');
-      tabTracker.textContent='🔒 Tracker';
+      tabTracker.textContent='Tracker';
     }
   }
 }

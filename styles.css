@@ -1566,57 +1566,254 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
 
 
 
-/* ===== VIP UPGRADES ===== */
-
-/* Tracker locked tab */
-.tab-locked{
-  opacity:0.85;
-  position:relative;
-}
-.tab-locked::after{
-  content:" 🔒";
-  font-size:12px;
+/* ===== Mobile header tidy-up ===== */
+.main-header{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
 }
 
-/* VIP blur bets badge */
-.vip-blur{
-  filter: blur(4px);
-  position:relative;
-}
-.vip-blur::after{
-  content:"VIP";
-  position:absolute;
-  top:10px;
-  right:10px;
-  background:linear-gradient(135deg,#facc15,#eab308);
-  color:#111;
-  font-weight:900;
-  font-size:11px;
-  padding:4px 8px;
-  border-radius:999px;
-  box-shadow:0 0 10px rgba(250,204,21,0.7);
+.tabs{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
 }
 
-/* Animated gold VIP bar */
+.tabs button{
+  margin:0;
+  min-height:48px;
+  padding:12px 18px;
+  border-radius:18px;
+  font-weight:800;
+  line-height:1;
+}
+
+.top-controls{
+  width:100%;
+  display:flex;
+  justify-content:center;
+}
+
+.layout-switch{
+  min-height:48px;
+}
+
+.layout-btn{
+  min-width:110px;
+  min-height:48px;
+  padding:12px 18px;
+  font-size:14px;
+}
+
 .vip-bar{
-  margin-top:10px;
-  padding:8px;
-  border-radius:12px;
-  background:linear-gradient(90deg,#facc15,#fde68a,#facc15);
-  background-size:200% 100%;
-  animation:vipShine 3s linear infinite;
+  position:relative;
+  overflow:hidden;
 }
 
 .vip-button{
-  background:#111;
-  color:#facc15;
-  border:1px solid #facc15;
-  padding:6px 14px;
-  border-radius:999px;
-  font-weight:800;
+  min-height:58px;
 }
 
-@keyframes vipShine{
-  0%{background-position:0%}
-  100%{background-position:200%}
+.vip-btn-inner{
+  transform:none;
+  font-size:clamp(18px, 4vw, 20px);
+}
+
+.vip-status{
+  max-width: 90%;
+  line-height:1.35;
+}
+
+#tabTracker.tab-locked::before{
+  content:"🔒";
+  margin-right:8px;
+}
+
+.tab-locked{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Value cards spacing */
+.bet-card{
+  gap:10px;
+  padding:16px;
+  border-radius:20px;
+}
+
+.bet-title{
+  line-height:1.2;
+  font-size:17px;
+}
+
+.bet-meta{
+  align-items:flex-start;
+  gap:12px;
+}
+
+.bet-market,
+.bet-date{
+  line-height:1.25;
+}
+
+.bet-stats{
+  margin-top:0;
+}
+
+.stat-chip,
+.odds-badge,
+.bet-btn{
+  min-height:42px;
+}
+
+.stat-chip,
+.odds-badge{
+  padding:8px 12px;
+}
+
+.bet-btn{
+  padding:9px 16px;
+  border-radius:14px;
+}
+
+.vip-overlay{
+  border-radius:20px;
+  font-size:15px;
+}
+
+@media (max-width: 600px){
+  body,
+  body.layout-compact,
+  body.layout-wide{
+    --app-pad: 12px;
+    padding:12px;
+  }
+
+  .main-header{
+    gap:12px;
+    margin-bottom:20px;
+  }
+
+  .logo-3d{
+    font-size: clamp(30px, 8vw, 44px);
+    line-height:1.05;
+    margin:4px 0 2px;
+  }
+
+  .vip-bar{
+    margin:6px auto 4px;
+    padding:12px 12px 14px;
+    border-radius:22px;
+    gap:8px;
+  }
+
+  .vip-button{
+    width:100%;
+    padding:12px 16px;
+    min-height:54px;
+  }
+
+  .vip-crown{
+    font-size:22px;
+  }
+
+  .vip-status{
+    font-size:13px;
+  }
+
+  .tabs{
+    gap:8px;
+  }
+
+  .tabs button{
+    flex:1 1 calc(50% - 8px);
+    min-width:140px;
+    padding:11px 12px;
+    font-size:15px;
+    border-radius:18px;
+  }
+
+  #tabHistory{
+    flex-basis:auto;
+    min-width:170px;
+  }
+
+  .top-controls{
+    margin-top:2px;
+  }
+
+  .layout-switch{
+    width:100%;
+    max-width:260px;
+  }
+
+  .layout-btn{
+    flex:1 1 50%;
+    min-width:0;
+  }
+
+  .bets-grid{
+    gap:12px;
+  }
+
+  .bet-card{
+    padding:14px;
+    gap:9px;
+  }
+
+  .bet-meta{
+    justify-content:space-between;
+    gap:10px;
+  }
+
+  .bet-market{
+    max-width:58%;
+  }
+
+  .bet-date{
+    flex:0 0 auto;
+    font-size:12px;
+  }
+
+  .bet-footer{
+    gap:8px;
+    align-items:flex-end;
+  }
+
+  .odds-badge{
+    font-size:13px;
+  }
+
+  .bet-btn{
+    min-width:92px;
+    font-size:13px;
+  }
+}
+
+@media (max-width: 420px){
+  .tabs button{
+    flex:1 1 100%;
+    min-width:0;
+  }
+
+  #tabHistory{
+    min-width:0;
+  }
+
+  .bet-footer{
+    flex-wrap:wrap;
+  }
+
+  .bet-btn{
+    margin-left:auto;
+  }
+
+  .bet-market{
+    max-width:54%;
+  }
 }
