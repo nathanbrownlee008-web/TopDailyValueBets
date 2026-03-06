@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
 
-    const baseUrl = (origin && typeof origin === 'string') ? origin : (process.env.APP_ORIGIN || 'http://localhost:3000');
+    const baseUrl = process.env.APP_ORIGIN || "https://top-daily-value-bets.vercel.app";
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
