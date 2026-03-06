@@ -10,20 +10,25 @@ const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 function setVipUI(active,email){
   if(!vipButtonEl) return;
   if(active){
-    vipButtonEl.textContent="VIP Active";
+    vipButtonEl.innerHTML='<span class="vip-btn-inner"><span class="vip-crown">👑</span><span>VIP Active</span></span>';
     vipButtonEl.disabled=true;
     vipButtonEl.style.pointerEvents="none";
     vipButtonEl.style.cursor="default";
     if(vipStatusEl) vipStatusEl.textContent=email?`VIP active for ${email}`:"VIP active";
-    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab-locked');
+    if(typeof tabTracker!=='undefined' && tabTracker){
+      tabTracker.classList.remove('tab-locked');
+      tabTracker.textContent='Tracker';
+    }
   }else{
-    vipButtonEl.textContent="Go VIP";
+    vipButtonEl.innerHTML='<span class="vip-btn-inner"><span class="vip-crown">👑</span><span>Go VIP</span></span>';
     vipButtonEl.disabled=false;
     vipButtonEl.style.pointerEvents="auto";
     vipButtonEl.style.cursor="pointer";
-    // Keep the locked message generic (avoids confusion like "locked for <email>" right after clicking Go VIP)
     if(vipStatusEl) vipStatusEl.textContent="VIP locked — subscribe to unlock";
-    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab-locked');
+    if(typeof tabTracker!=='undefined' && tabTracker){
+      tabTracker.classList.add('tab-locked');
+      tabTracker.textContent='Tracker';
+    }
   }
 }
 
