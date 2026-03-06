@@ -25,7 +25,7 @@ function setVipUI(active, email){
       btnEl.style.pointerEvents = "none";
       btnEl.style.cursor = "default";
     }
-    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab-locked');
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
@@ -36,7 +36,8 @@ function setVipUI(active, email){
       btnEl.style.pointerEvents = "";
       btnEl.style.cursor = "pointer";
     }
-    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
+    // lock the Tracker tab when VIP is not active
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab-locked');
   }
 }
 
