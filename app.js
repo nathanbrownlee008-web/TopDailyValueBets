@@ -7,36 +7,28 @@ const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 // VIP
 // =========================
 
-function setVipUI(active, email){
-  vipActive = !!active;
-
-  const titleEl = document.getElementById('vipTitle');
-  const statusEl = document.getElementById('vipStatus');
-  const btnEl = document.getElementById('vipButton');
-  const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
-
+function setVipUI(active,email){
+  if(!vipButtonEl) return;
   if(active){
-    if(titleEl) titleEl.textContent = 'VIP Access';
-    if(statusEl) statusEl.textContent = email ? `Access unlocked for ${email}` : 'Access unlocked';
-    if(btnEl){
-      if(btnTextEl) btnTextEl.textContent = 'VIP Access Active';
-      else btnEl.textContent = 'VIP Access Active';
-      btnEl.disabled = true;
-      btnEl.style.pointerEvents = "none";
-      btnEl.style.cursor = "default";
+    vipButtonEl.innerHTML='<span class="vip-btn-inner"><span class="vip-crown">👑</span><span>VIP Active</span></span>';
+    vipButtonEl.disabled=true;
+    vipButtonEl.style.pointerEvents="none";
+    vipButtonEl.style.cursor="default";
+    if(vipStatusEl) vipStatusEl.textContent=email?`VIP active for ${email}`:"VIP active";
+    if(typeof tabTracker!=='undefined' && tabTracker){
+      tabTracker.classList.remove('tab-locked');
+      tabTracker.textContent='Tracker';
     }
-    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
   }else{
-    if(titleEl) titleEl.textContent = 'VIP Access';
-    if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
-    if(btnEl){
-      if(btnTextEl) btnTextEl.textContent = 'Go VIP';
-      else btnEl.textContent = 'Go VIP';
-      btnEl.disabled = false;
-      btnEl.style.pointerEvents = "";
-      btnEl.style.cursor = "pointer";
+    vipButtonEl.innerHTML='<span class="vip-btn-inner"><span class="vip-crown">👑</span><span>Go VIP</span></span>';
+    vipButtonEl.disabled=false;
+    vipButtonEl.style.pointerEvents="auto";
+    vipButtonEl.style.cursor="pointer";
+    if(vipStatusEl) vipStatusEl.textContent="VIP locked — subscribe to unlock";
+    if(typeof tabTracker!=='undefined' && tabTracker){
+      tabTracker.classList.add('tab-locked');
+      tabTracker.textContent='🔒 Tracker';
     }
-    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
   }
 }
 
@@ -288,26 +280,23 @@ if(!active.length){ betsGrid.innerHTML = `<div class="card">No bets for today.</
 betsGrid.innerHTML+=`
 <div class="bet-lock-wrap">
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'vip-blur' : ''}">
-    <div class="bet-teaser">
-      <h3 class="bet-title">${row.match}</h3>
-      <div class="bet-meta">
-      ${locked ? '' : `<span class="bet-market">${row.market}</span>`}
+    <h3 class="bet-title">${row.match}</h3>
+    <div class="bet-meta">
+      <span class="bet-market">${row.market}</span>
       <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
     </div>
-    </div>
-    <div class="bet-details">
-      <div class="bet-stats ${locked ? 'vip-blur-area' : ''}">
+    <div class="bet-stats">
       <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
+      ${row.bookie ? `<span class="stat-chip bookie-chip"><span class="stat-chip__k">Bookie</span><span class="stat-chip__v">${escapeHtml(row.bookie)}</span></span>` : ''}
     </div>
     <div class="bet-footer">
       <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
       <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
-        ${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}
+        ${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}
       </button>
     </div>
-    </div>
   </div>
-  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 VIP</button>' : ''}
+  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">Unlock VIP</button>' : ''}
 </div>`;
 
   // Desktop table row (shown via CSS in WIDE mode on large screens)
@@ -318,13 +307,13 @@ betsGrid.innerHTML+=`
     betsTbody.innerHTML += `
       <tr class="${locked ? 'vip-blur' : ''}">
         <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${locked ? '—' : escapeHtml(row.market||'')}</td>
+        <td>${escapeHtml(row.market||'')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill">${escapeHtml(valTxt)}</span></td>
         <td>${escapeHtml(betDate)}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
-            ${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}
+            ${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}
           </button>
         </td>
       </tr>
