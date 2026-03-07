@@ -280,19 +280,16 @@ if(!active.length){ betsGrid.innerHTML = `<div class="card">No bets for today.</
 betsGrid.innerHTML+=`
 <div class="bet-lock-wrap">
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'vip-blur' : ''}">
-    <div class="bet-head">
-      <h3 class="bet-title">${row.match}</h3>
-      <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
-    </div>
+    <h3 class="bet-title">${row.match}</h3>
     <div class="bet-meta">
       <span class="bet-market">${row.market}</span>
+      <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
     </div>
-    ${row.bookie ? `<div class="bet-bookie">Bookie: <strong>${row.bookie}</strong></div>` : ''}
+    <div class="bet-stats">
+      <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
+    </div>
     <div class="bet-footer">
-      <div class="bet-badges">
-        <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
-        <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
-      </div>
+      <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
       <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
         ${locked ? 'VIP' : (isAdded ? 'Added' : 'Add')}
       </button>
