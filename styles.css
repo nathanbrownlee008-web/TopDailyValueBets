@@ -671,6 +671,17 @@ th{text-align:left}
   opacity: 0.72;
 }
 
+.bet-bookie{
+  margin-top:2px;
+  font-size:13px;
+  color:rgba(226,232,240,0.86);
+}
+
+.bet-bookie strong{
+  color:#ffffff;
+  font-weight:800;
+}
+
 .odds-badge{
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.10);
@@ -744,18 +755,6 @@ th{text-align:left}
   font-variant-numeric: tabular-nums;
 }
 
-.bookie-chip{
-  background: rgba(22,163,74,0.14);
-  border-color: rgba(34,197,94,0.28);
-}
-
-.bookie-chip .stat-chip__k{
-  opacity:0.78;
-}
-
-.bookie-chip .stat-chip__v{
-  color:#dcfce7;
-}
 
 /* ---------------------------
    Daily History
@@ -1487,11 +1486,6 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
   white-space:normal;
   overflow-wrap:anywhere;
   text-align:center;
-}
-
-#tabTracker.tab-locked::before{
-  content:"🔒 ";
-  opacity:0.95;
 }
 
 .tab-locked{ opacity:0.78; }

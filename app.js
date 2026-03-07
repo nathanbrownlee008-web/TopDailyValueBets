@@ -27,7 +27,7 @@ function setVipUI(active,email){
     if(vipStatusEl) vipStatusEl.textContent="VIP locked — subscribe to unlock";
     if(typeof tabTracker!=='undefined' && tabTracker){
       tabTracker.classList.add('tab-locked');
-      tabTracker.textContent='🔒 Tracker';
+      tabTracker.textContent='Tracker';
     }
   }
 }
@@ -285,9 +285,9 @@ betsGrid.innerHTML+=`
       <span class="bet-market">${row.market}</span>
       <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
     </div>
+    ${row.bookie ? `<div class="bet-bookie">Bookie: <strong>${escapeHtml(row.bookie)}</strong></div>` : ''}
     <div class="bet-stats">
       <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
-      ${row.bookie ? `<span class="stat-chip bookie-chip"><span class="stat-chip__k">Bookie</span><span class="stat-chip__v">${escapeHtml(row.bookie)}</span></span>` : ''}
     </div>
     <div class="bet-footer">
       <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
