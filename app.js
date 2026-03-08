@@ -26,6 +26,8 @@ function setVipUI(active, email){
       btnEl.style.cursor = "default";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
+    const promoEl = document.getElementById('vipPromo');
+    if(promoEl) promoEl.style.display = 'none';
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
@@ -37,6 +39,8 @@ function setVipUI(active, email){
       btnEl.style.cursor = "pointer";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
+    const promoEl = document.getElementById('vipPromo');
+    if(promoEl) promoEl.style.display = 'flex';
   }
 }
 
@@ -142,43 +146,7 @@ const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
 const vipErrorEl = document.getElementById("vipError");
 
-
 let vipActive = false;
-
-function trackerStorageKey(){
-  const email = ((localStorage.getItem('vip_email')||'').trim().toLowerCase() || 'guest');
-  return `tdt_tracker_${email}`;
-}
-
-function readTrackerRows(){
-  try{
-    const raw = localStorage.getItem(trackerStorageKey());
-    const rows = raw ? JSON.parse(raw) : [];
-    const safeRows = Array.isArray(rows) ? rows : [];
-    return safeRows.map((row)=>{
-      const out = { ...(row || {}) };
-      if(!out.id) out.id = makeLocalTrackerId();
-      if(!out.created_at && out.bet_date){
-        out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
-      }
-      if(!out.created_at){
-        out.created_at = new Date().toISOString();
-      }
-      return out;
-    });
-  }catch(e){
-    return [];
-  }
-}
-
-function writeTrackerRows(rows){
-  localStorage.setItem(trackerStorageKey(), JSON.stringify(rows || []));
-}
-
-function makeLocalTrackerId(){
-  return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-}
-
 
 function applyLayout(mode){
   document.body.classList.remove("layout-compact","layout-wide");
@@ -222,6 +190,8 @@ function makeBetKey(row){
 }
 
 // Top navigation tabs
+const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
+const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
 const historyDaySelectEl = document.getElementById("historyDaySelect");
@@ -243,8 +213,9 @@ if(historyListEl){
 const historySummaryEl = document.getElementById("historySummary");
 const historyRefreshEl = document.getElementById("historyRefresh");
 
-let currentTopTab = "bets"; // 'bets' | 'tracker' | 'history'
+let currentTopTab = "bets"; // 'bets' | 'tracker' | 'tdt' | 'history'
 let trackerRowsCache = [];
+let tdtRowsCache = [];
 
 tabBets.onclick=()=>switchTab("bets");
 tabTracker.onclick=()=>{
@@ -254,6 +225,7 @@ tabTracker.onclick=()=>{
   }
   switchTab("tracker");
 };
+if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
 
 // VIP events
@@ -262,6 +234,8 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+const vipPromoBtnEl = document.getElementById('vipPromoBtn');
+if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 
 // On load: check VIP status (if email saved), then render.
 checkVIP().then(()=>{
@@ -269,6 +243,7 @@ checkVIP().then(()=>{
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
   // re-render bets so blur/limits apply
   loadBets();
+  loadVipPromoProof();
 });
 
 function switchTab(tab){
@@ -285,12 +260,7 @@ function switchTab(tab){
 
   if(tab!=="bets"){
     loadTracker().then(()=>{
-      if(tab==="history"){
-        renderHistory();
-        if(historyListEl && !historyListEl.innerHTML.trim()){
-          historyListEl.innerHTML = '<div class="card">No history yet.</div>';
-        }
-      }
+      if(tab==="history") renderHistory();
     });
   }
 }
@@ -303,8 +273,13 @@ async function loadBets(){
   addedKeys.clear();
   // Preload tracker rows so already-added bets render as "Added"
   try{
-    const localRows = readTrackerRows();
-    localRows.forEach(r => addedKeys.add(makeBetKey(r)));
+    const { data: tdata, error: terr } = await client
+      .from("bet_tracker")
+      .select("match,market,odds")
+      .limit(1000);
+    if(!terr && Array.isArray(tdata)){
+      tdata.forEach(r => addedKeys.add(makeBetKey(r)));
+    }
   }catch(e){
     // Ignore preload failures
   }
@@ -344,7 +319,7 @@ betsGrid.innerHTML+=`
     </div>
     </div>
   </div>
-  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 VIP</button>' : ''}
+  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 Unlock VIP</button>' : ''}
 </div>`;
 
   // Desktop table row (shown via CSS in WIDE mode on large screens)
@@ -381,33 +356,41 @@ async function addToTracker(btn, row){
   const key = makeBetKey(row);
   if(addedKeys.has(key)) return;
 
-  if(!vipActive){
-    openVipModal();
-    return;
-  }
-
+  // Optimistic UI
   if(btn){
     btn.disabled = true;
     btn.textContent = 'Adding…';
   }
 
-  const rows = readTrackerRows();
-  rows.push({
-    id: makeLocalTrackerId(),
+  const payload = {
     match: row.match,
     market: row.market,
-    odds: Number(row.odds),
-    stake: 10,
-    result: "pending",
-    created_at: new Date().toISOString(),
-    bet_date: row.bet_date || null
-  });
-  writeTrackerRows(rows);
+    odds: row.odds,
+        stake: 10,
+    result: "pending"
+  };
+
+  const { data, error } = await client
+    .from("bet_tracker")
+    .insert([payload])
+    .select();
+
+  if(error){
+    console.error("Insert failed:", error);
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = "Add";
+    }
+    // Quick visible feedback (mobile)
+    try{ alert("Could not add bet. Check tracker table columns / RLS."); }catch(e){}
+    return;
+  }
 
   addedKeys.add(key);
   if(btn){
     btn.textContent = 'Added';
     btn.classList.add('added', 'flash');
+    // remove the flash class after animation
     setTimeout(()=>btn.classList.remove('flash'), 700);
     btn.disabled = true;
   }
@@ -594,16 +577,11 @@ function dayKeyFromRow(r){
     const s = String(r.match_date).slice(0,10);
     if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   }
-  if(r && r.bet_date){
-    const s = String(r.bet_date).slice(0,10);
-    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  }
-  const raw = r?.created_at || r?.updated_at;
-  if(raw){
-    const d = new Date(raw);
-    if(!Number.isNaN(d.getTime())) return d.toISOString().slice(0,10);
-  }
-  return toLocalYMD(new Date());
+  const raw = r?.bet_date || r?.created_at;
+  if(!raw) return "";
+  const d = new Date(raw);
+  if(Number.isNaN(d.getTime())) return "";
+  return d.toISOString().slice(0,10);
 }
 
 function formatDayLabelLong(dayKey){
@@ -713,7 +691,7 @@ function renderHistory(){
   }
 
   if(!dayKeys.length){
-    html = `<div class="card">No history yet.</div>`;
+    html = `<div class="empty">No history yet.</div>`;
   }
 
   historyListEl.innerHTML = html;
@@ -775,8 +753,243 @@ borderWidth:2,
 });
 }
 
+
+async function loadVipPromoProof(){
+  const statsEl = document.getElementById('vipPromoStats');
+  if(!statsEl) return;
+  try{
+    const { data, error } = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
+    if(error || !Array.isArray(data) || !data.length){
+      statsEl.textContent = "See the official TDT results and track your own bets as VIP.";
+      return;
+    }
+    let profit = 0, totalStake = 0;
+    data.forEach(r=>{
+      profit += rowProfit(r);
+      totalStake += Number(r.stake || 0);
+    });
+    const roi = totalStake ? ((profit / totalStake) * 100).toFixed(1) : '0.0';
+    statsEl.textContent = `${data.length} tracked bets • ROI ${roi}% • ${(profit>=0?'+':'-')}£${Math.abs(profit).toFixed(2)} official profit`;
+  }catch(e){
+    statsEl.textContent = "See the official TDT results and track your own bets as VIP.";
+  }
+}
+
+let tdtDailyChart;
+let tdtMonthlyChart;
+let tdtMarketChart;
+
+function renderTdtDailyChart(history, labels){
+  if(tdtDailyChart) tdtDailyChart.destroy();
+  const el = document.getElementById("tdtChart");
+  if(!el) return;
+  const ctx=el.getContext("2d");
+  tdtDailyChart=new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:(labels && labels.length===history.length) ? labels : history.map((_,i)=>i+1),
+      datasets:[{
+        data:history,
+        tension:0.25,
+        fill:true,
+        backgroundColor:"rgba(34,197,94,0.08)",
+        borderColor:"#22c55e",
+        borderWidth:2,
+        pointRadius:(c)=> isEndOfDay(c.dataIndex, labels) ? 5 : 0,
+        pointHoverRadius:(c)=> isEndOfDay(c.dataIndex, labels) ? 7 : 0,
+        pointBackgroundColor:"#22c55e",
+        pointBorderWidth:0
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{ mode:"nearest", intersect:true },
+      scales:{
+        y:{ ticks:{ callback:(v)=> `£${v}` } },
+        x:{
+          ticks:{
+            callback:function(value, index){
+              const label = this.getLabelForValue(value);
+              if(index === 0) return label;
+              return label !== labels[index - 1] ? label : "";
+            }
+          }
+        }
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{enabled:true,callbacks:{label:(ctx)=> `£${Number(ctx.parsed.y).toFixed(2)}`}}
+      }
+    }
+  });
+}
+
+function renderTdtMonthlyChart(profits, roi, labels){
+  const el = document.getElementById("tdtMonthlyChart");
+  if(!el) return;
+  if(tdtMonthlyChart) tdtMonthlyChart.destroy();
+  const maxROI = Math.max(...roi, 5);
+  const minROI = Math.min(...roi, -5);
+  const pad = 5;
+  const ctx = el.getContext("2d");
+  tdtMonthlyChart = new Chart(ctx,{
+    type:"bar",
+    data:{labels:labels,datasets:[{data:roi,borderRadius:10,barThickness:24,backgroundColor:profits.map(v=> v>0 ? "rgba(34,197,94,0.9)" : v<0 ? "rgba(239,68,68,0.9)" : "rgba(100,116,139,0.4)")}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min: Math.floor(minROI - pad),max: Math.ceil(maxROI + pad),ticks:{callback:(v)=>v+"%"},grid:{color:"rgba(255,255,255,0.05)"}}}},
+    plugins:[{afterDatasetsDraw(chart){const {ctx}=chart;chart.getDatasetMeta(0).data.forEach((bar,i)=>{const val=profits[i];if(val===0) return;ctx.fillStyle="#fff";ctx.font="bold 13px system-ui";ctx.textAlign="center";ctx.fillText("£"+val.toFixed(2), bar.x, roi[i]>=0 ? bar.y-8 : bar.y+18);});}}]
+  });
+}
+
+function renderTdtMarketChart(labels, winPct, totals){
+  const el = document.getElementById("tdtMarketChart");
+  if(!el) return;
+  if(tdtMarketChart) tdtMarketChart.destroy();
+  const ctx = el.getContext("2d");
+  tdtMarketChart = new Chart(ctx,{
+    type:"bar",
+    data:{labels,datasets:[{data:winPct,borderWidth:0,borderRadius:10,barThickness:18,backgroundColor:winPct.map(v=> v>=55 ? "rgba(34,197,94,0.85)" : v>=40 ? "rgba(245,158,11,0.85)" : "rgba(239,68,68,0.85)")} ]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>{const i=ctx.dataIndex;const pct=Number(ctx.raw||0).toFixed(0)+"%";const t=(totals&&totals[i])?totals[i]:{bets:0,wins:0,losses:0};return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;}}}},scales:{x:{min:0,max:100,ticks:{display:false},grid:{display:false,drawBorder:false}},y:{ticks:{color:"rgba(229,231,235,0.85)",font:{weight:800}},grid:{display:false,drawBorder:false}}},animation:{duration:250}}
+  });
+}
+
+function initTdtChartTabs(){
+  const btns = document.querySelectorAll(".tdt-tab-btn");
+  if(!btns.length || window.__tdtTabsInit) return;
+  window.__tdtTabsInit = true;
+  btns.forEach(b=>{
+    b.addEventListener("click", ()=>{
+      btns.forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      const tab = b.getAttribute("data-tdt-tab");
+      document.querySelectorAll(".tdt-chart-pane").forEach(p=>p.classList.remove("active"));
+      const pane = document.getElementById("tdt-pane-"+tab);
+      if(pane) pane.classList.add("active");
+    });
+  });
+}
+
+function toggleTdtMonthly(){
+  const wrapper=document.getElementById("tdtMonthlyWrapper");
+  const arrow=document.getElementById("tdtMonthlyArrow");
+  if(!wrapper || !arrow) return;
+  if(wrapper.classList.contains("collapsed")){
+    wrapper.classList.remove("collapsed");
+    wrapper.classList.add("expanded");
+    arrow.innerText="▲";
+  }else{
+    wrapper.classList.remove("expanded");
+    wrapper.classList.add("collapsed");
+    arrow.innerText="▼";
+  }
+}
+
+function toggleTdtTrackerTable(){
+  const wrapper = document.getElementById("tdtTrackerWrapper");
+  const arrow = document.getElementById("tdtTrackerArrow");
+  if(!wrapper || !arrow) return;
+  if(wrapper.classList.contains("collapsed")){
+    wrapper.classList.remove("collapsed");
+    wrapper.classList.add("expanded");
+    arrow.innerText="▲";
+    localStorage.setItem("tdt_tracker_open","true");
+  }else{
+    wrapper.classList.remove("expanded");
+    wrapper.classList.add("collapsed");
+    arrow.innerText="▼";
+    localStorage.setItem("tdt_tracker_open","false");
+  }
+}
+
+async function loadTdtTracker(){
+  const tableEl = document.getElementById("tdtTrackerTable");
+  try{
+    const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
+    if(error) throw error;
+    const rows = Array.isArray(data) ? data : [];
+    tdtRowsCache = rows;
+    let start = 0, profit = 0, wins = 0, losses = 0, totalStake = 0, totalOdds = 0, history = [];
+    let html = "<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+    rows.forEach(row=>{
+      const p = rowProfit(row);
+      if(row.result==="won") wins++;
+      if(row.result==="lost") losses++;
+      profit += p;
+      totalStake += Number(row.stake || 0);
+      totalOdds += Number(row.odds || 0);
+      history.push(start + profit);
+      const gameDate = row.match_date_date || row.bet_date || row.created_at;
+      html += `<tr><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td><span class="tdt-table-result ${(row.result||'pending').toLowerCase()}">${escapeHtml((row.result||'pending').toUpperCase())}</span></td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
+    });
+    html += "</table>";
+    if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official tracker data yet.</div>';
+
+    const bankroll = start + profit;
+    const set = (id,val)=>{ const el=document.getElementById(id); if(el) el.innerText = val; };
+    set("tdtBankroll", bankroll.toFixed(2));
+    set("tdtProfit", profit.toFixed(2));
+    set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
+    set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
+    set("tdtWonLost", `${wins}-${losses}`);
+    set("tdtTotalStakedCard", totalStake.toFixed(2));
+    set("tdtAvgOdds", rows.length?(totalOdds/rows.length).toFixed(2):0);
+    set("tdtTotalBets", rows.length);
+    set("tdtBetCount", rows.length);
+
+    const tdtProfitCardEl = document.getElementById("tdtProfitCard");
+    if(tdtProfitCardEl){
+      tdtProfitCardEl.classList.remove("glow-green","glow-red");
+      if(profit>0) tdtProfitCardEl.classList.add("glow-green");
+      if(profit<0) tdtProfitCardEl.classList.add("glow-red");
+    }
+
+    const dailyLabels = rows.map(r => fmtDayLabel(r.match_date_date || r.bet_date || r.created_at));
+    renderTdtDailyChart(history, dailyLabels);
+
+    const monthMap = {}, monthStakeMap = {};
+    rows.forEach(r=>{
+      const d = new Date(r.created_at || r.bet_date || Date.now());
+      const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+      monthMap[key] = (monthMap[key]||0) + rowProfit(r);
+      monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
+    });
+    const monthKeys = Object.keys(monthMap).sort();
+    const monthLabels = monthKeys.map(k=>{ const [y,m]=k.split("-"); return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'}); });
+    const monthlyProfit = monthKeys.map(k=> monthMap[k]);
+    const monthlyROI = monthKeys.map(k=>{ const stake = monthStakeMap[k] || 0; return stake ? (monthMap[k] / stake) * 100 : 0; });
+    renderTdtMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
+
+    const monthlyTableEl = document.getElementById("tdtMonthlyTable");
+    if(monthlyTableEl){
+      let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
+      monthKeys.forEach((k,i)=>{ const p = monthlyProfit[i]; const r = monthlyROI[i]; breakdownHTML += `<tr><td>${monthLabels[i]}</td><td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td><td>${r.toFixed(1)}%</td></tr>`; });
+      breakdownHTML += "</table>";
+      monthlyTableEl.innerHTML = breakdownHTML;
+    }
+
+    const marketWL = {};
+    rows.forEach(r=>{
+      const mk=(r.market&&String(r.market).trim())?String(r.market).trim():"Unknown";
+      if(!marketWL[mk]) marketWL[mk]={wins:0,losses:0,pending:0,bets:0};
+      marketWL[mk].bets += 1;
+      const res=(r.result || "pending").toLowerCase();
+      if(res==="won") marketWL[mk].wins += 1;
+      else if(res==="lost") marketWL[mk].losses += 1;
+      else marketWL[mk].pending += 1;
+    });
+    let entries = Object.entries(marketWL).sort((a,b)=>(b[1].bets)-(a[1].bets)).slice(0,8);
+    const labels = entries.map(e=>e[0]);
+    const totals = entries.map(e=>({ bets:e[1].bets, wins:e[1].wins, losses:e[1].losses }));
+    const winPct = entries.map(e=>{ const resolved=e[1].wins+e[1].losses; return resolved ? (e[1].wins / resolved) * 100 : 0; });
+    renderTdtMarketChart(labels, winPct, totals);
+  }catch(err){
+    if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet. Add the Supabase table first.</div>';
+  }
+}
+
 async function loadTracker(){
-const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const {data}=await client.from("bet_tracker").select("*").order("created_at",{ascending:true});
+const rows = data || [];
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -945,21 +1158,20 @@ if(monthKeys.length){
 
 
 async function updateStake(id,val){
-  const rows = readTrackerRows();
-  writeTrackerRows(rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r));
-  loadTracker();
+await client.from("bet_tracker").update({stake:parseFloat(val)}).eq("id",id);
+loadTracker();
 }
 
 async function updateResult(id,val){
-  const rows = readTrackerRows();
-  if(val==="delete"){
-    if(!confirm("Delete this bet?")){loadTracker();return;}
-    writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
-    loadBets();
-  }else{
-    writeTrackerRows(rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r));
-  }
-  loadTracker();
+if(val==="delete"){
+if(!confirm("Delete this bet?")){loadTracker();return;}
+await client.from("bet_tracker").delete().eq("id",id);
+// Refresh the Value Bets feed so the button switches back from "Added" to "Add".
+loadBets();
+}else{
+await client.from("bet_tracker").update({result:val}).eq("id",id);
+}
+loadTracker();
 }
 
 function exportCSV(){
@@ -1007,6 +1219,14 @@ document.addEventListener("DOMContentLoaded",function(){
     wrapper.classList.remove("collapsed");
     wrapper.classList.add("expanded");
     arrow.innerText="▲";
+  }
+  const tdtWrapper=document.getElementById("tdtTrackerWrapper");
+  const tdtArrow=document.getElementById("tdtTrackerArrow");
+  const tdtOpen=localStorage.getItem("tdt_tracker_open");
+  if(tdtWrapper && tdtArrow && tdtOpen==="true"){
+    tdtWrapper.classList.remove("collapsed");
+    tdtWrapper.classList.add("expanded");
+    tdtArrow.innerText="▲";
   }
 });
 
