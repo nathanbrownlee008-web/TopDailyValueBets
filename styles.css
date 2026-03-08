@@ -2258,3 +2258,15 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
     border-radius:9px !important;
   }
 }
+
+
+/* Tracker auth */
+.tracker-auth-gate{margin:0 auto 18px;max-width:720px;}
+.tracker-auth-card{background:rgba(30,41,59,.72);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;box-shadow:0 10px 26px rgba(0,0,0,.18);}
+.tracker-auth-title{margin:0 0 6px;font-size:18px;font-weight:800;}
+.tracker-auth-copy{margin:0 0 12px;opacity:.82;}
+.tracker-auth-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.tracker-auth-input{flex:1;min-width:220px;width:auto;}
+.tracker-logout-btn{margin-top:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);}
+#trackerAuthMsg{margin-top:10px;}
+@media (max-width:600px){.tracker-auth-row{flex-direction:column;align-items:stretch;}.tracker-auth-input{min-width:0;width:100%;}}
