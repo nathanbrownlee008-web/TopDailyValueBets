@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772414001"/>
+<link rel="stylesheet" href="styles.css?v=1772413001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -17,10 +17,17 @@
 <h1 class="logo-3d">Top Daily Tips</h1>
 
   <!-- VIP Bar -->
-  <div class="vip-bar">
-    <button id="vipButton" class="vip-button" type="button">Go VIP</button>
-    <div id="vipStatus" class="vip-status"></div>
+  <div class="vip-bar" id="vipBar">
+    <div class="vip-bar__left">
+      <div class="vip-bar__title" id="vipTitle">VIP Access</div>
+      <div id="vipStatus" class="vip-bar__status">VIP locked — subscribe to unlock</div>
+    </div>
+    <button id="vipButton" class="vip-button" type="button">
+      <span class="vip-button__icon" aria-hidden="true">👑</span>
+      <span class="vip-button__text">Go VIP</span>
+    </button>
   </div>
+
 <div class="tabs">
 <button id="tabBets" class="active">Value Bets</button>
 <button id="tabTracker">Tracker</button>
@@ -46,6 +53,7 @@
       <tr>
         <th>Match</th>
         <th>Market</th>
+        <th>Bookie</th>
         <th>Odds</th>
         <th>Value</th>
         <th>Date</th>
@@ -58,17 +66,6 @@
 </section>
 
 <section id="trackerSection" style="display:none;">
-
-<div class="tracker-auth-card">
-  <div class="tracker-auth-card__title">Personal Tracker</div>
-  <div class="tracker-auth-card__text">Each person gets their own tracker. Sign in once and your picks stay separate.</div>
-  <div class="tracker-auth-row">
-    <input id="authEmail" class="tracker-auth-input" type="email" placeholder="your@email.com" autocomplete="email" />
-    <button id="authSendLink" class="tracker-auth-btn" type="button">Email Me Login Link</button>
-    <button id="authLogout" class="tracker-auth-btn tracker-auth-btn--ghost" type="button" style="display:none">Log Out</button>
-  </div>
-  <div id="authStatus" class="tracker-auth-status">Sign in to keep your tracker private.</div>
-</div>
 
 <div class="bankroll-section">
   <div class="bankroll-row">
@@ -160,6 +157,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772414001"></script>
+<script src="app.js?v=1772410472"></script>
 </body>
 </html>
