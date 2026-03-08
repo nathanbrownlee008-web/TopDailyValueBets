@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772414001"/>
+<link rel="stylesheet" href="styles.css?v=1772413001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -67,26 +67,6 @@
 
 <section id="trackerSection" style="display:none;">
 
-<div id="trackerAuthGate" class="tracker-auth-gate" style="display:none;">
-  <div class="tracker-auth-card">
-    <div id="trackerAuthLoggedOut">
-      <h3 class="tracker-auth-title">Sign in to use your tracker</h3>
-      <p class="tracker-auth-copy">Use the same email as your VIP access.</p>
-      <div class="tracker-auth-row">
-        <input id="trackerLoginEmail" class="field-input tracker-auth-input" type="email" placeholder="you@example.com" autocomplete="email" />
-        <button id="trackerSendLink" class="plan-button" type="button">Send Login Link</button>
-      </div>
-      <div id="trackerAuthMsg" class="small-muted"></div>
-    </div>
-    <div id="trackerAuthLoggedIn" style="display:none;">
-      <div class="tracker-auth-title">Signed in</div>
-      <div class="tracker-auth-copy">Logged in as <strong id="trackerUserEmail"></strong></div>
-      <button id="trackerLogout" class="modal-close tracker-logout-btn" type="button">Log out</button>
-    </div>
-  </div>
-</div>
-
-<div id="trackerMainContent">
 <div class="bankroll-section">
   <div class="bankroll-row">
     <label>Starting Bankroll</label>
@@ -146,7 +126,6 @@
   </div>
 </div>
 
-</div>
 </section>
 
 <section id="historySection" style="display:none;">
@@ -178,6 +157,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772414001"></script>
+<script src="app.js?v=1772413002"></script>
 </body>
 </html>
