@@ -40,14 +40,6 @@
     <button id="btnWide" class="layout-btn">Wide</button>
   </div>
   <!-- Install App button removed for now -->
-
-<div id="vipPromo" class="vip-promo" style="display:none;">
-  <div class="vip-promo__text">
-    <div class="vip-promo__title">Unlock all today’s value bets + My Tracker + TDT Tracker</div>
-    <div id="vipPromoStats" class="vip-promo__stats">See the official TDT results and track your own bets as VIP.</div>
-  </div>
-  <button id="vipPromoBtn" class="vip-promo__btn" type="button">Go VIP</button>
-</div>
 </div>
 </header>
 
@@ -134,14 +126,11 @@
   </div>
 </div>
 
+
 </section>
 
-
 <section id="tdtTrackerSection" style="display:none;">
-<div class="tdt-header card">
-  <div class="tdt-header__title">TDT Official Tracker</div>
-  <div class="tdt-header__sub">Read-only official all-time results for everyone to see.</div>
-</div>
+<div class="card"><strong>TDT Official Tracker</strong><br>Read-only official all-time results for everyone to see.</div>
 
 <div class="stats-grid">
 <div class="stat-card">Bankroll<br><strong>£<span id="tdtBankroll">0</span></strong></div>
@@ -154,45 +143,15 @@
 <div class="stat-card">Total Bets<br><strong><span id="tdtTotalBets">0</span></strong></div>
 </div>
 
-<div class="chart-tabs tdt-chart-tabs">
-  <button class="tdt-tab-btn active" data-tdt-tab="daily">Daily</button>
-  <button class="tdt-tab-btn" data-tdt-tab="monthly">Monthly</button>
-  <button class="tdt-tab-btn" data-tdt-tab="market">Markets</button>
-</div>
-
-<div class="chart-wrap">
-  <div class="tdt-chart-pane active" id="tdt-pane-daily">
-    <canvas id="tdtChart"></canvas>
-  </div>
-  <div class="tdt-chart-pane" id="tdt-pane-monthly">
-    <canvas id="tdtMonthlyChart"></canvas>
-
-    <div class="monthly-breakdown">
-      <div class="monthly-toggle" onclick="toggleTdtMonthly()">
-        📊 Monthly Breakdown
-        <span id="tdtMonthlyArrow">▼</span>
-      </div>
-
-      <div id="tdtMonthlyWrapper" class="collapsed">
-        <div id="tdtMonthlyTable"></div>
-      </div>
-    </div>
-  </div>
-  <div class="tdt-chart-pane" id="tdt-pane-market">
-    <canvas id="tdtMarketChart"></canvas>
-  </div>
-</div>
-
 <div class="tracker-history">
   <div class="tracker-toggle" onclick="toggleTdtTrackerTable()">
-    📈 TDT Bet Results (<span id="tdtBetCount">0</span>)
+    📈 TDT Results (<span id="tdtBetCount">0</span>)
     <span id="tdtTrackerArrow">▼</span>
   </div>
   <div id="tdtTrackerWrapper" class="collapsed">
     <div id="tdtTrackerTable"></div>
   </div>
 </div>
-</section>
 
 <section id="historySection" style="display:none;">
   <!-- History shows all days stacked; tap a day to expand/collapse. -->
@@ -223,6 +182,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772413005"></script>
+<script src="app.js?v=1772415001"></script>
 </body>
 </html>
