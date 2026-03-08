@@ -154,7 +154,18 @@ function readTrackerRows(){
   try{
     const raw = localStorage.getItem(trackerStorageKey());
     const rows = raw ? JSON.parse(raw) : [];
-    return Array.isArray(rows) ? rows : [];
+    const safeRows = Array.isArray(rows) ? rows : [];
+    return safeRows.map((row)=>{
+      const out = { ...(row || {}) };
+      if(!out.id) out.id = makeLocalTrackerId();
+      if(!out.created_at && out.bet_date){
+        out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
+      }
+      if(!out.created_at){
+        out.created_at = new Date().toISOString();
+      }
+      return out;
+    });
   }catch(e){
     return [];
   }
@@ -274,7 +285,12 @@ function switchTab(tab){
 
   if(tab!=="bets"){
     loadTracker().then(()=>{
-      if(tab==="history") renderHistory();
+      if(tab==="history"){
+        renderHistory();
+        if(historyListEl && !historyListEl.innerHTML.trim()){
+          historyListEl.innerHTML = '<div class="card">No history yet.</div>';
+        }
+      }
     });
   }
 }
@@ -578,11 +594,16 @@ function dayKeyFromRow(r){
     const s = String(r.match_date).slice(0,10);
     if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   }
-  const raw = r?.bet_date || r?.created_at;
-  if(!raw) return "";
-  const d = new Date(raw);
-  if(Number.isNaN(d.getTime())) return "";
-  return d.toISOString().slice(0,10);
+  if(r && r.bet_date){
+    const s = String(r.bet_date).slice(0,10);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  }
+  const raw = r?.created_at || r?.updated_at;
+  if(raw){
+    const d = new Date(raw);
+    if(!Number.isNaN(d.getTime())) return d.toISOString().slice(0,10);
+  }
+  return toLocalYMD(new Date());
 }
 
 function formatDayLabelLong(dayKey){
@@ -692,7 +713,7 @@ function renderHistory(){
   }
 
   if(!dayKeys.length){
-    html = `<div class="empty">No history yet.</div>`;
+    html = `<div class="card">No history yet.</div>`;
   }
 
   historyListEl.innerHTML = html;
