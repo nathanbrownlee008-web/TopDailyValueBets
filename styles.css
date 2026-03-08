@@ -2258,14 +2258,54 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
     border-radius:9px !important;
   }
 }
-/* Center VIP text while keeping button right */
-.vip-bar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
 
-.vip-bar__left{
-  flex:1;
-  text-align:center;
+
+/* ---- Personal tracker auth ---- */
+.tracker-auth-card{
+  max-width: 720px;
+  margin: 0 auto 18px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(30,41,59,0.72);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+  text-align: left;
+}
+.tracker-auth-title{
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.tracker-auth-status{
+  font-size: 13px;
+  color: rgba(226,232,240,0.82);
+  margin-bottom: 10px;
+}
+.tracker-auth-input{
+  width: 100%;
+  box-sizing: border-box;
+  background:#1e293b;
+  border:1px solid #334155;
+  color:#fff;
+  padding:10px 12px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+.tracker-auth-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.tracker-auth-btn{
+  padding:10px 14px;
+  border-radius:10px;
+  background:#334155;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+}
+.tracker-auth-btn--ghost{
+  background: rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.12);
 }

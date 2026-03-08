@@ -142,7 +142,91 @@ const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
 const vipErrorEl = document.getElementById("vipError");
 
+// Tracker Auth UI
+const trackerAuthCardEl = document.getElementById("trackerAuthCard");
+const trackerAuthEmailEl = document.getElementById("trackerAuthEmail");
+const trackerAuthSendEl = document.getElementById("trackerAuthSend");
+const trackerAuthSignOutEl = document.getElementById("trackerAuthSignOut");
+const trackerAuthStatusEl = document.getElementById("trackerAuthStatus");
+const trackerContentEl = document.getElementById("trackerContent");
+
 let vipActive = false;
+let trackerUser = null;
+
+async function getTrackerUser(){
+  try{
+    const { data:{ user } } = await client.auth.getUser();
+    trackerUser = user || null;
+    return trackerUser;
+  }catch(e){
+    trackerUser = null;
+    return null;
+  }
+}
+
+function setTrackerAuthUI(user){
+  if(!trackerAuthCardEl || !trackerContentEl) return;
+
+  if(user){
+    trackerAuthCardEl.style.display = "block";
+    trackerContentEl.style.display = "block";
+    if(trackerAuthStatusEl) trackerAuthStatusEl.textContent = `Tracker signed in as ${user.email || 'user'}`;
+    if(trackerAuthEmailEl){
+      trackerAuthEmailEl.style.display = "none";
+      trackerAuthEmailEl.value = user.email || trackerAuthEmailEl.value || "";
+    }
+    if(trackerAuthSendEl){
+      trackerAuthSendEl.style.display = "none";
+      trackerAuthSendEl.disabled = false;
+    }
+    if(trackerAuthSignOutEl) trackerAuthSignOutEl.style.display = "inline-flex";
+  }else{
+    trackerAuthCardEl.style.display = "block";
+    trackerContentEl.style.display = "none";
+    if(trackerAuthStatusEl) trackerAuthStatusEl.textContent = "Sign in by email to save and track your own bets.";
+    if(trackerAuthEmailEl){
+      trackerAuthEmailEl.style.display = "block";
+      if(!trackerAuthEmailEl.value) trackerAuthEmailEl.value = (localStorage.getItem('tracker_auth_email')||localStorage.getItem('vip_email')||'').trim();
+    }
+    if(trackerAuthSendEl){
+      trackerAuthSendEl.style.display = "inline-flex";
+      trackerAuthSendEl.disabled = false;
+    }
+    if(trackerAuthSignOutEl) trackerAuthSignOutEl.style.display = "none";
+  }
+}
+
+async function sendTrackerMagicLink(){
+  const email = (trackerAuthEmailEl?.value || localStorage.getItem('vip_email') || "").trim();
+  if(!email || !email.includes("@")){
+    if(trackerAuthStatusEl) trackerAuthStatusEl.textContent = "Enter a valid email.";
+    return;
+  }
+  localStorage.setItem('tracker_auth_email', email);
+  try{
+    if(trackerAuthSendEl) trackerAuthSendEl.disabled = true;
+    const { error } = await client.auth.signInWithOtp({
+      email,
+      options:{ emailRedirectTo: window.location.origin }
+    });
+    if(error) throw error;
+    if(trackerAuthStatusEl) trackerAuthStatusEl.textContent = "Magic link sent — check your email and open it on this device.";
+  }catch(err){
+    if(trackerAuthStatusEl) trackerAuthStatusEl.textContent = err?.message || "Could not send login link.";
+    if(trackerAuthSendEl) trackerAuthSendEl.disabled = false;
+  }
+}
+
+async function signOutTracker(){
+  try{
+    await client.auth.signOut();
+  }catch(e){}
+  trackerUser = null;
+  setTrackerAuthUI(null);
+  addedKeys.clear();
+  loadBets();
+  loadTracker();
+}
 
 function applyLayout(mode){
   document.body.classList.remove("layout-compact","layout-wide");
@@ -226,13 +310,25 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+if(trackerAuthSendEl) trackerAuthSendEl.addEventListener('click', sendTrackerMagicLink);
+if(trackerAuthSignOutEl) trackerAuthSignOutEl.addEventListener('click', signOutTracker);
 
-// On load: check VIP status (if email saved), then render.
-checkVIP().then(()=>{
+// On load: check VIP status and tracker auth, then render.
+checkVIP().then(async()=>{
+  await getTrackerUser();
+  setTrackerAuthUI(trackerUser);
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
   // re-render bets so blur/limits apply
   loadBets();
+  if(currentTopTab !== "bets") loadTracker();
+});
+
+client.auth.onAuthStateChange(async ()=>{
+  await getTrackerUser();
+  setTrackerAuthUI(trackerUser);
+  loadBets();
+  if(currentTopTab !== "bets") loadTracker();
 });
 
 function switchTab(tab){
@@ -260,14 +356,18 @@ async function loadBets(){
   // Rebuild "Added" state from tracker every time we render the feed.
   // This ensures that if a bet is deleted from the tracker, the feed button returns to "Add".
   addedKeys.clear();
-  // Preload tracker rows so already-added bets render as "Added"
+  // Preload this user's tracker rows so already-added bets render as "Added"
   try{
-    const { data: tdata, error: terr } = await client
-      .from("bet_tracker")
-      .select("match,market,odds")
-      .limit(1000);
-    if(!terr && Array.isArray(tdata)){
-      tdata.forEach(r => addedKeys.add(makeBetKey(r)));
+    const user = await getTrackerUser();
+    if(user){
+      const { data: tdata, error: terr } = await client
+        .from("bet_tracker")
+        .select("match,market,odds")
+        .eq("user_id", user.id)
+        .limit(1000);
+      if(!terr && Array.isArray(tdata)){
+        tdata.forEach(r => addedKeys.add(makeBetKey(r)));
+      }
     }
   }catch(e){
     // Ignore preload failures
@@ -294,7 +394,6 @@ betsGrid.innerHTML+=`
       ${locked ? '' : `<span class="bet-market">${row.market}</span>`}
       <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
     </div>
-      ${(!locked && row.bookie) ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}
     </div>
     <div class="bet-details">
       <div class="bet-stats ${locked ? 'vip-blur-area' : ''}">
@@ -320,7 +419,6 @@ betsGrid.innerHTML+=`
       <tr class="${locked ? 'vip-blur' : ''}">
         <td><b>${escapeHtml(row.match||'')}</b></td>
         <td>${locked ? '—' : escapeHtml(row.market||'')}</td>
-        <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill">${escapeHtml(valTxt)}</span></td>
         <td>${escapeHtml(betDate)}</td>
@@ -345,6 +443,20 @@ async function addToTracker(btn, row){
   const key = makeBetKey(row);
   if(addedKeys.has(key)) return;
 
+  const user = await getTrackerUser();
+  if(!user){
+    currentTopTab = "tracker";
+    betsSection.style.display="none";
+    trackerSection.style.display="block";
+    if(historySectionEl) historySectionEl.style.display="none";
+    tabBets.classList.remove("active");
+    tabTracker.classList.add("active");
+    if(tabHistoryEl) tabHistoryEl.classList.remove("active");
+    setTrackerAuthUI(null);
+    if(trackerAuthStatusEl) trackerAuthStatusEl.textContent = "Sign in by email first, then add bets to your personal tracker.";
+    return;
+  }
+
   // Optimistic UI
   if(btn){
     btn.disabled = true;
@@ -355,7 +467,8 @@ async function addToTracker(btn, row){
     match: row.match,
     market: row.market,
     odds: row.odds,
-        stake: 10,
+    user_id: user.id,
+    stake: 10,
     result: "pending"
   };
 
@@ -743,7 +856,27 @@ borderWidth:2,
 }
 
 async function loadTracker(){
-const {data}=await client.from("bet_tracker").select("*").order("created_at",{ascending:true});
+const user = await getTrackerUser();
+setTrackerAuthUI(user);
+if(!user){
+  trackerRowsCache = [];
+  trackerAllRows = [];
+  if(typeof trackerTable !== 'undefined' && trackerTable) trackerTable.innerHTML = "";
+  if(bankrollElem) bankrollElem.innerText='0.00';
+  if(profitElem) profitElem.innerText='0.00';
+  if(roiElem) roiElem.innerText='0';
+  if(winrateElem) winrateElem.innerText='0';
+  const wonLostElem = document.getElementById("wonLost");
+  if(wonLostElem) wonLostElem.innerText = '0-0';
+  const totalElem = document.getElementById("totalBets");
+  if(totalElem) totalElem.innerText = '0';
+  const totalStakedCard = document.getElementById("totalStakedCard");
+  if(totalStakedCard) totalStakedCard.innerText = '0';
+  const countElem = document.getElementById("betCount");
+  if(countElem) countElem.textContent = '0';
+  return;
+}
+const {data}=await client.from("bet_tracker").select("*").eq("user_id", user.id).order("created_at",{ascending:true});
 const rows = data || [];
 trackerRowsCache = rows;
 trackerAllRows = rows;
@@ -913,18 +1046,22 @@ if(monthKeys.length){
 
 
 async function updateStake(id,val){
-await client.from("bet_tracker").update({stake:parseFloat(val)}).eq("id",id);
+const user = await getTrackerUser();
+if(!user) return;
+await client.from("bet_tracker").update({stake:parseFloat(val)}).eq("id",id).eq("user_id", user.id);
 loadTracker();
 }
 
 async function updateResult(id,val){
+const user = await getTrackerUser();
+if(!user) return;
 if(val==="delete"){
 if(!confirm("Delete this bet?")){loadTracker();return;}
-await client.from("bet_tracker").delete().eq("id",id);
+await client.from("bet_tracker").delete().eq("id",id).eq("user_id", user.id);
 // Refresh the Value Bets feed so the button switches back from "Added" to "Add".
 loadBets();
 }else{
-await client.from("bet_tracker").update({result:val}).eq("id",id);
+await client.from("bet_tracker").update({result:val}).eq("id",id).eq("user_id", user.id);
 }
 loadTracker();
 }
