@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772413001"/>
+<link rel="stylesheet" href="styles.css?v=1772415001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -54,7 +54,6 @@
       <tr>
         <th>Match</th>
         <th>Market</th>
-        <th>Bookie</th>
         <th>Odds</th>
         <th>Value</th>
         <th>Date</th>
@@ -148,35 +147,8 @@
 <div class="stat-card">Total Bets<br><strong><span id="tdtTotalBets">0</span></strong></div>
 </div>
 
-<div class="chart-tabs">
-  <button class="tab-btn active" data-tab="tdtdaily">Daily</button>
-  <button class="tab-btn" data-tab="tdtmonthly">Monthly</button>
-  <button class="tab-btn" data-tab="tdtmarket">Markets</button>
-</div>
-
-<div class="chart-wrap">
-  <div class="chart-pane active" id="pane-tdtdaily">
-    <canvas id="tdtChart"></canvas>
-  </div>
-  <div class="chart-pane" id="pane-tdtmonthly">
-    <canvas id="tdtMonthlyChart"></canvas>
-    <div class="monthly-breakdown">
-      <div class="monthly-toggle" onclick="toggleTdtMonthly()">
-        📊 Monthly Breakdown
-        <span id="tdtMonthlyArrow">▼</span>
-      </div>
-      <div id="tdtMonthlyWrapper" class="collapsed">
-        <div id="tdtMonthlyTable"></div>
-      </div>
-    </div>
-  </div>
-  <div class="chart-pane" id="pane-tdtmarket">
-    <canvas id="tdtMarketChart"></canvas>
-  </div>
-</div>
-
 <div class="tracker-history">
-  <div class="tracker-toggle" onclick="toggleTdtTrackerTable()">
+  <div class="tracker-toggle" onclick="toggleTdtTracker()">
     📈 TDT Results (<span id="tdtBetCount">0</span>)
     <span id="tdtTrackerArrow">▼</span>
   </div>
@@ -217,6 +189,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772414001"></script>
+<script src="app.js?v=1772415001"></script>
 </body>
 </html>
