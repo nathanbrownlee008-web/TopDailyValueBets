@@ -897,7 +897,7 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 // Market profit aggregation
 const marketMap = {};
 const marketWL = {}; // {market:{wins,losses,pending,bets}}
-data.forEach(r=>{
+rows.forEach(r=>{
   const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
   marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
 
