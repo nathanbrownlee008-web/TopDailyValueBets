@@ -187,7 +187,7 @@ async function sendTrackerMagicLink(){
   if(trackerAuthMsgEl) trackerAuthMsgEl.textContent = 'Sending login link...';
   const { error } = await client.auth.signInWithOtp({
     email,
-    options:{ emailRedirectTo: window.location.origin }
+    options:{ emailRedirectTo: "https://top-daily-value-bets.vercel.app" }
   });
   if(error){
     if(trackerAuthMsgEl) trackerAuthMsgEl.textContent = error.message || 'Could not send login link.';
