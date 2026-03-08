@@ -156,17 +156,9 @@ function isAdminSyncEnabled(){
 function makeSyncId(){
   return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 }
-function rowProfit(row){
-  if(!row) return 0;
-  const stake = Number(row.stake || 0);
-  const odds = Number(row.odds || 0);
-  const result = (row.result || "pending").toLowerCase();
-  if(result === "won") return row.profit != null ? Number(row.profit) : stake * (odds - 1);
-  if(result === "lost") return row.profit != null ? Number(row.profit) : -stake;
-  return 0;
-}
 async function upsertTdtMirror(row){
-  if(!isAdminSyncEnabled() || !row || !row.sync_id) return;
+  if(!isAdminSyncEnabled() || !row) return;
+  if(!row.sync_id) row.sync_id = makeSyncId();
   const payload = {
     sync_id: row.sync_id,
     match: row.match || "",
@@ -174,7 +166,9 @@ async function upsertTdtMirror(row){
     odds: Number(row.odds || 0),
     stake: Number(row.stake || 0),
     result: row.result || "pending",
-    profit: rowProfit(row),
+    profit: row.result === "won" ? Number(row.stake || 0) * (Number(row.odds || 0) - 1)
+           : row.result === "lost" ? -Number(row.stake || 0)
+           : 0,
     bet_date: row.bet_date || null,
     created_at: row.created_at || new Date().toISOString(),
     bookie: row.bookie || null
@@ -466,8 +460,7 @@ async function addToTracker(btn, row){
   };
   rows.push(newRow);
   writeTrackerRows(rows);
-
-  if(isAdminSyncEnabled() && newRow.sync_id){
+  if(isAdminSyncEnabled()){
     try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
   }
 
@@ -480,6 +473,7 @@ async function addToTracker(btn, row){
   }
   loadTracker();
 }
+
 
 // ===== Insights (dropdown) =====
 const insightStore = {
@@ -1012,7 +1006,12 @@ if(monthKeys.length){
 
 async function updateStake(id,val){
   const rows = readTrackerRows();
-  writeTrackerRows(rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r));
+  const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
+  writeTrackerRows(updated);
+  const row = updated.find(r => String(r.id)===String(id));
+  if(row && isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+  }
   loadTracker();
 }
 
@@ -1020,69 +1019,58 @@ async function updateResult(id,val){
   const rows = readTrackerRows();
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
+    const row = rows.find(r => String(r.id)===String(id));
     writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
+    if(row && isAdminSyncEnabled() && row.sync_id){
+      try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
+    }
     loadBets();
   }else{
-    writeTrackerRows(rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r));
+    const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
+    writeTrackerRows(updated);
+    const row = updated.find(r => String(r.id)===String(id));
+    if(row && isAdminSyncEnabled()){
+      try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+    }
   }
   loadTracker();
 }
 
 
 async function loadTdtTracker(){
-  const statIds = ["tdtBankroll","tdtProfit","tdtRoi","tdtWinrate","tdtWonLost","tdtTotalStakedCard","tdtAvgOdds","tdtTotalBets"];
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
-    const { data, error } = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
+    const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
-    tdtRowsCache = rows;
-
-    let bankroll = 0, profit = 0, wins = 0, losses = 0, totalStake = 0, totalOdds = 0;
-    let html = "<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
-
+    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
+    let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
     rows.forEach(row=>{
-      const p = rowProfit(row);
-      if((row.result||"").toLowerCase()==="won") wins++;
-      if((row.result||"").toLowerCase()==="lost") losses++;
+      const p = row.result==="won" ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
+              : row.result==="lost" ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
+              : 0;
+      if(row.result==="won") wins++;
+      if(row.result==="lost") losses++;
       profit += p;
       totalStake += Number(row.stake || 0);
       totalOdds += Number(row.odds || 0);
-      bankroll = profit;
       const gameDate = row.match_date_date || row.bet_date || row.created_at;
-      html += `<tr>
-        <td class="date-col">${fmtDayLabel(gameDate)}</td>
-        <td>${escapeHtml(row.match || "")}</td>
-        <td>${escapeHtml(row.market || "")}</td>
-        <td>${escapeHtml(String(row.result || "pending").toUpperCase())}</td>
-        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-      </tr>`;
+      html += `<tr><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td>${escapeHtml(String(row.result||'pending').toUpperCase())}</td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
     });
     html += "</table>";
-
     if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
-
-    const set = (id, value) => { const el = document.getElementById(id); if(el) el.innerText = value; };
-    set("tdtBankroll", bankroll.toFixed(2));
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
+    set("tdtBankroll", profit.toFixed(2));
     set("tdtProfit", profit.toFixed(2));
-    set("tdtRoi", totalStake ? ((profit/totalStake)*100).toFixed(1) : "0");
-    set("tdtWinrate", (wins+losses) ? ((wins/(wins+losses))*100).toFixed(1) : "0");
+    set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
+    set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
     set("tdtWonLost", `${wins}-${losses}`);
     set("tdtTotalStakedCard", totalStake.toFixed(2));
-    set("tdtAvgOdds", rows.length ? (totalOdds/rows.length).toFixed(2) : "0");
+    set("tdtAvgOdds", rows.length?(totalOdds/rows.length).toFixed(2):0);
     set("tdtTotalBets", rows.length);
-    const countEl = document.getElementById("tdtBetCount");
-    if(countEl) countEl.innerText = String(rows.length);
-
-    const profitCard = document.getElementById("tdtProfitCard");
-    if(profitCard){
-      profitCard.classList.remove("glow-green","glow-red");
-      if(profit > 0) profitCard.classList.add("glow-green");
-      if(profit < 0) profitCard.classList.add("glow-red");
-    }
+    set("tdtBetCount", rows.length);
   }catch(err){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
-    statIds.forEach(id=>{ const el=document.getElementById(id); if(el) el.innerText = id==="tdtWonLost" ? "0-0" : "0"; });
   }
 }
 
