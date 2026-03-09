@@ -2244,3 +2244,39 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
 #tdtHistorySection .history-table td:first-child{
   white-space:nowrap;
 }
+
+
+/* VIP banner center fix for wide/desktop mode */
+.vip-bar{
+  width:min(760px, calc(100vw - 28px)) !important;
+  margin:18px auto 16px !important;
+}
+body.layout-wide .vip-bar,
+body.layout-compact .vip-bar{
+  grid-template-columns:1fr !important;
+  justify-items:center !important;
+  gap:12px !important;
+  padding:18px 18px 16px !important;
+}
+.vip-bar__left{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  width:100% !important;
+}
+.vip-bar__title,
+.vip-bar__status,
+#vipStatus{
+  width:100% !important;
+  text-align:center !important;
+}
+.admin-badge{
+  margin:10px auto 0 !important;
+}
+#vipButton,
+.vip-button{
+  width:min(520px, 100%) !important;
+  margin:0 auto !important;
+}

@@ -291,10 +291,9 @@ if(historyListEl){
     if(!btn) return;
     const dayKey = btn.dataset.day;
     if(!dayKey) return;
-    const key = historyMode === "tdt" ? "history_open_tdt" : "history_open_personal";
-    const state = JSON.parse(localStorage.getItem(key)||'{}');
+    const state = JSON.parse(localStorage.getItem('history_open_personal')||'{}');
     state[dayKey] = !state[dayKey];
-    localStorage.setItem(key, JSON.stringify(state));
+    localStorage.setItem('history_open_personal', JSON.stringify(state));
     renderHistory();
   });
 }
@@ -375,11 +374,15 @@ function switchTab(tab){
     return;
   }
   if(tab==="history"){
+    if(historySummaryEl) historySummaryEl.innerHTML = '<div class="card">Your personal tracker history</div>';
+    if(historyListEl) historyListEl.innerHTML = '<div class="card">Loading history...</div>';
     loadTracker().then(()=>{
       renderHistory();
       if(historyListEl && !historyListEl.innerHTML.trim()){
         historyListEl.innerHTML = '<div class="card">No history yet.</div>';
       }
+    }).catch(()=>{
+      if(historyListEl) historyListEl.innerHTML = '<div class="card">No history yet.</div>';
     });
     return;
   }
@@ -813,15 +816,97 @@ function renderHistoryRows(rows, openStoreKey){
 }
 
 function renderHistory(){
-  const isTdt = historyMode === "tdt";
-  if(historyModePersonalEl) historyModePersonalEl.classList.toggle("active", !isTdt);
-  if(historyModeTdtEl) historyModeTdtEl.classList.toggle("active", isTdt);
+  if(!historySummaryEl || !historyListEl) return;
+  historySummaryEl.innerHTML = '<div class="card">Your personal tracker history</div>';
 
-  if(historySummaryEl){
-    historySummaryEl.innerHTML = `<div class="card">${isTdt ? 'TDT official results history' : 'Your personal tracker history'}</div>`;
+  const rows = Array.isArray(trackerRowsCache) ? trackerRowsCache : [];
+  const groups = {};
+  for(const b of rows){
+    const dayKey = dayKeyFromRow(b);
+    if(!dayKey) continue;
+    (groups[dayKey] ||= []).push(b);
   }
 
-  renderHistoryRows(isTdt ? tdtRowsCache : trackerRowsCache, isTdt ? 'history_open_tdt' : 'history_open_personal');
+  const dayKeys = Object.keys(groups).sort((a,b)=> b.localeCompare(a));
+  const openState = JSON.parse(localStorage.getItem('history_open_personal')||'{}');
+
+  const fmtDay = (dayKey)=>{
+    const d = new Date(dayKey + "T00:00:00");
+    if(Number.isNaN(d.getTime())) return dayKey;
+    return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
+  };
+
+  const iconFor = (res)=>{
+    if(res==='won') return '✅';
+    if(res==='lost') return '❌';
+    return '⏳';
+  };
+
+  if(!dayKeys.length){
+    historyListEl.innerHTML = '<div class="card">No history yet.</div>';
+    return;
+  }
+
+  let html = "";
+  for(const dayKey of dayKeys){
+    if(openState[dayKey] === undefined) openState[dayKey] = true;
+    const bets = groups[dayKey];
+    const won = bets.filter(b => (b.result||"pending").toLowerCase()==="won").length;
+    const lost = bets.filter(b => (b.result||"pending").toLowerCase()==="lost").length;
+    const pending = bets.length - won - lost;
+    const settled = won + lost;
+    const wr = settled ? Math.round((won/settled)*100) : 0;
+    const isOpen = !!openState[dayKey];
+
+    html += `
+      <div class="history-day ${!isOpen ? "collapsed" : ""}">
+        <button class="monthly-toggle daily-toggle history-toggle" type="button" data-day="${dayKey}">
+          <div class="daily-toggle-left">📅 <span>${fmtDay(dayKey)}</span></div>
+          <div class="daily-toggle-center">
+            <div class="history-chip won">✅ <span>Won</span> <strong>${won}</strong></div>
+            <div class="history-chip lost">❌ <span>Lost</span> <strong>${lost}</strong></div>
+            <div class="history-chip pending">⏳ <span>Pending</span> <strong>${pending}</strong></div>
+          </div>
+          <div class="daily-toggle-right">
+            <div class="history-ratio-wrap">
+              <span class="history-day-ratio">${won}/${settled || 0}</span>
+              <span class="history-winrate ${wr>=70 ? "wr-hot" : wr>=55 ? "wr-good" : wr>=40 ? "wr-mid" : "wr-bad"}">${wr}%</span>
+            </div>
+            <span class="daily-chevron">${isOpen ? "▲" : "▼"}</span>
+          </div>
+        </button>
+        <div class="history-day-bets">
+          <div class="history-table-wrap">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Match</th>
+                  <th>Market</th>
+                  <th class="th-odds">Odds</th>
+                  <th class="th-res"></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${bets.map((b)=>{
+                  const result = (b.result || "pending").toLowerCase();
+                  const cls = (result==="won"||result==="lost") ? result : "pending";
+                  return `<tr class="history-row ${cls}">
+                    <td class="hcell-match">${escapeHtml((b.match || "").toString().trim() || "—")}</td>
+                    <td class="hcell-market">${escapeHtml((b.market || "").toString().trim() || "—")}</td>
+                    <td class="hcell-odds">${escapeHtml((b.odds ?? "").toString().trim() || "—")}</td>
+                    <td class="hcell-result" aria-label="${cls}">${iconFor(cls)}</td>
+                  </tr>`;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  historyListEl.innerHTML = html;
+  localStorage.setItem('history_open_personal', JSON.stringify(openState));
 }
 
 function isEndOfDay(index, labels){
