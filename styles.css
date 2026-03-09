@@ -445,6 +445,13 @@ th{text-align:left}
   opacity:0.75;
 }
 
+.bet-bookie{
+  margin-top:6px;
+  font-size:12px;
+  line-height:1.25;
+  color:rgba(226,232,240,0.86);
+}
+
 .bet-footer{
   display:flex;
   align-items:center;
@@ -2155,19 +2162,44 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
 }
 
 
-.admin-badge{
-  display:inline-flex;
-  align-items:center;
+/* Fix top tabs on small screens */
+.tabs{
+  display:flex;
+  flex-wrap:wrap;
   justify-content:center;
-  gap:6px;
-  margin-top:8px;
-  padding:6px 10px;
-  border-radius:999px;
-  background:rgba(245,158,11,0.14);
-  border:1px solid rgba(245,158,11,0.40);
-  color:#fde68a;
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.02em;
-  width:max-content;
+  gap:8px;
+  margin-bottom:8px;
 }
+.tabs button{
+  margin:0;
+  min-width:0;
+}
+.top-controls{
+  display:flex;
+  justify-content:center;
+  margin-bottom:16px;
+}
+.layout-switch{
+  display:flex;
+  gap:0;
+}
+
+/* TDT tracker mobile fit */
+#tdtTrackerSection .card{ max-width:100%; }
+#tdtTrackerTable{ width:100%; overflow-x:auto; }
+#tdtTrackerTable table{ width:100%; table-layout:fixed; }
+#tdtTrackerTable td, #tdtTrackerTable th{
+  word-break:break-word;
+}
+@media (max-width: 600px){
+  body{ padding:14px; }
+  .vip-bar{ margin-left:auto; margin-right:auto; max-width:100%; }
+  .stats-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  #tdtTrackerTable th, #tdtTrackerTable td{
+    font-size:12px;
+    padding:6px 4px;
+  }
+}
+
+
+.admin-badge{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;padding:6px 10px;border-radius:999px;background:rgba(245,158,11,0.14);border:1px solid rgba(245,158,11,0.40);color:#fde68a;font-size:12px;font-weight:800;letter-spacing:.02em;width:max-content;}

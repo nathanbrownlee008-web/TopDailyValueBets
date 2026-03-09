@@ -153,12 +153,9 @@ function currentVipEmail(){
 function isAdminSyncEnabled(){
   return currentVipEmail() === ADMIN_SYNC_EMAIL;
 }
-
 function refreshAdminBadgeUI(){
   const badges = document.querySelectorAll('[data-admin-badge="1"]');
-  badges.forEach(el=>{
-    el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none";
-  });
+  badges.forEach(el=>{ el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none"; });
 }
 function makeSyncId(){
   return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
