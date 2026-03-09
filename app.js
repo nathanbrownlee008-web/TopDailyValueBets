@@ -275,6 +275,13 @@ const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
 const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
+const tabTdtHistoryEl = document.getElementById("tabTdtHistory");
+const tdtHistorySectionEl = document.getElementById("tdtHistorySection");
+const tdtHistoryListEl = document.getElementById("tdtHistoryList");
+const tdtHistoryBreakdownEl = document.getElementById("tdtHistoryBreakdown");
+const tdtHistoryDailyBtn = document.getElementById("tdtHistoryDailyBtn");
+const tdtHistoryWeeklyBtn = document.getElementById("tdtHistoryWeeklyBtn");
+const tdtHistoryMonthlyBtn = document.getElementById("tdtHistoryMonthlyBtn");
 const historyDaySelectEl = document.getElementById("historyDaySelect");
 const historyListEl = document.getElementById("historyList");
 
@@ -291,10 +298,22 @@ if(historyListEl){
     renderHistory();
   });
 }
+
+if(tdtHistoryListEl){
+  tdtHistoryListEl.addEventListener("click",(e)=>{
+    const btn = e.target.closest(".tdt-history-toggle");
+    if(!btn) return;
+    const key = btn.dataset.key;
+    if(!key) return;
+    const stateKey = `tdt_history_open_${tdtHistoryMode}`;
+    const state = JSON.parse(localStorage.getItem(stateKey)||'{}');
+    state[key] = !state[key];
+    localStorage.setItem(stateKey, JSON.stringify(state));
+    renderTdtHistory();
+  });
+}
 const historySummaryEl = document.getElementById("historySummary");
 const historyRefreshEl = document.getElementById("historyRefresh");
-const historyModePersonalEl = document.getElementById("historyModePersonal");
-const historyModeTdtEl = document.getElementById("historyModeTdt");
 
 let currentTopTab = "bets"; // 'bets' | 'tracker' | 'tdt' | 'history'
 let trackerRowsCache = [];
@@ -310,8 +329,10 @@ tabTracker.onclick=()=>{
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
-if(historyModePersonalEl) historyModePersonalEl.onclick=()=>{ historyMode="personal"; renderHistory(); };
-if(historyModeTdtEl) historyModeTdtEl.onclick=()=>{ historyMode="tdt"; renderHistory(); };
+if(tabTdtHistoryEl) tabTdtHistoryEl.onclick=()=>switchTab("tdt-history");
+if(tdtHistoryDailyBtn) tdtHistoryDailyBtn.onclick=()=>{ tdtHistoryMode="daily"; renderTdtHistory(); };
+if(tdtHistoryWeeklyBtn) tdtHistoryWeeklyBtn.onclick=()=>{ tdtHistoryMode="weekly"; renderTdtHistory(); };
+if(tdtHistoryMonthlyBtn) tdtHistoryMonthlyBtn.onclick=()=>{ tdtHistoryMode="monthly"; renderTdtHistory(); };
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -337,11 +358,13 @@ function switchTab(tab){
   trackerSection.style.display=(tab==="tracker")?"block":"none";
   if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
   if(historySectionEl) historySectionEl.style.display=(tab==="history")?"block":"none";
+  if(tdtHistorySectionEl) tdtHistorySectionEl.style.display=(tab==="tdt-history")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
   tabTracker.classList.toggle("active",tab==="tracker");
   if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
   if(tabHistoryEl) tabHistoryEl.classList.toggle("active",tab==="history");
+  if(tabTdtHistoryEl) tabTdtHistoryEl.classList.toggle("active",tab==="tdt-history");
 
   if(tab==="tracker"){
     loadTracker();
@@ -352,12 +375,22 @@ function switchTab(tab){
     return;
   }
   if(tab==="history"){
-    Promise.all([loadTracker(), loadTdtTracker()]).then(()=>{
+    loadTracker().then(()=>{
       renderHistory();
       if(historyListEl && !historyListEl.innerHTML.trim()){
         historyListEl.innerHTML = '<div class="card">No history yet.</div>';
       }
     });
+    return;
+  }
+  if(tab==="tdt-history"){
+    if(tdtHistoryListEl) tdtHistoryListEl.innerHTML = '<div class="card">Loading TDT history...</div>';
+    loadTdtTracker().then(()=>{
+      renderTdtHistory();
+    }).catch(()=>{
+      if(tdtHistoryListEl) tdtHistoryListEl.innerHTML = '<div class="card">No official TDT history yet.</div>';
+    });
+    return;
   }
 }
 

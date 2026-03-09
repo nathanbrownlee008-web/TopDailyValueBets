@@ -2225,52 +2225,22 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
 }
 
 
-/* === VIP header desktop/wide alignment fix === */
-.vip-bar{
-  width:min(760px, calc(100vw - 28px)) !important;
-  margin:18px auto 16px !important;
+.tdt-history-tabs{
+  margin-top: 6px;
 }
-
-.vip-bar__left{
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:center !important;
-  text-align:center !important;
-  width:100% !important;
+.tdt-history-breakdown{
+  margin-bottom: 16px;
+  overflow-x: auto;
 }
-
-.vip-bar__title,
-.vip-bar__status,
-#vipStatus{
-  width:100% !important;
-  text-align:center !important;
-  margin-left:auto !important;
-  margin-right:auto !important;
+.stats-grid--tdt-history{
+  margin-top: 12px;
 }
-
-.admin-badge{
-  margin:10px auto 0 !important;
+#tdtHistorySection .history-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
 }
-
-body.layout-wide .vip-bar,
-body.layout-compact .vip-bar{
-  grid-template-columns:1fr !important;
-  justify-items:center !important;
-  gap:12px !important;
-  padding:18px 18px 16px !important;
-}
-
-body.layout-wide #vipButton,
-body.layout-compact #vipButton,
-body.layout-wide .vip-button,
-body.layout-compact .vip-button{
-  width:min(520px, 100%) !important;
-  margin:0 auto !important;
-}
-
-@media (min-width: 901px){
-  .vip-bar{
-    max-width:760px !important;
-  }
+#tdtHistorySection .history-table th:first-child,
+#tdtHistorySection .history-table td:first-child{
+  white-space:nowrap;
 }

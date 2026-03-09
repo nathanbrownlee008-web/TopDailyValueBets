@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772420001"/>
+<link rel="stylesheet" href="styles.css?v=1772425001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -34,6 +34,7 @@
 <button id="tabTracker">My Tracker</button>
 <button id="tabTdtTracker">TDT Tracker</button>
 <button id="tabHistory">Daily History</button>
+<button id="tabTdtHistory">TDT History</button>
 </div>
 <div class="top-controls">
   <div class="layout-switch" role="group" aria-label="Layout">
@@ -162,13 +163,32 @@
 
 
 <section id="historySection" style="display:none;">
-  <div class="history-mode-tabs">
-    <button id="historyModePersonal" class="history-mode-btn active" type="button">My History</button>
-    <button id="historyModeTdt" class="history-mode-btn" type="button">TDT History</button>
-  </div>
-  <!-- History shows all days stacked; tap a day to expand/collapse. -->
   <div id="historySummary" class="history-summary"></div>
   <div id="historyList" class="history-grid"></div>
+</section>
+
+
+<section id="tdtHistorySection" style="display:none;">
+  <div class="card" style="margin-bottom:16px;">
+    <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT History</div>
+    <div style="opacity:.85;">Official all-time record with daily, weekly and monthly breakdowns.</div>
+  </div>
+
+  <div class="stats-grid stats-grid--tdt-history">
+    <div class="stat-card">Total Bets<br><strong><span id="tdtHistoryTotalBets">0</span></strong></div>
+    <div class="stat-card">Won - Lost<br><strong><span id="tdtHistoryWonLost">0-0</span></strong></div>
+    <div class="stat-card">Profit<br><strong>£<span id="tdtHistoryProfit">0</span></strong></div>
+    <div class="stat-card">Win Rate<br><strong><span id="tdtHistoryWinrate">0</span>%</strong></div>
+  </div>
+
+  <div class="chart-tabs tdt-history-tabs">
+    <button class="tab-btn active" id="tdtHistoryDailyBtn" type="button">Daily</button>
+    <button class="tab-btn" id="tdtHistoryWeeklyBtn" type="button">Weekly</button>
+    <button class="tab-btn" id="tdtHistoryMonthlyBtn" type="button">Monthly</button>
+  </div>
+
+  <div id="tdtHistoryBreakdown" class="card tdt-history-breakdown"></div>
+  <div id="tdtHistoryList" class="history-grid"></div>
 </section>
 
 <!-- VIP Modal -->
@@ -194,6 +214,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772420001"></script>
+<script src="app.js?v=1772425001"></script>
 </body>
 </html>
