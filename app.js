@@ -26,8 +26,6 @@ function setVipUI(active, email){
       btnEl.style.cursor = "default";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = 'none';
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
@@ -39,8 +37,6 @@ function setVipUI(active, email){
       btnEl.style.cursor = "pointer";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = 'flex';
   }
 }
 
@@ -146,7 +142,92 @@ const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
 const vipErrorEl = document.getElementById("vipError");
 
+
 let vipActive = false;
+const ADMIN_SYNC_EMAIL = "nathanbrownlee40@gmail.com";
+let tdtRowsCache = [];
+
+function currentVipEmail(){
+  return ((localStorage.getItem('vip_email')||'').trim().toLowerCase());
+}
+function isAdminSyncEnabled(){
+  return currentVipEmail() === ADMIN_SYNC_EMAIL;
+}
+function refreshAdminBadgeUI(){
+  const badges = document.querySelectorAll('[data-admin-badge="1"]');
+  badges.forEach(el=>{ el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none"; });
+}
+function makeSyncId(){
+  return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+async function upsertTdtMirror(row){
+  if(!isAdminSyncEnabled() || !row) return;
+  if(!row.sync_id) row.sync_id = makeSyncId();
+  const payload = {
+    sync_id: row.sync_id,
+    match: row.match || "",
+    market: row.market || "",
+    odds: Number(row.odds || 0),
+    stake: Number(row.stake || 0),
+    result: row.result || "pending",
+    profit: row.result === "won" ? Number(row.stake || 0) * (Number(row.odds || 0) - 1)
+           : row.result === "lost" ? -Number(row.stake || 0)
+           : 0,
+    bet_date: row.bet_date || null,
+    created_at: row.created_at || new Date().toISOString(),
+    bookie: row.bookie || null
+  };
+  const { data: existing, error: checkErr } = await client.from("tdt_tracker").select("id").eq("sync_id", row.sync_id).limit(1);
+  if(checkErr) throw checkErr;
+  if(existing && existing.length){
+    const { error } = await client.from("tdt_tracker").update(payload).eq("sync_id", row.sync_id);
+    if(error) throw error;
+  }else{
+    const { error } = await client.from("tdt_tracker").insert([payload]);
+    if(error) throw error;
+  }
+}
+async function deleteTdtMirror(syncId){
+  if(!isAdminSyncEnabled() || !syncId) return;
+  const { error } = await client.from("tdt_tracker").delete().eq("sync_id", syncId);
+  if(error) throw error;
+}
+
+
+function trackerStorageKey(){
+  const email = ((localStorage.getItem('vip_email')||'').trim().toLowerCase() || 'guest');
+  return `tdt_tracker_${email}`;
+}
+
+function readTrackerRows(){
+  try{
+    const raw = localStorage.getItem(trackerStorageKey());
+    const rows = raw ? JSON.parse(raw) : [];
+    const safeRows = Array.isArray(rows) ? rows : [];
+    return safeRows.map((row)=>{
+      const out = { ...(row || {}) };
+      if(!out.id) out.id = makeLocalTrackerId();
+      if(!out.created_at && out.bet_date){
+        out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
+      }
+      if(!out.created_at){
+        out.created_at = new Date().toISOString();
+      }
+      return out;
+    });
+  }catch(e){
+    return [];
+  }
+}
+
+function writeTrackerRows(rows){
+  localStorage.setItem(trackerStorageKey(), JSON.stringify(rows || []));
+}
+
+function makeLocalTrackerId(){
+  return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+
 
 function applyLayout(mode){
   document.body.classList.remove("layout-compact","layout-wide");
@@ -239,16 +320,14 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-const vipPromoBtnEl = document.getElementById('vipPromoBtn');
-if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 
 // On load: check VIP status (if email saved), then render.
 checkVIP().then(()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+  refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
   loadBets();
-  loadVipPromoProof();
 });
 
 function switchTab(tab){
@@ -257,20 +336,34 @@ function switchTab(tab){
 
   betsSection.style.display=(tab==="bets")?"block":"none";
   trackerSection.style.display=(tab==="tracker")?"block":"none";
+  if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
   if(historySectionEl) historySectionEl.style.display=(tab==="history")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
   tabTracker.classList.toggle("active",tab==="tracker");
+  if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
   if(tabHistoryEl) tabHistoryEl.classList.toggle("active",tab==="history");
 
-  if(tab!=="bets"){
-    loadTracker().then(()=>{
-      if(tab==="history") renderHistory();
+  if(tab==="tracker"){
+    loadTracker();
+    return;
+  }
+  if(tab==="tdt"){
+    loadTdtTracker();
+    return;
+  }
+  if(tab==="history"){
+    Promise.all([
+      loadTracker(),
+      loadTdtTracker()
+    ]).then(()=>{
+      renderHistory();
+      if(historyListEl && !historyListEl.innerHTML.trim()){
+        historyListEl.innerHTML = '<div class="card">No history yet.</div>';
+      }
     });
   }
 }
-
-
 
 async function loadBets(){
   // Rebuild "Added" state from tracker every time we render the feed.
@@ -278,13 +371,8 @@ async function loadBets(){
   addedKeys.clear();
   // Preload tracker rows so already-added bets render as "Added"
   try{
-    const { data: tdata, error: terr } = await client
-      .from("bet_tracker")
-      .select("match,market,odds")
-      .limit(1000);
-    if(!terr && Array.isArray(tdata)){
-      tdata.forEach(r => addedKeys.add(makeBetKey(r)));
-    }
+    const localRows = readTrackerRows();
+    localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){
     // Ignore preload failures
   }
@@ -324,7 +412,7 @@ betsGrid.innerHTML+=`
     </div>
     </div>
   </div>
-  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 Unlock VIP</button>' : ''}
+  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 VIP</button>' : ''}
 </div>`;
 
   // Desktop table row (shown via CSS in WIDE mode on large screens)
@@ -361,41 +449,39 @@ async function addToTracker(btn, row){
   const key = makeBetKey(row);
   if(addedKeys.has(key)) return;
 
-  // Optimistic UI
+  if(!vipActive){
+    openVipModal();
+    return;
+  }
+
   if(btn){
     btn.disabled = true;
     btn.textContent = 'Adding…';
   }
 
-  const payload = {
+  const rows = readTrackerRows();
+  const newRow = {
+    id: makeLocalTrackerId(),
+    sync_id: isAdminSyncEnabled() ? makeSyncId() : null,
     match: row.match,
     market: row.market,
-    odds: row.odds,
-        stake: 10,
-    result: "pending"
+    odds: Number(row.odds),
+    stake: 10,
+    result: "pending",
+    created_at: new Date().toISOString(),
+    bet_date: row.bet_date || null,
+    bookie: row.bookie || null
   };
-
-  const { data, error } = await client
-    .from("bet_tracker")
-    .insert([payload])
-    .select();
-
-  if(error){
-    console.error("Insert failed:", error);
-    if(btn){
-      btn.disabled = false;
-      btn.textContent = "Add";
-    }
-    // Quick visible feedback (mobile)
-    try{ alert("Could not add bet. Check tracker table columns / RLS."); }catch(e){}
-    return;
+  rows.push(newRow);
+  writeTrackerRows(rows);
+  if(isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
   }
 
   addedKeys.add(key);
   if(btn){
     btn.textContent = 'Added';
     btn.classList.add('added', 'flash');
-    // remove the flash class after animation
     setTimeout(()=>btn.classList.remove('flash'), 700);
     btn.disabled = true;
   }
@@ -582,11 +668,16 @@ function dayKeyFromRow(r){
     const s = String(r.match_date).slice(0,10);
     if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
   }
-  const raw = r?.bet_date || r?.created_at;
-  if(!raw) return "";
-  const d = new Date(raw);
-  if(Number.isNaN(d.getTime())) return "";
-  return d.toISOString().slice(0,10);
+  if(r && r.bet_date){
+    const s = String(r.bet_date).slice(0,10);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  }
+  const raw = r?.created_at || r?.updated_at;
+  if(raw){
+    const d = new Date(raw);
+    if(!Number.isNaN(d.getTime())) return d.toISOString().slice(0,10);
+  }
+  return toLocalYMD(new Date());
 }
 
 function formatDayLabelLong(dayKey){
@@ -595,14 +686,14 @@ function formatDayLabelLong(dayKey){
 }
 
 
-function renderHistoryRows(rows, summaryEl, listEl, openStoreKey){
+function renderHistoryRows(rows, openStoreKey){
   const iconFor = (res)=>{
     if(res==='won') return '✅';
     if(res==='lost') return '❌';
     return '⏳';
   };
 
-  if(!summaryEl || !listEl) return;
+  if(!historySummaryEl || !historyListEl) return;
 
   const groups = {};
   for(const b of (Array.isArray(rows) ? rows : [])){
@@ -690,12 +781,7 @@ function renderHistoryRows(rows, summaryEl, listEl, openStoreKey){
     `;
   }
 
-  summaryEl.innerHTML = "";
-  if(!dayKeys.length){
-    listEl.innerHTML = `<div class="card">No history yet.</div>`;
-  }else{
-    listEl.innerHTML = html;
-  }
+  historyListEl.innerHTML = dayKeys.length ? html : `<div class="card">No history yet.</div>`;
   localStorage.setItem(openStoreKey, JSON.stringify(openState));
 }
 
@@ -709,11 +795,61 @@ function renderHistory(){
   if(historySummaryEl){
     historySummaryEl.innerHTML = `<div class="card">${isTdt ? 'TDT official results history' : 'Your personal tracker history'}</div>`;
   }
-  renderHistoryRows(rows, historySummaryEl, historyListEl, isTdt ? 'history_open_tdt' : 'history_open_personal');
+  renderHistoryRows(rows, isTdt ? 'history_open_tdt' : 'history_open_personal');
 }
+
+function renderDailyChart(history, labels){
+if(dailyChart) dailyChart.destroy();
+const ctx=document.getElementById("chart").getContext("2d");
+dailyChart=new Chart(ctx,{
+type:"line",
+data:{
+labels:(labels && labels.length===history.length) ? labels : history.map((_,i)=>i+1),
+datasets:[{
+data:history,
+tension:0.25,
+fill:true,
+backgroundColor:"rgba(34,197,94,0.08)",
+borderColor:"#22c55e",
+borderWidth:2,
+	// Show dots ONLY on the last point of each day
+	pointRadius:(c)=> isEndOfDay(c.dataIndex, labels) ? 5 : 0,
+	pointHoverRadius:(c)=> isEndOfDay(c.dataIndex, labels) ? 7 : 0,
+	pointBackgroundColor:"#22c55e",
+	pointBorderWidth:0
+}]
+},
+	options:{
+	  responsive:true,
+	  maintainAspectRatio:false,
+	  interaction:{ mode:"nearest", intersect:true },
+	  scales:{
+	    y:{ ticks:{ callback:(v)=> `£${v}` } },
+	    x:{
+	      ticks:{
+	        callback:function(value, index){
+	          const label = this.getLabelForValue(value);
+	          if(index === 0) return label;
+	          return label !== labels[index - 1] ? label : "";
+	        }
+	      }
+	    }
+	  },
+	  plugins:{
+	    legend:{display:false},
+	    tooltip:{
+	      enabled:true,
+	      callbacks:{
+	        label:(ctx)=> `£${Number(ctx.parsed.y).toFixed(2)}`
+	      }
+	    }
+	  }
+	}
+});
+}
+
 async function loadTracker(){
-const {data}=await client.from("bet_tracker").select("*").order("created_at",{ascending:true});
-const rows = data || [];
+const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -834,7 +970,7 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 // Market profit aggregation
 const marketMap = {};
 const marketWL = {}; // {market:{wins,losses,pending,bets}}
-rows.forEach(r=>{
+data.forEach(r=>{
   const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
   marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
 
@@ -882,20 +1018,89 @@ if(monthKeys.length){
 
 
 async function updateStake(id,val){
-await client.from("bet_tracker").update({stake:parseFloat(val)}).eq("id",id);
-loadTracker();
+  const rows = readTrackerRows();
+  const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
+  writeTrackerRows(updated);
+  const row = updated.find(r => String(r.id)===String(id));
+  if(row && isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+  }
+  loadTracker();
 }
 
 async function updateResult(id,val){
-if(val==="delete"){
-if(!confirm("Delete this bet?")){loadTracker();return;}
-await client.from("bet_tracker").delete().eq("id",id);
-// Refresh the Value Bets feed so the button switches back from "Added" to "Add".
-loadBets();
-}else{
-await client.from("bet_tracker").update({result:val}).eq("id",id);
+  const rows = readTrackerRows();
+  if(val==="delete"){
+    if(!confirm("Delete this bet?")){loadTracker();return;}
+    const row = rows.find(r => String(r.id)===String(id));
+    writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
+    if(row && isAdminSyncEnabled() && row.sync_id){
+      try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
+    }
+    loadBets();
+  }else{
+    const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
+    writeTrackerRows(updated);
+    const row = updated.find(r => String(r.id)===String(id));
+    if(row && isAdminSyncEnabled()){
+      try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+    }
+  }
+  loadTracker();
 }
-loadTracker();
+
+
+async function loadTdtTracker(){
+  const tableEl = document.getElementById("tdtTrackerTable");
+  try{
+    const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
+    if(error) throw error;
+    const rows = Array.isArray(data) ? data : [];
+    tdtRowsCache = rows;
+    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
+    let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+    rows.forEach(row=>{
+      const p = row.result==="won" ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
+              : row.result==="lost" ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
+              : 0;
+      if(row.result==="won") wins++;
+      if(row.result==="lost") losses++;
+      profit += p;
+      totalStake += Number(row.stake || 0);
+      totalOdds += Number(row.odds || 0);
+      const gameDate = row.match_date_date || row.bet_date || row.created_at;
+      html += `<tr><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td>${escapeHtml(String(row.result||'pending').toUpperCase())}</td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
+    });
+    html += "</table>";
+    if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
+    set("tdtBankroll", profit.toFixed(2));
+    set("tdtProfit", profit.toFixed(2));
+    set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
+    set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
+    set("tdtWonLost", `${wins}-${losses}`);
+    set("tdtTotalStakedCard", totalStake.toFixed(2));
+    set("tdtAvgOdds", rows.length?(totalOdds/rows.length).toFixed(2):0);
+    set("tdtTotalBets", rows.length);
+    set("tdtBetCount", rows.length);
+  }catch(err){
+    if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
+  }
+}
+
+function toggleTdtTracker(){
+  const wrapper = document.getElementById("tdtTrackerWrapper");
+  const arrow = document.getElementById("tdtTrackerArrow");
+  if(!wrapper || !arrow) return;
+  if(wrapper.classList.contains("collapsed")){
+    wrapper.classList.remove("collapsed");
+    wrapper.classList.add("expanded");
+    arrow.innerText="▲";
+  }else{
+    wrapper.classList.remove("expanded");
+    wrapper.classList.add("collapsed");
+    arrow.innerText="▼";
+  }
 }
 
 function exportCSV(){
@@ -943,14 +1148,6 @@ document.addEventListener("DOMContentLoaded",function(){
     wrapper.classList.remove("collapsed");
     wrapper.classList.add("expanded");
     arrow.innerText="▲";
-  }
-  const tdtWrapper=document.getElementById("tdtTrackerWrapper");
-  const tdtArrow=document.getElementById("tdtTrackerArrow");
-  const tdtOpen=localStorage.getItem("tdt_tracker_open");
-  if(tdtWrapper && tdtArrow && tdtOpen==="true"){
-    tdtWrapper.classList.remove("collapsed");
-    tdtWrapper.classList.add("expanded");
-    tdtArrow.innerText="▲";
   }
 });
 
