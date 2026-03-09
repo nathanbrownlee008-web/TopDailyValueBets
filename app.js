@@ -327,6 +327,7 @@ checkVIP().then(()=>{
   refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
   loadBets();
+  loadTracker().catch(()=>{});
 });
 
 function switchTab(tab){
@@ -335,29 +336,28 @@ function switchTab(tab){
 
   betsSection.style.display=(tab==="bets")?"block":"none";
   trackerSection.style.display=(tab==="tracker")?"block":"none";
-  if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
   if(historySectionEl) historySectionEl.style.display=(tab==="history")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
   tabTracker.classList.toggle("active",tab==="tracker");
-  if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
   if(tabHistoryEl) tabHistoryEl.classList.toggle("active",tab==="history");
 
-  if(tab==="tracker"){
-    loadTracker();
-    return;
-  }
-  if(tab==="tdt"){
-    loadTdtTracker();
-    return;
-  }
   if(tab==="history"){
-    Promise.all([loadTracker(), loadTdtTracker()]).then(()=>{
+    if(historySummaryEl) historySummaryEl.innerHTML = "";
+    if(historyListEl) historyListEl.innerHTML = '<div class="card">Loading history...</div>';
+    localStorage.removeItem('history_open');
+    window.__historyOpen = {};
+    loadTracker().then(()=>{
       renderHistory();
-      if(historyListEl && !historyListEl.innerHTML.trim()){
-        historyListEl.innerHTML = '<div class="card">No history yet.</div>';
-      }
+    }).catch(()=>{
+      if(historyListEl) historyListEl.innerHTML = '<div class="empty">No history yet.</div>';
     });
+    return;
+  }
+
+  if(tab==="tracker"){
+    loadTracker().catch(()=>{});
+    return;
   }
 }
 
