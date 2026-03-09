@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772420001"/>
+<link rel="stylesheet" href="styles.css?v=1772411999"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -21,7 +21,6 @@
     <div class="vip-bar__left">
       <div class="vip-bar__title" id="vipTitle">VIP Access</div>
       <div id="vipStatus" class="vip-bar__status">VIP locked — subscribe to unlock</div>
-      <div class="admin-badge" data-admin-badge="1" style="display:none;">Admin</div>
     </div>
     <button id="vipButton" class="vip-button" type="button">
       <span class="vip-button__icon" aria-hidden="true">👑</span>
@@ -31,8 +30,7 @@
 
 <div class="tabs">
 <button id="tabBets" class="active">Value Bets</button>
-<button id="tabTracker">My Tracker</button>
-<button id="tabTdtTracker">TDT Tracker</button>
+<button id="tabTracker">Tracker</button>
 <button id="tabHistory">Daily History</button>
 </div>
 <div class="top-controls">
@@ -129,43 +127,7 @@
 
 </section>
 
-
-<section id="tdtTrackerSection" style="display:none;">
-
-<div class="card" style="margin-bottom:16px;">
-  <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Official Tracker</div>
-  <div style="opacity:.85;">Read-only official all-time results for everyone to see.</div>
-</div>
-
-<div class="stats-grid">
-<div class="stat-card">Bankroll<br><strong>£<span id="tdtBankroll">0</span></strong></div>
-<div class="stat-card" id="tdtProfitCard">Profit<br><strong>£<span id="tdtProfit">0</span></strong></div>
-<div class="stat-card">ROI<br><strong><span id="tdtRoi">0</span>%</strong></div>
-<div class="stat-card">Win Rate<br><strong><span id="tdtWinrate">0</span>%</strong></div>
-<div class="stat-card">Won - Lost<br><strong><span id="tdtWonLost">0-0</span></strong></div>
-<div class="stat-card">Staked<br><strong>£<span id="tdtTotalStakedCard">0</span></strong></div>
-<div class="stat-card">Avg Odds<br><strong><span id="tdtAvgOdds">0</span></strong></div>
-<div class="stat-card">Total Bets<br><strong><span id="tdtTotalBets">0</span></strong></div>
-</div>
-
-<div class="tracker-history">
-  <div class="tracker-toggle" onclick="toggleTdtTracker()">
-    📈 TDT Results (<span id="tdtBetCount">0</span>)
-    <span id="tdtTrackerArrow">▼</span>
-  </div>
-  <div id="tdtTrackerWrapper" class="collapsed">
-    <div id="tdtTrackerTable"></div>
-  </div>
-</div>
-
-</section>
-
-
 <section id="historySection" style="display:none;">
-  <div class="history-mode-tabs">
-    <button id="historyModePersonal" class="history-mode-btn active" type="button">My History</button>
-    <button id="historyModeTdt" class="history-mode-btn" type="button">TDT History</button>
-  </div>
   <!-- History shows all days stacked; tap a day to expand/collapse. -->
   <div id="historySummary" class="history-summary"></div>
   <div id="historyList" class="history-grid"></div>
@@ -194,6 +156,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772420001"></script>
+<script src="app.js?v=1772424001"></script>
 </body>
 </html>
