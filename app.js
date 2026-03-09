@@ -144,6 +144,55 @@ const vipErrorEl = document.getElementById("vipError");
 
 
 let vipActive = false;
+const ADMIN_SYNC_EMAIL = "nathanbrownlee40@gmail.com";
+let tdtRowsCache = [];
+
+function currentVipEmail(){
+  return ((localStorage.getItem('vip_email')||'').trim().toLowerCase());
+}
+function isAdminSyncEnabled(){
+  return currentVipEmail() === ADMIN_SYNC_EMAIL;
+}
+function refreshAdminBadgeUI(){
+  const badges = document.querySelectorAll('[data-admin-badge="1"]');
+  badges.forEach(el=>{ el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none"; });
+}
+function makeSyncId(){
+  return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+async function upsertTdtMirror(row){
+  if(!isAdminSyncEnabled() || !row) return;
+  if(!row.sync_id) row.sync_id = makeSyncId();
+  const payload = {
+    sync_id: row.sync_id,
+    match: row.match || "",
+    market: row.market || "",
+    odds: Number(row.odds || 0),
+    stake: Number(row.stake || 0),
+    result: row.result || "pending",
+    profit: row.result === "won" ? Number(row.stake || 0) * (Number(row.odds || 0) - 1)
+           : row.result === "lost" ? -Number(row.stake || 0)
+           : 0,
+    bet_date: row.bet_date || null,
+    created_at: row.created_at || new Date().toISOString(),
+    bookie: row.bookie || null
+  };
+  const { data: existing, error: checkErr } = await client.from("tdt_tracker").select("id").eq("sync_id", row.sync_id).limit(1);
+  if(checkErr) throw checkErr;
+  if(existing && existing.length){
+    const { error } = await client.from("tdt_tracker").update(payload).eq("sync_id", row.sync_id);
+    if(error) throw error;
+  }else{
+    const { error } = await client.from("tdt_tracker").insert([payload]);
+    if(error) throw error;
+  }
+}
+async function deleteTdtMirror(syncId){
+  if(!isAdminSyncEnabled() || !syncId) return;
+  const { error } = await client.from("tdt_tracker").delete().eq("sync_id", syncId);
+  if(error) throw error;
+}
+
 
 function trackerStorageKey(){
   const email = ((localStorage.getItem('vip_email')||'').trim().toLowerCase() || 'guest');
@@ -222,6 +271,8 @@ function makeBetKey(row){
 }
 
 // Top navigation tabs
+const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
+const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
 const historyDaySelectEl = document.getElementById("historyDaySelect");
@@ -233,18 +284,22 @@ if(historyListEl){
     if(!btn) return;
     const dayKey = btn.dataset.day;
     if(!dayKey) return;
-    // Daily History accordion: default collapsed, store open state per day.
-    window.__historyOpen = window.__historyOpen || JSON.parse(localStorage.getItem('history_open')||'{}');
-    window.__historyOpen[dayKey] = !window.__historyOpen[dayKey];
-    localStorage.setItem('history_open', JSON.stringify(window.__historyOpen));
+    const storeKey = historyMode === "tdt" ? "history_open_tdt" : "history_open_personal";
+    const state = JSON.parse(localStorage.getItem(storeKey)||'{}');
+    state[dayKey] = !state[dayKey];
+    localStorage.setItem(storeKey, JSON.stringify(state));
     renderHistory();
   });
 }
 const historySummaryEl = document.getElementById("historySummary");
 const historyRefreshEl = document.getElementById("historyRefresh");
+const historyModePersonalEl = document.getElementById("historyModePersonal");
+const historyModeTdtEl = document.getElementById("historyModeTdt");
 
-let currentTopTab = "bets"; // 'bets' | 'tracker' | 'history'
+let currentTopTab = "bets"; // 'bets' | 'tracker' | 'tdt' | 'history'
 let trackerRowsCache = [];
+let tdtRowsCache = [];
+let historyMode = "personal";
 
 tabBets.onclick=()=>switchTab("bets");
 tabTracker.onclick=()=>{
@@ -254,7 +309,10 @@ tabTracker.onclick=()=>{
   }
   switchTab("tracker");
 };
+if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
+if(historyModePersonalEl) historyModePersonalEl.onclick=()=>{ historyMode="personal"; renderHistory(); };
+if(historyModeTdtEl) historyModeTdtEl.onclick=()=>{ historyMode="tdt"; renderHistory(); };
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -267,9 +325,9 @@ if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly')
 checkVIP().then(()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+  refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
   loadBets();
-  loadTdtTracker().catch(()=>{});
 });
 
 function switchTab(tab){
@@ -278,25 +336,36 @@ function switchTab(tab){
 
   betsSection.style.display=(tab==="bets")?"block":"none";
   trackerSection.style.display=(tab==="tracker")?"block":"none";
+  if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
   if(historySectionEl) historySectionEl.style.display=(tab==="history")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
   tabTracker.classList.toggle("active",tab==="tracker");
+  if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
   if(tabHistoryEl) tabHistoryEl.classList.toggle("active",tab==="history");
 
-  if(tab!=="bets"){
+  if(tab==="tracker"){
+    loadTracker();
+    return;
+  }
+  if(tab==="tdt"){
+    loadTdtTracker();
+    return;
+  }
+  if(tab==="history"){
     loadTracker().then(()=>{
-      if(tab==="history"){
-        renderHistory();
-        if(historyListEl && !historyListEl.innerHTML.trim()){
-          historyListEl.innerHTML = '<div class="card">No history yet.</div>';
-        }
+      renderHistory();
+      if(historyListEl && !historyListEl.innerHTML.trim()){
+        historyListEl.innerHTML = '<div class="card">No history yet.</div>';
       }
+      loadTdtTracker().then(()=>{
+        if(currentTopTab==="history" && historyMode==="tdt"){
+          renderHistory();
+        }
+      }).catch(()=>{});
     });
   }
 }
-
-
 
 async function loadBets(){
   // Rebuild "Added" state from tracker every time we render the feed.
@@ -393,17 +462,23 @@ async function addToTracker(btn, row){
   }
 
   const rows = readTrackerRows();
-  rows.push({
+  const newRow = {
     id: makeLocalTrackerId(),
+    sync_id: isAdminSyncEnabled() ? makeSyncId() : null,
     match: row.match,
     market: row.market,
     odds: Number(row.odds),
     stake: 10,
     result: "pending",
     created_at: new Date().toISOString(),
-    bet_date: row.bet_date || null
-  });
+    bet_date: row.bet_date || null,
+    bookie: row.bookie || null
+  };
+  rows.push(newRow);
   writeTrackerRows(rows);
+  if(isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
+  }
 
   addedKeys.add(key);
   if(btn){
@@ -612,7 +687,8 @@ function formatDayLabelLong(dayKey){
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function renderHistory(){
+
+function renderHistoryRows(rows, storeKey){
   const iconFor = (res)=>{
     if(res==='won') return '✅';
     if(res==='lost') return '❌';
@@ -621,23 +697,20 @@ function renderHistory(){
 
   if(!historySummaryEl || !historyListEl) return;
 
-  const rows = Array.isArray(trackerRowsCache) ? trackerRowsCache : [];
+  const safeRows = Array.isArray(rows) ? rows : [];
   const groups = {};
-  for(const b of rows){
+  for(const b of safeRows){
     const dayKey = dayKeyFromRow(b);
     if(!dayKey) continue;
     (groups[dayKey] ||= []).push(b);
   }
 
   const dayKeys = Object.keys(groups).sort((a,b)=> b.localeCompare(a));
-  historySummaryEl.innerHTML = "";
-
-  window.__historyOpen = window.__historyOpen || JSON.parse(localStorage.getItem('history_open')||'{}');
+  const openState = JSON.parse(localStorage.getItem(storeKey)||'{}');
 
   const fmtDay = (dayKey)=>{
     const d = new Date(dayKey + "T00:00:00");
     if(Number.isNaN(d.getTime())) return dayKey;
-    // "01 Mar 2026"
     return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
   };
 
@@ -658,32 +731,32 @@ function renderHistory(){
     `;
   };
 
+  if(!dayKeys.length){
+    historyListEl.innerHTML = '<div class="card">No history yet.</div>';
+    return;
+  }
+
   let html = "";
   for(const dayKey of dayKeys){
-    if(window.__historyOpen[dayKey] === undefined) window.__historyOpen[dayKey] = false;
-
+    if(openState[dayKey] === undefined) openState[dayKey] = false;
     const bets = groups[dayKey].slice().sort((a,b)=> (a.id||0)-(b.id||0));
     const won = bets.filter(b => (b.result||"pending").toLowerCase()==="won").length;
     const lost = bets.filter(b => (b.result||"pending").toLowerCase()==="lost").length;
     const pending = bets.length - won - lost;
-
     const settled = won + lost;
     const ratio = `${won}/${settled || 0}`;
     const winrate = settled ? Math.round((won / settled) * 100) : 0;
-
-    const collapsed = !window.__historyOpen[dayKey];
+    const collapsed = !openState[dayKey];
 
     html += `
       <div class="history-day ${collapsed ? "collapsed" : ""}" id="history-day-${dayKey}">
         <button class="monthly-toggle daily-toggle history-toggle" data-day="${dayKey}">
           <div class="daily-toggle-left">📅 <span>${fmtDay(dayKey)}</span></div>
-
           <div class="daily-toggle-center">
             <div class="history-chip won">✅ <span>Won</span> <strong>${won}</strong></div>
             <div class="history-chip lost">❌ <span>Lost</span> <strong>${lost}</strong></div>
             <div class="history-chip pending">⏳ <span>Pending</span> <strong>${pending}</strong></div>
           </div>
-
           <div class="daily-toggle-right">
             <div class="history-ratio-wrap">
               <span class="history-day-ratio">${ratio}</span>
@@ -692,7 +765,7 @@ function renderHistory(){
             <span class="daily-chevron">${collapsed ? "▼" : "▲"}</span>
           </div>
         </button>
-          <div class="history-day-bets">
+        <div class="history-day-bets">
           <div class="history-table-wrap">
             <table class="history-table">
               <thead>
@@ -713,67 +786,19 @@ function renderHistory(){
     `;
   }
 
-  if(!dayKeys.length){
-    html = `<div class="card">No history yet.</div>`;
-  }
-
   historyListEl.innerHTML = html;
+  localStorage.setItem(storeKey, JSON.stringify(openState));
 }
 
-function isEndOfDay(index, labels){
-  if(!labels || !labels.length) return false;
-  if(index === labels.length - 1) return true;
-  return labels[index] !== labels[index + 1];
-}
+function renderHistory(){
+  const isTdt = historyMode === "tdt";
+  if(historyModePersonalEl) historyModePersonalEl.classList.toggle("active", !isTdt);
+  if(historyModeTdtEl) historyModeTdtEl.classList.toggle("active", isTdt);
 
-function renderDailyChart(history, labels){
-if(dailyChart) dailyChart.destroy();
-const ctx=document.getElementById("chart").getContext("2d");
-dailyChart=new Chart(ctx,{
-type:"line",
-data:{
-labels:(labels && labels.length===history.length) ? labels : history.map((_,i)=>i+1),
-datasets:[{
-data:history,
-tension:0.25,
-fill:true,
-backgroundColor:"rgba(34,197,94,0.08)",
-borderColor:"#22c55e",
-borderWidth:2,
-	// Show dots ONLY on the last point of each day
-	pointRadius:(c)=> isEndOfDay(c.dataIndex, labels) ? 5 : 0,
-	pointHoverRadius:(c)=> isEndOfDay(c.dataIndex, labels) ? 7 : 0,
-	pointBackgroundColor:"#22c55e",
-	pointBorderWidth:0
-}]
-},
-	options:{
-	  responsive:true,
-	  maintainAspectRatio:false,
-	  interaction:{ mode:"nearest", intersect:true },
-	  scales:{
-	    y:{ ticks:{ callback:(v)=> `£${v}` } },
-	    x:{
-	      ticks:{
-	        callback:function(value, index){
-	          const label = this.getLabelForValue(value);
-	          if(index === 0) return label;
-	          return label !== labels[index - 1] ? label : "";
-	        }
-	      }
-	    }
-	  },
-	  plugins:{
-	    legend:{display:false},
-	    tooltip:{
-	      enabled:true,
-	      callbacks:{
-	        label:(ctx)=> `£${Number(ctx.parsed.y).toFixed(2)}`
-	      }
-	    }
-	  }
-	}
-});
+  if(historySummaryEl){
+    historySummaryEl.innerHTML = `<div class="card">${isTdt ? 'TDT official results history' : 'Your personal tracker history'}</div>`;
+  }
+  renderHistoryRows(isTdt ? tdtRowsCache : trackerRowsCache, isTdt ? 'history_open_tdt' : 'history_open_personal');
 }
 
 async function loadTracker(){
@@ -947,7 +972,12 @@ if(monthKeys.length){
 
 async function updateStake(id,val){
   const rows = readTrackerRows();
-  writeTrackerRows(rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r));
+  const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
+  writeTrackerRows(updated);
+  const row = updated.find(r => String(r.id)===String(id));
+  if(row && isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+  }
   loadTracker();
 }
 
@@ -955,12 +985,75 @@ async function updateResult(id,val){
   const rows = readTrackerRows();
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
+    const row = rows.find(r => String(r.id)===String(id));
     writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
+    if(row && isAdminSyncEnabled() && row.sync_id){
+      try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
+    }
     loadBets();
   }else{
-    writeTrackerRows(rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r));
+    const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
+    writeTrackerRows(updated);
+    const row = updated.find(r => String(r.id)===String(id));
+    if(row && isAdminSyncEnabled()){
+      try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+    }
   }
   loadTracker();
+}
+
+
+async function loadTdtTracker(){
+  const tableEl = document.getElementById("tdtTrackerTable");
+  try{
+    const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
+    if(error) throw error;
+    const rows = Array.isArray(data) ? data : [];
+    tdtRowsCache = rows;
+    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
+    let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+    rows.forEach(row=>{
+      const p = row.result==="won" ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
+              : row.result==="lost" ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
+              : 0;
+      if(row.result==="won") wins++;
+      if(row.result==="lost") losses++;
+      profit += p;
+      totalStake += Number(row.stake || 0);
+      totalOdds += Number(row.odds || 0);
+      const gameDate = row.match_date_date || row.bet_date || row.created_at;
+      html += `<tr><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td>${escapeHtml(String(row.result||'pending').toUpperCase())}</td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
+    });
+    html += "</table>";
+    if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
+    set("tdtBankroll", profit.toFixed(2));
+    set("tdtProfit", profit.toFixed(2));
+    set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
+    set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
+    set("tdtWonLost", `${wins}-${losses}`);
+    set("tdtTotalStakedCard", totalStake.toFixed(2));
+    set("tdtAvgOdds", rows.length?(totalOdds/rows.length).toFixed(2):0);
+    set("tdtTotalBets", rows.length);
+    set("tdtBetCount", rows.length);
+  }catch(err){
+    if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
+  }
+}
+
+function toggleTdtTracker(){
+  const wrapper = document.getElementById("tdtTrackerWrapper");
+  const arrow = document.getElementById("tdtTrackerArrow");
+  if(!wrapper || !arrow) return;
+  if(wrapper.classList.contains("collapsed")){
+    wrapper.classList.remove("collapsed");
+    wrapper.classList.add("expanded");
+    arrow.innerText="▲";
+  }else{
+    wrapper.classList.remove("expanded");
+    wrapper.classList.add("collapsed");
+    arrow.innerText="▼";
+  }
 }
 
 function exportCSV(){
