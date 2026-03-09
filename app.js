@@ -284,22 +284,18 @@ if(historyListEl){
     if(!btn) return;
     const dayKey = btn.dataset.day;
     if(!dayKey) return;
-    const key = historyMode === "tdt" ? "history_open_tdt" : "history_open_personal";
-    const state = JSON.parse(localStorage.getItem(key)||'{}');
-    state[dayKey] = !state[dayKey];
-    localStorage.setItem(key, JSON.stringify(state));
+    // Daily History accordion: default collapsed, store open state per day.
+    window.__historyOpen = window.__historyOpen || JSON.parse(localStorage.getItem('history_open')||'{}');
+    window.__historyOpen[dayKey] = !window.__historyOpen[dayKey];
+    localStorage.setItem('history_open', JSON.stringify(window.__historyOpen));
     renderHistory();
   });
 }
 const historySummaryEl = document.getElementById("historySummary");
 const historyRefreshEl = document.getElementById("historyRefresh");
-const historyModePersonalEl = document.getElementById("historyModePersonal");
-const historyModeTdtEl = document.getElementById("historyModeTdt");
 
 let currentTopTab = "bets"; // 'bets' | 'tracker' | 'tdt' | 'history'
 let trackerRowsCache = [];
-let tdtRowsCache = [];
-let historyMode = "personal";
 
 tabBets.onclick=()=>switchTab("bets");
 tabTracker.onclick=()=>{
@@ -311,8 +307,6 @@ tabTracker.onclick=()=>{
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
-if(historyModePersonalEl) historyModePersonalEl.onclick=()=>{ historyMode="personal"; renderHistory(); };
-if(historyModeTdtEl) historyModeTdtEl.onclick=()=>{ historyMode="tdt"; renderHistory(); };
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -353,10 +347,7 @@ function switchTab(tab){
     return;
   }
   if(tab==="history"){
-    Promise.all([
-      loadTracker(),
-      loadTdtTracker()
-    ]).then(()=>{
+    loadTracker().then(()=>{
       renderHistory();
       if(historyListEl && !historyListEl.innerHTML.trim()){
         historyListEl.innerHTML = '<div class="card">No history yet.</div>';
@@ -685,8 +676,7 @@ function formatDayLabelLong(dayKey){
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-
-function renderHistoryRows(rows, openStoreKey){
+function renderHistory(){
   const iconFor = (res)=>{
     if(res==='won') return '✅';
     if(res==='lost') return '❌';
@@ -695,19 +685,23 @@ function renderHistoryRows(rows, openStoreKey){
 
   if(!historySummaryEl || !historyListEl) return;
 
+  const rows = Array.isArray(trackerRowsCache) ? trackerRowsCache : [];
   const groups = {};
-  for(const b of (Array.isArray(rows) ? rows : [])){
+  for(const b of rows){
     const dayKey = dayKeyFromRow(b);
     if(!dayKey) continue;
     (groups[dayKey] ||= []).push(b);
   }
 
   const dayKeys = Object.keys(groups).sort((a,b)=> b.localeCompare(a));
-  const openState = JSON.parse(localStorage.getItem(openStoreKey)||'{}');
+  historySummaryEl.innerHTML = "";
+
+  window.__historyOpen = window.__historyOpen || JSON.parse(localStorage.getItem('history_open')||'{}');
 
   const fmtDay = (dayKey)=>{
     const d = new Date(dayKey + "T00:00:00");
     if(Number.isNaN(d.getTime())) return dayKey;
+    // "01 Mar 2026"
     return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
   };
 
@@ -730,49 +724,51 @@ function renderHistoryRows(rows, openStoreKey){
 
   let html = "";
   for(const dayKey of dayKeys){
-    if(openState[dayKey] === undefined) openState[dayKey] = false;
-    const dayRows = groups[dayKey];
-    let won=0,lost=0,pending=0;
-    dayRows.forEach(r=>{
-      const rs = (r.result || "pending").toLowerCase();
-      if(rs==="won") won++;
-      else if(rs==="lost") lost++;
-      else pending++;
-    });
-    const resolved = won+lost;
-    const wr = resolved ? Math.round((won/resolved)*100) : 0;
-    const isOpen = !!openState[dayKey];
+    if(window.__historyOpen[dayKey] === undefined) window.__historyOpen[dayKey] = false;
+
+    const bets = groups[dayKey].slice().sort((a,b)=> (a.id||0)-(b.id||0));
+    const won = bets.filter(b => (b.result||"pending").toLowerCase()==="won").length;
+    const lost = bets.filter(b => (b.result||"pending").toLowerCase()==="lost").length;
+    const pending = bets.length - won - lost;
+
+    const settled = won + lost;
+    const ratio = `${won}/${settled || 0}`;
+    const winrate = settled ? Math.round((won / settled) * 100) : 0;
+
+    const collapsed = !window.__historyOpen[dayKey];
 
     html += `
-      <div class="history-day">
-        <button class="daily-toggle history-toggle" type="button" data-day="${dayKey}">
-          <span class="daily-toggle-left"><span class="history-date">${fmtDay(dayKey)}</span></span>
-          <span class="daily-toggle-center history-day-chips inline">
-            <span class="history-chip won"><span>Won</span><strong>${won}</strong></span>
-            <span class="history-chip lost"><span>Lost</span><strong>${lost}</strong></span>
-            <span class="history-chip pending"><span>Pending</span><strong>${pending}</strong></span>
-          </span>
-          <span class="daily-toggle-right">
-            <span class="history-ratio-wrap">
-              <span class="history-day-ratio">${won}-${lost}</span>
-              <span class="history-winrate ${wr>=60?'wr-hot':wr>=50?'wr-good':wr>=35?'wr-mid':'wr-bad'}">${wr}%</span>
-            </span>
-            <span class="daily-chevron">${isOpen ? '▲' : '▼'}</span>
-          </span>
+      <div class="history-day ${collapsed ? "collapsed" : ""}" id="history-day-${dayKey}">
+        <button class="monthly-toggle daily-toggle history-toggle" data-day="${dayKey}">
+          <div class="daily-toggle-left">📅 <span>${fmtDay(dayKey)}</span></div>
+
+          <div class="daily-toggle-center">
+            <div class="history-chip won">✅ <span>Won</span> <strong>${won}</strong></div>
+            <div class="history-chip lost">❌ <span>Lost</span> <strong>${lost}</strong></div>
+            <div class="history-chip pending">⏳ <span>Pending</span> <strong>${pending}</strong></div>
+          </div>
+
+          <div class="daily-toggle-right">
+            <div class="history-ratio-wrap">
+              <span class="history-day-ratio">${ratio}</span>
+              <span class="history-winrate ${winrate>=70 ? "wr-hot" : winrate>=55 ? "wr-good" : winrate>=40 ? "wr-mid" : "wr-bad"}">${winrate>=70 ? "🔥 " : ""}Winrate ${winrate}%</span>
+            </div>
+            <span class="daily-chevron">${collapsed ? "▼" : "▲"}</span>
+          </div>
         </button>
-        <div class="history-day-bets" style="display:${isOpen ? 'block' : 'none'}">
+          <div class="history-day-bets">
           <div class="history-table-wrap">
             <table class="history-table">
               <thead>
                 <tr>
                   <th>Match</th>
                   <th>Market</th>
-                  <th>Odds</th>
-                  <th></th>
+                  <th class="th-odds">Odds</th>
+                  <th class="th-res"></th>
                 </tr>
               </thead>
               <tbody>
-                ${dayRows.map(renderBet).join("")}
+                ${bets.map(renderBet).join("")}
               </tbody>
             </table>
           </div>
@@ -781,21 +777,17 @@ function renderHistoryRows(rows, openStoreKey){
     `;
   }
 
-  historyListEl.innerHTML = dayKeys.length ? html : `<div class="card">No history yet.</div>`;
-  localStorage.setItem(openStoreKey, JSON.stringify(openState));
+  if(!dayKeys.length){
+    html = `<div class="card">No history yet.</div>`;
+  }
+
+  historyListEl.innerHTML = html;
 }
 
-function renderHistory(){
-  if(historyModePersonalEl) historyModePersonalEl.classList.toggle("active", historyMode==="personal");
-  if(historyModeTdtEl) historyModeTdtEl.classList.toggle("active", historyMode==="tdt");
-
-  const isTdt = historyMode === "tdt";
-  const rows = isTdt ? tdtRowsCache : trackerRowsCache;
-
-  if(historySummaryEl){
-    historySummaryEl.innerHTML = `<div class="card">${isTdt ? 'TDT official results history' : 'Your personal tracker history'}</div>`;
-  }
-  renderHistoryRows(rows, isTdt ? 'history_open_tdt' : 'history_open_personal');
+function isEndOfDay(index, labels){
+  if(!labels || !labels.length) return false;
+  if(index === labels.length - 1) return true;
+  return labels[index] !== labels[index + 1];
 }
 
 function renderDailyChart(history, labels){
@@ -1056,7 +1048,6 @@ async function loadTdtTracker(){
     const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
-    tdtRowsCache = rows;
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
     let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
     rows.forEach(row=>{
