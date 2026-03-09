@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772421001"/>
+<link rel="stylesheet" href="styles.css?v=1772422001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -30,7 +30,8 @@
 
 <div class="tabs">
 <button id="tabBets" class="active">Value Bets</button>
-<button id="tabTracker">Tracker</button>
+<button id="tabTracker">My Tracker</button>
+<button id="tabTdtTracker">TDT Tracker</button>
 <button id="tabHistory">Daily History</button>
 </div>
 <div class="top-controls">
@@ -39,6 +40,14 @@
     <button id="btnWide" class="layout-btn">Wide</button>
   </div>
   <!-- Install App button removed for now -->
+
+<div id="vipPromo" class="vip-promo" style="display:none;">
+  <div class="vip-promo__text">
+    <div class="vip-promo__title">Unlock all today’s value bets + My Tracker + TDT Tracker</div>
+    <div id="vipPromoStats" class="vip-promo__stats">See the official TDT results and track your own bets as VIP.</div>
+  </div>
+  <button id="vipPromoBtn" class="vip-promo__btn" type="button">Go VIP</button>
+</div>
 </div>
 </header>
 
@@ -127,11 +136,65 @@
 
 </section>
 
-<section id="historySection" style="display:none;">
-  <div class="history-mode-tabs">
-    <button id="historyModePersonal" class="history-mode-btn active" type="button">My History</button>
-    <button id="historyModeTdt" class="history-mode-btn" type="button">TDT History</button>
+
+<section id="tdtTrackerSection" style="display:none;">
+<div class="tdt-header card">
+  <div class="tdt-header__title">TDT Official Tracker</div>
+  <div class="tdt-header__sub">Read-only official all-time results for everyone to see.</div>
+</div>
+
+<div class="stats-grid">
+<div class="stat-card">Bankroll<br><strong>£<span id="tdtBankroll">0</span></strong></div>
+<div class="stat-card" id="tdtProfitCard">Profit<br><strong>£<span id="tdtProfit">0</span></strong></div>
+<div class="stat-card">ROI<br><strong><span id="tdtRoi">0</span>%</strong></div>
+<div class="stat-card">Win Rate<br><strong><span id="tdtWinrate">0</span>%</strong></div>
+<div class="stat-card">Won - Lost<br><strong><span id="tdtWonLost">0-0</span></strong></div>
+<div class="stat-card">Staked<br><strong>£<span id="tdtTotalStakedCard">0</span></strong></div>
+<div class="stat-card">Avg Odds<br><strong><span id="tdtAvgOdds">0</span></strong></div>
+<div class="stat-card">Total Bets<br><strong><span id="tdtTotalBets">0</span></strong></div>
+</div>
+
+<div class="chart-tabs tdt-chart-tabs">
+  <button class="tdt-tab-btn active" data-tdt-tab="daily">Daily</button>
+  <button class="tdt-tab-btn" data-tdt-tab="monthly">Monthly</button>
+  <button class="tdt-tab-btn" data-tdt-tab="market">Markets</button>
+</div>
+
+<div class="chart-wrap">
+  <div class="tdt-chart-pane active" id="tdt-pane-daily">
+    <canvas id="tdtChart"></canvas>
   </div>
+  <div class="tdt-chart-pane" id="tdt-pane-monthly">
+    <canvas id="tdtMonthlyChart"></canvas>
+
+    <div class="monthly-breakdown">
+      <div class="monthly-toggle" onclick="toggleTdtMonthly()">
+        📊 Monthly Breakdown
+        <span id="tdtMonthlyArrow">▼</span>
+      </div>
+
+      <div id="tdtMonthlyWrapper" class="collapsed">
+        <div id="tdtMonthlyTable"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tdt-chart-pane" id="tdt-pane-market">
+    <canvas id="tdtMarketChart"></canvas>
+  </div>
+</div>
+
+<div class="tracker-history">
+  <div class="tracker-toggle" onclick="toggleTdtTrackerTable()">
+    📈 TDT Bet Results (<span id="tdtBetCount">0</span>)
+    <span id="tdtTrackerArrow">▼</span>
+  </div>
+  <div id="tdtTrackerWrapper" class="collapsed">
+    <div id="tdtTrackerTable"></div>
+  </div>
+</div>
+</section>
+
+<section id="historySection" style="display:none;">
   <!-- History shows all days stacked; tap a day to expand/collapse. -->
   <div id="historySummary" class="history-summary"></div>
   <div id="historyList" class="history-grid"></div>
@@ -160,6 +223,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772421001"></script>
+<script src="app.js?v=1772422001"></script>
 </body>
 </html>
