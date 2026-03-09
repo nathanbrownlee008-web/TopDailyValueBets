@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772415001"/>
+<link rel="stylesheet" href="styles.css?v=1772420001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -21,6 +21,7 @@
     <div class="vip-bar__left">
       <div class="vip-bar__title" id="vipTitle">VIP Access</div>
       <div id="vipStatus" class="vip-bar__status">VIP locked — subscribe to unlock</div>
+      <div class="admin-badge" data-admin-badge="1" style="display:none;">Admin</div>
     </div>
     <button id="vipButton" class="vip-button" type="button">
       <span class="vip-button__icon" aria-hidden="true">👑</span>
@@ -161,6 +162,10 @@
 
 
 <section id="historySection" style="display:none;">
+  <div class="history-mode-tabs">
+    <button id="historyModePersonal" class="history-mode-btn active" type="button">My History</button>
+    <button id="historyModeTdt" class="history-mode-btn" type="button">TDT History</button>
+  </div>
   <!-- History shows all days stacked; tap a day to expand/collapse. -->
   <div id="historySummary" class="history-summary"></div>
   <div id="historyList" class="history-grid"></div>
@@ -189,6 +194,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772415001"></script>
+<script src="app.js?v=1772420001"></script>
 </body>
 </html>

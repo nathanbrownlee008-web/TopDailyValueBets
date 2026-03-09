@@ -153,6 +153,10 @@ function currentVipEmail(){
 function isAdminSyncEnabled(){
   return currentVipEmail() === ADMIN_SYNC_EMAIL;
 }
+function refreshAdminBadgeUI(){
+  const badges = document.querySelectorAll('[data-admin-badge="1"]');
+  badges.forEach(el=>{ el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none"; });
+}
 function makeSyncId(){
   return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 }
@@ -280,18 +284,21 @@ if(historyListEl){
     if(!btn) return;
     const dayKey = btn.dataset.day;
     if(!dayKey) return;
-    // Daily History accordion: default collapsed, store open state per day.
-    window.__historyOpen = window.__historyOpen || JSON.parse(localStorage.getItem('history_open')||'{}');
-    window.__historyOpen[dayKey] = !window.__historyOpen[dayKey];
-    localStorage.setItem('history_open', JSON.stringify(window.__historyOpen));
+    const key = historyMode === "tdt" ? "history_open_tdt" : "history_open_personal";
+    const state = JSON.parse(localStorage.getItem(key)||'{}');
+    state[dayKey] = !state[dayKey];
+    localStorage.setItem(key, JSON.stringify(state));
     renderHistory();
   });
 }
 const historySummaryEl = document.getElementById("historySummary");
 const historyRefreshEl = document.getElementById("historyRefresh");
+const historyModePersonalEl = document.getElementById("historyModePersonal");
+const historyModeTdtEl = document.getElementById("historyModeTdt");
 
 let currentTopTab = "bets"; // 'bets' | 'tracker' | 'tdt' | 'history'
 let trackerRowsCache = [];
+let historyMode = "personal";
 
 tabBets.onclick=()=>switchTab("bets");
 tabTracker.onclick=()=>{
@@ -303,6 +310,8 @@ tabTracker.onclick=()=>{
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
+if(historyModePersonalEl) historyModePersonalEl.onclick=()=>{ historyMode="personal"; renderHistory(); };
+if(historyModeTdtEl) historyModeTdtEl.onclick=()=>{ historyMode="tdt"; renderHistory(); };
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -315,6 +324,7 @@ if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly')
 checkVIP().then(()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+  refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
   loadBets();
 });
@@ -342,7 +352,7 @@ function switchTab(tab){
     return;
   }
   if(tab==="history"){
-    loadTracker().then(()=>{
+    Promise.all([loadTracker(), loadTdtTracker()]).then(()=>{
       renderHistory();
       if(historyListEl && !historyListEl.innerHTML.trim()){
         historyListEl.innerHTML = '<div class="card">No history yet.</div>';
@@ -671,7 +681,8 @@ function formatDayLabelLong(dayKey){
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function renderHistory(){
+
+function renderHistoryRows(rows, openStoreKey){
   const iconFor = (res)=>{
     if(res==='won') return '✅';
     if(res==='lost') return '❌';
@@ -680,23 +691,19 @@ function renderHistory(){
 
   if(!historySummaryEl || !historyListEl) return;
 
-  const rows = Array.isArray(trackerRowsCache) ? trackerRowsCache : [];
   const groups = {};
-  for(const b of rows){
+  for(const b of (Array.isArray(rows) ? rows : [])){
     const dayKey = dayKeyFromRow(b);
     if(!dayKey) continue;
     (groups[dayKey] ||= []).push(b);
   }
 
   const dayKeys = Object.keys(groups).sort((a,b)=> b.localeCompare(a));
-  historySummaryEl.innerHTML = "";
-
-  window.__historyOpen = window.__historyOpen || JSON.parse(localStorage.getItem('history_open')||'{}');
+  const openState = JSON.parse(localStorage.getItem(openStoreKey)||'{}');
 
   const fmtDay = (dayKey)=>{
     const d = new Date(dayKey + "T00:00:00");
     if(Number.isNaN(d.getTime())) return dayKey;
-    // "01 Mar 2026"
     return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
   };
 
@@ -719,30 +726,26 @@ function renderHistory(){
 
   let html = "";
   for(const dayKey of dayKeys){
-    if(window.__historyOpen[dayKey] === undefined) window.__historyOpen[dayKey] = false;
+    if(openState[dayKey] === undefined) openState[dayKey] = false;
 
-    const bets = groups[dayKey].slice().sort((a,b)=> (a.id||0)-(b.id||0));
+    const bets = groups[dayKey].slice();
     const won = bets.filter(b => (b.result||"pending").toLowerCase()==="won").length;
     const lost = bets.filter(b => (b.result||"pending").toLowerCase()==="lost").length;
     const pending = bets.length - won - lost;
-
     const settled = won + lost;
     const ratio = `${won}/${settled || 0}`;
     const winrate = settled ? Math.round((won / settled) * 100) : 0;
-
-    const collapsed = !window.__historyOpen[dayKey];
+    const collapsed = !openState[dayKey];
 
     html += `
       <div class="history-day ${collapsed ? "collapsed" : ""}" id="history-day-${dayKey}">
         <button class="monthly-toggle daily-toggle history-toggle" data-day="${dayKey}">
           <div class="daily-toggle-left">📅 <span>${fmtDay(dayKey)}</span></div>
-
           <div class="daily-toggle-center">
             <div class="history-chip won">✅ <span>Won</span> <strong>${won}</strong></div>
             <div class="history-chip lost">❌ <span>Lost</span> <strong>${lost}</strong></div>
             <div class="history-chip pending">⏳ <span>Pending</span> <strong>${pending}</strong></div>
           </div>
-
           <div class="daily-toggle-right">
             <div class="history-ratio-wrap">
               <span class="history-day-ratio">${ratio}</span>
@@ -751,7 +754,7 @@ function renderHistory(){
             <span class="daily-chevron">${collapsed ? "▼" : "▲"}</span>
           </div>
         </button>
-          <div class="history-day-bets">
+        <div class="history-day-bets">
           <div class="history-table-wrap">
             <table class="history-table">
               <thead>
@@ -772,11 +775,20 @@ function renderHistory(){
     `;
   }
 
-  if(!dayKeys.length){
-    html = `<div class="card">No history yet.</div>`;
+  historyListEl.innerHTML = dayKeys.length ? html : `<div class="card">No history yet.</div>`;
+  localStorage.setItem(openStoreKey, JSON.stringify(openState));
+}
+
+function renderHistory(){
+  const isTdt = historyMode === "tdt";
+  if(historyModePersonalEl) historyModePersonalEl.classList.toggle("active", !isTdt);
+  if(historyModeTdtEl) historyModeTdtEl.classList.toggle("active", isTdt);
+
+  if(historySummaryEl){
+    historySummaryEl.innerHTML = `<div class="card">${isTdt ? 'TDT official results history' : 'Your personal tracker history'}</div>`;
   }
 
-  historyListEl.innerHTML = html;
+  renderHistoryRows(isTdt ? tdtRowsCache : trackerRowsCache, isTdt ? 'history_open_tdt' : 'history_open_personal');
 }
 
 function isEndOfDay(index, labels){
@@ -1043,6 +1055,7 @@ async function loadTdtTracker(){
     const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
+    tdtRowsCache = rows;
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
     let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
     rows.forEach(row=>{
