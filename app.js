@@ -144,55 +144,6 @@ const vipErrorEl = document.getElementById("vipError");
 
 
 let vipActive = false;
-const ADMIN_SYNC_EMAIL = "nathanbrownlee40@gmail.com";
-let tdtRowsCache = [];
-
-function currentVipEmail(){
-  return ((localStorage.getItem('vip_email')||'').trim().toLowerCase());
-}
-function isAdminSyncEnabled(){
-  return currentVipEmail() === ADMIN_SYNC_EMAIL;
-}
-function refreshAdminBadgeUI(){
-  const badges = document.querySelectorAll('[data-admin-badge="1"]');
-  badges.forEach(el=>{ el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none"; });
-}
-function makeSyncId(){
-  return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-}
-async function upsertTdtMirror(row){
-  if(!isAdminSyncEnabled() || !row) return;
-  if(!row.sync_id) row.sync_id = makeSyncId();
-  const payload = {
-    sync_id: row.sync_id,
-    match: row.match || "",
-    market: row.market || "",
-    odds: Number(row.odds || 0),
-    stake: Number(row.stake || 0),
-    result: row.result || "pending",
-    profit: row.result === "won" ? Number(row.stake || 0) * (Number(row.odds || 0) - 1)
-           : row.result === "lost" ? -Number(row.stake || 0)
-           : 0,
-    bet_date: row.bet_date || null,
-    created_at: row.created_at || new Date().toISOString(),
-    bookie: row.bookie || null
-  };
-  const { data: existing, error: checkErr } = await client.from("tdt_tracker").select("id").eq("sync_id", row.sync_id).limit(1);
-  if(checkErr) throw checkErr;
-  if(existing && existing.length){
-    const { error } = await client.from("tdt_tracker").update(payload).eq("sync_id", row.sync_id);
-    if(error) throw error;
-  }else{
-    const { error } = await client.from("tdt_tracker").insert([payload]);
-    if(error) throw error;
-  }
-}
-async function deleteTdtMirror(syncId){
-  if(!isAdminSyncEnabled() || !syncId) return;
-  const { error } = await client.from("tdt_tracker").delete().eq("sync_id", syncId);
-  if(error) throw error;
-}
-
 
 function trackerStorageKey(){
   const email = ((localStorage.getItem('vip_email')||'').trim().toLowerCase() || 'guest');
@@ -271,8 +222,6 @@ function makeBetKey(row){
 }
 
 // Top navigation tabs
-const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
-const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
 const historyDaySelectEl = document.getElementById("historyDaySelect");
@@ -296,8 +245,9 @@ const historyRefreshEl = document.getElementById("historyRefresh");
 const historyModePersonalEl = document.getElementById("historyModePersonal");
 const historyModeTdtEl = document.getElementById("historyModeTdt");
 
-let currentTopTab = "bets"; // 'bets' | 'tracker' | 'tdt' | 'history'
+let currentTopTab = "bets"; // 'bets' | 'tracker' | 'history'
 let trackerRowsCache = [];
+let tdtRowsCache = [];
 let historyMode = "personal";
 
 tabBets.onclick=()=>switchTab("bets");
@@ -308,7 +258,6 @@ tabTracker.onclick=()=>{
   }
   switchTab("tracker");
 };
-if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
 if(historyModePersonalEl) historyModePersonalEl.onclick=()=>{ historyMode="personal"; renderHistory(); };
 if(historyModeTdtEl) historyModeTdtEl.onclick=()=>{ historyMode="tdt"; renderHistory(); };
@@ -324,7 +273,6 @@ if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly')
 checkVIP().then(()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
-  refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
   loadBets();
 });
@@ -335,31 +283,25 @@ function switchTab(tab){
 
   betsSection.style.display=(tab==="bets")?"block":"none";
   trackerSection.style.display=(tab==="tracker")?"block":"none";
-  if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
   if(historySectionEl) historySectionEl.style.display=(tab==="history")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
   tabTracker.classList.toggle("active",tab==="tracker");
-  if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
   if(tabHistoryEl) tabHistoryEl.classList.toggle("active",tab==="history");
 
-  if(tab==="tracker"){
-    loadTracker();
-    return;
-  }
-  if(tab==="tdt"){
-    loadTdtTracker();
-    return;
-  }
-  if(tab==="history"){
-    Promise.all([loadTracker(), loadTdtTracker()]).then(()=>{
-      renderHistory();
-      if(historyListEl && !historyListEl.innerHTML.trim()){
-        historyListEl.innerHTML = '<div class="card">No history yet.</div>';
+  if(tab!=="bets"){
+    loadTracker().then(()=>{
+      if(tab==="history"){
+        renderHistory();
+        if(historyListEl && !historyListEl.innerHTML.trim()){
+          historyListEl.innerHTML = '<div class="card">No history yet.</div>';
+        }
       }
     });
   }
 }
+
+
 
 async function loadBets(){
   // Rebuild "Added" state from tracker every time we render the feed.
@@ -456,23 +398,17 @@ async function addToTracker(btn, row){
   }
 
   const rows = readTrackerRows();
-  const newRow = {
+  rows.push({
     id: makeLocalTrackerId(),
-    sync_id: isAdminSyncEnabled() ? makeSyncId() : null,
     match: row.match,
     market: row.market,
     odds: Number(row.odds),
     stake: 10,
     result: "pending",
     created_at: new Date().toISOString(),
-    bet_date: row.bet_date || null,
-    bookie: row.bookie || null
-  };
-  rows.push(newRow);
+    bet_date: row.bet_date || null
+  });
   writeTrackerRows(rows);
-  if(isAdminSyncEnabled()){
-    try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
-  }
 
   addedKeys.add(key);
   if(btn){
@@ -681,22 +617,21 @@ function formatDayLabelLong(dayKey){
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function renderHistory(){
+  if(historyModePersonalEl) historyModePersonalEl.classList.toggle("active", historyMode==="personal");
+  if(historyModeTdtEl) historyModeTdtEl.classList.toggle("active", historyMode==="tdt");
 
-function renderHistoryRows(rows, openStoreKey){
-  const iconFor = (res)=>{
-    if(res==='won') return '✅';
-    if(res==='lost') return '❌';
-    return '⏳';
-  };
+  const rows = historyMode === "tdt" ? (Array.isArray(tdtRowsCache) ? tdtRowsCache : []) : (Array.isArray(trackerRowsCache) ? trackerRowsCache : []);
+  const openStoreKey = historyMode === "tdt" ? "history_open_tdt" : "history_open_personal";
 
   if(!historySummaryEl || !historyListEl) return;
 
   const groups = {};
-  for(const b of (Array.isArray(rows) ? rows : [])){
+  rows.forEach((b)=>{
     const dayKey = dayKeyFromRow(b);
-    if(!dayKey) continue;
+    if(!dayKey) return;
     (groups[dayKey] ||= []).push(b);
-  }
+  });
 
   const dayKeys = Object.keys(groups).sort((a,b)=> b.localeCompare(a));
   const openState = JSON.parse(localStorage.getItem(openStoreKey)||'{}');
@@ -707,39 +642,34 @@ function renderHistoryRows(rows, openStoreKey){
     return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
   };
 
-  const renderBet = (b)=>{
-    const result = (b.result || "pending").toLowerCase();
-    const cls = (result==="won"||result==="lost") ? result : "pending";
-    const match = (b.match || "").toString().trim() || "—";
-    const market = (b.market || "").toString().trim() || "—";
-    const odds = (b.odds ?? "").toString().trim() || "—";
-
-    return `
-      <tr class="history-row ${cls}">
-        <td class="hcell-match">${escapeHtml(match)}</td>
-        <td class="hcell-market">${escapeHtml(market)}</td>
-        <td class="hcell-odds">${escapeHtml(odds)}</td>
-        <td class="hcell-result" aria-label="${cls}">${iconFor(cls)}</td>
-      </tr>
-    `;
+  const iconFor = (res)=>{
+    if(res==='won') return '✅';
+    if(res==='lost') return '❌';
+    return '⏳';
   };
+
+  historySummaryEl.innerHTML = `<div class="card">${historyMode === "tdt" ? 'TDT official results history' : 'Your personal tracker history'}</div>`;
+
+  if(!dayKeys.length){
+    historyListEl.innerHTML = '<div class="card">No history yet.</div>';
+    return;
+  }
 
   let html = "";
   for(const dayKey of dayKeys){
     if(openState[dayKey] === undefined) openState[dayKey] = false;
-
-    const bets = groups[dayKey].slice();
+    const bets = groups[dayKey];
     const won = bets.filter(b => (b.result||"pending").toLowerCase()==="won").length;
     const lost = bets.filter(b => (b.result||"pending").toLowerCase()==="lost").length;
     const pending = bets.length - won - lost;
     const settled = won + lost;
-    const ratio = `${won}/${settled || 0}`;
+    const ratio = `${won}-${lost}`;
     const winrate = settled ? Math.round((won / settled) * 100) : 0;
-    const collapsed = !openState[dayKey];
+    const isOpen = !!openState[dayKey];
 
     html += `
-      <div class="history-day ${collapsed ? "collapsed" : ""}" id="history-day-${dayKey}">
-        <button class="monthly-toggle daily-toggle history-toggle" data-day="${dayKey}">
+      <div class="history-day ${!isOpen ? "collapsed" : ""}">
+        <button class="monthly-toggle daily-toggle history-toggle" type="button" data-day="${dayKey}">
           <div class="daily-toggle-left">📅 <span>${fmtDay(dayKey)}</span></div>
           <div class="daily-toggle-center">
             <div class="history-chip won">✅ <span>Won</span> <strong>${won}</strong></div>
@@ -749,12 +679,12 @@ function renderHistoryRows(rows, openStoreKey){
           <div class="daily-toggle-right">
             <div class="history-ratio-wrap">
               <span class="history-day-ratio">${ratio}</span>
-              <span class="history-winrate ${winrate>=70 ? "wr-hot" : winrate>=55 ? "wr-good" : winrate>=40 ? "wr-mid" : "wr-bad"}">${winrate>=70 ? "🔥 " : ""}Winrate ${winrate}%</span>
+              <span class="history-winrate ${winrate>=70 ? "wr-hot" : winrate>=55 ? "wr-good" : winrate>=40 ? "wr-mid" : "wr-bad"}">${winrate}%</span>
             </div>
-            <span class="daily-chevron">${collapsed ? "▼" : "▲"}</span>
+            <span class="daily-chevron">${isOpen ? "▲" : "▼"}</span>
           </div>
         </button>
-        <div class="history-day-bets">
+        <div class="history-day-bets" style="display:${isOpen ? 'block' : 'none'}">
           <div class="history-table-wrap">
             <table class="history-table">
               <thead>
@@ -766,7 +696,16 @@ function renderHistoryRows(rows, openStoreKey){
                 </tr>
               </thead>
               <tbody>
-                ${bets.map(renderBet).join("")}
+                ${bets.map((b)=>{
+                  const result = (b.result || "pending").toLowerCase();
+                  const cls = (result==="won"||result==="lost") ? result : "pending";
+                  return `<tr class="history-row ${cls}">
+                    <td class="hcell-match">${escapeHtml((b.match || "").toString().trim() || "—")}</td>
+                    <td class="hcell-market">${escapeHtml((b.market || "").toString().trim() || "—")}</td>
+                    <td class="hcell-odds">${escapeHtml((b.odds ?? "").toString().trim() || "—")}</td>
+                    <td class="hcell-result" aria-label="${cls}">${iconFor(cls)}</td>
+                  </tr>`;
+                }).join("")}
               </tbody>
             </table>
           </div>
@@ -775,20 +714,8 @@ function renderHistoryRows(rows, openStoreKey){
     `;
   }
 
-  historyListEl.innerHTML = dayKeys.length ? html : `<div class="card">No history yet.</div>`;
+  historyListEl.innerHTML = html;
   localStorage.setItem(openStoreKey, JSON.stringify(openState));
-}
-
-function renderHistory(){
-  const isTdt = historyMode === "tdt";
-  if(historyModePersonalEl) historyModePersonalEl.classList.toggle("active", !isTdt);
-  if(historyModeTdtEl) historyModeTdtEl.classList.toggle("active", isTdt);
-
-  if(historySummaryEl){
-    historySummaryEl.innerHTML = `<div class="card">${isTdt ? 'TDT official results history' : 'Your personal tracker history'}</div>`;
-  }
-
-  renderHistoryRows(isTdt ? tdtRowsCache : trackerRowsCache, isTdt ? 'history_open_tdt' : 'history_open_personal');
 }
 
 function isEndOfDay(index, labels){
@@ -1018,12 +945,7 @@ if(monthKeys.length){
 
 async function updateStake(id,val){
   const rows = readTrackerRows();
-  const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
-  writeTrackerRows(updated);
-  const row = updated.find(r => String(r.id)===String(id));
-  if(row && isAdminSyncEnabled()){
-    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
-  }
+  writeTrackerRows(rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r));
   loadTracker();
 }
 
@@ -1031,75 +953,12 @@ async function updateResult(id,val){
   const rows = readTrackerRows();
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
-    const row = rows.find(r => String(r.id)===String(id));
     writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
-    if(row && isAdminSyncEnabled() && row.sync_id){
-      try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
-    }
     loadBets();
   }else{
-    const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
-    writeTrackerRows(updated);
-    const row = updated.find(r => String(r.id)===String(id));
-    if(row && isAdminSyncEnabled()){
-      try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
-    }
+    writeTrackerRows(rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r));
   }
   loadTracker();
-}
-
-
-async function loadTdtTracker(){
-  const tableEl = document.getElementById("tdtTrackerTable");
-  try{
-    const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
-    if(error) throw error;
-    const rows = Array.isArray(data) ? data : [];
-    tdtRowsCache = rows;
-    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
-    let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
-    rows.forEach(row=>{
-      const p = row.result==="won" ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
-              : row.result==="lost" ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
-              : 0;
-      if(row.result==="won") wins++;
-      if(row.result==="lost") losses++;
-      profit += p;
-      totalStake += Number(row.stake || 0);
-      totalOdds += Number(row.odds || 0);
-      const gameDate = row.match_date_date || row.bet_date || row.created_at;
-      html += `<tr><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td>${escapeHtml(String(row.result||'pending').toUpperCase())}</td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
-    });
-    html += "</table>";
-    if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
-    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
-    set("tdtBankroll", profit.toFixed(2));
-    set("tdtProfit", profit.toFixed(2));
-    set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
-    set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
-    set("tdtWonLost", `${wins}-${losses}`);
-    set("tdtTotalStakedCard", totalStake.toFixed(2));
-    set("tdtAvgOdds", rows.length?(totalOdds/rows.length).toFixed(2):0);
-    set("tdtTotalBets", rows.length);
-    set("tdtBetCount", rows.length);
-  }catch(err){
-    if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
-  }
-}
-
-function toggleTdtTracker(){
-  const wrapper = document.getElementById("tdtTrackerWrapper");
-  const arrow = document.getElementById("tdtTrackerArrow");
-  if(!wrapper || !arrow) return;
-  if(wrapper.classList.contains("collapsed")){
-    wrapper.classList.remove("collapsed");
-    wrapper.classList.add("expanded");
-    arrow.innerText="▲";
-  }else{
-    wrapper.classList.remove("expanded");
-    wrapper.classList.add("collapsed");
-    arrow.innerText="▼";
-  }
 }
 
 function exportCSV(){
