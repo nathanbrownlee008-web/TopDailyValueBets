@@ -720,23 +720,31 @@ async function registerServiceWorker(){
 }
 
 async function toggleBetAlerts(){
+  const statusEl = document.getElementById('notifyStatus');
   if(!('Notification' in window)){
+    if(statusEl) statusEl.textContent = 'Alerts unsupported on this browser';
     updateBetAlertUI();
     return;
   }
   const current = notificationsEnabled();
   if(current){
     localStorage.setItem(NEW_BET_ALERTS_KEY, '0');
+    if(statusEl) statusEl.textContent = 'Alerts off';
     updateBetAlertUI();
     return;
   }
   let permission = Notification.permission;
-  if(permission !== 'granted'){
+  if(permission === 'default'){
     permission = await Notification.requestPermission();
   }
   if(permission === 'granted'){
     localStorage.setItem(NEW_BET_ALERTS_KEY, '1');
+    updateBetAlertUI();
+    if(statusEl) statusEl.textContent = 'Alerts on · sending test';
+    await sendBetNotification('Top Daily Tips alerts enabled', 'You will get alerts here when a new visible bet appears.');
+    return;
   }
+  if(statusEl) statusEl.textContent = permission === 'denied' ? 'Browser blocked alerts' : 'Alerts not enabled';
   updateBetAlertUI();
 }
 
@@ -790,6 +798,53 @@ function renderVipPromoChart(rows){
     data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:2 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
   });
+}
+
+async function loadVipPromoProof(){
+  const statsEl = document.getElementById('vipPromoStats');
+  try{
+    const { data, error } = await client
+      .from('tdt_tracker')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(200);
+    if(error) throw error;
+
+    const rows = Array.isArray(data) ? data : [];
+    const settled = rows.filter(r => (r.result || 'pending') !== 'pending');
+
+    if(!settled.length){
+      if(statsEl) statsEl.textContent = 'Official proof updates soon';
+      renderVipPromoChart([]);
+      return;
+    }
+
+    let wins = 0;
+    let losses = 0;
+    let stake = 0;
+    let profit = 0;
+    settled.forEach((row)=>{
+      const result = row.result || 'pending';
+      if(result === 'won') wins += 1;
+      if(result === 'lost') losses += 1;
+      stake += Number(row.stake || 0);
+      profit += rowProfit({
+        stake: Number(row.stake || 0),
+        odds: Number(row.odds || 0),
+        result
+      });
+    });
+
+    const roi = stake ? ((profit / stake) * 100) : 0;
+    if(statsEl){
+      const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
+      statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
+    }
+    renderVipPromoChart(settled);
+  }catch(err){
+    console.error('VIP proof load failed', err);
+    if(statsEl) statsEl.textContent = 'Official TDT proof unavailable right now';
+  }
 }
 
 async function loadTracker(){
