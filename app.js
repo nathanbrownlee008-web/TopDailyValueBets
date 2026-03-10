@@ -284,6 +284,35 @@ function switchTab(tab){
   }
 }
 
+
+function trackerOverrideKey(){
+  return "tracker_overrides_v1";
+}
+function readTrackerOverrides(){
+  try{
+    const raw = localStorage.getItem(trackerOverrideKey());
+    const obj = raw ? JSON.parse(raw) : {};
+    return obj && typeof obj === "object" ? obj : {};
+  }catch(e){ return {}; }
+}
+function writeTrackerOverrides(obj){
+  try{ localStorage.setItem(trackerOverrideKey(), JSON.stringify(obj||{})); }catch(e){}
+}
+function setTrackerOverride(id, patch){
+  const all = readTrackerOverrides();
+  all[String(id)] = { ...(all[String(id)]||{}), ...(patch||{}) };
+  writeTrackerOverrides(all);
+}
+function clearTrackerOverride(id){
+  const all = readTrackerOverrides();
+  delete all[String(id)];
+  writeTrackerOverrides(all);
+}
+function applyTrackerOverrides(rows){
+  const all = readTrackerOverrides();
+  return (rows||[]).map(r => ({ ...r, ...(all[String(r.id)]||{}) }));
+}
+
 async function loadBets(){
   // Rebuild "Added" state from tracker every time we render the feed.
   // This ensures that if a bet is deleted from the tracker, the feed button returns to "Add".
@@ -1005,8 +1034,9 @@ async function loadTdtTracker(){
 }
 
 async function loadTracker(){
-const {data}=await client.from("bet_tracker").select("*").order("created_at",{ascending:true});
-const rows = data || [];
+const {data, error}=await client.from("bet_tracker").select("*").order("created_at",{ascending:true});
+if(error){ console.error("loadTracker failed", error); }
+const rows = applyTrackerOverrides(data || []);
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -1175,24 +1205,43 @@ if(monthKeys.length){
 
 
 async function updateStake(id,val){
-await client.from("bet_tracker").update({stake:parseFloat(val)}).eq("id",id);
-loadTracker();
+  const stake = parseFloat(val) || 0;
+  setTrackerOverride(id, { stake });
+  loadTracker();
+  const { error } = await client.from("bet_tracker").update({ stake }).eq("id", id);
+  if(!error){
+    clearTrackerOverride(id);
+    loadTracker();
+  }else{
+    console.error("updateStake failed", error);
+  }
 }
 
 async function updateResult(id,val){
-if(val==="delete"){
-if(!confirm("Delete this bet?")){loadTracker();return;}
-await client.from("bet_tracker").delete().eq("id",id);
-// Refresh the Value Bets feed so the button switches back from "Added" to "Add".
-loadBets();
-}else{
-await client.from("bet_tracker").update({result:val}).eq("id",id);
-}
-loadTracker();
+  if(val==="delete"){
+    if(!confirm("Delete this bet?")){ loadTracker(); return; }
+    clearTrackerOverride(id);
+    const { error } = await client.from("bet_tracker").delete().eq("id", id);
+    if(error){ console.error("delete bet failed", error); }
+    loadBets();
+    loadTracker();
+    return;
+  }
+
+  setTrackerOverride(id, { result: val });
+  loadTracker();
+
+  const { error } = await client.from("bet_tracker").update({ result: val }).eq("id", id);
+  if(!error){
+    clearTrackerOverride(id);
+    loadTracker();
+  }else{
+    console.error("updateResult failed", error);
+  }
 }
 
 function exportCSV(){
-  const data = readTrackerRows();
+  const data = Array.isArray(trackerRowsCache) ? trackerRowsCache : [];
   let csv="match,market,odds,stake,result\n";
   data.forEach(r=>{
     csv+=`${r.match},${r.market},${r.odds},${r.stake},${r.result}\n`;
