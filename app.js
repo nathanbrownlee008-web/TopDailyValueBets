@@ -720,31 +720,23 @@ async function registerServiceWorker(){
 }
 
 async function toggleBetAlerts(){
-  const statusEl = document.getElementById('notifyStatus');
   if(!('Notification' in window)){
-    if(statusEl) statusEl.textContent = 'Alerts unsupported on this browser';
     updateBetAlertUI();
     return;
   }
   const current = notificationsEnabled();
   if(current){
     localStorage.setItem(NEW_BET_ALERTS_KEY, '0');
-    if(statusEl) statusEl.textContent = 'Alerts off';
     updateBetAlertUI();
     return;
   }
   let permission = Notification.permission;
-  if(permission === 'default'){
+  if(permission !== 'granted'){
     permission = await Notification.requestPermission();
   }
   if(permission === 'granted'){
     localStorage.setItem(NEW_BET_ALERTS_KEY, '1');
-    updateBetAlertUI();
-    if(statusEl) statusEl.textContent = 'Alerts on · sending test';
-    await sendBetNotification('Top Daily Tips alerts enabled', 'You will get alerts here when a new visible bet appears.');
-    return;
   }
-  if(statusEl) statusEl.textContent = permission === 'denied' ? 'Browser blocked alerts' : 'Alerts not enabled';
   updateBetAlertUI();
 }
 
@@ -798,53 +790,6 @@ function renderVipPromoChart(rows){
     data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:2 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
   });
-}
-
-async function loadVipPromoProof(){
-  const statsEl = document.getElementById('vipPromoStats');
-  try{
-    const { data, error } = await client
-      .from('tdt_tracker')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .limit(200);
-    if(error) throw error;
-
-    const rows = Array.isArray(data) ? data : [];
-    const settled = rows.filter(r => (r.result || 'pending') !== 'pending');
-
-    if(!settled.length){
-      if(statsEl) statsEl.textContent = 'Official proof updates soon';
-      renderVipPromoChart([]);
-      return;
-    }
-
-    let wins = 0;
-    let losses = 0;
-    let stake = 0;
-    let profit = 0;
-    settled.forEach((row)=>{
-      const result = row.result || 'pending';
-      if(result === 'won') wins += 1;
-      if(result === 'lost') losses += 1;
-      stake += Number(row.stake || 0);
-      profit += rowProfit({
-        stake: Number(row.stake || 0),
-        odds: Number(row.odds || 0),
-        result
-      });
-    });
-
-    const roi = stake ? ((profit / stake) * 100) : 0;
-    if(statsEl){
-      const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
-      statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
-    }
-    renderVipPromoChart(settled);
-  }catch(err){
-    console.error('VIP proof load failed', err);
-    if(statsEl) statsEl.textContent = 'Official TDT proof unavailable right now';
-  }
 }
 
 async function loadTracker(){
@@ -1160,60 +1105,6 @@ loadTracker = async function(){
 };
 
 
-
-
-function renderDailyChart(history, labels){
-  const el = document.getElementById("chart");
-  if(!el) return;
-  if(dailyChart) dailyChart.destroy();
-
-  const safeHistory = Array.isArray(history) ? history : [];
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const ctx = el.getContext("2d");
-
-  dailyChart = new Chart(ctx,{
-    type:"line",
-    data:{
-      labels:safeLabels,
-      datasets:[{
-        data:safeHistory,
-        tension:0.28,
-        fill:true,
-        borderWidth:3,
-        borderColor:"rgba(34,197,94,0.95)",
-        backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:safeHistory.length > 1 ? 3 : 4,
-        pointHoverRadius:5,
-        pointBackgroundColor:"rgba(34,197,94,1)"
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
-          }
-        }
-      },
-      scales:{
-        x:{
-          ticks:{color:"rgba(226,232,240,0.78)"},
-          grid:{color:"rgba(255,255,255,0.04)"}
-        },
-        y:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            callback:(v)=>`£${Number(v).toFixed(0)}`
-          },
-          grid:{color:"rgba(255,255,255,0.05)"}
-        }
-      }
-    }
-  });
-}
 
 
 function renderMonthlyChart(profits, roi, labels){
