@@ -263,11 +263,55 @@ const profitCard=document.getElementById("profitCard");
 // Track which feed items have been added to the tracker (prevents duplicate clicks + changes button UI)
 const addedKeys = new Set();
 
+const FREE_VISIBLE_COUNT = 3;
+const FREE_DELAY_MINUTES = 10;
+const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
+
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
   const odds = (row?.odds ?? "").toString().trim();
-  return `k:${match}|${market}|${odds}`;
+  const dateKey = (row?.bet_date ?? row?.created_at ?? "").toString().trim();
+  return `k:${match}|${market}|${odds}|${dateKey}`;
+}
+
+function getBetPublicState(row, idx){
+  if(vipActive){
+    return { locked:false, reason:"vip", unlocksAt:null, minutesLeft:0 };
+  }
+
+  if(idx >= FREE_VISIBLE_COUNT){
+    return { locked:true, reason:"vip-limit", unlocksAt:null, minutesLeft:0 };
+  }
+
+  const createdRaw = row?.created_at || row?.bet_date;
+  const createdAt = createdRaw ? new Date(createdRaw) : null;
+  if(!createdAt || Number.isNaN(createdAt.getTime())){
+    return { locked:false, reason:"public", unlocksAt:null, minutesLeft:0 };
+  }
+
+  const unlocksAt = new Date(createdAt.getTime() + FREE_DELAY_MINUTES * 60 * 1000);
+  const remainingMs = unlocksAt.getTime() - Date.now();
+  const minutesLeft = Math.max(1, Math.ceil(remainingMs / 60000));
+  if(remainingMs > 0){
+    return { locked:true, reason:"delay", unlocksAt, minutesLeft };
+  }
+
+  return { locked:false, reason:"public", unlocksAt:null, minutesLeft:0 };
+}
+
+function teaserCopyForLockedBet(row, state){
+  const valueRaw = row?.value_pct ?? row?.value_percent ?? row?.value_percentage ?? row?.value;
+  const valueText = valueRaw != null ? `${Number(valueRaw).toFixed(1)}% value` : 'High-value edge';
+  if(state?.reason === 'delay'){
+    return `Free unlock in ${state.minutesLeft} min • ${valueText}`;
+  }
+  return `VIP only • ${valueText} • market hidden`;
+}
+
+function formatUnlockLabel(state){
+  if(!state?.unlocksAt) return 'VIP only';
+  return `Unlocks ${state.unlocksAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
 }
 
 // Top navigation tabs
@@ -285,32 +329,6 @@ const tdtHistoryMonthlyBtn = document.getElementById("tdtHistoryMonthlyBtn");
 const historyDaySelectEl = document.getElementById("historyDaySelect");
 const historyListEl = document.getElementById("historyList");
 
-if(historyListEl){
-  historyListEl.addEventListener("click",(e)=>{
-    const btn = e.target.closest(".history-toggle");
-    if(!btn) return;
-    const dayKey = btn.dataset.day;
-    if(!dayKey) return;
-    const state = JSON.parse(localStorage.getItem('history_open_personal')||'{}');
-    state[dayKey] = !state[dayKey];
-    localStorage.setItem('history_open_personal', JSON.stringify(state));
-    renderHistory();
-  });
-}
-
-if(tdtHistoryListEl){
-  tdtHistoryListEl.addEventListener("click",(e)=>{
-    const btn = e.target.closest(".tdt-history-toggle");
-    if(!btn) return;
-    const key = btn.dataset.key;
-    if(!key) return;
-    const stateKey = `tdt_history_open_${tdtHistoryMode}`;
-    const state = JSON.parse(localStorage.getItem(stateKey)||'{}');
-    state[key] = !state[key];
-    localStorage.setItem(stateKey, JSON.stringify(state));
-    renderTdtHistory();
-  });
-}
 const historySummaryEl = document.getElementById("historySummary");
 const historyRefreshEl = document.getElementById("historyRefresh");
 
@@ -327,11 +345,6 @@ tabTracker.onclick=()=>{
   switchTab("tracker");
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
-if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
-if(tabTdtHistoryEl) tabTdtHistoryEl.onclick=()=>switchTab("tdt-history");
-if(tdtHistoryDailyBtn) tdtHistoryDailyBtn.onclick=()=>{ tdtHistoryMode="daily"; renderTdtHistory(); };
-if(tdtHistoryWeeklyBtn) tdtHistoryWeeklyBtn.onclick=()=>{ tdtHistoryMode="weekly"; renderTdtHistory(); };
-if(tdtHistoryMonthlyBtn) tdtHistoryMonthlyBtn.onclick=()=>{ tdtHistoryMode="monthly"; renderTdtHistory(); };
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -339,6 +352,10 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+const vipPromoBtnEl = document.getElementById('vipPromoBtn');
+if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
+const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
+if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
 // On load: check VIP status (if email saved), then render.
 checkVIP().then(()=>{
@@ -347,6 +364,9 @@ checkVIP().then(()=>{
   refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
   loadBets();
+  loadVipPromoProof();
+  updateBetAlertUI();
+  registerServiceWorker();
 });
 
 function switchTab(tab){
@@ -356,14 +376,10 @@ function switchTab(tab){
   betsSection.style.display=(tab==="bets")?"block":"none";
   trackerSection.style.display=(tab==="tracker")?"block":"none";
   if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
-  if(historySectionEl) historySectionEl.style.display=(tab==="history")?"block":"none";
-  if(tdtHistorySectionEl) tdtHistorySectionEl.style.display=(tab==="tdt-history")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
   tabTracker.classList.toggle("active",tab==="tracker");
   if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
-  if(tabHistoryEl) tabHistoryEl.classList.toggle("active",tab==="history");
-  if(tabTdtHistoryEl) tabTdtHistoryEl.classList.toggle("active",tab==="tdt-history");
 
   if(tab==="tracker"){
     loadTracker();
@@ -373,107 +389,89 @@ function switchTab(tab){
     loadTdtTracker();
     return;
   }
-  if(tab==="history"){
-    if(historySummaryEl) historySummaryEl.innerHTML = '<div class="card">Your personal tracker history</div>';
-    if(historyListEl) historyListEl.innerHTML = '<div class="card">Loading history...</div>';
-    loadTracker().then(()=>{
-      renderHistory();
-      if(historyListEl && !historyListEl.innerHTML.trim()){
-        historyListEl.innerHTML = '<div class="card">No history yet.</div>';
-      }
-    }).catch(()=>{
-      if(historyListEl) historyListEl.innerHTML = '<div class="card">No history yet.</div>';
-    });
-    return;
-  }
-  if(tab==="tdt-history"){
-    if(tdtHistoryListEl) tdtHistoryListEl.innerHTML = '<div class="card">Loading TDT history...</div>';
-    loadTdtTracker().then(()=>{
-      renderTdtHistory();
-    }).catch(()=>{
-      if(tdtHistoryListEl) tdtHistoryListEl.innerHTML = '<div class="card">No official TDT history yet.</div>';
-    });
-    return;
-  }
 }
 
+
 async function loadBets(){
-  // Rebuild "Added" state from tracker every time we render the feed.
-  // This ensures that if a bet is deleted from the tracker, the feed button returns to "Add".
   addedKeys.clear();
-  // Preload tracker rows so already-added bets render as "Added"
   try{
     const localRows = readTrackerRows();
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
-  }catch(e){
-    // Ignore preload failures
+  }catch(e){}
+
+  const {data} = await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
+  betsGrid.innerHTML="";
+  const betsTable=document.getElementById('betsTable');
+  const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
+  if(betsTbody) betsTbody.innerHTML = "";
+
+  const active=(data||[]).filter(isValueBetActiveToday);
+  if(!active.length){
+    betsGrid.innerHTML = `<div class="card">No bets for today.</div>`;
+    notifyForNewVisibleBets([]);
+    return;
   }
 
-const {data}=await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
-betsGrid.innerHTML="";
-const betsTable=document.getElementById('betsTable');
-const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
+  const visibleForAlerts = [];
 
-if(betsTbody) betsTbody.innerHTML = "";
-const active=(data||[]).filter(isValueBetActiveToday);
-if(!active.length){ betsGrid.innerHTML = `<div class="card">No bets for today.</div>`; return; }
-(active || []).forEach((row, idx)=>{
-  const locked = (!vipActive && idx >= 5);
-  const key = makeBetKey(row);
-  const isAdded = addedKeys.has(key);
-betsGrid.innerHTML+=`
-<div class="bet-lock-wrap">
-  <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'vip-blur' : ''}">
-    <div class="bet-teaser">
-      <h3 class="bet-title">${row.match}</h3>
-      <div class="bet-meta">
-      ${locked ? '' : `<span class="bet-market">${row.market}</span>`}
-      <span class="bet-date">${row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '')}</span>
-    </div>
-      ${(!locked && row.bookie) ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}
-    </div>
-    <div class="bet-details">
-      <div class="bet-stats ${locked ? 'vip-blur-area' : ''}">
-      <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value) != null ? Number(row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value).toFixed(1)+'%' : '—'}</span></span>
-    </div>
-    <div class="bet-footer">
-      <span class="odds-badge">Odds <strong>${row.odds}</strong></span>
-      <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
-        ${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}
-      </button>
-    </div>
-    </div>
-  </div>
-  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 VIP</button>' : ''}
-</div>`;
+  (active || []).forEach((row, idx)=>{
+    const state = getBetPublicState(row, idx);
+    const locked = !!state.locked;
+    const key = makeBetKey(row);
+    const isAdded = addedKeys.has(key);
+    if(!locked) visibleForAlerts.push(row);
 
-  // Desktop table row (shown via CSS in WIDE mode on large screens)
-  if(betsTbody){
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valTxt = val != null ? Number(val).toFixed(1)+'%' : '—';
-    betsTbody.innerHTML += `
-      <tr class="${locked ? 'vip-blur' : ''}">
+    const teaser = teaserCopyForLockedBet(row, state);
+    const unlockLabel = formatUnlockLabel(state);
+
+    betsGrid.innerHTML += `
+<div class="bet-lock-wrap">
+  <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
+    <div class="bet-teaser">
+      <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
+      <div class="bet-meta">
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
+        <span class="bet-date">${escapeHtml(betDate)}</span>
+      </div>
+      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
+    </div>
+    <div class="bet-details">
+      <div class="bet-stats ${locked ? 'vip-blur-area' : ''}">
+        <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
+      </div>
+      <div class="bet-footer">
+        <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
+        <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
+      </div>
+    </div>
+  </div>
+  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 Unlock VIP</button>' : ''}
+</div>`;
+
+    if(betsTbody){
+      betsTbody.innerHTML += `
+      <tr class="${locked ? 'bet-row--locked' : ''}">
         <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${locked ? '—' : escapeHtml(row.market||'')}</td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
         <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill">${escapeHtml(valTxt)}</span></td>
         <td>${escapeHtml(betDate)}</td>
         <td>
-          <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
-            ${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}
-          </button>
+          <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
-      </tr>
-    `;
-  }
-});
+      </tr>`;
+    }
+  });
 
-// Hook VIP overlays after render
-document.querySelectorAll('[data-open-vip="1"]').forEach(el=>{
-  el.addEventListener('click', openVipModal);
-});
+  document.querySelectorAll('[data-open-vip="1"]').forEach(el=>{
+    el.addEventListener('click', openVipModal);
+  });
+
+  notifyForNewVisibleBets(visibleForAlerts);
 }
 
 
@@ -691,278 +689,107 @@ function escapeHtml(str){
     .replace(/'/g, "&#039;");
 }
 
-// ---------------------------
-// Daily History (derived from bet_tracker)
-// ---------------------------
 
-function dayKeyFromRow(r){
-  if(r && r.match_date){
-    const s = String(r.match_date).slice(0,10);
-    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  }
-  if(r && r.bet_date){
-    const s = String(r.bet_date).slice(0,10);
-    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  }
-  const raw = r?.created_at || r?.updated_at;
-  if(raw){
-    const d = new Date(raw);
-    if(!Number.isNaN(d.getTime())) return d.toISOString().slice(0,10);
-  }
-  return toLocalYMD(new Date());
+let vipPromoChart;
+
+function notificationsEnabled(){
+  return localStorage.getItem(NEW_BET_ALERTS_KEY) === '1';
 }
 
-function formatDayLabelLong(dayKey){
-  const d = new Date(dayKey + "T00:00:00Z");
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+function updateBetAlertUI(){
+  const statusEl = document.getElementById('notifyStatus');
+  const btnEl = document.getElementById('notifyToggleBtn');
+  const enabled = notificationsEnabled();
+  if(statusEl){
+    if(!('Notification' in window)) statusEl.textContent = 'Alerts unsupported';
+    else statusEl.textContent = enabled ? 'Alerts on' : 'Alerts off';
+  }
+  if(btnEl){
+    btnEl.textContent = enabled ? 'Alerts enabled' : 'Turn on new bet alerts';
+  }
 }
 
-
-function renderHistoryRows(rows, openStoreKey){
-  const iconFor = (res)=>{
-    if(res==='won') return '✅';
-    if(res==='lost') return '❌';
-    return '⏳';
-  };
-
-  if(!historySummaryEl || !historyListEl) return;
-
-  const groups = {};
-  for(const b of (Array.isArray(rows) ? rows : [])){
-    const dayKey = dayKeyFromRow(b);
-    if(!dayKey) continue;
-    (groups[dayKey] ||= []).push(b);
+async function registerServiceWorker(){
+  if(!('serviceWorker' in navigator)) return null;
+  try{
+    return await navigator.serviceWorker.register('/sw.js');
+  }catch(e){
+    console.error('Service worker registration failed', e);
+    return null;
   }
-
-  const dayKeys = Object.keys(groups).sort((a,b)=> b.localeCompare(a));
-  const openState = JSON.parse(localStorage.getItem(openStoreKey)||'{}');
-
-  const fmtDay = (dayKey)=>{
-    const d = new Date(dayKey + "T00:00:00");
-    if(Number.isNaN(d.getTime())) return dayKey;
-    return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
-  };
-
-  const renderBet = (b)=>{
-    const result = (b.result || "pending").toLowerCase();
-    const cls = (result==="won"||result==="lost") ? result : "pending";
-    const match = (b.match || "").toString().trim() || "—";
-    const market = (b.market || "").toString().trim() || "—";
-    const odds = (b.odds ?? "").toString().trim() || "—";
-
-    return `
-      <tr class="history-row ${cls}">
-        <td class="hcell-match">${escapeHtml(match)}</td>
-        <td class="hcell-market">${escapeHtml(market)}</td>
-        <td class="hcell-odds">${escapeHtml(odds)}</td>
-        <td class="hcell-result" aria-label="${cls}">${iconFor(cls)}</td>
-      </tr>
-    `;
-  };
-
-  let html = "";
-  for(const dayKey of dayKeys){
-    if(openState[dayKey] === undefined) openState[dayKey] = false;
-
-    const bets = groups[dayKey].slice();
-    const won = bets.filter(b => (b.result||"pending").toLowerCase()==="won").length;
-    const lost = bets.filter(b => (b.result||"pending").toLowerCase()==="lost").length;
-    const pending = bets.length - won - lost;
-    const settled = won + lost;
-    const ratio = `${won}/${settled || 0}`;
-    const winrate = settled ? Math.round((won / settled) * 100) : 0;
-    const collapsed = !openState[dayKey];
-
-    html += `
-      <div class="history-day ${collapsed ? "collapsed" : ""}" id="history-day-${dayKey}">
-        <button class="monthly-toggle daily-toggle history-toggle" data-day="${dayKey}">
-          <div class="daily-toggle-left">📅 <span>${fmtDay(dayKey)}</span></div>
-          <div class="daily-toggle-center">
-            <div class="history-chip won">✅ <span>Won</span> <strong>${won}</strong></div>
-            <div class="history-chip lost">❌ <span>Lost</span> <strong>${lost}</strong></div>
-            <div class="history-chip pending">⏳ <span>Pending</span> <strong>${pending}</strong></div>
-          </div>
-          <div class="daily-toggle-right">
-            <div class="history-ratio-wrap">
-              <span class="history-day-ratio">${ratio}</span>
-              <span class="history-winrate ${winrate>=70 ? "wr-hot" : winrate>=55 ? "wr-good" : winrate>=40 ? "wr-mid" : "wr-bad"}">${winrate>=70 ? "🔥 " : ""}Winrate ${winrate}%</span>
-            </div>
-            <span class="daily-chevron">${collapsed ? "▼" : "▲"}</span>
-          </div>
-        </button>
-        <div class="history-day-bets">
-          <div class="history-table-wrap">
-            <table class="history-table">
-              <thead>
-                <tr>
-                  <th>Match</th>
-                  <th>Market</th>
-                  <th class="th-odds">Odds</th>
-                  <th class="th-res"></th>
-                </tr>
-              </thead>
-              <tbody>
-                ${bets.map(renderBet).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  historyListEl.innerHTML = dayKeys.length ? html : `<div class="card">No history yet.</div>`;
-  localStorage.setItem(openStoreKey, JSON.stringify(openState));
 }
 
-function renderHistory(){
-  if(!historySummaryEl || !historyListEl) return;
-  historySummaryEl.innerHTML = '<div class="card">Your personal tracker history</div>';
-
-  const rows = Array.isArray(trackerRowsCache) ? trackerRowsCache : [];
-  const groups = {};
-  for(const b of rows){
-    const dayKey = dayKeyFromRow(b);
-    if(!dayKey) continue;
-    (groups[dayKey] ||= []).push(b);
-  }
-
-  const dayKeys = Object.keys(groups).sort((a,b)=> b.localeCompare(a));
-  const openState = JSON.parse(localStorage.getItem('history_open_personal')||'{}');
-
-  const fmtDay = (dayKey)=>{
-    const d = new Date(dayKey + "T00:00:00");
-    if(Number.isNaN(d.getTime())) return dayKey;
-    return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
-  };
-
-  const iconFor = (res)=>{
-    if(res==='won') return '✅';
-    if(res==='lost') return '❌';
-    return '⏳';
-  };
-
-  if(!dayKeys.length){
-    historyListEl.innerHTML = '<div class="card">No history yet.</div>';
+async function toggleBetAlerts(){
+  if(!('Notification' in window)){
+    updateBetAlertUI();
     return;
   }
-
-  let html = "";
-  for(const dayKey of dayKeys){
-    if(openState[dayKey] === undefined) openState[dayKey] = true;
-    const bets = groups[dayKey];
-    const won = bets.filter(b => (b.result||"pending").toLowerCase()==="won").length;
-    const lost = bets.filter(b => (b.result||"pending").toLowerCase()==="lost").length;
-    const pending = bets.length - won - lost;
-    const settled = won + lost;
-    const wr = settled ? Math.round((won/settled)*100) : 0;
-    const isOpen = !!openState[dayKey];
-
-    html += `
-      <div class="history-day ${!isOpen ? "collapsed" : ""}">
-        <button class="monthly-toggle daily-toggle history-toggle" type="button" data-day="${dayKey}">
-          <div class="daily-toggle-left">📅 <span>${fmtDay(dayKey)}</span></div>
-          <div class="daily-toggle-center">
-            <div class="history-chip won">✅ <span>Won</span> <strong>${won}</strong></div>
-            <div class="history-chip lost">❌ <span>Lost</span> <strong>${lost}</strong></div>
-            <div class="history-chip pending">⏳ <span>Pending</span> <strong>${pending}</strong></div>
-          </div>
-          <div class="daily-toggle-right">
-            <div class="history-ratio-wrap">
-              <span class="history-day-ratio">${won}/${settled || 0}</span>
-              <span class="history-winrate ${wr>=70 ? "wr-hot" : wr>=55 ? "wr-good" : wr>=40 ? "wr-mid" : "wr-bad"}">${wr}%</span>
-            </div>
-            <span class="daily-chevron">${isOpen ? "▲" : "▼"}</span>
-          </div>
-        </button>
-        <div class="history-day-bets">
-          <div class="history-table-wrap">
-            <table class="history-table">
-              <thead>
-                <tr>
-                  <th>Match</th>
-                  <th>Market</th>
-                  <th class="th-odds">Odds</th>
-                  <th class="th-res"></th>
-                </tr>
-              </thead>
-              <tbody>
-                ${bets.map((b)=>{
-                  const result = (b.result || "pending").toLowerCase();
-                  const cls = (result==="won"||result==="lost") ? result : "pending";
-                  return `<tr class="history-row ${cls}">
-                    <td class="hcell-match">${escapeHtml((b.match || "").toString().trim() || "—")}</td>
-                    <td class="hcell-market">${escapeHtml((b.market || "").toString().trim() || "—")}</td>
-                    <td class="hcell-odds">${escapeHtml((b.odds ?? "").toString().trim() || "—")}</td>
-                    <td class="hcell-result" aria-label="${cls}">${iconFor(cls)}</td>
-                  </tr>`;
-                }).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    `;
+  const current = notificationsEnabled();
+  if(current){
+    localStorage.setItem(NEW_BET_ALERTS_KEY, '0');
+    updateBetAlertUI();
+    return;
   }
-
-  historyListEl.innerHTML = html;
-  localStorage.setItem('history_open_personal', JSON.stringify(openState));
+  let permission = Notification.permission;
+  if(permission !== 'granted'){
+    permission = await Notification.requestPermission();
+  }
+  if(permission === 'granted'){
+    localStorage.setItem(NEW_BET_ALERTS_KEY, '1');
+  }
+  updateBetAlertUI();
 }
 
-function isEndOfDay(index, labels){
-  if(!labels || !labels.length) return false;
-  if(index === labels.length - 1) return true;
-  return labels[index] !== labels[index + 1];
+async function sendBetNotification(title, body){
+  if(!notificationsEnabled() || !('Notification' in window) || Notification.permission !== 'granted') return;
+  try{
+    const reg = await registerServiceWorker();
+    if(reg && reg.showNotification){
+      await reg.showNotification(title, { body, icon:'/icons/icon-192.png', badge:'/icons/icon-192.png', tag:'tdt-new-bet' });
+      return;
+    }
+  }catch(e){
+    console.error(e);
+  }
+  try{
+    new Notification(title, { body });
+  }catch(e){}
 }
 
-function renderDailyChart(history, labels){
-if(dailyChart) dailyChart.destroy();
-const ctx=document.getElementById("chart").getContext("2d");
-dailyChart=new Chart(ctx,{
-type:"line",
-data:{
-labels:(labels && labels.length===history.length) ? labels : history.map((_,i)=>i+1),
-datasets:[{
-data:history,
-tension:0.25,
-fill:true,
-backgroundColor:"rgba(34,197,94,0.08)",
-borderColor:"#22c55e",
-borderWidth:2,
-	// Show dots ONLY on the last point of each day
-	pointRadius:(c)=> isEndOfDay(c.dataIndex, labels) ? 5 : 0,
-	pointHoverRadius:(c)=> isEndOfDay(c.dataIndex, labels) ? 7 : 0,
-	pointBackgroundColor:"#22c55e",
-	pointBorderWidth:0
-}]
-},
-	options:{
-	  responsive:true,
-	  maintainAspectRatio:false,
-	  interaction:{ mode:"nearest", intersect:true },
-	  scales:{
-	    y:{ ticks:{ callback:(v)=> `£${v}` } },
-	    x:{
-	      ticks:{
-	        callback:function(value, index){
-	          const label = this.getLabelForValue(value);
-	          if(index === 0) return label;
-	          return label !== labels[index - 1] ? label : "";
-	        }
-	      }
-	    }
-	  },
-	  plugins:{
-	    legend:{display:false},
-	    tooltip:{
-	      enabled:true,
-	      callbacks:{
-	        label:(ctx)=> `£${Number(ctx.parsed.y).toFixed(2)}`
-	      }
-	    }
-	  }
-	}
-});
+function notifyForNewVisibleBets(rows){
+  const seenKey = 'tdt_seen_visible_bets';
+  const nextIds = (rows || []).map(makeBetKey);
+  const prevIds = JSON.parse(localStorage.getItem(seenKey) || '[]');
+  const prevSet = new Set(prevIds);
+  const fresh = (rows || []).filter(r => !prevSet.has(makeBetKey(r)));
+  localStorage.setItem(seenKey, JSON.stringify(nextIds));
+  if(!fresh.length) return;
+  const latest = fresh[0];
+  sendBetNotification('New Top Daily Tips bet', `${latest.match || 'New bet'} • ${latest.odds || ''}`);
+}
+
+function renderVipPromoChart(rows){
+  const canvas = document.getElementById('vipPromoChart');
+  if(!canvas || typeof Chart === 'undefined') return;
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const labels = [];
+  const points = [];
+  let running = 0;
+  safeRows.slice(-12).forEach((row)=>{
+    running += rowProfit({
+      stake: Number(row.stake || 0),
+      odds: Number(row.odds || 0),
+      result: row.result || 'pending'
+    });
+    labels.push(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at));
+    points.push(running);
+  });
+  if(vipPromoChart) vipPromoChart.destroy();
+  vipPromoChart = new Chart(canvas.getContext('2d'), {
+    type:'line',
+    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:2 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
+  });
 }
 
 async function loadTracker(){
@@ -1506,3 +1333,8 @@ if(startingInput){
     localStorage.setItem("starting_bankroll", this.value);
   });
 }
+
+
+setInterval(()=>{
+  if(currentTopTab === "bets") loadBets();
+}, 60000);
