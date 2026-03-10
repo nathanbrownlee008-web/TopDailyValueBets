@@ -1135,7 +1135,6 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
     dayMap[dayKey] = (dayMap[dayKey] || 0) + p;
     dayStakeMap[dayKey] = (dayStakeMap[dayKey] || 0) + Number(r.stake||0);
   });
-
   const dayKeys = Object.keys(dayMap).sort((a,b)=> b.localeCompare(a));
   let dailyBreakdownHTML = "<table><tr><th>Day</th><th>Profit</th><th>ROI</th></tr>";
   dayKeys.forEach(key=>{
@@ -1163,7 +1162,6 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
     weekMap[weekKey] = (weekMap[weekKey] || 0) + p;
     weekStakeMap[weekKey] = (weekStakeMap[weekKey] || 0) + Number(r.stake||0);
   });
-
   const weekKeys = Object.keys(weekMap).sort((a,b)=> b.localeCompare(a));
   let weeklyBreakdownHTML = "<table><tr><th>Week</th><th>Profit</th><th>ROI</th></tr>";
   weekKeys.forEach(key=>{
@@ -1288,7 +1286,7 @@ document.addEventListener("DOMContentLoaded",function(){
   const wrapper=document.getElementById("trackerWrapper");
   const arrow=document.getElementById("trackerArrow");
   const open=localStorage.getItem("tracker_open");
-  if(open==="true"){
+  if(open==="true" && wrapper && arrow){
     wrapper.classList.remove("collapsed");
     wrapper.classList.add("expanded");
     arrow.innerText="▲";
@@ -1300,6 +1298,27 @@ document.addEventListener("DOMContentLoaded",function(){
     tdtWrapper.classList.remove("collapsed");
     tdtWrapper.classList.add("expanded");
     tdtArrow.innerText="▲";
+  }
+  const monthlyWrapper=document.getElementById("monthlyWrapper");
+  const monthlyArrow=document.getElementById("monthlyArrow");
+  if(monthlyWrapper && monthlyArrow && localStorage.getItem("monthly_open")==="true"){
+    monthlyWrapper.classList.remove("collapsed");
+    monthlyWrapper.classList.add("expanded");
+    monthlyArrow.innerText="▲";
+  }
+  const dailyWrapper=document.getElementById("dailyBreakdownWrapper");
+  const dailyArrow=document.getElementById("dailyBreakdownArrow");
+  if(dailyWrapper && dailyArrow && localStorage.getItem("daily_breakdown_open")==="true"){
+    dailyWrapper.classList.remove("collapsed");
+    dailyWrapper.classList.add("expanded");
+    dailyArrow.innerText="▲";
+  }
+  const weeklyWrapper=document.getElementById("weeklyBreakdownWrapper");
+  const weeklyArrow=document.getElementById("weeklyBreakdownArrow");
+  if(weeklyWrapper && weeklyArrow && localStorage.getItem("weekly_breakdown_open")==="true"){
+    weeklyWrapper.classList.remove("collapsed");
+    weeklyWrapper.classList.add("expanded");
+    weeklyArrow.innerText="▲";
   }
 });
 
