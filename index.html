@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772860001"/>
+<link rel="stylesheet" href="styles.css?v=1772861001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -64,10 +64,10 @@
   </table>
 </div>
 
-<div id="vipPromo" class="vip-promo card">
+<div id="vipPromo" class="vip-promo card sharp-shell">
   <div class="vip-promo__top">
     <div>
-      <div class="vip-promo__eyebrow">VIP preview</div>
+      <div class="vip-promo__eyebrow">VIP results</div>
       <div class="vip-promo__title">Instant bets, full markets, tracker access</div>
       <div id="vipPromoStats" class="vip-promo__stats">Loading official TDT proof...</div>
     </div>
@@ -79,6 +79,16 @@
   <div class="vip-promo__actions">
     <button id="notifyToggleBtn" class="vip-promo__ghost" type="button">Turn on new bet alerts</button>
     <span id="notifyStatus" class="vip-promo__status">Alerts off</span>
+  </div>
+  <div class="vip-referral">
+    <div class="vip-referral__copy">
+      <div class="vip-referral__title">Referral push</div>
+      <div id="vipReferralText" class="vip-referral__text">Use the code below for manual referral tracking while you grow VIP.</div>
+    </div>
+    <div class="vip-referral__codewrap">
+      <span class="vip-referral__label">Your code</span>
+      <strong id="vipReferralCode" class="vip-referral__code">VIPFRIEND</strong>
+    </div>
   </div>
 </div>
 </section>
@@ -178,6 +188,6 @@
 </section>
 
 
-<script src="app.js?v=1772860001"></script>
+<script src="app.js?v=1772861001"></script>
 </body>
 </html>

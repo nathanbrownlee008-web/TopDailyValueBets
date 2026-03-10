@@ -266,6 +266,8 @@ const addedKeys = new Set();
 const FREE_VISIBLE_COUNT = 3;
 const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
+let betAlertPollHandle = null;
+let betAlertBusy = false;
 
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
@@ -367,6 +369,7 @@ checkVIP().then(()=>{
   loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
+  if(notificationsEnabled()) startBetAlertPolling();
 });
 
 function switchTab(tab){
@@ -696,13 +699,20 @@ function notificationsEnabled(){
   return localStorage.getItem(NEW_BET_ALERTS_KEY) === '1';
 }
 
-function updateBetAlertUI(){
+function updateBetAlertUI(message){
   const statusEl = document.getElementById('notifyStatus');
   const btnEl = document.getElementById('notifyToggleBtn');
   const enabled = notificationsEnabled();
   if(statusEl){
-    if(!('Notification' in window)) statusEl.textContent = 'Alerts unsupported';
-    else statusEl.textContent = enabled ? 'Alerts on' : 'Alerts off';
+    if(message){
+      statusEl.textContent = message;
+    }else if(!('Notification' in window)){
+      statusEl.textContent = 'Alerts unsupported';
+    }else if(Notification.permission === 'denied'){
+      statusEl.textContent = 'Alerts blocked in browser';
+    }else{
+      statusEl.textContent = enabled ? 'Alerts on' : 'Alerts off';
+    }
   }
   if(btnEl){
     btnEl.textContent = enabled ? 'Alerts enabled' : 'Turn on new bet alerts';
@@ -720,32 +730,28 @@ async function registerServiceWorker(){
 }
 
 async function toggleBetAlerts(){
-  const statusEl = document.getElementById('notifyStatus');
   if(!('Notification' in window)){
-    if(statusEl) statusEl.textContent = 'Alerts unsupported on this browser';
-    updateBetAlertUI();
+    updateBetAlertUI('Alerts unsupported');
     return;
   }
   const current = notificationsEnabled();
   if(current){
     localStorage.setItem(NEW_BET_ALERTS_KEY, '0');
-    if(statusEl) statusEl.textContent = 'Alerts off';
-    updateBetAlertUI();
+    updateBetAlertUI('Alerts off');
     return;
   }
   let permission = Notification.permission;
-  if(permission === 'default'){
+  if(permission !== 'granted'){
     permission = await Notification.requestPermission();
   }
   if(permission === 'granted'){
     localStorage.setItem(NEW_BET_ALERTS_KEY, '1');
-    updateBetAlertUI();
-    if(statusEl) statusEl.textContent = 'Alerts on · sending test';
-    await sendBetNotification('Top Daily Tips alerts enabled', 'You will get alerts here when a new visible bet appears.');
+    updateBetAlertUI('Alerts enabled • test sent');
+    await sendBetNotification('Top Daily Tips alerts on', 'You will get notified when a new visible bet appears.');
+    startBetAlertPolling();
     return;
   }
-  if(statusEl) statusEl.textContent = permission === 'denied' ? 'Browser blocked alerts' : 'Alerts not enabled';
-  updateBetAlertUI();
+  updateBetAlertUI(permission === 'denied' ? 'Browser blocked alerts' : 'Alert permission not granted');
 }
 
 async function sendBetNotification(title, body){
@@ -776,14 +782,103 @@ function notifyForNewVisibleBets(rows){
   sendBetNotification('New Top Daily Tips bet', `${latest.match || 'New bet'} • ${latest.odds || ''}`);
 }
 
+async function fetchCurrentPublicVisibleBets(){
+  try{
+    const { data, error } = await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
+    if(error) throw error;
+    const active = (data || []).filter(isValueBetActiveToday);
+    return active.filter((row, idx)=> !getBetPublicState(row, idx).locked);
+  }catch(err){
+    console.error('Alert refresh failed', err);
+    return [];
+  }
+}
+
+function startBetAlertPolling(){
+  if(betAlertPollHandle) return;
+  betAlertPollHandle = setInterval(async ()=>{
+    if(!notificationsEnabled() || betAlertBusy) return;
+    betAlertBusy = true;
+    try{
+      const rows = await fetchCurrentPublicVisibleBets();
+      notifyForNewVisibleBets(rows);
+    }finally{
+      betAlertBusy = false;
+    }
+  }, 30000);
+}
+
+async function loadVipPromoProof(){
+  const statsEl = document.getElementById('vipPromoStats');
+  const referralEl = document.getElementById('vipReferralText');
+  const referralCodeEl = document.getElementById('vipReferralCode');
+  if(referralCodeEl){
+    const email = (localStorage.getItem('vip_email') || '').trim().toLowerCase();
+    const code = email ? email.split('@')[0].replace(/[^a-z0-9]/gi,'').slice(0,12).toUpperCase() : 'VIPFRIEND';
+    referralCodeEl.textContent = code || 'VIPFRIEND';
+  }
+  try{
+    let rows = Array.isArray(tdtRowsCache) && tdtRowsCache.length ? tdtRowsCache.slice() : [];
+    if(!rows.length){
+      const { data, error } = await client.from('tdt_tracker').select('*').order('created_at',{ascending:true}).limit(300);
+      if(error) throw error;
+      rows = Array.isArray(data) ? data : [];
+    }
+    const resolved = rows.filter(r => ['won','lost'].includes(String(r.result || '').toLowerCase()));
+    const profit = rows.reduce((sum, row)=> sum + rowProfit({ stake:Number(row.stake||0), odds:Number(row.odds||0), result:String(row.result||'pending').toLowerCase() }), 0);
+    const wins = resolved.filter(r => String(r.result).toLowerCase() === 'won').length;
+    const totalStake = rows.reduce((sum, row)=> sum + Number(row.stake || 0), 0);
+    const roi = totalStake ? ((profit / totalStake) * 100) : 0;
+    const winRate = resolved.length ? ((wins / resolved.length) * 100) : 0;
+    const totalBets = rows.length;
+
+    if(statsEl){
+      statsEl.innerHTML = `
+        <div class="vip-proof-grid">
+          <div class="vip-proof-pill"><span>Profit</span><strong>${profit >= 0 ? '+' : '-'}£${Math.abs(profit).toFixed(2)}</strong></div>
+          <div class="vip-proof-pill"><span>ROI</span><strong>${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%</strong></div>
+          <div class="vip-proof-pill"><span>Win rate</span><strong>${winRate.toFixed(1)}%</strong></div>
+          <div class="vip-proof-pill"><span>Total bets</span><strong>${totalBets}</strong></div>
+        </div>
+        <div class="vip-proof-copy">${rows.length ? 'Official TDT proof updates from the tracker.' : 'No official TDT rows yet — add results to the TDT tracker and this proof fills automatically.'}</div>
+      `;
+    }
+    if(referralEl){
+      referralEl.textContent = rows.length
+        ? 'Share your code with mates — when they join VIP, you can track referrals manually.'
+        : 'Use the code below for manual referral tracking while you grow VIP.';
+    }
+    renderVipPromoChart(rows);
+  }catch(err){
+    console.error('VIP promo proof failed', err);
+    if(statsEl){
+      statsEl.innerHTML = `
+        <div class="vip-proof-grid">
+          <div class="vip-proof-pill"><span>Profit</span><strong>+£0.00</strong></div>
+          <div class="vip-proof-pill"><span>ROI</span><strong>0.0%</strong></div>
+          <div class="vip-proof-pill"><span>Win rate</span><strong>0.0%</strong></div>
+          <div class="vip-proof-pill"><span>Total bets</span><strong>0</strong></div>
+        </div>
+        <div class="vip-proof-copy">Proof box ready — add rows to tdt_tracker to populate it.</div>
+      `;
+    }
+    if(referralEl) referralEl.textContent = 'Use the code below for manual referral tracking while you grow VIP.';
+    renderVipPromoChart([]);
+  }
+}
+
 function renderVipPromoChart(rows){
   const canvas = document.getElementById('vipPromoChart');
   if(!canvas || typeof Chart === 'undefined') return;
-  const safeRows = Array.isArray(rows) ? rows : [];
+  const inputRows = Array.isArray(rows) ? rows : [];
+  const safeRows = inputRows.length ? inputRows.slice(-12) : Array.from({length:7}, (_,i)=>({
+    stake:0, odds:0, result:'pending',
+    created_at: new Date(Date.now() - (6 - i) * 86400000).toISOString()
+  }));
   const labels = [];
   const points = [];
   let running = 0;
-  safeRows.slice(-12).forEach((row)=>{
+  safeRows.forEach((row)=>{
     running += rowProfit({
       stake: Number(row.stake || 0),
       odds: Number(row.odds || 0),
