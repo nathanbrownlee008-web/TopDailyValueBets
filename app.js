@@ -1107,6 +1107,60 @@ loadTracker = async function(){
 
 
 
+function renderDailyChart(history, labels){
+  const el = document.getElementById("chart");
+  if(!el) return;
+  if(dailyChart) dailyChart.destroy();
+
+  const safeHistory = Array.isArray(history) ? history : [];
+  const safeLabels = Array.isArray(labels) ? labels : [];
+  const ctx = el.getContext("2d");
+
+  dailyChart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:safeLabels,
+      datasets:[{
+        data:safeHistory,
+        tension:0.28,
+        fill:true,
+        borderWidth:3,
+        borderColor:"rgba(34,197,94,0.95)",
+        backgroundColor:"rgba(34,197,94,0.14)",
+        pointRadius:safeHistory.length > 1 ? 3 : 4,
+        pointHoverRadius:5,
+        pointBackgroundColor:"rgba(34,197,94,1)"
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{color:"rgba(226,232,240,0.78)"},
+          grid:{color:"rgba(255,255,255,0.04)"}
+        },
+        y:{
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
+          },
+          grid:{color:"rgba(255,255,255,0.05)"}
+        }
+      }
+    }
+  });
+}
+
+
 function renderMonthlyChart(profits, roi, labels){
   const el = document.getElementById("monthlyChart");
   if(!el) return;
