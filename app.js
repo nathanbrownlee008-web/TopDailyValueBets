@@ -315,36 +315,23 @@ const historySummaryEl = document.getElementById("historySummary");
 const historyRefreshEl = document.getElementById("historyRefresh");
 
 let currentTopTab = "bets"; // 'bets' | 'tracker' | 'tdt' | 'history'
-window.currentTopTab = "bets";
 let trackerRowsCache = [];
 let historyMode = "personal";
 
-tabBets.onclick = () => switchTab("bets");
-tabTracker.onclick = () => {
+tabBets.onclick=()=>switchTab("bets");
+tabTracker.onclick=()=>{
   if(!vipActive){
     openVipModal();
     return;
   }
   switchTab("tracker");
 };
-
-if(tabTdtTrackerEl)
-  tabTdtTrackerEl.onclick = () => switchTab("tdt");
-
-if(tabHistoryEl)
-  tabHistoryEl.onclick = () => switchTab("history");
-
-if(tabTdtHistoryEl)
-  tabTdtHistoryEl.onclick = () => switchTab("tdt-history");
-
-if(tdtHistoryDailyBtn)
-  tdtHistoryDailyBtn.onclick = () => { tdtHistoryMode="daily"; renderTdtHistory(); };
-
-if(tdtHistoryWeeklyBtn)
-  tdtHistoryWeeklyBtn.onclick = () => { tdtHistoryMode="weekly"; renderTdtHistory(); };
-
-if(tdtHistoryMonthlyBtn)
-  tdtHistoryMonthlyBtn.onclick = () => { tdtHistoryMode="monthly"; renderTdtHistory(); };
+if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
+if(tabHistoryEl) tabHistoryEl.onclick=()=>switchTab("history");
+if(tabTdtHistoryEl) tabTdtHistoryEl.onclick=()=>switchTab("tdt-history");
+if(tdtHistoryDailyBtn) tdtHistoryDailyBtn.onclick=()=>{ tdtHistoryMode="daily"; renderTdtHistory(); };
+if(tdtHistoryWeeklyBtn) tdtHistoryWeeklyBtn.onclick=()=>{ tdtHistoryMode="weekly"; renderTdtHistory(); };
+if(tdtHistoryMonthlyBtn) tdtHistoryMonthlyBtn.onclick=()=>{ tdtHistoryMode="monthly"; renderTdtHistory(); };
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -364,7 +351,6 @@ checkVIP().then(()=>{
 
 function switchTab(tab){
   currentTopTab = tab;
-  window.currentTopTab = tab;
   initChartTabs();
 
   betsSection.style.display=(tab==="bets")?"block":"none";
