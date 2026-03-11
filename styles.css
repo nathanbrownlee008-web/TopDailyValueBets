@@ -2280,26 +2280,3 @@ body.layout-compact .vip-bar{
   width:min(520px, 100%) !important;
   margin:0 auto !important;
 }
-
-
-/* ===== 2026-03-10 project upgrade overrides ===== */
-.vip-promo{max-width:1200px;margin:16px auto 0;padding:16px 18px;border-radius:18px;}
-.vip-promo__top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;}
-.vip-promo__eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-bottom:6px;}
-.vip-promo__title{font-size:20px;font-weight:800;line-height:1.15;margin-bottom:8px;}
-.vip-promo__stats{opacity:.85;line-height:1.4;font-size:14px;}
-.vip-promo__btn,.vip-promo__ghost{padding:10px 14px;border-radius:999px;font-weight:800;}
-.vip-promo__btn{background:linear-gradient(180deg,#ffdf6e,#d9a800);color:#0b1220;}
-.vip-promo__ghost{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);}
-.vip-promo__chartwrap{height:180px;margin-top:14px;}
-.vip-promo__actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;}
-.vip-promo__status{opacity:.75;font-size:13px;}
-.bet-card--locked{border-color:rgba(255,215,0,0.2);background:linear-gradient(180deg,rgba(17,24,39,0.96),rgba(10,18,32,0.96));}
-.bet-market--locked{font-weight:700;color:rgba(255,240,190,0.92);}
-.vip-teaser-line{margin-top:6px;font-size:12px;color:rgba(255,240,190,0.88);font-weight:700;}
-.vip-teaser-subline{margin-top:2px;font-size:12px;color:rgba(255,255,255,0.68);}
-.vip-blur-area{filter:blur(7px);opacity:0.48;}
-.vip-overlay{background:rgba(3,7,18,0.38);backdrop-filter:blur(1px);font-size:14px;padding:0 14px;}
-.bet-row--locked td{opacity:.9;}
-.table-lock-copy{font-weight:700;color:rgba(255,240,190,0.88);}
-@media (max-width:700px){.vip-promo__title{font-size:18px;}.vip-promo__chartwrap{height:150px;}}
