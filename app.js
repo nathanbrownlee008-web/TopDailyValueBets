@@ -928,17 +928,10 @@ tension:0.25,
 fill:true,
 backgroundColor:"rgba(34,197,94,0.08)",
 borderColor:"#22c55e",
-borderWidth:1.5,
-	pointRadius:(c)=> {
-	  const total = Array.isArray(labels) ? labels.length : 0;
-	  if(!total) return 0;
-	  return (c.dataIndex === 0 || c.dataIndex === total - 1) ? 3 : 0;
-	},
-	pointHoverRadius:(c)=> {
-	  const total = Array.isArray(labels) ? labels.length : 0;
-	  if(!total) return 0;
-	  return (c.dataIndex === 0 || c.dataIndex === total - 1) ? 5 : 0;
-	},
+borderWidth:2,
+	// Show dots ONLY on the last point of each day
+	pointRadius:(c)=> isEndOfDay(c.dataIndex, labels) ? 5 : 0,
+	pointHoverRadius:(c)=> isEndOfDay(c.dataIndex, labels) ? 7 : 0,
 	pointBackgroundColor:"#22c55e",
 	pointBorderWidth:0
 }]
@@ -1043,19 +1036,8 @@ if(profit<0) profitCard.classList.add("glow-red");
 
 
 // Daily labels based on the *game* date when available
-const dailyAgg = [];
-rows.forEach((r, idx) => {
-  const label = fmtDayLabel(r.match_date_date || r.bet_date || r.created_at);
-  const value = history[idx];
-  if (!dailyAgg.length || dailyAgg[dailyAgg.length - 1].label !== label) {
-    dailyAgg.push({ label, value });
-  } else {
-    dailyAgg[dailyAgg.length - 1].value = value;
-  }
-});
-const dailyLabels = dailyAgg.map(x => x.label);
-const dailyHistory = dailyAgg.map(x => x.value);
-renderDailyChart(dailyHistory, dailyLabels);
+const dailyLabels = rows.map(r => fmtDayLabel(r.match_date_date || r.bet_date || r.created_at));
+renderDailyChart(history, dailyLabels);
 
 // ---- Monthly & Market analytics (tabs + mini summary) ----
 const countElem = document.getElementById("betCount");
@@ -1105,7 +1087,7 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 // Market profit aggregation
 const marketMap = {};
 const marketWL = {}; // {market:{wins,losses,pending,bets}}
-data.forEach(r=>{
+rows.forEach(r=>{
   const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
   marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
 
@@ -1204,7 +1186,7 @@ async function loadTdtTracker(){
       totalStake += Number(row.stake || 0);
       totalOdds += Number(row.odds || 0);
       const gameDate = row.match_date_date || row.bet_date || row.created_at;
-      html += `<tr><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td>${escapeHtml(String(row.result||'pending').toUpperCase())}</td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
+      html += `<tr><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td><span class="tdt-table-result ${(row.result||'pending').toLowerCase()}">${escapeHtml(String(row.result||'pending').toUpperCase())}</span></td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
     });
     html += "</table>";
     if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
@@ -1241,7 +1223,7 @@ function toggleTdtTracker(){
 function exportCSV(){
   const data = readTrackerRows();
   let csv="match,market,odds,stake,result\n";
-  data.forEach(r=>{
+  rows.forEach(r=>{
     csv+=`${r.match},${r.market},${r.odds},${r.stake},${r.result}\n`;
   });
   const blob=new Blob([csv],{type:"text/csv"});
