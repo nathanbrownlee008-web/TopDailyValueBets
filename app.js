@@ -795,7 +795,7 @@ function renderVipPromoChart(rows){
   if(vipPromoChart) vipPromoChart.destroy();
   vipPromoChart = new Chart(canvas.getContext('2d'), {
     type:'line',
-    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:2 }] },
+    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:0 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
   });
 }
@@ -1056,8 +1056,7 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
-    const start = parseFloat((document.getElementById("startingBankroll")?.value) || 0);
-    let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
+    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
     let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
     rows.forEach(row=>{
       const p = row.result==="won" ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
@@ -1066,7 +1065,6 @@ async function loadTdtTracker(){
       if(row.result==="won") wins++;
       if(row.result==="lost") losses++;
       profit += p;
-      bankroll = start + profit;
       totalStake += Number(row.stake || 0);
       totalOdds += Number(row.odds || 0);
       const gameDate = row.match_date_date || row.bet_date || row.created_at;
@@ -1075,7 +1073,7 @@ async function loadTdtTracker(){
     html += "</table>";
     if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
     const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
-    set("tdtBankroll", bankroll.toFixed(2));
+    set("tdtBankroll", profit.toFixed(2));
     set("tdtProfit", profit.toFixed(2));
     set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
     set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
@@ -1181,11 +1179,11 @@ function renderDailyChart(history, labels){
         data:safeHistory,
         tension:0.28,
         fill:true,
-        borderWidth:3,
+        borderWidth:2,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:safeHistory.length > 1 ? 3 : 4,
-        pointHoverRadius:5,
+        pointRadius:0,
+        pointHoverRadius:4,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
