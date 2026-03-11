@@ -1179,10 +1179,10 @@ function renderDailyChart(history, labels){
         data:safeHistory,
         tension:0.28,
         fill:true,
-        borderWidth:3,
+        borderWidth:2,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:safeHistory.length > 1 ? 3 : 4,
+        pointRadius:0,
         pointHoverRadius:5,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
