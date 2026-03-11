@@ -795,7 +795,7 @@ function renderVipPromoChart(rows){
   if(vipPromoChart) vipPromoChart.destroy();
   vipPromoChart = new Chart(canvas.getContext('2d'), {
     type:'line',
-    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:0 }] },
+    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:2 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
   });
 }
@@ -867,7 +867,15 @@ let p=0;
 if(row.result==="won"){p=row.stake*(row.odds-1);wins++;}
 if(row.result==="lost"){p=-row.stake;losses++;}
 profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
-bankroll=start+profit;history.push(bankroll);
+bankroll=start+profit;
+const gameDate = row.match_date_date || row.bet_date || row.created_at;
+const dayKey = fmtDayLabel(gameDate);
+if(dayKey!==lastDayKey){
+  history.push(bankroll);
+  lastDayKey=dayKey;
+}else{
+  history[history.length-1]=bankroll;
+}
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
 html+=`<tr>
@@ -1179,11 +1187,11 @@ function renderDailyChart(history, labels){
         data:safeHistory,
         tension:0.28,
         fill:true,
-        borderWidth:2,
+        borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:0,
-        pointHoverRadius:4,
+        pointRadius:safeHistory.length > 1 ? 3 : 4,
+        pointHoverRadius:5,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
