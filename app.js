@@ -798,6 +798,69 @@ function renderVipPromoChart(rows){
   });
 }
 
+function isEndOfDay(index, labels){
+  if(!labels || !labels.length) return false;
+  if(index === labels.length - 1) return true;
+  return labels[index] !== labels[index + 1];
+}
+
+function renderDailyChart(history, labels){
+  const el = document.getElementById("chart");
+  if(!el) return;
+  if(dailyChart) dailyChart.destroy();
+  const safeHistory = Array.isArray(history) ? history : [];
+  const safeLabels = (labels && labels.length===safeHistory.length) ? labels : safeHistory.map((_,i)=>String(i+1));
+  dailyChart = new Chart(el.getContext("2d"),{
+    type:"line",
+    data:{
+      labels:safeLabels,
+      datasets:[{
+        data:safeHistory,
+        tension:0.25,
+        fill:true,
+        backgroundColor:"rgba(34,197,94,0.08)",
+        borderColor:"#22c55e",
+        borderWidth:2,
+        pointRadius:(c)=> isEndOfDay(c.dataIndex, safeLabels) ? 4 : 0,
+        pointHoverRadius:(c)=> isEndOfDay(c.dataIndex, safeLabels) ? 6 : 0,
+        pointBackgroundColor:"#22c55e",
+        pointBorderWidth:0
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{ mode:"nearest", intersect:false },
+      plugins:{
+        legend:{display:false},
+        tooltip:{ callbacks:{ label:(ctx)=> `£${Number(ctx.parsed.y || 0).toFixed(2)}` } }
+      },
+      scales:{
+        y:{ ticks:{ callback:(v)=> `£${v}` }, grid:{color:"rgba(255,255,255,0.06)"} },
+        x:{
+          grid:{display:false},
+          ticks:{
+            maxRotation:0,
+            autoSkip:false,
+            callback:function(value, index){
+              const label = this.getLabelForValue(value);
+              if(index === 0) return label;
+              return label !== safeLabels[index - 1] ? label : "";
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function rerenderTrackerCharts(activeTab){
+  const tab = activeTab || (document.querySelector('.tab-btn.active')?.getAttribute('data-tab')) || 'daily';
+  if(tab === 'daily') renderDailyChart(trackerChartCache.history, trackerChartCache.dailyLabels);
+  if(tab === 'monthly') renderMonthlyChart(trackerChartCache.monthlyProfit, trackerChartCache.monthlyROI, trackerChartCache.monthLabels);
+  if(tab === 'market') renderMarketChart(trackerChartCache.marketLabels, trackerChartCache.marketWinPct, trackerChartCache.marketTotals);
+}
+
 async function loadTracker(){
 const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
@@ -870,6 +933,8 @@ if(profit<0) profitCard.classList.add("glow-red");
 
 // Daily labels based on the *game* date when available
 const dailyLabels = rows.map(r => fmtDayLabel(r.match_date_date || r.bet_date || r.created_at));
+trackerChartCache.history = history.slice();
+trackerChartCache.dailyLabels = dailyLabels.slice();
 renderDailyChart(history, dailyLabels);
 
 // ---- Monthly & Market analytics (tabs + mini summary) ----
@@ -900,6 +965,9 @@ const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
+trackerChartCache.monthlyProfit = monthlyProfit.slice();
+trackerChartCache.monthlyROI = monthlyROI.slice();
+trackerChartCache.monthLabels = monthLabels.slice();
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
@@ -943,6 +1011,9 @@ const winPct = entries.map(e=>{
   const resolved = e[1].wins + e[1].losses;
   return resolved ? (e[1].wins / resolved) * 100 : 0;
 });
+trackerChartCache.marketLabels = labels.slice();
+trackerChartCache.marketWinPct = winPct.slice();
+trackerChartCache.marketTotals = totals.slice();
 renderMarketChart(labels, winPct, totals);
 
 // Mini summary
@@ -1008,8 +1079,7 @@ async function loadTdtTracker(){
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
-    let html="<table class='tdt-results-table'><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
-    rows.forEach(row=>{
+    const cards = rows.map(row=>{
       const p = row.result==="won" ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
               : row.result==="lost" ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
               : 0;
@@ -1019,11 +1089,17 @@ async function loadTdtTracker(){
       totalStake += Number(row.stake || 0);
       totalOdds += Number(row.odds || 0);
       const gameDate = row.match_date_date || row.bet_date || row.created_at;
-      const rowCls = row.result==="won" ? 'result-row-win' : row.result==="lost" ? 'result-row-loss' : 'result-row-pending';
-      html += `<tr class="${rowCls}"><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td>${resultBadgeHTML(row.result)}</td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
-    });
-    html += "</table>";
-    if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
+      const rowCls = row.result==="won" ? 'win' : row.result==="lost" ? 'loss' : 'pending';
+      return `<div class="tdt-result-card ${rowCls}">
+        <div class="tdt-result-cell"><div class="tdt-result-label">Date</div><div class="tdt-result-value">${fmtDayLabel(gameDate)}</div></div>
+        <div class="tdt-result-cell tdt-result-cell--match"><div class="tdt-result-label">Match</div><div class="tdt-result-value">${escapeHtml(row.match||'—')}</div></div>
+        <div class="tdt-result-cell"><div class="tdt-result-label">Market</div><div class="tdt-result-value">${escapeHtml(row.market||'—')}</div></div>
+        <div class="tdt-result-cell"><div class="tdt-result-label">Result</div>${resultBadgeHTML(row.result)}</div>
+        <div class="tdt-result-cell tdt-result-cell--profit"><div class="tdt-result-label">Profit</div><div class="tdt-result-profit ${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</div></div>
+      </div>`;
+    }).join("");
+    const header = `<div class="tdt-results-head"><div>Date</div><div>Match</div><div>Market</div><div>Result</div><div>Profit</div></div>`;
+    if(tableEl) tableEl.innerHTML = rows.length ? `<div class="tdt-results-list">${header}${cards}</div>` : '<div class="card">No official TDT results yet.</div>';
     const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
     set("tdtBankroll", profit.toFixed(2));
     set("tdtProfit", profit.toFixed(2));
@@ -1263,6 +1339,8 @@ function setMiniValue(id, prefix, value){
 function initChartTabs(){
   const btns = document.querySelectorAll(".tab-btn");
   if(!btns.length) return;
+  if(window.__chartTabsBound) return;
+  window.__chartTabsBound = true;
 
   btns.forEach(b=>{
     b.addEventListener("click", ()=>{
@@ -1272,6 +1350,7 @@ function initChartTabs(){
       document.querySelectorAll(".chart-pane").forEach(p=>p.classList.remove("active"));
       const pane = document.getElementById("pane-"+tab);
       if(pane) pane.classList.add("active");
+      setTimeout(()=>rerenderTrackerCharts(tab), 40);
     });
   });
 }
