@@ -178,6 +178,29 @@
 </section>
 
 
-<script src="app.js?v=1772860001"></script>
+<!-- VIP Modal -->
+<div id="vipModal" class="modal-overlay" style="display:none">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Go VIP">
+    <div class="modal-header">
+      <div class="modal-title">Go VIP</div>
+      <button id="vipClose" class="modal-close" type="button">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field-label" for="vipEmail">Email for access</label>
+      <input id="vipEmail" class="field-input" type="email" placeholder="you@example.com" autocomplete="email" />
+
+      <div class="plan-grid">
+        <button id="vipMonthly" class="plan-button" type="button">£12 / month</button>
+        <button id="vipYearly" class="plan-button" type="button">£80 / year</button>
+      </div>
+
+      <div class="small-muted">Tip: if you create a promo code in Stripe (e.g. first month £5), you can enter it on the checkout page.</div>
+
+      <div id="vipError" class="error-text"></div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js?v=1772861001"></script>
 </body>
 </html>
