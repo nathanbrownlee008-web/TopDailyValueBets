@@ -2282,20 +2282,24 @@ body.layout-compact .vip-bar{
 }
 
 
-/* VIP promo */
-.vip-promo{display:flex;flex-direction:column;gap:16px;margin-top:18px;padding:18px;border-radius:20px;background:linear-gradient(180deg, rgba(30,41,59,.78), rgba(15,23,42,.96));border:1px solid rgba(255,255,255,.08);}
-.vip-promo__eyebrow{font-size:12px;letter-spacing:.28em;opacity:.72;font-weight:800;}
-.vip-promo__title{margin:0;font-size:18px;line-height:1.15;}
-.vip-promo__stats{margin-top:10px;opacity:.88;font-size:14px;line-height:1.35;}
-.vip-promo__btn{margin-top:16px;background:linear-gradient(180deg,#f6d95d,#e7b91d);color:#111827;border:none;border-radius:999px;padding:12px 18px;font-weight:900;}
-.vip-promo__chart-wrap{height:140px;position:relative;}
-#vipPromoChart{width:100%!important;height:100%!important;}
-
-.tdt-table-result{font-weight:800;letter-spacing:.04em;}
-.tdt-table-result.won{color:#22c55e;}
-.tdt-table-result.lost{color:#ef4444;}
-.tdt-table-result.pending{color:#cbd5e1;}
-
-@media (min-width: 900px){
-  .vip-promo{display:grid;grid-template-columns:1.2fr .8fr;align-items:center;}
-}
+/* ===== 2026-03-10 project upgrade overrides ===== */
+.vip-promo{max-width:1200px;margin:16px auto 0;padding:16px 18px;border-radius:18px;}
+.vip-promo__top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;}
+.vip-promo__eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-bottom:6px;}
+.vip-promo__title{font-size:20px;font-weight:800;line-height:1.15;margin-bottom:8px;}
+.vip-promo__stats{opacity:.85;line-height:1.4;font-size:14px;}
+.vip-promo__btn,.vip-promo__ghost{padding:10px 14px;border-radius:999px;font-weight:800;}
+.vip-promo__btn{background:linear-gradient(180deg,#ffdf6e,#d9a800);color:#0b1220;}
+.vip-promo__ghost{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);}
+.vip-promo__chartwrap{height:180px;margin-top:14px;}
+.vip-promo__actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.vip-promo__status{opacity:.75;font-size:13px;}
+.bet-card--locked{border-color:rgba(255,215,0,0.2);background:linear-gradient(180deg,rgba(17,24,39,0.96),rgba(10,18,32,0.96));}
+.bet-market--locked{font-weight:700;color:rgba(255,240,190,0.92);}
+.vip-teaser-line{margin-top:6px;font-size:12px;color:rgba(255,240,190,0.88);font-weight:700;}
+.vip-teaser-subline{margin-top:2px;font-size:12px;color:rgba(255,255,255,0.68);}
+.vip-blur-area{filter:blur(7px);opacity:0.48;}
+.vip-overlay{background:rgba(3,7,18,0.38);backdrop-filter:blur(1px);font-size:14px;padding:0 14px;}
+.bet-row--locked td{opacity:.9;}
+.table-lock-copy{font-weight:700;color:rgba(255,240,190,0.88);}
+@media (max-width:700px){.vip-promo__title{font-size:18px;}.vip-promo__chartwrap{height:150px;}}
