@@ -783,28 +783,19 @@ function renderVipPromoChart(rows){
   const labels = [];
   const points = [];
   let running = 0;
-  let lastDayKey = '';
-
-  safeRows.slice(-200).forEach((row)=>{
+  safeRows.slice(-12).forEach((row)=>{
     running += rowProfit({
       stake: Number(row.stake || 0),
       odds: Number(row.odds || 0),
       result: row.result || 'pending'
     });
-    const dayKey = fmtDayLabel(row.match_date_date || row.bet_date || row.created_at);
-    if(dayKey !== lastDayKey){
-      labels.push(dayKey);
-      points.push(running);
-      lastDayKey = dayKey;
-    }else{
-      points[points.length - 1] = running;
-    }
+    labels.push(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at));
+    points.push(running);
   });
-
   if(vipPromoChart) vipPromoChart.destroy();
   vipPromoChart = new Chart(canvas.getContext('2d'), {
     type:'line',
-    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:(ctx)=>{ const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0; if(len <= 1) return len ? 3 : 0; return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0; } }] },
+    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:2 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
   });
 }
@@ -868,8 +859,6 @@ wireTrackerFilters();
 
 let start=parseFloat(document.getElementById("startingBankroll").value);
 let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
-let dailyLabels=[];
-let lastDayKey="";
 
 	let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 
@@ -878,18 +867,9 @@ let p=0;
 if(row.result==="won"){p=row.stake*(row.odds-1);wins++;}
 if(row.result==="lost"){p=-row.stake;losses++;}
 profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
-bankroll=start+profit;
+bankroll=start+profit;history.push(bankroll);
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
-const dayKey = fmtDayLabel(gameDate);
-if(dayKey !== lastDayKey){
-  dailyLabels.push(dayKey);
-  history.push(bankroll);
-  lastDayKey = dayKey;
-}else if(history.length){
-  history[history.length - 1] = bankroll;
-}
-
 html+=`<tr>
 <td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
@@ -937,6 +917,8 @@ if(profit>0) profitCard.classList.add("glow-green");
 if(profit<0) profitCard.classList.add("glow-red");
 
 
+// Daily labels based on the *game* date when available
+const dailyLabels = rows.map(r => fmtDayLabel(r.match_date_date || r.bet_date || r.created_at));
 renderDailyChart(history, dailyLabels);
 
 // ---- Monthly & Market analytics (tabs + mini summary) ----
@@ -1074,7 +1056,8 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
-    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
+    const start = parseFloat((document.getElementById("startingBankroll")?.value) || 0);
+    let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
     let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
     rows.forEach(row=>{
       const p = row.result==="won" ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
@@ -1083,6 +1066,7 @@ async function loadTdtTracker(){
       if(row.result==="won") wins++;
       if(row.result==="lost") losses++;
       profit += p;
+      bankroll = start + profit;
       totalStake += Number(row.stake || 0);
       totalOdds += Number(row.odds || 0);
       const gameDate = row.match_date_date || row.bet_date || row.created_at;
@@ -1091,7 +1075,7 @@ async function loadTdtTracker(){
     html += "</table>";
     if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
     const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
-    set("tdtBankroll", profit.toFixed(2));
+    set("tdtBankroll", bankroll.toFixed(2));
     set("tdtProfit", profit.toFixed(2));
     set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
     set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
