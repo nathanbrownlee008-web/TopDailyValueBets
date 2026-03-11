@@ -1098,12 +1098,6 @@ async function loadTdtTracker(){
     set("tdtAvgOdds", rows.length?(totalOdds/rows.length).toFixed(2):0);
     set("tdtTotalBets", rows.length);
     set("tdtBetCount", rows.length);
-    const tdtProfitCard = document.getElementById("tdtProfitCard");
-    if(tdtProfitCard){
-      tdtProfitCard.classList.remove("glow-green","glow-red");
-      if(profit>0) tdtProfitCard.classList.add("glow-green");
-      if(profit<0) tdtProfitCard.classList.add("glow-red");
-    }
   }catch(err){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
