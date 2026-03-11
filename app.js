@@ -969,7 +969,7 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 // Market profit aggregation
 const marketMap = {};
 const marketWL = {}; // {market:{wins,losses,pending,bets}}
-rows.forEach(r=>{
+data.forEach(r=>{
   const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
   marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
 
@@ -1049,29 +1049,107 @@ async function updateResult(id,val){
 }
 
 
+
+function toggleTdtDay(dayKey){
+  const state = JSON.parse(localStorage.getItem("tdt_day_open") || "{}");
+  state[dayKey] = !state[dayKey];
+  localStorage.setItem("tdt_day_open", JSON.stringify(state));
+  loadTdtTracker();
+}
+
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
-    const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
+    const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:false});
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
+
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
-    let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Market</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+    const groups = {};
+
     rows.forEach(row=>{
-      const p = row.result==="won" ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
-              : row.result==="lost" ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
+      const result = String(row.result || "pending").toLowerCase();
+      const p = result==="won" ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
+              : result==="lost" ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
               : 0;
-      if(row.result==="won") wins++;
-      if(row.result==="lost") losses++;
+
+      if(result==="won") wins++;
+      if(result==="lost") losses++;
       profit += p;
       totalStake += Number(row.stake || 0);
       totalOdds += Number(row.odds || 0);
-      const gameDate = row.match_date_date || row.bet_date || row.created_at;
-      html += `<tr><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td>${escapeHtml(String(row.result||'pending').toUpperCase())}</td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
+
+      const rawDate = row.match_date_date || row.bet_date || row.created_at || new Date().toISOString();
+      const dt = new Date(rawDate);
+      const dayKey = Number.isNaN(dt.getTime()) ? String(rawDate).slice(0,10) : dt.toISOString().slice(0,10);
+
+      if(!groups[dayKey]){
+        groups[dayKey] = {
+          dateLabel: fmtDayLabel(rawDate),
+          rows: [],
+          won: 0,
+          lost: 0,
+          pending: 0
+        };
+      }
+      groups[dayKey].rows.push({...row, __profit: p, __result: result});
+      if(result==="won") groups[dayKey].won++;
+      else if(result==="lost") groups[dayKey].lost++;
+      else groups[dayKey].pending++;
     });
-    html += "</table>";
+
+    const openState = JSON.parse(localStorage.getItem("tdt_day_open") || "{}");
+    const dayKeys = Object.keys(groups).sort((a,b)=> b.localeCompare(a));
+
+    let html = "";
+    dayKeys.forEach(dayKey=>{
+      const group = groups[dayKey];
+      const isOpen = openState[dayKey] !== false;
+      const total = group.rows.length;
+      let rowsHtml = "";
+      group.rows.forEach(row=>{
+        const resultText = row.__result.toUpperCase();
+        const resultIcon = row.__result==="won" ? "✅" : row.__result==="lost" ? "❌" : "⏳";
+        rowsHtml += `<tr class="tdt-day-row tdt-day-row--${row.__result}">
+          <td>${escapeHtml(row.match||"")}</td>
+          <td>${escapeHtml(row.market||"")}</td>
+          <td class="tdt-odds-cell">${escapeHtml(String(row.odds ?? ""))}</td>
+          <td class="tdt-icon-cell" aria-label="${escapeHtml(resultText)}">${resultIcon}</td>
+        </tr>`;
+      });
+
+      html += `<section class="tdt-day-card ${isOpen ? "expanded" : "collapsed"}">
+        <button class="tdt-day-header" type="button" onclick="toggleTdtDay('${dayKey}')">
+          <div class="tdt-day-header__left">
+            <span class="tdt-day-date">📅 ${escapeHtml(group.dateLabel)}</span>
+            <span class="tdt-chip tdt-chip--won">✅ Won ${group.won}</span>
+            <span class="tdt-chip tdt-chip--lost">❌ Lost ${group.lost}</span>
+            <span class="tdt-chip tdt-chip--pending">⏳ Pending ${group.pending}</span>
+            <span class="tdt-chip tdt-chip--total">${total}/${total}</span>
+          </div>
+          <span class="tdt-day-arrow">${isOpen ? "▲" : "▼"}</span>
+        </button>
+        <div class="tdt-day-body" style="display:${isOpen ? "block" : "none"};">
+          <div class="tdt-day-table-wrap">
+            <table class="tdt-day-table">
+              <thead>
+                <tr>
+                  <th>Match</th>
+                  <th>Market</th>
+                  <th>Odds</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </div>
+        </div>
+      </section>`;
+    });
+
     if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
+
     const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
     set("tdtBankroll", profit.toFixed(2));
     set("tdtProfit", profit.toFixed(2));
