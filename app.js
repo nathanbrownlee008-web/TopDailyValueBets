@@ -518,6 +518,9 @@ async function addToTracker(btn, row){
     setTimeout(()=>btn.classList.remove('flash'), 700);
     btn.disabled = true;
   }
+  if(notificationsEnabled()){
+    sendBetNotification('Bet added to tracker', `${row.match || 'Bet'} • ${row.odds || ''}`);
+  }
   loadTracker();
 }
 
@@ -794,19 +797,29 @@ async function fetchCurrentPublicVisibleBets(){
   }
 }
 
+async function runBetAlertCheck(){
+  if(!notificationsEnabled() || betAlertBusy) return;
+  betAlertBusy = true;
+  try{
+    const rows = await fetchCurrentPublicVisibleBets();
+    notifyForNewVisibleBets(rows);
+  }finally{
+    betAlertBusy = false;
+  }
+}
+
 function startBetAlertPolling(){
   if(betAlertPollHandle) return;
-  betAlertPollHandle = setInterval(async ()=>{
-    if(!notificationsEnabled() || betAlertBusy) return;
-    betAlertBusy = true;
-    try{
-      const rows = await fetchCurrentPublicVisibleBets();
-      notifyForNewVisibleBets(rows);
-    }finally{
-      betAlertBusy = false;
-    }
-  }, 30000);
+  runBetAlertCheck();
+  betAlertPollHandle = setInterval(runBetAlertCheck, 10000);
 }
+
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible'){
+    runBetAlertCheck();
+  }
+});
+window.addEventListener('focus', runBetAlertCheck);
 
 async function loadVipPromoProof(){
   const statsEl = document.getElementById('vipPromoStats');
@@ -1064,7 +1077,7 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 // Market profit aggregation
 const marketMap = {};
 const marketWL = {}; // {market:{wins,losses,pending,bets}}
-data.forEach(r=>{
+rows.forEach(r=>{
   const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
   marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
 
@@ -1163,7 +1176,7 @@ async function loadTdtTracker(){
       totalStake += Number(row.stake || 0);
       totalOdds += Number(row.odds || 0);
       const gameDate = row.match_date_date || row.bet_date || row.created_at;
-      html += `<tr><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td>${escapeHtml(String(row.result||'pending').toUpperCase())}</td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
+      html += `<tr><td class="date-col">${fmtDayLabel(gameDate)}</td><td>${escapeHtml(row.match||'')}</td><td>${escapeHtml(row.market||'')}</td><td><span class="tdt-table-result ${escapeHtml(String(row.result||'pending').toLowerCase())}">${escapeHtml(String(row.result||'pending').toUpperCase())}</span></td><td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td></tr>`;
     });
     html += "</table>";
     if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
