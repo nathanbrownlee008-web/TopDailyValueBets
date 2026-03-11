@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772426001"/>
+<link rel="stylesheet" href="styles.css?v=1772427002"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -33,8 +33,6 @@
 <button id="tabBets" class="active">Value Bets</button>
 <button id="tabTracker">My Tracker</button>
 <button id="tabTdtTracker">TDT Tracker</button>
-<button id="tabHistory">Daily History</button>
-<button id="tabTdtHistory">TDT History</button>
 </div>
 <div class="top-controls">
   <div class="layout-switch" role="group" aria-label="Layout">
@@ -64,6 +62,18 @@
     </thead>
     <tbody></tbody>
   </table>
+</div>
+
+<div id="vipPromo" class="vip-promo card">
+  <div class="vip-promo__content">
+    <div class="vip-promo__eyebrow">VIP PREVIEW</div>
+    <h3 class="vip-promo__title">Instant bets, full markets, tracker access</h3>
+    <div id="vipPromoStats" class="vip-promo__stats">Loading official TDT proof...</div>
+    <button id="vipPromoBtn" class="vip-promo__btn" type="button">Unlock VIP</button>
+  </div>
+  <div class="vip-promo__chart-wrap">
+    <canvas id="vipPromoChart"></canvas>
+  </div>
 </div>
 </section>
 
@@ -214,6 +224,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772426001"></script>
+<script src="app.js?v=1772427002"></script>
 </body>
 </html>

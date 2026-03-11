@@ -2282,150 +2282,20 @@ body.layout-compact .vip-bar{
 }
 
 
-/* ===== TDT Results daily-history style ===== */
-#tdtTrackerTable{
-  width:100%;
-  overflow:visible;
-}
-.tdt-day-card{
-  margin:14px 0;
-}
-.tdt-day-header{
-  width:100%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  padding:12px 14px;
-  border-radius:16px;
-  background:rgba(30,41,59,0.78);
-  border:1px solid rgba(255,255,255,0.08);
-  color:#e2e8f0;
-  text-align:left;
-}
-.tdt-day-header__left{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-}
-.tdt-day-date{
-  font-weight:800;
-  letter-spacing:.02em;
-  margin-right:4px;
-}
-.tdt-chip{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:7px 12px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:800;
-  border:1px solid rgba(255,255,255,0.12);
-  background:rgba(255,255,255,0.05);
-  white-space:nowrap;
-}
-.tdt-chip--won{
-  color:#bbf7d0;
-  background:rgba(34,197,94,0.14);
-  border-color:rgba(34,197,94,0.35);
-}
-.tdt-chip--lost{
-  color:#fecaca;
-  background:rgba(239,68,68,0.14);
-  border-color:rgba(239,68,68,0.35);
-}
-.tdt-chip--pending{
-  color:#fde68a;
-  background:rgba(245,158,11,0.12);
-  border-color:rgba(245,158,11,0.30);
-}
-.tdt-chip--total{
-  color:#e2e8f0;
-  background:rgba(255,255,255,0.06);
-}
-.tdt-day-arrow{
-  font-weight:900;
-  font-size:16px;
-  flex:0 0 auto;
-}
-.tdt-day-body{
-  margin-top:10px;
-}
-.tdt-day-table-wrap{
-  background:rgba(15,23,42,0.55);
-  border:1px solid rgba(255,255,255,0.06);
-  border-radius:16px;
-  overflow:hidden;
-}
-.tdt-day-table{
-  width:100%;
-  border-collapse:collapse;
-  table-layout:fixed;
-}
-.tdt-day-table th{
-  font-size:12px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  color:rgba(180,205,230,.75);
-  text-align:left;
-  padding:12px 14px;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-.tdt-day-table td{
-  padding:12px 14px;
-  border-bottom:1px solid rgba(255,255,255,0.07);
-  vertical-align:middle;
-  word-break:break-word;
-}
-.tdt-day-table tbody tr:last-child td{
-  border-bottom:none;
-}
-.tdt-day-row td:first-child{
-  border-left:4px solid transparent;
-}
-.tdt-day-row--won td:first-child{
-  border-left-color:rgba(34,197,94,0.9);
-}
-.tdt-day-row--lost td:first-child{
-  border-left-color:rgba(239,68,68,0.9);
-}
-.tdt-day-row--pending td:first-child{
-  border-left-color:rgba(245,158,11,0.9);
-}
-.tdt-odds-cell{
-  white-space:nowrap;
-  font-weight:800;
-}
-.tdt-icon-cell{
-  width:48px;
-  text-align:center;
-  font-size:18px;
-}
-@media (max-width: 600px){
-  .tdt-day-header{
-    padding:10px 12px;
-  }
-  .tdt-day-date{
-    width:100%;
-    margin-bottom:2px;
-  }
-  .tdt-chip{
-    font-size:11px;
-    padding:6px 10px;
-  }
-  .tdt-day-table th,
-  .tdt-day-table td{
-    padding:10px 8px;
-    font-size:12px;
-  }
-  .tdt-day-table th:nth-child(3),
-  .tdt-day-table td:nth-child(3){
-    width:56px;
-  }
-  .tdt-day-table th:nth-child(4),
-  .tdt-day-table td:nth-child(4){
-    width:36px;
-  }
+/* VIP promo */
+.vip-promo{display:flex;flex-direction:column;gap:16px;margin-top:18px;padding:18px;border-radius:20px;background:linear-gradient(180deg, rgba(30,41,59,.78), rgba(15,23,42,.96));border:1px solid rgba(255,255,255,.08);}
+.vip-promo__eyebrow{font-size:12px;letter-spacing:.28em;opacity:.72;font-weight:800;}
+.vip-promo__title{margin:0;font-size:18px;line-height:1.15;}
+.vip-promo__stats{margin-top:10px;opacity:.88;font-size:14px;line-height:1.35;}
+.vip-promo__btn{margin-top:16px;background:linear-gradient(180deg,#f6d95d,#e7b91d);color:#111827;border:none;border-radius:999px;padding:12px 18px;font-weight:900;}
+.vip-promo__chart-wrap{height:140px;position:relative;}
+#vipPromoChart{width:100%!important;height:100%!important;}
+
+.tdt-table-result{font-weight:800;letter-spacing:.04em;}
+.tdt-table-result.won{color:#22c55e;}
+.tdt-table-result.lost{color:#ef4444;}
+.tdt-table-result.pending{color:#cbd5e1;}
+
+@media (min-width: 900px){
+  .vip-promo{display:grid;grid-template-columns:1.2fr .8fr;align-items:center;}
 }
