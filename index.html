@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772426001"/>
+<link rel="stylesheet" href="styles.css?v=1772861001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -62,6 +62,34 @@
     </thead>
     <tbody></tbody>
   </table>
+</div>
+
+<div id="vipPromo" class="vip-promo card sharp-shell">
+  <div class="vip-promo__top">
+    <div>
+      <div class="vip-promo__eyebrow">VIP results</div>
+      <div class="vip-promo__title">Instant bets, full markets, tracker access</div>
+      <div id="vipPromoStats" class="vip-promo__stats">Loading official TDT proof...</div>
+    </div>
+    <button id="vipPromoBtn" class="vip-promo__btn" type="button">Unlock VIP</button>
+  </div>
+  <div class="vip-promo__chartwrap">
+    <canvas id="vipPromoChart"></canvas>
+  </div>
+  <div class="vip-promo__actions">
+    <button id="notifyToggleBtn" class="vip-promo__ghost" type="button">Turn on new bet alerts</button>
+    <span id="notifyStatus" class="vip-promo__status">Alerts off</span>
+  </div>
+  <div class="vip-referral">
+    <div class="vip-referral__copy">
+      <div class="vip-referral__title">Referral push</div>
+      <div id="vipReferralText" class="vip-referral__text">Use the code below for manual referral tracking while you grow VIP.</div>
+    </div>
+    <div class="vip-referral__codewrap">
+      <span class="vip-referral__label">Your code</span>
+      <strong id="vipReferralCode" class="vip-referral__code">VIPFRIEND</strong>
+    </div>
+  </div>
 </div>
 </section>
 
@@ -160,30 +188,6 @@
 </section>
 
 
-
-<!-- VIP Modal -->
-<div id="vipModal" class="modal-overlay" style="display:none">
-  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Go VIP">
-    <div class="modal-header">
-      <div class="modal-title">Go VIP</div>
-      <button id="vipClose" class="modal-close" type="button">✕</button>
-    </div>
-    <div class="modal-body">
-      <label class="field-label" for="vipEmail">Email for access</label>
-      <input id="vipEmail" class="field-input" type="email" placeholder="you@example.com" autocomplete="email" />
-
-      <div class="plan-grid">
-        <button id="vipMonthly" class="plan-button" type="button">£12 / month</button>
-        <button id="vipYearly" class="plan-button" type="button">£80 / year</button>
-      </div>
-
-      <div class="small-muted">Tip: if you create a promo code in Stripe (e.g. first month £5), you can enter it on the checkout page.</div>
-
-      <div id="vipError" class="error-text"></div>
-    </div>
-  </div>
-</div>
-
-<script src="app.js?v=1772426602"></script>
+<script src="app.js?v=1772861001"></script>
 </body>
 </html>
