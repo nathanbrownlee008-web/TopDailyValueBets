@@ -2755,11 +2755,14 @@ body.layout-compact .vip-bar{
 #tdtTrackerTable .tdt-day-left{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;}
 #tdtTrackerTable .tdt-day-date{font-weight:900;font-size:15px;}
 #tdtTrackerTable .tdt-day-meta{font-size:12px;opacity:.72;}
-#tdtTrackerTable .tdt-day-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+#tdtTrackerTable .tdt-day-right{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;justify-content:flex-end;flex:0 0 auto;}
 #tdtTrackerTable .tdt-day-chip{display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:800;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.05);white-space:nowrap;}
 #tdtTrackerTable .tdt-day-chip.win{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12);}
 #tdtTrackerTable .tdt-day-chip.loss{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.12);}
-#tdtTrackerTable .tdt-day-chip.ratio{min-width:108px;}
+#tdtTrackerTable .tdt-day-chip.ratio{min-width:auto;}
+#tdtTrackerTable .tdt-day-chip.ratio.ratio--red{border-color:rgba(239,68,68,.38);background:rgba(239,68,68,.14);color:#fecaca;}
+#tdtTrackerTable .tdt-day-chip.ratio.ratio--amber{border-color:rgba(245,158,11,.38);background:rgba(245,158,11,.14);color:#fde68a;}
+#tdtTrackerTable .tdt-day-chip.ratio.ratio--green{border-color:rgba(34,197,94,.38);background:rgba(34,197,94,.14);color:#bbf7d0;}
 #tdtTrackerTable .tdt-day-chevron{font-size:16px;font-weight:900;opacity:.82;min-width:14px;text-align:center;}
 #tdtTrackerTable .tdt-day-body{border-top:1px solid rgba(255,255,255,0.06);}
 #tdtTrackerTable .tdt-table-wrap{overflow-x:hidden;}
@@ -2776,16 +2779,17 @@ body.layout-compact .vip-bar{
 #tdtTrackerTable .tdt-table-fit .tdt-col-result{width:14%;text-align:center;}
 #tdtTrackerTable .tdt-table-fit .tdt-match,#tdtTrackerTable .tdt-table-fit .tdt-market{line-height:1.12;word-break:break-word;overflow-wrap:anywhere;}
 #tdtTrackerTable .tdt-table-fit .tdt-match{font-weight:800;}
-#tdtTrackerTable .tdt-table-fit .tdt-stake,#tdtTrackerTable .tdt-table-fit .tdt-odds{text-align:left;white-space:nowrap;font-weight:800;font-variant-numeric:tabular-nums;font-feature-settings:"tnum";padding-left:4px;}
+#tdtTrackerTable .tdt-table-fit .tdt-stake,#tdtTrackerTable .tdt-table-fit .tdt-odds{text-align:left;white-space:nowrap;font-weight:800;font-variant-numeric:tabular-nums;font-feature-settings:"tnum";padding-left:6px;}
 #tdtTrackerTable .tdt-table-fit .tdt-result{text-align:center;white-space:nowrap;}
 #tdtTrackerTable .tdt-table-fit .tdt-result-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;font-size:16px;line-height:1;}
 #tdtTrackerTable .tdt-table-fit .tdt-row.won td:first-child{border-left:3px solid #22c55e;padding-left:8px;}
 #tdtTrackerTable .tdt-table-fit .tdt-row.lost td:first-child{border-left:3px solid #ef4444;padding-left:8px;}
 #tdtTrackerTable .tdt-table-fit .tdt-row.pending td:first-child{border-left:3px solid #eab308;padding-left:8px;}
 @media (max-width:600px){
-  #tdtTrackerTable .tdt-day-head{padding:12px 10px;align-items:flex-start;}
-  #tdtTrackerTable .tdt-day-right{gap:6px;}
+  #tdtTrackerTable .tdt-day-head{padding:12px 10px;align-items:center;}
+  #tdtTrackerTable .tdt-day-right{gap:5px;flex-wrap:nowrap;}
   #tdtTrackerTable .tdt-day-chip{padding:6px 8px;font-size:11px;}
+  #tdtTrackerTable .tdt-day-chip.ratio{padding-left:10px;padding-right:10px;}
   #tdtTrackerTable .tdt-day-date{font-size:14px;}
   #tdtTrackerTable .tdt-table-fit th,#tdtTrackerTable .tdt-table-fit td{padding:10px 4px;font-size:11px;}
 }

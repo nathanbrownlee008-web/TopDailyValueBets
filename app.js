@@ -1187,7 +1187,7 @@ async function loadTdtTracker(){
             <div class="tdt-day-right">
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
-              <span class="tdt-day-chip ratio">Winrate ${dayWinrate}%</span>
+              <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
               <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
             </div>
           </button>
@@ -1257,6 +1257,13 @@ function toggleTdtDay(btn){
   const isHidden = body.style.display === "none";
   body.style.display = isHidden ? "block" : "none";
   if(chev) chev.innerText = isHidden ? "▼" : "▶";
+}
+
+function tdtWinrateClass(rate){
+  const n = Number(rate || 0);
+  if(n <= 50) return "ratio--red";
+  if(n <= 62) return "ratio--amber";
+  return "ratio--green";
 }
 
 function toggleTdtTracker(){
