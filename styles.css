@@ -2523,3 +2523,44 @@ body.layout-compact .vip-bar{
     font-size:20px;
   }
 }
+/* TDT results compact fix */
+
+#tdtTrackerTable .tdt-results-board{
+min-width:100%;
+}
+
+#tdtTrackerTable .tdt-result-row{
+min-height:60px;
+}
+
+#tdtTrackerTable .tdt-cell{
+padding:10px 8px;
+font-size:13px;
+}
+
+#tdtTrackerTable .tdt-cell-match{
+font-size:14px;
+}
+
+#tdtTrackerTable .tdt-cell-market{
+font-size:13px;
+}
+
+#tdtTrackerTable .tdt-cell-odds{
+font-size:13px;
+}
+
+#tdtTrackerTable .tdt-result-badge{
+width:28px;
+height:28px;
+font-size:16px;
+}
+
+#tdtTrackerTable .tdt-results-head{
+padding:10px 8px;
+font-size:11px;
+}
+
+#tdtTrackerTable{
+overflow-x:hidden;
+}
