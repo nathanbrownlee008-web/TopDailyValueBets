@@ -1176,6 +1176,7 @@ async function loadTdtTracker(){
     let html = `<div class="tdt-groups-wrap">`;
 
     groups.forEach((group, idx)=>{
+      const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
       html += `
         <div class="tdt-day-card">
           <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
@@ -1186,7 +1187,7 @@ async function loadTdtTracker(){
             <div class="tdt-day-right">
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
-              <span class="tdt-day-chip ratio">${group.settled}/${group.rows.length}</span>
+              <span class="tdt-day-chip ratio">Winrate ${dayWinrate}%</span>
               <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
             </div>
           </button>
