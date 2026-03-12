@@ -2495,3 +2495,47 @@ body.layout-compact .vip-bar{
     font-size:16px;
   }
 }
+
+/* ===== TDT TABLE PRO ALIGN ===== */
+#tdtTrackerTable{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+#tdtTrackerTable table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+#tdtTrackerTable thead th{
+  position:sticky;
+  top:0;
+  background:#0c1832;
+  z-index:5;
+}
+
+#tdtTrackerTable td,
+#tdtTrackerTable th{
+  padding:10px 8px;
+}
+
+#tdtTrackerTable .tdt-stake,
+#tdtTrackerTable .tdt-odds{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum";
+  white-space:nowrap;
+  font-weight:700;
+}
+
+#tdtTrackerTable .tdt-stake{width:90px;}
+#tdtTrackerTable .tdt-odds{width:70px;}
+
+#tdtTrackerTable .tdt-result{
+  text-align:center;
+  width:60px;
+}
+
+#tdtTrackerTable tbody tr:hover{
+  background:rgba(255,255,255,0.03);
+}
