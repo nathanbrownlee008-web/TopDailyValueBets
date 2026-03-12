@@ -2389,3 +2389,15 @@ body.layout-compact .vip-bar{
     grid-template-columns:90px minmax(0,1.4fr) 70px 90px;
   }
 }
+
+
+/* tighter TDT rows */
+#tdtTrackerTable .tdt-mrow{padding:9px 0;}
+#tdtTrackerTable .tdt-mrow-top{grid-template-columns:66px 1fr;gap:8px;}
+#tdtTrackerTable .tdt-mrow-bottom{grid-template-columns:66px 1fr 60px 80px;margin-top:3px;}
+#tdtTrackerTable .tdt-mrow-date{font-size:13px;}
+#tdtTrackerTable .tdt-mrow-match{font-size:13px;line-height:1.15;}
+#tdtTrackerTable .tdt-mrow-market{font-size:12px;}
+#tdtTrackerTable .tdt-odds-label{font-size:10px;opacity:.7;}
+#tdtTrackerTable .tdt-odds-value{font-weight:800;font-size:13px;}
+#tdtTrackerTable .tdt-mrow-profit{font-weight:900;font-size:13px;}
