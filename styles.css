@@ -2319,18 +2319,33 @@ body.layout-compact .vip-bar{
 .table-lock-copy{font-weight:700;color:rgba(255,240,190,0.88);}
 @media (max-width:700px){.vip-promo__title{font-size:18px;}.vip-promo__chartwrap{height:150px;}}
 
-/* Smaller TDT stat cards */
-.stats-grid{
-grid-template-columns:1fr 1fr;
-gap:10px;
-}
 
-.stat-card{
-padding:14px;
-font-size:14px;
-border-radius:14px;
+/* TDT stats sizing + order */
+#tdtTrackerSection .tdt-stats-grid{
+  gap:10px;
+  margin-top:20px;
+  margin-bottom:20px;
 }
-
-.stat-card strong{
-font-size:20px;
+#tdtTrackerSection .tdt-stats-grid .stat-card{
+  padding:12px 10px;
+  border-radius:12px;
+}
+#tdtTrackerSection .tdt-stats-grid .stat-card strong{
+  font-size:18px;
+  line-height:1.15;
+}
+#tdtTrackerSection .tdt-stats-grid .stat-card{
+  font-size:13px;
+}
+@media (max-width: 600px){
+  #tdtTrackerSection .tdt-stats-grid{
+    gap:8px;
+  }
+  #tdtTrackerSection .tdt-stats-grid .stat-card{
+    padding:10px 8px;
+    border-radius:12px;
+  }
+  #tdtTrackerSection .tdt-stats-grid .stat-card strong{
+    font-size:17px;
+  }
 }
