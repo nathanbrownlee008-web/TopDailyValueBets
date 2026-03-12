@@ -2496,4 +2496,31 @@ font-weight:800;
 
 #tdtTrackerTable .profit-win{color:#22c55e;}
 #tdtTrackerTable .profit-loss{color:#ef4444;}
+/* TDT table better column sizing */
 
+#tdtTrackerTable table {
+table-layout: auto;
+width: 100%;
+}
+
+#tdtTrackerTable td:nth-child(2),
+#tdtTrackerTable th:nth-child(2){
+min-width:140px;
+white-space:nowrap;
+font-weight:700;
+}
+
+#tdtTrackerTable td:nth-child(3){
+min-width:110px;
+}
+
+#tdtTrackerTable td:nth-child(4){
+text-align:center;
+width:50px;
+}
+
+#tdtTrackerTable td:nth-child(5){
+text-align:right;
+width:70px;
+font-weight:800;
+}
