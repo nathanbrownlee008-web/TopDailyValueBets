@@ -2557,43 +2557,96 @@ body.layout-compact .vip-bar{
     font-size:12px;
   }
 }
-/* ===== TDT PERFECT COLUMN ALIGNMENT ===== */
 
-#tdtTrackerTable .tdt-table{
+
+/* ===== TDT MOBILE FIT TABLE FIX ===== */
+#tdtTrackerTable .tdt-table-wrap{
   width:100%;
-  min-width:680px;
+  overflow-x:hidden;
+}
+
+#tdtTrackerTable .tdt-table-fit{
+  width:100%;
+  min-width:0;
   table-layout:fixed;
   border-collapse:collapse;
 }
 
-#tdtTrackerTable .tdt-table th,
-#tdtTrackerTable .tdt-table td{
+#tdtTrackerTable .tdt-table-fit th,
+#tdtTrackerTable .tdt-table-fit td{
   box-sizing:border-box;
-  padding:10px 8px;
+  padding:9px 4px;
+  font-size:11px;
+  vertical-align:middle;
 }
 
-#tdtTrackerTable .tdt-col-date{width:80px;}
-#tdtTrackerTable .tdt-col-match{width:200px;}
-#tdtTrackerTable .tdt-col-market{width:170px;}
-#tdtTrackerTable .tdt-col-stake{width:90px;}
-#tdtTrackerTable .tdt-col-odds{width:70px;}
-#tdtTrackerTable .tdt-col-result{width:70px;}
+#tdtTrackerTable .tdt-table-fit thead th{
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:#0c1832;
+  color:#dbe7ff;
+  font-weight:800;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  white-space:nowrap;
+}
 
-#tdtTrackerTable .tdt-stake,
-#tdtTrackerTable .tdt-odds{
+#tdtTrackerTable .tdt-table-fit tbody td{
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+
+#tdtTrackerTable .tdt-table-fit .tdt-col-date{width:66px;}
+#tdtTrackerTable .tdt-table-fit .tdt-col-match{width:128px;}
+#tdtTrackerTable .tdt-table-fit .tdt-col-market{width:110px;}
+#tdtTrackerTable .tdt-table-fit .tdt-col-stake{width:62px;}
+#tdtTrackerTable .tdt-table-fit .tdt-col-odds{width:48px;}
+#tdtTrackerTable .tdt-table-fit .tdt-col-result{width:52px;}
+
+#tdtTrackerTable .tdt-table-fit .tdt-row.won td:first-child{border-left:3px solid #22c55e;padding-left:6px;}
+#tdtTrackerTable .tdt-table-fit .tdt-row.lost td:first-child{border-left:3px solid #ef4444;padding-left:6px;}
+#tdtTrackerTable .tdt-table-fit .tdt-row.pending td:first-child{border-left:3px solid #eab308;padding-left:6px;}
+
+#tdtTrackerTable .tdt-table-fit .tdt-date{
+  white-space:nowrap;
+  font-weight:700;
+  color:#dbe7ff;
+}
+
+#tdtTrackerTable .tdt-table-fit .tdt-match,
+#tdtTrackerTable .tdt-table-fit .tdt-market{
+  line-height:1.12;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+
+#tdtTrackerTable .tdt-table-fit .tdt-match{
+  font-weight:800;
+}
+
+#tdtTrackerTable .tdt-table-fit .tdt-stake,
+#tdtTrackerTable .tdt-table-fit .tdt-odds{
   text-align:right;
+  white-space:nowrap;
+  font-weight:700;
   font-variant-numeric:tabular-nums;
   font-feature-settings:"tnum";
-  white-space:nowrap;
 }
 
-#tdtTrackerTable .tdt-result{
+#tdtTrackerTable .tdt-table-fit .tdt-result{
   text-align:center;
+  white-space:nowrap;
 }
 
-#tdtTrackerTable .tdt-match,
-#tdtTrackerTable .tdt-market{
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+#tdtTrackerTable .tdt-table-fit .tdt-result-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:22px;
+  height:22px;
+  font-size:15px;
+  line-height:1;
+}
+
+#tdtTrackerTable .tdt-table-fit tbody tr:hover{
+  background:rgba(255,255,255,0.025);
 }
