@@ -1078,6 +1078,7 @@ function sortTdtTable(key){
 }
 
 
+
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
@@ -1090,7 +1091,7 @@ async function loadTdtTracker(){
 
     let html = `
       <div class="tdt-table-wrap">
-        <table class="tdt-table tdt-table-fit">
+        <table class="tdt-table tdt-table-responsive">
           <thead>
             <tr>
               <th class="tdt-col-date">Date</th>
@@ -1153,6 +1154,7 @@ async function loadTdtTracker(){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
 }
+
 
 
 
