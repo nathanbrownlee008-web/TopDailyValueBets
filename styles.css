@@ -2391,13 +2391,54 @@ body.layout-compact .vip-bar{
 }
 
 
-/* tighter TDT rows */
-#tdtTrackerTable .tdt-mrow{padding:9px 0;}
-#tdtTrackerTable .tdt-mrow-top{grid-template-columns:66px 1fr;gap:8px;}
-#tdtTrackerTable .tdt-mrow-bottom{grid-template-columns:66px 1fr 60px 80px;margin-top:3px;}
-#tdtTrackerTable .tdt-mrow-date{font-size:13px;}
-#tdtTrackerTable .tdt-mrow-match{font-size:13px;line-height:1.15;}
-#tdtTrackerTable .tdt-mrow-market{font-size:12px;}
-#tdtTrackerTable .tdt-odds-label{font-size:10px;opacity:.7;}
-#tdtTrackerTable .tdt-odds-value{font-weight:800;font-size:13px;}
-#tdtTrackerTable .tdt-mrow-profit{font-weight:900;font-size:13px;}
+/* TDT proper table */
+#tdtTrackerTable .tdt-table-wrap{
+  width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+#tdtTrackerTable .tdt-table{
+  width:100%;
+  min-width:640px;
+  border-collapse:collapse;
+  font-size:13px;
+}
+
+#tdtTrackerTable .tdt-table thead th{
+  text-align:left;
+  padding:10px 8px;
+  font-size:12px;
+  font-weight:800;
+  color:#dbe7ff;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  white-space:nowrap;
+}
+
+#tdtTrackerTable .tdt-table tbody td{
+  padding:11px 8px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  vertical-align:middle;
+}
+
+#tdtTrackerTable .tdt-row.won td:first-child{ border-left:3px solid #22c55e; padding-left:10px; }
+#tdtTrackerTable .tdt-row.lost td:first-child{ border-left:3px solid #ef4444; padding-left:10px; }
+#tdtTrackerTable .tdt-row.pending td:first-child{ border-left:3px solid #eab308; padding-left:10px; }
+
+#tdtTrackerTable .tdt-date{ white-space:nowrap; font-weight:700; color:#dbe7ff; }
+#tdtTrackerTable .tdt-match{ font-weight:800; min-width:160px; }
+#tdtTrackerTable .tdt-market{ min-width:120px; }
+#tdtTrackerTable .tdt-odds{ white-space:nowrap; text-align:center; font-weight:700; }
+#tdtTrackerTable .tdt-result{ text-transform:capitalize; white-space:nowrap; }
+#tdtTrackerTable .tdt-profit{ white-space:nowrap; text-align:right; font-weight:900; }
+
+@media (max-width:700px){
+  #tdtTrackerTable .tdt-table{
+    min-width:600px;
+    font-size:12px;
+  }
+  #tdtTrackerTable .tdt-table thead th,
+  #tdtTrackerTable .tdt-table tbody td{
+    padding:9px 6px;
+  }
+}
