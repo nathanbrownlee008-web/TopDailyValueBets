@@ -1079,6 +1079,7 @@ function sortTdtTable(key){
 
 
 
+
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
@@ -1087,19 +1088,17 @@ async function loadTdtTracker(){
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
 
-    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
-
     let html = `
       <div class="tdt-table-wrap">
-        <table class="tdt-table tdt-table-responsive">
+        <table class="tdt-table">
           <thead>
             <tr>
-              <th class="tdt-col-date">Date</th>
-              <th class="tdt-col-match">Match</th>
-              <th class="tdt-col-market">Market</th>
-              <th class="tdt-col-stake">Stake</th>
-              <th class="tdt-col-odds">Odds</th>
-              <th class="tdt-col-result">Result</th>
+              <th>Date</th>
+              <th>Match</th>
+              <th>Market</th>
+              <th>Stake</th>
+              <th>Odds</th>
+              <th>Result</th>
             </tr>
           </thead>
           <tbody>
@@ -1107,53 +1106,29 @@ async function loadTdtTracker(){
 
     rows.forEach(row=>{
       const result = String(row.result || 'pending').toLowerCase();
-      const p = result==="won"
-        ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
-        : result==="lost"
-        ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
-        : 0;
-
-      if(result==="won") wins++;
-      if(result==="lost") losses++;
-      profit += p;
-      totalStake += Number(row.stake || 0);
-      totalOdds += Number(row.odds || 0);
-
-      const gameDate = row.match_date_date || row.bet_date || row.created_at;
       const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+      const gameDate = row.match_date_date || row.bet_date || row.created_at;
 
       html += `
-        <tr class="tdt-row ${result}">
-          <td class="tdt-date">${fmtDayLabel(gameDate)}</td>
+        <tr>
+          <td>${fmtDayLabel(gameDate)}</td>
           <td class="tdt-match">${escapeHtml(row.match || '')}</td>
           <td class="tdt-market">${escapeHtml(row.market || '')}</td>
           <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
-          <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
-          <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
+          <td class="tdt-odds">${row.odds ?? "-"}</td>
+          <td class="tdt-result">${resultIcon}</td>
         </tr>
       `;
     });
 
-    html += `
-          </tbody>
-        </table>
-      </div>
-    `;
+    html += `</tbody></table></div>`;
 
     if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
-
-    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
-    set("tdtProfit", profit.toFixed(2));
-    set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
-    set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
-    set("tdtWonLost", `${wins}-${losses}`);
-    set("tdtAvgOdds", rows.length?(totalOdds/rows.length).toFixed(2):0);
-    set("tdtTotalBets", rows.length);
-    set("tdtBetCount", rows.length);
   }catch(err){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
 }
+
 
 
 

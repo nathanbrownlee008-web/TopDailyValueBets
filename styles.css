@@ -2746,3 +2746,31 @@ body.layout-compact .vip-bar{
   text-align:center;
   white-space:nowrap;
 }
+
+/* FINAL TDT TABLE FIX */
+#tdtTrackerTable table{
+  width:100%;
+  table-layout:fixed;
+  border-collapse:collapse;
+}
+
+#tdtTrackerTable th,#tdtTrackerTable td{
+  padding:10px 6px;
+  vertical-align:middle;
+}
+
+#tdtTrackerTable td.tdt-match,
+#tdtTrackerTable td.tdt-market{
+  word-break:break-word;
+  white-space:normal;
+}
+
+#tdtTrackerTable td.tdt-stake,
+#tdtTrackerTable td.tdt-odds{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+#tdtTrackerTable td.tdt-result{
+  text-align:center;
+}
