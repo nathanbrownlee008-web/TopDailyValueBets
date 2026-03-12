@@ -2524,3 +2524,38 @@ text-align:right;
 width:70px;
 font-weight:800;
 }
+/* FIX SQUASHED TDT TABLE */
+
+#tdtTrackerTable table{
+width:100%;
+table-layout:fixed;
+}
+
+#tdtTrackerTable th:nth-child(1),
+#tdtTrackerTable td:nth-child(1){
+width:60px;
+white-space:nowrap;
+}
+
+#tdtTrackerTable th:nth-child(2),
+#tdtTrackerTable td:nth-child(2){
+width:40%;
+white-space:nowrap;
+}
+
+#tdtTrackerTable th:nth-child(3),
+#tdtTrackerTable td:nth-child(3){
+width:30%;
+}
+
+#tdtTrackerTable th:nth-child(4),
+#tdtTrackerTable td:nth-child(4){
+width:50px;
+text-align:center;
+}
+
+#tdtTrackerTable th:nth-child(5),
+#tdtTrackerTable td:nth-child(5){
+width:70px;
+text-align:right;
+}
