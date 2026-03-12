@@ -2523,44 +2523,63 @@ body.layout-compact .vip-bar{
     font-size:20px;
   }
 }
-/* TDT results compact fix */
 
-#tdtTrackerTable .tdt-results-board{
-min-width:100%;
+
+/* ===== TDT MOBILE FIX ===== */
+
+@media (max-width:700px){
+
+#tdtTrackerTable .tdt-results-head{
+display:none;
 }
 
 #tdtTrackerTable .tdt-result-row{
-min-height:60px;
+display:block;
+padding:12px 12px 12px 16px;
+min-height:auto;
+border-bottom:1px solid rgba(255,255,255,0.08);
+position:relative;
+}
+
+#tdtTrackerTable .tdt-result-accent{
+position:absolute;
+left:0;
+top:0;
+bottom:0;
+width:4px;
 }
 
 #tdtTrackerTable .tdt-cell{
-padding:10px 8px;
+display:block;
+padding:2px 0;
 font-size:13px;
+}
+
+#tdtTrackerTable .tdt-cell-date{
+font-weight:700;
+opacity:.8;
 }
 
 #tdtTrackerTable .tdt-cell-match{
-font-size:14px;
+font-size:15px;
+font-weight:800;
+margin-bottom:4px;
 }
 
 #tdtTrackerTable .tdt-cell-market{
-font-size:13px;
+opacity:.9;
 }
 
-#tdtTrackerTable .tdt-cell-odds{
-font-size:13px;
+#tdtTrackerTable .tdt-cell-odds,
+#tdtTrackerTable .tdt-cell-result,
+#tdtTrackerTable .tdt-cell-profit{
+display:inline-block;
+margin-right:10px;
+margin-top:4px;
 }
 
-#tdtTrackerTable .tdt-result-badge{
-width:28px;
-height:28px;
-font-size:16px;
+#tdtTrackerTable .tdt-cell-profit{
+font-weight:800;
 }
 
-#tdtTrackerTable .tdt-results-head{
-padding:10px 8px;
-font-size:11px;
-}
-
-#tdtTrackerTable{
-overflow-x:hidden;
 }
