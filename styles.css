@@ -2557,3 +2557,43 @@ body.layout-compact .vip-bar{
     font-size:12px;
   }
 }
+/* ===== TDT PERFECT COLUMN ALIGNMENT ===== */
+
+#tdtTrackerTable .tdt-table{
+  width:100%;
+  min-width:680px;
+  table-layout:fixed;
+  border-collapse:collapse;
+}
+
+#tdtTrackerTable .tdt-table th,
+#tdtTrackerTable .tdt-table td{
+  box-sizing:border-box;
+  padding:10px 8px;
+}
+
+#tdtTrackerTable .tdt-col-date{width:80px;}
+#tdtTrackerTable .tdt-col-match{width:200px;}
+#tdtTrackerTable .tdt-col-market{width:170px;}
+#tdtTrackerTable .tdt-col-stake{width:90px;}
+#tdtTrackerTable .tdt-col-odds{width:70px;}
+#tdtTrackerTable .tdt-col-result{width:70px;}
+
+#tdtTrackerTable .tdt-stake,
+#tdtTrackerTable .tdt-odds{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum";
+  white-space:nowrap;
+}
+
+#tdtTrackerTable .tdt-result{
+  text-align:center;
+}
+
+#tdtTrackerTable .tdt-match,
+#tdtTrackerTable .tdt-market{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
