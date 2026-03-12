@@ -2403,81 +2403,147 @@ body.layout-compact .vip-bar{
 #tdtTrackerTable .tdt-mrow-profit{font-weight:900;font-size:13px;}
 
 
-/* TDT proper aligned table with stake + icons */
+/* ===== TDT PRO UPGRADES ===== */
 #tdtTrackerTable .tdt-table-wrap{
   width:100%;
   overflow-x:auto;
   -webkit-overflow-scrolling:touch;
+  border-radius:14px;
+  background:rgba(8,18,45,0.22);
 }
 
 #tdtTrackerTable .tdt-table{
   width:100%;
   min-width:690px;
-  border-collapse:collapse;
+  border-collapse:separate;
+  border-spacing:0;
   table-layout:fixed;
 }
 
 #tdtTrackerTable .tdt-table thead th{
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:rgba(12,24,50,0.98);
   text-align:left;
   padding:10px 8px;
   font-size:12px;
   font-weight:800;
   color:#dbe7ff;
   border-bottom:1px solid rgba(255,255,255,0.08);
-  white-space:nowrap;
+  backdrop-filter:blur(6px);
 }
 
-#tdtTrackerTable .tdt-table tbody td{
-  padding:11px 8px;
+#tdtTrackerTable .tdt-table thead th.sortable{
+  cursor:pointer;
+  user-select:none;
+}
+
+#tdtTrackerTable .tdt-table thead th.sortable span{
+  opacity:.7;
+  font-size:11px;
+  margin-left:4px;
+}
+
+#tdtTrackerTable .tdt-table tbody td,
+#tdtTrackerTable .tdt-table tfoot td{
+  padding:10px 8px;
   border-bottom:1px solid rgba(255,255,255,0.06);
   vertical-align:middle;
 }
 
-#tdtTrackerTable .tdt-row.won td:first-child{border-left:3px solid #22c55e;padding-left:10px;}
-#tdtTrackerTable .tdt-row.lost td:first-child{border-left:3px solid #ef4444;padding-left:10px;}
-#tdtTrackerTable .tdt-row.pending td:first-child{border-left:3px solid #eab308;padding-left:10px;}
-
-#tdtTrackerTable .tdt-col-date{width:82px;}
+#tdtTrackerTable .tdt-col-date{width:84px;}
 #tdtTrackerTable .tdt-col-match{width:210px;}
-#tdtTrackerTable .tdt-col-market{width:170px;}
-#tdtTrackerTable .tdt-col-stake{width:82px;}
-#tdtTrackerTable .tdt-col-odds{width:70px;}
-#tdtTrackerTable .tdt-col-result{width:74px;}
+#tdtTrackerTable .tdt-col-market{width:180px;}
+#tdtTrackerTable .tdt-col-stake{width:92px;}
+#tdtTrackerTable .tdt-col-odds{width:72px;}
+#tdtTrackerTable .tdt-col-result{width:72px;}
+
+#tdtTrackerTable .tdt-row.won td:first-child{border-left:3px solid #22c55e; padding-left:10px;}
+#tdtTrackerTable .tdt-row.lost td:first-child{border-left:3px solid #ef4444; padding-left:10px;}
+#tdtTrackerTable .tdt-row.pending td:first-child{border-left:3px solid #eab308; padding-left:10px;}
+
+#tdtTrackerTable .tdt-table tbody tr{
+  transition:background .18s ease, box-shadow .18s ease;
+}
+
+#tdtTrackerTable .tdt-table tbody tr:hover{
+  background:rgba(255,255,255,0.025);
+}
+
+#tdtTrackerTable .tdt-row.won{
+  animation:tdtGlowGreen 2.8s ease-in-out infinite alternate;
+}
+#tdtTrackerTable .tdt-row.lost{
+  animation:tdtGlowRed 2.8s ease-in-out infinite alternate;
+}
+#tdtTrackerTable .tdt-row.pending{
+  animation:tdtGlowAmber 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes tdtGlowGreen{
+  from{ box-shadow: inset 0 0 0 rgba(34,197,94,0.00); }
+  to{ box-shadow: inset 0 0 18px rgba(34,197,94,0.05); }
+}
+@keyframes tdtGlowRed{
+  from{ box-shadow: inset 0 0 0 rgba(239,68,68,0.00); }
+  to{ box-shadow: inset 0 0 18px rgba(239,68,68,0.05); }
+}
+@keyframes tdtGlowAmber{
+  from{ box-shadow: inset 0 0 0 rgba(234,179,8,0.00); }
+  to{ box-shadow: inset 0 0 18px rgba(234,179,8,0.05); }
+}
 
 #tdtTrackerTable .tdt-date{
   white-space:nowrap;
   font-weight:700;
   color:#dbe7ff;
 }
+
 #tdtTrackerTable .tdt-match{
   font-weight:800;
   line-height:1.15;
   word-break:break-word;
 }
+
 #tdtTrackerTable .tdt-market{
   line-height:1.15;
   word-break:break-word;
 }
+
 #tdtTrackerTable .tdt-stake,
 #tdtTrackerTable .tdt-odds{
+  text-align:right;
   white-space:nowrap;
-  text-align:center;
   font-weight:700;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum";
 }
+
 #tdtTrackerTable .tdt-result{
   text-align:center;
 }
+
 #tdtTrackerTable .tdt-result-icon{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:30px;
-  height:30px;
-  font-size:18px;
+  width:28px;
+  height:28px;
+  font-size:17px;
   line-height:1;
 }
-#tdtTrackerTable .tdt-result-icon.pending{
-  opacity:.85;
+
+#tdtTrackerTable .tdt-total-row td{
+  background:rgba(12,24,50,0.9);
+  font-weight:800;
+  border-bottom:none;
+}
+
+#tdtTrackerTable .tdt-total-row td:last-child{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum";
 }
 
 @media (max-width:700px){
@@ -2485,57 +2551,9 @@ body.layout-compact .vip-bar{
     min-width:650px;
   }
   #tdtTrackerTable .tdt-table thead th,
-  #tdtTrackerTable .tdt-table tbody td{
+  #tdtTrackerTable .tdt-table tbody td,
+  #tdtTrackerTable .tdt-table tfoot td{
     padding:9px 6px;
     font-size:12px;
   }
-  #tdtTrackerTable .tdt-result-icon{
-    width:26px;
-    height:26px;
-    font-size:16px;
-  }
-}
-
-/* ===== TDT TABLE PRO ALIGN ===== */
-#tdtTrackerTable{
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-}
-
-#tdtTrackerTable table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-#tdtTrackerTable thead th{
-  position:sticky;
-  top:0;
-  background:#0c1832;
-  z-index:5;
-}
-
-#tdtTrackerTable td,
-#tdtTrackerTable th{
-  padding:10px 8px;
-}
-
-#tdtTrackerTable .tdt-stake,
-#tdtTrackerTable .tdt-odds{
-  text-align:right;
-  font-variant-numeric:tabular-nums;
-  font-feature-settings:"tnum";
-  white-space:nowrap;
-  font-weight:700;
-}
-
-#tdtTrackerTable .tdt-stake{width:90px;}
-#tdtTrackerTable .tdt-odds{width:70px;}
-
-#tdtTrackerTable .tdt-result{
-  text-align:center;
-  width:60px;
-}
-
-#tdtTrackerTable tbody tr:hover{
-  background:rgba(255,255,255,0.03);
 }
