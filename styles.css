@@ -2452,3 +2452,48 @@ body.layout-compact .vip-bar{
     font-size:16px;
   }
 }
+
+
+/* simple wide table layout (same feel as desktop wide) */
+#tdtTrackerTable .tdt-wide-table{
+width:100%;
+border-collapse:collapse;
+font-size:14px;
+}
+
+#tdtTrackerTable .tdt-wide-table thead th{
+text-align:left;
+padding:10px 8px;
+font-size:12px;
+letter-spacing:.08em;
+color:#dbe6ff;
+border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+#tdtTrackerTable .tdt-wide-table tbody td{
+padding:12px 8px;
+border-bottom:1px solid rgba(255,255,255,0.08);
+vertical-align:middle;
+}
+
+#tdtTrackerTable .tdt-wide-table tbody tr:hover{
+background:rgba(255,255,255,0.03);
+}
+
+#tdtTrackerTable .tdt-match{
+font-weight:700;
+}
+
+#tdtTrackerTable .tdt-result{
+text-align:center;
+font-size:18px;
+}
+
+#tdtTrackerTable .tdt-profit{
+text-align:right;
+font-weight:800;
+}
+
+#tdtTrackerTable .profit-win{color:#22c55e;}
+#tdtTrackerTable .profit-loss{color:#ef4444;}
+
