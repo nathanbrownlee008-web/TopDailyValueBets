@@ -2706,3 +2706,43 @@ body.layout-compact .vip-bar{
   }
 }
 
+
+
+/* ===== TDT WRAP + ALIGN FIX ===== */
+#tdtTrackerTable table{
+  width:100%;
+  table-layout:fixed;
+}
+
+#tdtTrackerTable th,
+#tdtTrackerTable td{
+  padding:10px 6px;
+  vertical-align:middle;
+  box-sizing:border-box;
+}
+
+#tdtTrackerTable .tdt-col-date{width:70px;}
+#tdtTrackerTable .tdt-col-stake{width:80px;}
+#tdtTrackerTable .tdt-col-odds{width:60px;}
+#tdtTrackerTable .tdt-col-result{width:60px;}
+
+#tdtTrackerTable .tdt-match,
+#tdtTrackerTable .tdt-market{
+  word-break:break-word;
+  white-space:normal;
+  line-height:1.2;
+  overflow-wrap:anywhere;
+}
+
+#tdtTrackerTable .tdt-stake,
+#tdtTrackerTable .tdt-odds{
+  text-align:right;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum";
+}
+
+#tdtTrackerTable .tdt-result{
+  text-align:center;
+  white-space:nowrap;
+}
