@@ -2583,3 +2583,55 @@ font-weight:800;
 }
 
 }
+
+
+/* exact board style */
+#tdtTrackerTable .tdt-board{
+border-radius:18px;
+overflow:hidden;
+background:linear-gradient(180deg,#0d1f44,#071531);
+border:1px solid rgba(255,255,255,.08);
+}
+
+#tdtTrackerTable .tdt-head{
+display:grid;
+grid-template-columns:80px 1.4fr 1.2fr 70px 60px 90px;
+padding:14px 16px;
+font-weight:800;
+letter-spacing:.12em;
+font-size:12px;
+background:#162a52;
+}
+
+#tdtTrackerTable .tdt-row{
+display:grid;
+grid-template-columns:4px 76px 1.4fr 1.2fr 64px 56px 86px;
+align-items:center;
+border-top:1px solid rgba(255,255,255,.07);
+min-height:70px;
+}
+
+#tdtTrackerTable .tdt-bar{
+background:#2ad67c;
+height:100%;
+}
+
+#tdtTrackerTable .tdt-row.lost .tdt-bar{background:#ff5a5a;}
+#tdtTrackerTable .tdt-row.pending .tdt-bar{background:#e8b648;}
+
+#tdtTrackerTable .tdt-row div{
+padding:10px 12px;
+}
+
+#tdtTrackerTable .tdt-match{
+font-weight:800;
+}
+
+#tdtTrackerTable .tdt-profit{
+font-weight:900;
+text-align:right;
+}
+
+.profit-win{color:#22c55e;}
+.profit-loss{color:#ef4444;}
+
