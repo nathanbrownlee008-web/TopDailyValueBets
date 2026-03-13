@@ -1067,161 +1067,6 @@ async function updateResult(id,val){
 
 
 
-
-
-let tdtInlineChart;
-
-function groupRowsByDay(rows){
-  return (rows || []).reduce((acc,row)=>{
-    const raw = row.match_date_date || row.bet_date || row.created_at;
-    const dt = new Date(raw);
-    const key = Number.isNaN(dt.getTime()) ? String(raw || '') : dt.toISOString().slice(0,10);
-    if(!acc[key]) acc[key] = [];
-    acc[key].push(row);
-    return acc;
-  }, {});
-}
-
-function getDayStats(rows){
-  return (rows || []).reduce((acc,row)=>{
-    const result = String(row.result || 'pending').toLowerCase();
-    if(result === 'won'){ acc.wins += 1; acc.settled += 1; }
-    else if(result === 'lost'){ acc.losses += 1; acc.settled += 1; }
-    return acc;
-  }, { wins:0, losses:0, settled:0 });
-}
-
-function getWinrateClass(winrate){
-  if(winrate <= 50) return 'is-red';
-  if(winrate <= 62) return 'is-amber';
-  return 'is-green';
-}
-
-function compareTdtRows(a,b,key,dir){
-  const dirMul = dir === 'asc' ? 1 : -1;
-  const ra = String(a.result || 'pending').toLowerCase();
-  const rb = String(b.result || 'pending').toLowerCase();
-  const resultRank = { won:2, pending:1, lost:0 };
-  let av, bv;
-  switch(key){
-    case 'match':
-      av = String(a.match || '').toLowerCase();
-      bv = String(b.match || '').toLowerCase();
-      break;
-    case 'market':
-      av = String(a.market || '').toLowerCase();
-      bv = String(b.market || '').toLowerCase();
-      break;
-    case 'stake':
-      av = Number(a.stake || 0);
-      bv = Number(b.stake || 0);
-      break;
-    case 'odds':
-      av = Number(a.odds || 0);
-      bv = Number(b.odds || 0);
-      break;
-    case 'result':
-      av = resultRank[ra] ?? 0;
-      bv = resultRank[rb] ?? 0;
-      break;
-    case 'date':
-    default:
-      av = new Date(a.created_at || a.bet_date || 0).getTime();
-      bv = new Date(b.created_at || b.bet_date || 0).getTime();
-      break;
-  }
-  if(av < bv) return -1 * dirMul;
-  if(av > bv) return 1 * dirMul;
-  return 0;
-}
-
-function tdtSortArrow(key){
-  return tdtSortKey===key ? (tdtSortDir==='asc' ? '↑' : '↓') : '↕';
-}
-
-function isEndOfDay(index, labels){
-  if(!labels || !labels.length) return false;
-  if(index === labels.length - 1) return true;
-  return labels[index] !== labels[index + 1];
-}
-
-function renderTdtInlineChart(history, labels){
-  const el = document.getElementById("tdtInlineChart");
-  if(!el) return;
-  if(tdtInlineChart) tdtInlineChart.destroy();
-
-  const safeHistory = Array.isArray(history) ? history : [];
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  if(!safeHistory.length){
-    const wrap = el.closest('.tdt-inline-chart');
-    if(wrap) wrap.style.display = 'none';
-    return;
-  }
-  const wrap = el.closest('.tdt-inline-chart');
-  if(wrap) wrap.style.display = 'block';
-
-  tdtInlineChart = new Chart(el.getContext("2d"),{
-    type:"line",
-    data:{
-      labels:safeLabels,
-      datasets:[{
-        data:safeHistory,
-        tension:0.28,
-        fill:true,
-        borderWidth:3,
-        borderColor:"rgba(34,197,94,0.98)",
-        backgroundColor:"rgba(34,197,94,0.12)",
-        pointRadius:(ctx)=> isEndOfDay(ctx.dataIndex, safeLabels) ? 5 : 0,
-        pointHoverRadius:(ctx)=> isEndOfDay(ctx.dataIndex, safeLabels) ? 6 : 0,
-        pointBackgroundColor:"rgba(34,197,94,1)"
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            label:(ctx)=>`Profit: £${Number(ctx.parsed.y || 0).toFixed(2)}`
-          }
-        }
-      },
-      scales:{
-        x:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            callback:function(value, index){
-              const label = this.getLabelForValue(value);
-              if(index === 0) return label;
-              return label !== safeLabels[index - 1] ? label : "";
-            }
-          },
-          grid:{color:"rgba(255,255,255,0.04)"}
-        },
-        y:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            callback:(v)=>`£${Number(v).toFixed(0)}`
-          },
-          grid:{color:"rgba(255,255,255,0.05)"}
-        }
-      }
-    }
-  });
-}
-
-function toggleTdtDay(dayKey){
-  const body = document.getElementById(`tdtDay-${dayKey}`);
-  const chevron = document.getElementById(`tdtChevron-${dayKey}`);
-  if(!body || !chevron) return;
-  const isCollapsed = body.classList.contains('collapsed');
-  body.classList.toggle('collapsed', !isCollapsed);
-  body.classList.toggle('expanded', isCollapsed);
-  chevron.textContent = isCollapsed ? '▼' : '▶';
-}
-
-
 function sortTdtTable(key){
   if(tdtSortKey === key){
     tdtSortDir = tdtSortDir === "asc" ? "desc" : "asc";
@@ -1234,6 +1079,96 @@ function sortTdtTable(key){
 
 
 
+let tdtResultsChart;
+
+function renderSeparateTdtResultsChart(rows){
+  const el = document.getElementById("tdtResultsChart");
+  if(!el || typeof Chart === "undefined") return;
+
+  if(tdtResultsChart) tdtResultsChart.destroy();
+
+  const safeRows = Array.isArray(rows) ? rows : [];
+  if(!safeRows.length){
+    const wrap = el.closest('.tdt-results-graph');
+    if(wrap) wrap.style.display = 'none';
+    return;
+  }
+
+  const wrap = el.closest('.tdt-results-graph');
+  if(wrap) wrap.style.display = 'block';
+
+  let running = 0;
+  const labels = [];
+  const values = [];
+  const pointRadii = [];
+
+  safeRows.forEach((row, idx)=>{
+    const result = String(row.result || 'pending').toLowerCase();
+    const profit = result==="won"
+      ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
+      : result==="lost"
+      ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
+      : 0;
+
+    running += profit;
+    labels.push(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at));
+    values.push(running);
+
+    const nextLabel = idx < safeRows.length - 1 ? fmtDayLabel(safeRows[idx + 1].match_date_date || safeRows[idx + 1].bet_date || safeRows[idx + 1].created_at) : null;
+    pointRadii.push(nextLabel !== labels[idx] ? 4 : 0);
+  });
+
+  tdtResultsChart = new Chart(el.getContext("2d"), {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        tension: 0.28,
+        fill: true,
+        borderWidth: 3,
+        borderColor: "rgba(34,197,94,0.98)",
+        backgroundColor: "rgba(34,197,94,0.12)",
+        pointRadius: pointRadii,
+        pointHoverRadius: pointRadii.map(v => v ? 5 : 0),
+        pointBackgroundColor: "rgba(34,197,94,1)"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `TDT Profit: £${Number(ctx.parsed.y || 0).toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: "rgba(226,232,240,0.78)",
+            callback: function(value, index){
+              const label = this.getLabelForValue(value);
+              if(index === 0) return label;
+              return label !== labels[index - 1] ? label : "";
+            }
+          },
+          grid: { color: "rgba(255,255,255,0.04)" }
+        },
+        y: {
+          ticks: {
+            color: "rgba(226,232,240,0.78)",
+            callback: (v) => `£${Number(v).toFixed(0)}`
+          },
+          grid: { color: "rgba(255,255,255,0.05)" }
+        }
+      }
+    }
+  });
+}
+
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
@@ -1241,6 +1176,7 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
+    renderSeparateTdtResultsChart(rows);
 
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
 
