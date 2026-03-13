@@ -176,7 +176,39 @@
 <div class="stat-card">Won - Lost<br><strong><span id="tdtWonLost">0-0</span></strong></div>
 </div>
 
-<div class="tdt-results-only-graph card"><canvas id="tdtResultsOnlyChart"></canvas></div>
+<div class="tdt-performance card">
+  <div class="tdt-performance-title">Performance</div>
+
+  <div class="tdt-perf-row">
+    <div class="tdt-perf-head">
+      <span>ROI</span>
+      <strong id="tdtRoiBarLabel">0%</strong>
+    </div>
+    <div class="tdt-perf-track">
+      <div id="tdtRoiBarFill" class="tdt-perf-fill tdt-perf-fill--green"></div>
+    </div>
+  </div>
+
+  <div class="tdt-perf-row">
+    <div class="tdt-perf-head">
+      <span>Win Rate</span>
+      <strong id="tdtWinrateBarLabel">0%</strong>
+    </div>
+    <div class="tdt-perf-track">
+      <div id="tdtWinrateBarFill" class="tdt-perf-fill tdt-perf-fill--green"></div>
+    </div>
+  </div>
+
+  <div class="tdt-perf-row">
+    <div class="tdt-perf-head">
+      <span>Avg Odds</span>
+      <strong id="tdtAvgOddsBarLabel">0.00</strong>
+    </div>
+    <div class="tdt-perf-track">
+      <div id="tdtAvgOddsBarFill" class="tdt-perf-fill tdt-perf-fill--amber"></div>
+    </div>
+  </div>
+</div>
 
 <div class="tracker-history">
   <div class="tracker-toggle" onclick="toggleTdtTracker()">
