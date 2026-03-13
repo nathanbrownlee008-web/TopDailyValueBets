@@ -1127,6 +1127,101 @@ function tdtSortArrow(key){
   return tdtSortDir === 'asc' ? '▲' : '▼';
 }
 
+let tdtResultsOnlyChart;
+
+function renderTdtResultsOnlyChart(rows){
+  const el = document.getElementById("tdtResultsOnlyChart");
+  if(!el || typeof Chart === "undefined") return;
+
+  if(tdtResultsOnlyChart) tdtResultsOnlyChart.destroy();
+
+  const safeRows = Array.isArray(rows) ? rows : [];
+  if(!safeRows.length){
+    const wrap = el.closest('.tdt-results-only-graph');
+    if(wrap) wrap.style.display = 'none';
+    return;
+  }
+
+  const wrap = el.closest('.tdt-results-only-graph');
+  if(wrap) wrap.style.display = 'block';
+
+  let running = 0;
+  const labels = [];
+  const values = [];
+  const pointRadii = [];
+
+  safeRows.forEach((row, idx)=>{
+    const result = String(row.result || 'pending').toLowerCase();
+    const p = result==="won"
+      ? (row.profit != null ? Number(row.profit) : Number(row.stake||0) * (Number(row.odds||0)-1))
+      : result==="lost"
+      ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
+      : 0;
+
+    running += p;
+
+    const label = fmtDayLabel(row.match_date_date || row.bet_date || row.created_at);
+    labels.push(label);
+    values.push(running);
+
+    const nextLabel = idx < safeRows.length - 1
+      ? fmtDayLabel(safeRows[idx + 1].match_date_date || safeRows[idx + 1].bet_date || safeRows[idx + 1].created_at)
+      : null;
+    pointRadii.push(nextLabel !== label ? 4 : 0);
+  });
+
+  tdtResultsOnlyChart = new Chart(el.getContext("2d"),{
+    type:"line",
+    data:{
+      labels,
+      datasets:[{
+        data:values,
+        tension:0.28,
+        fill:true,
+        borderWidth:3,
+        borderColor:"rgba(34,197,94,0.98)",
+        backgroundColor:"rgba(34,197,94,0.12)",
+        pointRadius:pointRadii,
+        pointHoverRadius:pointRadii.map(v=>v ? 6 : 0),
+        pointBackgroundColor:"rgba(34,197,94,1)",
+        pointBorderWidth:0
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:(ctx)=>`TDT Profit: £${Number(ctx.parsed.y || 0).toFixed(2)}`
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:function(value, index){
+              const label = this.getLabelForValue(value);
+              if(index === 0) return label;
+              return label !== labels[index - 1] ? label : "";
+            }
+          },
+          grid:{color:"rgba(255,255,255,0.04)"}
+        },
+        y:{
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
+          },
+          grid:{color:"rgba(255,255,255,0.05)"}
+        }
+      }
+    }
+  });
+}
+
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
@@ -1134,6 +1229,7 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
+    renderTdtResultsOnlyChart(rows);
 
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
 

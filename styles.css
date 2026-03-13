@@ -2793,3 +2793,20 @@ body.layout-compact .vip-bar{
   #tdtTrackerTable .tdt-day-date{font-size:14px;}
   #tdtTrackerTable .tdt-table-fit th,#tdtTrackerTable .tdt-table-fit td{padding:10px 4px;font-size:11px;}
 }
+
+
+/* ===== Separate TDT results graph only ===== */
+.tdt-results-only-graph{
+  margin: 6px 0 14px;
+  padding: 12px 12px 4px;
+}
+#tdtResultsOnlyChart{
+  width:100% !important;
+  height:220px !important;
+  display:block;
+}
+@media (max-width: 600px){
+  #tdtResultsOnlyChart{
+    height:200px !important;
+  }
+}
