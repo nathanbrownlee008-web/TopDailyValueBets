@@ -1115,8 +1115,12 @@ async function loadTdtTracker(){
       if(profit < 0) tdtProfitCard.classList.add("glow-red");
     }
 
-    const tdtDaily = buildBankrollSeries(rows, 0);
-    renderTdtDailyChart(tdtDaily.history, tdtDaily.labels, tdtDaily.pointRadii);
+    try{
+      const tdtDaily = buildBankrollSeries(rows, 0);
+      renderTdtDailyChart(tdtDaily.history, tdtDaily.labels, tdtDaily.pointRadii);
+    }catch(chartErr){
+      console.error('TDT daily chart failed', chartErr);
+    }
 
     const monthMap = {};
     const monthStakeMap = {};
@@ -1136,7 +1140,11 @@ async function loadTdtTracker(){
       const stake = monthStakeMap[k] || 0;
       return stake ? (monthMap[k] / stake) * 100 : 0;
     });
-    renderTdtMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
+    try{
+      renderTdtMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
+    }catch(monthErr){
+      console.error('TDT monthly chart failed', monthErr);
+    }
 
     let tdtBreakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
     monthKeys.forEach((k,i)=>{
@@ -1169,10 +1177,14 @@ async function loadTdtTracker(){
       const resolved = e[1].wins + e[1].losses;
       return resolved ? (e[1].wins / resolved) * 100 : 0;
     });
-    renderTdtMarketChart(marketLabels, winPct, totals);
+    try{
+      renderTdtMarketChart(marketLabels, winPct, totals);
+    }catch(marketErr){
+      console.error('TDT market chart failed', marketErr);
+    }
 
     const grouped = groupRowsByDay(rows);
-    const sortedDays = Object.keys(grouped).sort((a,b)=> new Date(b) - new Date(a));
+    const sortedDays = Object.keys(grouped).filter(Boolean).sort((a,b)=> new Date(b) - new Date(a));
     let html = '';
     sortedDays.forEach((dayKey, dayIndex)=>{
       const dayRows = grouped[dayKey].slice().sort((a,b)=>compareTdtRows(a,b,tdtSortKey,tdtSortDir));
@@ -1226,7 +1238,9 @@ async function loadTdtTracker(){
     });
 
     if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
+    showTdtPane('daily');
   }catch(err){
+    console.error('loadTdtTracker failed', err);
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
 }
@@ -1328,10 +1342,10 @@ function buildBankrollSeries(rows, startBankroll){
     });
     history.push(bankroll);
     const dayKey = getTrackerDayKey(row);
-    const nextDayKey = idx < safeRows.length - 1 ? getTrackerDayKey(safeRows[idx + 1]) : null;
-    const showDot = idx === safeRows.length - 1 || dayKey !== nextDayKey;
-    labels.push(showDot ? fmtDayLabel(dayKey || row.created_at) : '');
-    pointRadii.push(showDot ? 4 : 0);
+    const prevDayKey = idx > 0 ? getTrackerDayKey(safeRows[idx - 1]) : null;
+    const isFirstBetOfDay = idx === 0 || dayKey !== prevDayKey;
+    labels.push(isFirstBetOfDay ? fmtDayLabel(dayKey || row.created_at) : '');
+    pointRadii.push(isFirstBetOfDay ? 4 : 0);
   });
 
   return { history, labels, pointRadii };
@@ -1723,20 +1737,23 @@ function setMiniValue(id, prefix, value){
 
 
 
+let trackerTabsWired = false;
 function initChartTabs(){
-  const btns = document.querySelectorAll(".tab-btn");
+  if(trackerTabsWired) return;
+  const btns = document.querySelectorAll('.tab-btn[data-tab]');
   if(!btns.length) return;
 
   btns.forEach(b=>{
-    b.addEventListener("click", ()=>{
-      btns.forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      const tab = b.getAttribute("data-tab");
-      document.querySelectorAll(".chart-pane").forEach(p=>p.classList.remove("active"));
-      const pane = document.getElementById("pane-"+tab);
-      if(pane) pane.classList.add("active");
+    b.addEventListener('click', ()=>{
+      btns.forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      const tab = b.getAttribute('data-tab');
+      document.querySelectorAll('.chart-pane:not(.tdt-chart-pane)').forEach(p=>p.classList.remove('active'));
+      const pane = document.getElementById('pane-'+tab);
+      if(pane) pane.classList.add('active');
     });
   });
+  trackerTabsWired = true;
 }
 
 
