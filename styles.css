@@ -2793,3 +2793,27 @@ body.layout-compact .vip-bar{
   #tdtTrackerTable .tdt-day-date{font-size:14px;}
   #tdtTrackerTable .tdt-table-fit th,#tdtTrackerTable .tdt-table-fit td{padding:10px 4px;font-size:11px;}
 }
+
+
+/* ===== TDT spacing improvements ===== */
+#tdtTrackerSection .tracker-toggle{
+  margin-top:18px;
+  padding:16px 14px;
+}
+
+/* space between TDT Results header and day headers */
+#tdtTrackerSection{
+  margin-top:10px;
+}
+
+/* TDT profit graph */
+#tdtProfitChart{
+  width:100%;
+  height:260px;
+  margin:14px 0 20px 0;
+}
+
+/* monthly breakdown block */
+.tdt-monthly-breakdown{
+  margin-top:16px;
+}
