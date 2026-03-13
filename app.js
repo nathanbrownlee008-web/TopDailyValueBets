@@ -1136,6 +1136,7 @@ function renderTdtResultsOnlyChart(rows){
 
   const safeRows = (Array.isArray(rows) ? rows : []).slice();
   const labels = [];
+  const dayKeys = [];
   const points = [];
 
   let runningProfit = 0;
@@ -1161,8 +1162,28 @@ function renderTdtResultsOnlyChart(rows){
     const roi = runningStake ? (runningProfit / runningStake) * 100 : 0;
 
     const rawDate = row.match_date_date || row.bet_date || row.created_at;
-    labels.push(fmtDayLabel(rawDate));
+    const dayKey = fmtDayLabel(rawDate);
+    const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
+
+    dayKeys.push(dayKey);
+    labels.push(dayKey !== prevDayKey ? dayKey : "");
     points.push(Number(roi.toFixed(2)));
+  });
+
+  const pointRadius = points.map((_, i)=>{
+    const curr = dayKeys[i];
+    const next = dayKeys[i + 1];
+    return (!next || curr !== next) ? 4 : 0;
+  });
+  const pointHoverRadius = points.map((_, i)=>{
+    const curr = dayKeys[i];
+    const next = dayKeys[i + 1];
+    return (!next || curr !== next) ? 6 : 0;
+  });
+  const pointHitRadius = points.map((_, i)=>{
+    const curr = dayKeys[i];
+    const next = dayKeys[i + 1];
+    return (!next || curr !== next) ? 14 : 0;
   });
 
   const ctx = el.getContext("2d");
@@ -1190,9 +1211,9 @@ function renderTdtResultsOnlyChart(rows){
           borderWidth:3,
           borderColor:"rgba(34,197,94,0.95)",
           backgroundColor:"rgba(34,197,94,0.14)",
-          pointRadius: points.length > 1 ? 3 : 4,
-          pointHoverRadius:5,
-          pointHitRadius:12,
+          pointRadius:pointRadius,
+          pointHoverRadius:pointHoverRadius,
+          pointHitRadius:pointHitRadius,
           pointBackgroundColor:"rgba(34,197,94,1)"
         }
       ]
@@ -1200,13 +1221,13 @@ function renderTdtResultsOnlyChart(rows){
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      interaction:{mode:"nearest", intersect:false},
+      interaction:{ mode:"nearest", intersect:false },
       plugins:{
         legend:{display:false},
         tooltip:{
           filter:(item)=> item.datasetIndex === 1,
           callbacks:{
-            title:(items)=> items?.[0]?.label || "",
+            title:(items)=> dayKeys[items?.[0]?.dataIndex ?? 0] || items?.[0]?.label || "",
             label:(ctx)=>`ROI: ${Number(ctx.raw || 0).toFixed(2)}%`
           }
         }
