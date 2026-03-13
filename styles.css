@@ -2793,3 +2793,13 @@ body.layout-compact .vip-bar{
   #tdtTrackerTable .tdt-day-date{font-size:14px;}
   #tdtTrackerTable .tdt-table-fit th,#tdtTrackerTable .tdt-table-fit td{padding:10px 4px;font-size:11px;}
 }
+
+
+/* Bigger TDT graph */
+.tdt-results-only-graph{
+  padding: 14px 14px 18px;
+}
+#tdtResultsOnlyChart{
+  width: 100% !important;
+  height: 360px !important;
+}
