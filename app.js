@@ -693,7 +693,6 @@ function escapeHtml(str){
 
 
 let vipPromoChart;
-let tdtResultsOnlyChart;
 
 function notificationsEnabled(){
   return localStorage.getItem(NEW_BET_ALERTS_KEY) === '1';
@@ -1128,127 +1127,6 @@ function tdtSortArrow(key){
   return tdtSortDir === 'asc' ? '▲' : '▼';
 }
 
-
-function renderTdtResultsOnlyChart(rows){
-  const el = document.getElementById("tdtResultsOnlyChart");
-  if(!el || typeof Chart === "undefined") return;
-  if(tdtResultsOnlyChart) tdtResultsOnlyChart.destroy();
-
-  const safeRows = (Array.isArray(rows) ? rows : []).slice();
-  const labels = [];
-  const dayKeys = [];
-  const points = [];
-
-  let runningProfit = 0;
-  let runningStake = 0;
-
-  safeRows.forEach((row)=>{
-    const result = String(row?.result || "pending").toLowerCase();
-
-    let profit = 0;
-    if(result === "won"){
-      profit = row.profit != null
-        ? Number(row.profit)
-        : Number(row.stake || 0) * (Number(row.odds || 0) - 1);
-      runningStake += Number(row.stake || 0);
-    }else if(result === "lost"){
-      profit = row.profit != null
-        ? Number(row.profit)
-        : -Number(row.stake || 0);
-      runningStake += Number(row.stake || 0);
-    }
-
-    runningProfit += profit;
-    const roi = runningStake ? (runningProfit / runningStake) * 100 : 0;
-
-    const rawDate = row.match_date_date || row.bet_date || row.created_at;
-    const dayKey = fmtDayLabel(rawDate);
-    const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
-
-    dayKeys.push(dayKey);
-    labels.push(dayKey !== prevDayKey ? dayKey : "");
-    points.push(Number(roi.toFixed(2)));
-  });
-
-  const pointRadius = points.map((_, i)=>{
-    const curr = dayKeys[i];
-    const next = dayKeys[i + 1];
-    return (!next || curr !== next) ? 4 : 0;
-  });
-  const pointHoverRadius = points.map((_, i)=>{
-    const curr = dayKeys[i];
-    const next = dayKeys[i + 1];
-    return (!next || curr !== next) ? 6 : 0;
-  });
-  const pointHitRadius = points.map((_, i)=>{
-    const curr = dayKeys[i];
-    const next = dayKeys[i + 1];
-    return (!next || curr !== next) ? 14 : 0;
-  });
-
-  const ctx = el.getContext("2d");
-  tdtResultsOnlyChart = new Chart(ctx,{
-    type:"line",
-    data:{
-      labels,
-      datasets:[
-        {
-          label:"Break-even",
-          data: points.map(()=>0),
-          borderColor:"rgba(148,163,184,0.7)",
-          borderWidth:2,
-          pointRadius:0,
-          pointHoverRadius:0,
-          pointHitRadius:0,
-          fill:false,
-          tension:0
-        },
-        {
-          label:"ROI",
-          data:points,
-          tension:0.28,
-          fill:true,
-          borderWidth:3,
-          borderColor:"rgba(34,197,94,0.95)",
-          backgroundColor:"rgba(34,197,94,0.14)",
-          pointRadius:pointRadius,
-          pointHoverRadius:pointHoverRadius,
-          pointHitRadius:pointHitRadius,
-          pointBackgroundColor:"rgba(34,197,94,1)"
-        }
-      ]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      interaction:{ mode:"nearest", intersect:false },
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          filter:(item)=> item.datasetIndex === 1,
-          callbacks:{
-            title:(items)=> dayKeys[items?.[0]?.dataIndex ?? 0] || items?.[0]?.label || "",
-            label:(ctx)=>`ROI: ${Number(ctx.raw || 0).toFixed(2)}%`
-          }
-        }
-      },
-      scales:{
-        x:{
-          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
-          grid:{color:"rgba(255,255,255,0.04)"}
-        },
-        y:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            callback:(v)=>`${Number(v).toFixed(0)}%`
-          },
-          grid:{color:"rgba(255,255,255,0.05)"}
-        }
-      }
-    }
-  });
-}
-
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
@@ -1256,7 +1134,6 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
-    renderTdtResultsOnlyChart(rows);
 
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
 
