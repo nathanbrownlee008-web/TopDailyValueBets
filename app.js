@@ -1136,7 +1136,6 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
-    renderTdtResultsOnlyChart(rows);
 
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
 
@@ -1408,7 +1407,10 @@ function renderDailyChart(history, labels, dayKeys){
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      interaction:{ mode:"nearest", intersect:false },
+      interaction:{
+        mode:"nearest",
+        intersect:false
+      },
       plugins:{
         legend:{display:false},
         tooltip:{
