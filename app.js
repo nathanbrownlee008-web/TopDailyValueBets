@@ -1,4 +1,72 @@
 
+let tdtResultsOnlyChart;
+
+function renderTdtResultsOnlyChart(rows){
+  const el = document.getElementById("tdtResultsOnlyChart");
+  if(!el || typeof Chart === "undefined") return;
+
+  if(tdtResultsOnlyChart){
+    tdtResultsOnlyChart.destroy();
+    tdtResultsOnlyChart = null;
+  }
+
+  const safeRows = (Array.isArray(rows) ? rows : []).slice();
+
+  const labels = [];
+  const points = [];
+  let runningProfit = 0;
+
+  safeRows.forEach((row, i)=>{
+    const result = String(row?.result || "pending").toLowerCase();
+    let p = 0;
+
+    if(result === "won"){
+      p = row.profit != null
+        ? Number(row.profit)
+        : Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+    }else if(result === "lost"){
+      p = row.profit != null
+        ? Number(row.profit)
+        : -Number(row.stake || 0);
+    }
+
+    runningProfit += p;
+
+    labels.push(i+1);
+    points.push(Number(runningProfit.toFixed(2)));
+  });
+
+  const ctx = el.getContext("2d");
+
+  tdtResultsOnlyChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "TDT Profit",
+        data: points,
+        borderWidth: 3,
+        tension: 0.25,
+        borderColor: "rgba(34,197,94,1)",
+        backgroundColor: "rgba(34,197,94,0.12)",
+        fill: true,
+        pointRadius: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{callback:(v)=>`£${v}`}},
+        x:{display:false}
+      }
+    }
+  });
+}
+
+
+
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -196,35 +264,6 @@ async function deleteTdtMirror(syncId){
 }
 
 
-
-function findBestTrackerRowsFromStorage(){
-  try{
-    const keys = [];
-    for(let i=0;i<localStorage.length;i++){
-      const k = localStorage.key(i);
-      if(k && (k.startsWith("tdt_tracker_") || k === "tracker_rows" || k === "tdt_tracker")) keys.push(k);
-    }
-
-    let bestRows = [];
-    let bestKey = null;
-
-    keys.forEach((key)=>{
-      try{
-        const raw = localStorage.getItem(key);
-        const rows = raw ? JSON.parse(raw) : [];
-        if(Array.isArray(rows) && rows.length > bestRows.length){
-          bestRows = rows;
-          bestKey = key;
-        }
-      }catch(e){}
-    });
-
-    return { key: bestKey, rows: Array.isArray(bestRows) ? bestRows : [] };
-  }catch(e){
-    return { key: null, rows: [] };
-  }
-}
-
 function trackerStorageKey(){
   const email = ((localStorage.getItem('vip_email')||'').trim().toLowerCase() || 'guest');
   return `tdt_tracker_${email}`;
@@ -232,20 +271,8 @@ function trackerStorageKey(){
 
 function readTrackerRows(){
   try{
-    const currentKey = trackerStorageKey();
-    let raw = localStorage.getItem(currentKey);
-    let rows = raw ? JSON.parse(raw) : [];
-
-    if(!Array.isArray(rows) || !rows.length){
-      const fallback = findBestTrackerRowsFromStorage();
-      if(Array.isArray(fallback.rows) && fallback.rows.length){
-        rows = fallback.rows;
-        try{
-          localStorage.setItem(currentKey, JSON.stringify(rows));
-        }catch(e){}
-      }
-    }
-
+    const raw = localStorage.getItem(trackerStorageKey());
+    const rows = raw ? JSON.parse(raw) : [];
     const safeRows = Array.isArray(rows) ? rows : [];
     return safeRows.map((row)=>{
       const out = { ...(row || {}) };
@@ -259,23 +286,7 @@ function readTrackerRows(){
       return out;
     });
   }catch(e){
-    try{
-      const fallback = findBestTrackerRowsFromStorage();
-      const safeRows = Array.isArray(fallback.rows) ? fallback.rows : [];
-      return safeRows.map((row)=>{
-        const out = { ...(row || {}) };
-        if(!out.id) out.id = makeLocalTrackerId();
-        if(!out.created_at && out.bet_date){
-          out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
-        }
-        if(!out.created_at){
-          out.created_at = new Date().toISOString();
-        }
-        return out;
-      });
-    }catch(err){
-      return [];
-    }
+    return [];
   }
 }
 
@@ -1191,6 +1202,7 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
+renderTdtResultsOnlyChart(rows);
 
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
 
