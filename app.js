@@ -863,13 +863,15 @@ const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - 
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
-// Keep Value Bets "Added" state synced with tracker rows
+// Keep Value Bets \"Added\" state synced with tracker rows
 addedKeys.clear();
 rows.forEach(r => addedKeys.add(makeBetKey(r)));
 wireTrackerFilters();
 
 let start=parseFloat(document.getElementById("startingBankroll").value);
-let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
+let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
+let dailyLabels=[];
+let lastDayKey="";
 
 	let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 
@@ -881,6 +883,9 @@ profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
 bankroll=start+profit;
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
+const dayKey = fmtDayLabel(gameDate);
+dailyLabels.push(dayKey);
+history.push(bankroll);
 
 html+=`<tr>
 <td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
@@ -928,8 +933,8 @@ profitCard.classList.remove("glow-green","glow-red");
 if(profit>0) profitCard.classList.add("glow-green");
 if(profit<0) profitCard.classList.add("glow-red");
 
-const trackerDaily = buildBankrollSeries(rows, start);
-renderDailyChart(trackerDaily.history, trackerDaily.labels, trackerDaily.pointRadii);
+
+renderDailyChart(history, dailyLabels);
 
 // ---- Monthly & Market analytics (tabs + mini summary) ----
 const countElem = document.getElementById("betCount");
@@ -1026,7 +1031,6 @@ if(monthKeys.length){
 }
 
 
-
 async function updateStake(id,val){
   const rows = readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
@@ -1075,6 +1079,54 @@ function sortTdtTable(key){
 
 
 
+function getTdtRowDateValue(row){
+  return row?.match_date_date || row?.bet_date || row?.created_at || '';
+}
+
+function getTdtRowDayKey(row){
+  const raw = getTdtRowDateValue(row);
+  const dt = new Date(raw);
+  if(Number.isNaN(dt.getTime())) return String(raw || 'Unknown');
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth()+1).padStart(2,'0');
+  const d = String(dt.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+function fmtTdtDayHeader(dayKey){
+  const dt = new Date(`${dayKey}T12:00:00`);
+  if(Number.isNaN(dt.getTime())) return dayKey;
+  return dt.toLocaleDateString('en-GB',{ weekday:'short', day:'2-digit', month:'short' });
+}
+
+function getTdtSortValue(row, key){
+  if(key === 'date') return new Date(getTdtRowDateValue(row) || 0).getTime() || 0;
+  if(key === 'stake') return Number(row?.stake || 0);
+  if(key === 'odds') return Number(row?.odds || 0);
+  if(key === 'result'){
+    const res = String(row?.result || 'pending').toLowerCase();
+    return res === 'won' ? 2 : res === 'lost' ? 1 : 0;
+  }
+  return String(row?.[key] || '').toLowerCase();
+}
+
+function sortTdtRows(rows){
+  const sorted = (Array.isArray(rows) ? rows.slice() : []);
+  sorted.sort((a,b)=>{
+    const av = getTdtSortValue(a, tdtSortKey);
+    const bv = getTdtSortValue(b, tdtSortKey);
+    if(av < bv) return tdtSortDir === 'asc' ? -1 : 1;
+    if(av > bv) return tdtSortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  return sorted;
+}
+
+function tdtSortArrow(key){
+  if(tdtSortKey !== key) return '↕';
+  return tdtSortDir === 'asc' ? '▲' : '▼';
+}
+
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
@@ -1083,7 +1135,8 @@ async function loadTdtTracker(){
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
 
-    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
+    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
+
     rows.forEach(row=>{
       const result = String(row.result || 'pending').toLowerCase();
       const p = result==="won"
@@ -1091,162 +1144,127 @@ async function loadTdtTracker(){
         : result==="lost"
         ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
         : 0;
+
       if(result==="won") wins++;
       if(result==="lost") losses++;
+      if(result !== 'pending') resolvedCount++;
       profit += p;
-      totalStake += Number(row.stake || 0);
-      totalOdds += Number(row.odds || 0);
+      if(result !== 'pending'){
+        totalStake += Number(row.stake || 0);
+        totalOdds += Number(row.odds || 0);
+      }
     });
 
-    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
-    set("tdtProfit", profit.toFixed(2));
-    set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
-    set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
-    set("tdtWonLost", `${wins}-${losses}`);
-    set("tdtAvgOdds", rows.length?(totalOdds/rows.length).toFixed(2):0);
-    set("tdtTotalBets", rows.length);
-    set("tdtBetCount", rows.length);
-    set("tdtStaked", totalStake.toFixed(2));
-
-    const tdtProfitCard = document.getElementById("tdtProfitCard");
-    if(tdtProfitCard){
-      tdtProfitCard.classList.remove("glow-green","glow-red");
-      if(profit > 0) tdtProfitCard.classList.add("glow-green");
-      if(profit < 0) tdtProfitCard.classList.add("glow-red");
-    }
-
-    try{
-      const tdtDaily = buildBankrollSeries(rows, 0);
-      renderTdtDailyChart(tdtDaily.history, tdtDaily.labels, tdtDaily.pointRadii);
-    }catch(chartErr){
-      console.error('TDT daily chart failed', chartErr);
-    }
-
-    const monthMap = {};
-    const monthStakeMap = {};
-    rows.forEach(r=>{
-      const d = new Date(r.created_at || r.bet_date || Date.now());
-      const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
-      monthMap[key] = (monthMap[key]||0) + rowProfit({ stake:Number(r.stake||0), odds:Number(r.odds||0), result:r.result||'pending' });
-      monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake||0);
+    const sortedRows = sortTdtRows(rows);
+    const groups = [];
+    const map = new Map();
+    sortedRows.forEach(row=>{
+      const key = getTdtRowDayKey(row);
+      if(!map.has(key)){
+        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0 };
+        map.set(key, group);
+        groups.push(group);
+      }
+      const group = map.get(key);
+      group.rows.push(row);
+      const result = String(row.result || 'pending').toLowerCase();
+      if(result === 'won'){ group.wins++; group.settled++; }
+      else if(result === 'lost'){ group.losses++; group.settled++; }
+      else { group.pending++; }
     });
-    const monthKeys = Object.keys(monthMap).sort();
-    const monthLabels = monthKeys.map(k=>{
-      const [y,m]=k.split("-");
-      return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
-    });
-    const monthlyProfit = monthKeys.map(k=> monthMap[k]);
-    const monthlyROI = monthKeys.map(k=>{
-      const stake = monthStakeMap[k] || 0;
-      return stake ? (monthMap[k] / stake) * 100 : 0;
-    });
-    try{
-      renderTdtMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
-    }catch(monthErr){
-      console.error('TDT monthly chart failed', monthErr);
-    }
 
-    let tdtBreakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
-    monthKeys.forEach((k,i)=>{
-      const p = monthlyProfit[i];
-      const r = monthlyROI[i];
-      tdtBreakdownHTML += `<tr>
-        <td>${monthLabels[i]}</td>
-        <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
-        <td>${r.toFixed(1)}%</td>
-      </tr>`;
-    });
-    tdtBreakdownHTML += "</table>";
-    const tdtMonthlyTableEl = document.getElementById("tdtMonthlyTable");
-    if(tdtMonthlyTableEl) tdtMonthlyTableEl.innerHTML = tdtBreakdownHTML;
+    let html = `<div class="tdt-groups-wrap">`;
 
-    const marketWL = {};
-    rows.forEach(r=>{
-      const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
-      if(!marketWL[mk]) marketWL[mk] = {wins:0,losses:0,pending:0,bets:0};
-      marketWL[mk].bets += 1;
-      const res = (r.result || "pending").toLowerCase();
-      if(res === "won") marketWL[mk].wins += 1;
-      else if(res === "lost") marketWL[mk].losses += 1;
-      else marketWL[mk].pending += 1;
-    });
-    let entries = Object.entries(marketWL).sort((a,b)=>(b[1].bets)-(a[1].bets)).slice(0,8);
-    const marketLabels = entries.map(e=>e[0]);
-    const totals = entries.map(e=>({ bets:e[1].bets, wins:e[1].wins, losses:e[1].losses }));
-    const winPct = entries.map(e=>{
-      const resolved = e[1].wins + e[1].losses;
-      return resolved ? (e[1].wins / resolved) * 100 : 0;
-    });
-    try{
-      renderTdtMarketChart(marketLabels, winPct, totals);
-    }catch(marketErr){
-      console.error('TDT market chart failed', marketErr);
-    }
+    groups.forEach((group, idx)=>{
+      const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
+      html += `
+        <div class="tdt-day-card">
+          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
+            <div class="tdt-day-left">
+              <div class="tdt-day-date">${escapeHtml(fmtTdtDayHeader(group.key))}</div>
+              <div class="tdt-day-meta">${group.rows.length} bet${group.rows.length === 1 ? '' : 's'}</div>
+            </div>
+            <div class="tdt-day-right">
+              <span class="tdt-day-chip win">Won ${group.wins}</span>
+              <span class="tdt-day-chip loss">Lost ${group.losses}</span>
+              <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
+              <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
+            </div>
+          </button>
+          <div class="tdt-day-body" style="display:${idx === 0 ? 'block' : 'none'};">
+            <div class="tdt-table-wrap">
+              <table class="tdt-table tdt-table-fit">
+                <thead>
+                  <tr>
+                    <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
+                    <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
+                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
+                    <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
+                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${tdtSortArrow('result')}</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+      `;
 
-    const grouped = groupRowsByDay(rows);
-    const sortedDays = Object.keys(grouped).filter(Boolean).sort((a,b)=> new Date(b) - new Date(a));
-    let html = '';
-    sortedDays.forEach((dayKey, dayIndex)=>{
-      const dayRows = grouped[dayKey].slice().sort((a,b)=>compareTdtRows(a,b,tdtSortKey,tdtSortDir));
-      const dayStats = getDayStats(dayRows);
-      const dayWinrate = dayStats.settled ? ((dayStats.wins / dayStats.settled) * 100) : 0;
-      const winrateClass = getWinrateClass(dayWinrate);
-      const isOpen = dayIndex === 0;
-      const rowHTML = dayRows.map(row=>{
+      group.rows.forEach(row=>{
         const result = String(row.result || 'pending').toLowerCase();
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
-        return `
+        html += `
           <tr class="tdt-row ${result}">
             <td class="tdt-match">${escapeHtml(row.match || '')}</td>
             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
             <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
             <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
-          </tr>`;
-      }).join('');
+          </tr>
+        `;
+      });
+
       html += `
-        <div class="tdt-day-card ${isOpen ? 'is-open' : ''}">
-          <button class="tdt-day-head" type="button" onclick="toggleTdtDay('${dayKey}')">
-            <div class="tdt-day-left">
-              <div class="tdt-day-date">${fmtDayLabel(dayKey)}</div>
-              <div class="tdt-day-count">${dayRows.length} bets</div>
-            </div>
-            <div class="tdt-day-right">
-              <span class="tdt-chip tdt-chip--won">Won ${dayStats.wins}</span>
-              <span class="tdt-chip tdt-chip--lost">Lost ${dayStats.losses}</span>
-              <span class="tdt-chip tdt-chip--winrate ${winrateClass}">Winrate ${dayWinrate.toFixed(0)}%</span>
-              <span class="tdt-day-chevron" id="tdtChevron-${dayKey}">${isOpen ? '▼' : '▶'}</span>
-            </div>
-          </button>
-          <div class="tdt-day-body ${isOpen ? 'expanded' : 'collapsed'}" id="tdtDay-${dayKey}">
-            <div class="tdt-table-wrap">
-              <table class="tdt-table tdt-table-fit tdt-table-exact">
-                <thead>
-                  <tr>
-                    <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortKey==='match' ? (tdtSortDir==='asc' ? '↑' : '↓') : '↕'}</span></th>
-                    <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortKey==='market' ? (tdtSortDir==='asc' ? '↑' : '↓') : '↕'}</span></th>
-                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortKey==='stake' ? (tdtSortDir==='asc' ? '↑' : '↓') : '↕'}</span></th>
-                    <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortKey==='odds' ? (tdtSortDir==='asc' ? '↑' : '↓') : '↕'}</span></th>
-                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${tdtSortKey==='result' ? (tdtSortDir==='asc' ? '↑' : '↓') : '↕'}</span></th>
-                  </tr>
-                </thead>
-                <tbody>${rowHTML}</tbody>
+                </tbody>
               </table>
             </div>
           </div>
-        </div>`;
+        </div>
+      `;
     });
 
+    html += `</div>`;
+
     if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
-    showTdtPane('daily');
+
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
+    set("tdtProfit", profit.toFixed(2));
+    set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
+    set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
+    set("tdtWonLost", `${wins}-${losses}`);
+    set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
+    set("tdtTotalBets", rows.length);
+    set("tdtBetCount", rows.length);
   }catch(err){
-    console.error('loadTdtTracker failed', err);
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
 }
 
 
 
+
+
+function toggleTdtDay(btn){
+  const body = btn ? btn.nextElementSibling : null;
+  const chev = btn ? btn.querySelector(".tdt-day-chevron") : null;
+  if(!body) return;
+  const isHidden = body.style.display === "none";
+  body.style.display = isHidden ? "block" : "none";
+  if(chev) chev.innerText = isHidden ? "▼" : "▶";
+}
+
+function tdtWinrateClass(rate){
+  const n = Number(rate || 0);
+  if(n <= 50) return "ratio--red";
+  if(n <= 62) return "ratio--amber";
+  return "ratio--green";
+}
 
 function toggleTdtTracker(){
   const wrapper = document.getElementById("tdtTrackerWrapper");
@@ -1323,151 +1341,13 @@ loadTracker = async function(){
 
 
 
-function getTrackerDayKey(row){
-  return normalizeDateOnly(row.match_date_date || row.match_date || row.bet_date || row.created_at) || '';
-}
-
-function buildBankrollSeries(rows, startBankroll){
-  const safeRows = Array.isArray(rows) ? rows.slice().sort((a,b)=> new Date(a.created_at||a.bet_date||0) - new Date(b.created_at||b.bet_date||0)) : [];
-  let bankroll = Number(startBankroll || 0);
-  const history = [];
-  const labels = [];
-  const pointRadii = [];
-
-  safeRows.forEach((row, idx)=>{
-    bankroll += rowProfit({
-      stake: Number(row.stake || 0),
-      odds: Number(row.odds || 0),
-      result: row.result || 'pending'
-    });
-    history.push(bankroll);
-    const dayKey = getTrackerDayKey(row);
-    const prevDayKey = idx > 0 ? getTrackerDayKey(safeRows[idx - 1]) : null;
-    const isFirstBetOfDay = idx === 0 || dayKey !== prevDayKey;
-    labels.push(isFirstBetOfDay ? fmtDayLabel(dayKey || row.created_at) : '');
-    pointRadii.push(isFirstBetOfDay ? 4 : 0);
-  });
-
-  return { history, labels, pointRadii };
-}
-
-function groupRowsByDay(rows){
-  return (rows || []).reduce((acc, row)=>{
-    const key = getTrackerDayKey(row);
-    if(!acc[key]) acc[key] = [];
-    acc[key].push(row);
-    return acc;
-  }, {});
-}
-
-function getDayStats(rows){
-  return (rows || []).reduce((acc,row)=>{
-    const result = String(row.result || 'pending').toLowerCase();
-    if(result === 'won'){ acc.wins += 1; acc.settled += 1; }
-    else if(result === 'lost'){ acc.losses += 1; acc.settled += 1; }
-    return acc;
-  }, { wins:0, losses:0, settled:0 });
-}
-
-function getWinrateClass(winrate){
-  if(winrate <= 50) return 'is-red';
-  if(winrate <= 62) return 'is-amber';
-  return 'is-green';
-}
-
-function compareTdtRows(a,b,key,dir){
-  const dirMul = dir === 'asc' ? 1 : -1;
-  const ra = String(a.result || 'pending').toLowerCase();
-  const rb = String(b.result || 'pending').toLowerCase();
-  const resultRank = { won: 2, pending: 1, lost: 0 };
-  let av;
-  let bv;
-  switch(key){
-    case 'match':
-      av = String(a.match || '').toLowerCase();
-      bv = String(b.match || '').toLowerCase();
-      break;
-    case 'market':
-      av = String(a.market || '').toLowerCase();
-      bv = String(b.market || '').toLowerCase();
-      break;
-    case 'stake':
-      av = Number(a.stake || 0);
-      bv = Number(b.stake || 0);
-      break;
-    case 'odds':
-      av = Number(a.odds || 0);
-      bv = Number(b.odds || 0);
-      break;
-    case 'result':
-      av = resultRank[ra] ?? 0;
-      bv = resultRank[rb] ?? 0;
-      break;
-    case 'date':
-    default:
-      av = new Date(a.created_at || a.bet_date || 0).getTime();
-      bv = new Date(b.created_at || b.bet_date || 0).getTime();
-      break;
-  }
-  if(av < bv) return -1 * dirMul;
-  if(av > bv) return 1 * dirMul;
-  return 0;
-}
-
-function toggleTdtDay(dayKey){
-  const body = document.getElementById(`tdtDay-${dayKey}`);
-  const chevron = document.getElementById(`tdtChevron-${dayKey}`);
-  if(!body || !chevron) return;
-  const isCollapsed = body.classList.contains('collapsed');
-  body.classList.toggle('collapsed', !isCollapsed);
-  body.classList.toggle('expanded', isCollapsed);
-  chevron.textContent = isCollapsed ? '▼' : '▶';
-}
-
-function showTdtPane(tab){
-  document.querySelectorAll('.tdt-tab-btn').forEach(btn=>btn.classList.toggle('active', btn.getAttribute('data-tdt-tab') === tab));
-  document.querySelectorAll('.tdt-chart-pane').forEach(pane=>pane.classList.remove('active'));
-  const pane = document.getElementById(`tdt-pane-${tab}`);
-  if(pane) pane.classList.add('active');
-
-  requestAnimationFrame(()=>{
-    try{
-      if(tab === 'daily' && window.tdtDailyChart){
-        window.tdtDailyChart.resize();
-        window.tdtDailyChart.update('none');
-      }
-      if(tab === 'monthly' && window.tdtMonthlyChart){
-        window.tdtMonthlyChart.resize();
-        window.tdtMonthlyChart.update('none');
-      }
-      if(tab === 'market' && window.tdtMarketChart){
-        window.tdtMarketChart.resize();
-        window.tdtMarketChart.update('none');
-      }
-    }catch(e){
-      console.error('showTdtPane resize failed', e);
-    }
-  });
-}
-
-function toggleTdtMonthly(){
-  const wrapper = document.getElementById('tdtMonthlyWrapper');
-  const arrow = document.getElementById('tdtMonthlyArrow');
-  if(!wrapper || !arrow) return;
-  const opening = wrapper.classList.contains('collapsed');
-  wrapper.classList.toggle('collapsed', !opening);
-  wrapper.classList.toggle('expanded', opening);
-  arrow.innerText = opening ? '▲' : '▼';
-}
-
-function renderDailyChart(history, labels, pointRadii){
+function renderDailyChart(history, labels){
   const el = document.getElementById("chart");
   if(!el) return;
   if(dailyChart) dailyChart.destroy();
 
   const safeHistory = Array.isArray(history) ? history : [];
   const safeLabels = Array.isArray(labels) ? labels : [];
-  const safePointRadii = Array.isArray(pointRadii) ? pointRadii : safeHistory.map(()=>3);
   const ctx = el.getContext("2d");
 
   dailyChart = new Chart(ctx,{
@@ -1481,8 +1361,8 @@ function renderDailyChart(history, labels, pointRadii){
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:safePointRadii,
-        pointHoverRadius:safePointRadii.map(v=>v ? 5 : 0),
+        pointRadius:safeHistory.length > 1 ? 3 : 4,
+        pointHoverRadius:5,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
@@ -1514,101 +1394,6 @@ function renderDailyChart(history, labels, pointRadii){
   });
 }
 
-
-function renderTdtDailyChart(history, labels, pointRadii){
-  const el = document.getElementById("tdtChart");
-  if(!el) return;
-  if(window.tdtDailyChart) window.tdtDailyChart.destroy();
-
-  const safeHistory = Array.isArray(history) ? history : [];
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safePointRadii = Array.isArray(pointRadii) ? pointRadii : safeHistory.map(()=>3);
-  const ctx = el.getContext("2d");
-
-  window.tdtDailyChart = new Chart(ctx,{
-    type:"line",
-    data:{
-      labels:safeLabels,
-      datasets:[{
-        data:safeHistory,
-        tension:0.28,
-        fill:true,
-        borderWidth:3,
-        borderColor:"rgba(56,189,248,0.95)",
-        backgroundColor:"rgba(56,189,248,0.12)",
-        pointRadius:safePointRadii,
-        pointHoverRadius:safePointRadii.map(v=>v ? 5 : 0),
-        pointBackgroundColor:"rgba(125,211,252,1)"
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            label:(ctx)=>`Profit line: £${Number(ctx.raw || 0).toFixed(2)}`
-          }
-        }
-      },
-      scales:{
-        x:{ ticks:{color:"rgba(226,232,240,0.78)"}, grid:{color:"rgba(255,255,255,0.04)"} },
-        y:{ ticks:{color:"rgba(226,232,240,0.78)", callback:(v)=>`£${Number(v).toFixed(0)}`}, grid:{color:"rgba(255,255,255,0.05)"} }
-      }
-    }
-  });
-}
-
-function renderTdtMonthlyChart(profits, roi, labels){
-  const el = document.getElementById("tdtMonthlyChart");
-  if(!el) return;
-  if(window.tdtMonthlyChart) window.tdtMonthlyChart.destroy();
-  const maxROI = Math.max(...roi, 5);
-  const minROI = Math.min(...roi, -5);
-  const pad = 5;
-  const ctx = el.getContext("2d");
-  window.tdtMonthlyChart = new Chart(ctx,{
-    type:"bar",
-    data:{
-      labels,
-      datasets:[{
-        data:roi,
-        borderRadius:10,
-        barThickness:24,
-        backgroundColor:profits.map(v=> v>0 ? "rgba(56,189,248,0.9)" : v<0 ? "rgba(239,68,68,0.9)" : "rgba(100,116,139,0.4)")
-      }]
-    },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ min: Math.floor(minROI - pad), max: Math.ceil(maxROI + pad), ticks:{callback:(v)=>v+"%"}, grid:{color:"rgba(255,255,255,0.05)"} } } }
-  });
-}
-
-function renderTdtMarketChart(labels, winPct, totals){
-  const el = document.getElementById("tdtMarketChart");
-  if(!el) return;
-  if(window.tdtMarketChart) window.tdtMarketChart.destroy();
-  const ctx = el.getContext("2d");
-  window.tdtMarketChart = new Chart(ctx, {
-    type:"bar",
-    data:{
-      labels,
-      datasets:[{
-        data:winPct,
-        borderRadius:10,
-        backgroundColor: winPct.map(v=> v <= 50 ? "rgba(239,68,68,0.9)" : v <= 62 ? "rgba(245,158,11,0.92)" : "rgba(56,189,248,0.92)")
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{ label:(ctx)=> `${Number(ctx.raw||0).toFixed(1)}% win rate`, afterLabel:(ctx)=>{ const t=totals[ctx.dataIndex]||{wins:0,losses:0,bets:0}; return `Won ${t.wins} • Lost ${t.losses} • ${t.bets} bets`; } }}
-      },
-      scales:{ y:{ suggestedMin:0, suggestedMax:100, ticks:{callback:(v)=>`${v}%`}, grid:{color:"rgba(255,255,255,0.05)"} }, x:{ ticks:{color:"rgba(226,232,240,0.78)"}, grid:{display:false} } }
-    }
-  });
-}
 
 function renderMonthlyChart(profits, roi, labels){
   const el = document.getElementById("monthlyChart");
@@ -1756,23 +1541,20 @@ function setMiniValue(id, prefix, value){
 
 
 
-let trackerTabsWired = false;
 function initChartTabs(){
-  if(trackerTabsWired) return;
-  const btns = document.querySelectorAll('.tab-btn[data-tab]');
+  const btns = document.querySelectorAll(".tab-btn");
   if(!btns.length) return;
 
   btns.forEach(b=>{
-    b.addEventListener('click', ()=>{
-      btns.forEach(x=>x.classList.remove('active'));
-      b.classList.add('active');
-      const tab = b.getAttribute('data-tab');
-      document.querySelectorAll('.chart-pane:not(.tdt-chart-pane)').forEach(p=>p.classList.remove('active'));
-      const pane = document.getElementById('pane-'+tab);
-      if(pane) pane.classList.add('active');
+    b.addEventListener("click", ()=>{
+      btns.forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      const tab = b.getAttribute("data-tab");
+      document.querySelectorAll(".chart-pane").forEach(p=>p.classList.remove("active"));
+      const pane = document.getElementById("pane-"+tab);
+      if(pane) pane.classList.add("active");
     });
   });
-  trackerTabsWired = true;
 }
 
 
