@@ -88,17 +88,29 @@ function renderTdtResultsOnlyChart(rows){
     type:"line",
     data:{
       labels,
-      datasets:[{
-        data:points,
-        tension:0.28,
-        fill:true,
-        borderWidth:3,
-        borderColor:"rgba(34,197,94,0.95)",
-        backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:points.length > 1 ? 3 : 4,
-        pointHoverRadius:5,
-        pointBackgroundColor:"rgba(34,197,94,1)"
-      }]
+      datasets:[
+        {
+          label:"Break-even",
+          data: points.map(()=>0),
+          borderColor:"rgba(148,163,184,0.7)",
+          borderWidth:2,
+          pointRadius:0,
+          fill:false,
+          tension:0
+        },
+        {
+          label:"ROI",
+          data:points,
+          tension:0.28,
+          fill:true,
+          borderWidth:3,
+          borderColor:"rgba(34,197,94,0.95)",
+          backgroundColor:"rgba(34,197,94,0.14)",
+          pointRadius:points.length > 1 ? 3 : 4,
+          pointHoverRadius:5,
+          pointBackgroundColor:"rgba(34,197,94,1)"
+        }
+      ]
     },
     options:{
       responsive:true,
