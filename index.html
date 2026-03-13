@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772860001"/>
+<link rel="stylesheet" href="styles.css?v=1772863001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -176,8 +176,36 @@
 <div class="stat-card">ROI<br><strong><span id="tdtRoi">0</span>%</strong></div>
 <div class="stat-card">Win Rate<br><strong><span id="tdtWinrate">0</span>%</strong></div>
 <div class="stat-card">Won - Lost<br><strong><span id="tdtWonLost">0-0</span></strong></div>
+<div class="stat-card">Staked<br><strong>£<span id="tdtStaked">0</span></strong></div>
 <div class="stat-card">Avg Odds<br><strong><span id="tdtAvgOdds">0</span></strong></div>
 <div class="stat-card">Total Bets<br><strong><span id="tdtTotalBets">0</span></strong></div>
+</div>
+
+<div class="chart-tabs tdt-chart-tabs">
+  <button class="tab-btn tdt-tab-btn active" type="button" data-tdt-tab="daily" onclick="showTdtPane('daily')">Daily</button>
+  <button class="tab-btn tdt-tab-btn" type="button" data-tdt-tab="monthly" onclick="showTdtPane('monthly')">Monthly</button>
+  <button class="tab-btn tdt-tab-btn" type="button" data-tdt-tab="market" onclick="showTdtPane('market')">Markets</button>
+</div>
+
+<div class="chart-wrap tdt-chart-wrap">
+  <div class="chart-pane tdt-chart-pane active" id="tdt-pane-daily">
+    <canvas id="tdtChart"></canvas>
+  </div>
+  <div class="chart-pane tdt-chart-pane" id="tdt-pane-monthly">
+    <canvas id="tdtMonthlyChart"></canvas>
+    <div class="monthly-breakdown tdt-monthly-breakdown">
+      <div class="monthly-toggle" onclick="toggleTdtMonthly()">
+        📊 TDT Monthly Breakdown
+        <span id="tdtMonthlyArrow">▼</span>
+      </div>
+      <div id="tdtMonthlyWrapper" class="collapsed">
+        <div id="tdtMonthlyTable"></div>
+      </div>
+    </div>
+  </div>
+  <div class="chart-pane tdt-chart-pane" id="tdt-pane-market">
+    <canvas id="tdtMarketChart"></canvas>
+  </div>
 </div>
 
 <div class="tracker-history">
@@ -210,6 +238,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772861001"></script>
+<script src="app.js?v=1772864001"></script>
 </body>
 </html>
