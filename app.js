@@ -1236,25 +1236,30 @@ async function loadTdtTracker(){
     const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
     set("tdtProfit", profit.toFixed(2));
     set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
-    const roiVal = totalStake ? ((profit / totalStake) * 100) : 0;
-    const roiFill = document.getElementById("tdtRoiBarFill");
-    const roiLabel = document.getElementById("tdtRoiBarLabel");
-    const roiZero = document.getElementById("tdtRoiBarZero");
-    if(roiFill && roiLabel){
-      const maxAbs = 100;
-      const pct = Math.max(-maxAbs, Math.min(maxAbs, roiVal));
-      const width = Math.max(0, Math.min(100, Math.abs(pct)));
-      roiFill.style.width = width + "%";
-      roiFill.style.background = pct >= 0
-        ? "linear-gradient(90deg,#22c55e,#4ade80)"
-        : "linear-gradient(90deg,#ef4444,#f87171)";
-      roiFill.style.marginLeft = pct >= 0 ? "50%" : `${50 - width}%`;
-      roiLabel.textContent = `${roiVal.toFixed(1)}%`;
-      if(roiZero) roiZero.style.left = "50%";
-    }
     set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
     set("tdtWonLost", `${wins}-${losses}`);
     set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
+    const tdtWinrateVal = (wins+losses)?((wins/(wins+losses))*100):0;
+    const winrateFill = document.getElementById("tdtWinrateBarFill");
+    const winrateLabel = document.getElementById("tdtWinrateBarLabel");
+    if(winrateFill && winrateLabel){
+      const width = Math.max(0, Math.min(100, tdtWinrateVal));
+      winrateFill.style.width = width + "%";
+      winrateFill.style.marginLeft = "0";
+      winrateFill.style.background = "linear-gradient(90deg,#22c55e,#4ade80)";
+      winrateLabel.textContent = `${tdtWinrateVal.toFixed(1)}%`;
+    }
+
+    const tdtAvgOddsVal = resolvedCount?(totalOdds/resolvedCount):0;
+    const avgOddsFill = document.getElementById("tdtAvgOddsBarFill");
+    const avgOddsLabel = document.getElementById("tdtAvgOddsBarLabel");
+    if(avgOddsFill && avgOddsLabel){
+      const maxOdds = 5;
+      const width = Math.max(0, Math.min(100, (tdtAvgOddsVal / maxOdds) * 100));
+      avgOddsFill.style.width = width + "%";
+      avgOddsFill.style.marginLeft = "0";
+      avgOddsLabel.textContent = tdtAvgOddsVal.toFixed(2);
+    }
     set("tdtTotalBets", rows.length);
     set("tdtBetCount", rows.length);
   }catch(err){
