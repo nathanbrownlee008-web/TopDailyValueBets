@@ -1,4 +1,3 @@
-let tdtResultsOnlyChart = null;
 
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
@@ -197,6 +196,35 @@ async function deleteTdtMirror(syncId){
 }
 
 
+
+function findBestTrackerRowsFromStorage(){
+  try{
+    const keys = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && (k.startsWith("tdt_tracker_") || k === "tracker_rows" || k === "tdt_tracker")) keys.push(k);
+    }
+
+    let bestRows = [];
+    let bestKey = null;
+
+    keys.forEach((key)=>{
+      try{
+        const raw = localStorage.getItem(key);
+        const rows = raw ? JSON.parse(raw) : [];
+        if(Array.isArray(rows) && rows.length > bestRows.length){
+          bestRows = rows;
+          bestKey = key;
+        }
+      }catch(e){}
+    });
+
+    return { key: bestKey, rows: Array.isArray(bestRows) ? bestRows : [] };
+  }catch(e){
+    return { key: null, rows: [] };
+  }
+}
+
 function trackerStorageKey(){
   const email = ((localStorage.getItem('vip_email')||'').trim().toLowerCase() || 'guest');
   return `tdt_tracker_${email}`;
@@ -204,8 +232,20 @@ function trackerStorageKey(){
 
 function readTrackerRows(){
   try{
-    const raw = localStorage.getItem(trackerStorageKey());
-    const rows = raw ? JSON.parse(raw) : [];
+    const currentKey = trackerStorageKey();
+    let raw = localStorage.getItem(currentKey);
+    let rows = raw ? JSON.parse(raw) : [];
+
+    if(!Array.isArray(rows) || !rows.length){
+      const fallback = findBestTrackerRowsFromStorage();
+      if(Array.isArray(fallback.rows) && fallback.rows.length){
+        rows = fallback.rows;
+        try{
+          localStorage.setItem(currentKey, JSON.stringify(rows));
+        }catch(e){}
+      }
+    }
+
     const safeRows = Array.isArray(rows) ? rows : [];
     return safeRows.map((row)=>{
       const out = { ...(row || {}) };
@@ -219,7 +259,23 @@ function readTrackerRows(){
       return out;
     });
   }catch(e){
-    return [];
+    try{
+      const fallback = findBestTrackerRowsFromStorage();
+      const safeRows = Array.isArray(fallback.rows) ? fallback.rows : [];
+      return safeRows.map((row)=>{
+        const out = { ...(row || {}) };
+        if(!out.id) out.id = makeLocalTrackerId();
+        if(!out.created_at && out.bet_date){
+          out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
+        }
+        if(!out.created_at){
+          out.created_at = new Date().toISOString();
+        }
+        return out;
+      });
+    }catch(err){
+      return [];
+    }
   }
 }
 
@@ -885,9 +941,7 @@ bankroll=start+profit;
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
 const dayKey = fmtDayLabel(gameDate);
-const prevDayKey = lineDayKeys.length ? lineDayKeys[lineDayKeys.length - 1] : "";
-lineDayKeys.push(dayKey);
-dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
+dailyLabels.push(dayKey);
 history.push(bankroll);
 
 html+=`<tr>
@@ -937,7 +991,7 @@ if(profit>0) profitCard.classList.add("glow-green");
 if(profit<0) profitCard.classList.add("glow-red");
 
 
-renderDailyChart(history, dailyLabels, lineDayKeys);
+renderDailyChart(history, dailyLabels);
 
 // ---- Monthly & Market analytics (tabs + mini summary) ----
 const countElem = document.getElementById("betCount");
@@ -1130,111 +1184,6 @@ function tdtSortArrow(key){
   return tdtSortDir === 'asc' ? '▲' : '▼';
 }
 
-
-
-function renderTdtResultsOnlyChart(rows){
-  const el = document.getElementById("tdtResultsOnlyChart");
-  if(!el || typeof Chart === "undefined") return;
-  if(tdtResultsOnlyChart) tdtResultsOnlyChart.destroy();
-
-  const safeRows = (Array.isArray(rows) ? rows : [])
-    .slice()
-    .sort((a,b)=> new Date((a.match_date_date || a.bet_date || a.created_at || 0)) - new Date((b.match_date_date || b.bet_date || b.created_at || 0)));
-
-  const labels = [];
-  const points = [];
-  const dayKeys = [];
-  let runningProfit = 0;
-
-  safeRows.forEach((row, i)=>{
-    const result = String(row?.result || "pending").toLowerCase();
-    let p = 0;
-
-    if(result === "won"){
-      p = row.profit != null
-        ? Number(row.profit)
-        : Number(row.stake || 0) * (Number(row.odds || 0) - 1);
-    }else if(result === "lost"){
-      p = row.profit != null
-        ? Number(row.profit)
-        : -Number(row.stake || 0);
-    }
-
-    runningProfit += p;
-
-    const rawDate = row.match_date_date || row.bet_date || row.created_at;
-    const dayKey = fmtDayLabel(rawDate);
-    const prevDay = i > 0 ? dayKeys[i - 1] : null;
-
-    dayKeys.push(dayKey);
-    labels.push(dayKey !== prevDay ? dayKey : "");
-    points.push(Number(runningProfit.toFixed(2)));
-  });
-
-  const ctx = el.getContext("2d");
-
-  tdtResultsOnlyChart = new Chart(ctx,{
-    type:"line",
-    data:{
-      labels,
-      datasets:[{
-        data:points,
-        tension:0,
-        fill:false,
-        borderWidth:3,
-        borderColor:"rgba(34,197,94,0.95)",
-        pointRadius:(context)=>{
-          const i = context.dataIndex;
-          const curr = dayKeys[i];
-          const next = dayKeys[i + 1];
-          return (!next || curr !== next) ? 3 : 0;
-        },
-        pointHoverRadius:(context)=>{
-          const i = context.dataIndex;
-          const curr = dayKeys[i];
-          const next = dayKeys[i + 1];
-          return (!next || curr !== next) ? 5 : 3;
-        },
-        pointBackgroundColor:"rgba(34,197,94,1)"
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            title:(items)=>{
-              const idx = items?.[0]?.dataIndex ?? 0;
-              return dayKeys[idx] || items?.[0]?.label || "";
-            },
-            label:(ctx)=>`Profit: £${Number(ctx.raw || 0).toFixed(2)}`
-          }
-        }
-      },
-      scales:{
-        x:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            autoSkip:false,
-            maxRotation:45,
-            minRotation:45
-          },
-          grid:{color:"rgba(255,255,255,0.04)"}
-        },
-        y:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            callback:(v)=>`£${Number(v).toFixed(0)}`
-          },
-          grid:{color:"rgba(255,255,255,0.05)"}
-        }
-      }
-    }
-  });
-}
-
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
@@ -1242,7 +1191,6 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
-    renderTdtResultsOnlyChart(rows);
 
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
 
@@ -1450,14 +1398,13 @@ loadTracker = async function(){
 
 
 
-function renderDailyChart(history, labels, dayKeys){
+function renderDailyChart(history, labels){
   const el = document.getElementById("chart");
   if(!el) return;
   if(dailyChart) dailyChart.destroy();
 
   const safeHistory = Array.isArray(history) ? history : [];
   const safeLabels = Array.isArray(labels) ? labels : [];
-  const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
   const ctx = el.getContext("2d");
 
   dailyChart = new Chart(ctx,{
@@ -1466,22 +1413,13 @@ function renderDailyChart(history, labels, dayKeys){
       labels:safeLabels,
       datasets:[{
         data:safeHistory,
-        tension:0,
-        fill:false,
+        tension:0.28,
+        fill:true,
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
-        pointRadius:(context)=>{
-          const i = context.dataIndex;
-          const curr = safeDayKeys[i];
-          const next = safeDayKeys[i + 1];
-          return (!next || curr !== next) ? 3 : 0;
-        },
-        pointHoverRadius:(context)=>{
-          const i = context.dataIndex;
-          const curr = safeDayKeys[i];
-          const next = safeDayKeys[i + 1];
-          return (!next || curr !== next) ? 5 : 3;
-        },
+        backgroundColor:"rgba(34,197,94,0.14)",
+        pointRadius:safeHistory.length > 1 ? 3 : 4,
+        pointHoverRadius:5,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
@@ -1492,22 +1430,13 @@ function renderDailyChart(history, labels, dayKeys){
         legend:{display:false},
         tooltip:{
           callbacks:{
-            title:(items)=>{
-              const idx = items?.[0]?.dataIndex ?? 0;
-              return safeDayKeys[idx] || items?.[0]?.label || "";
-            },
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
       },
       scales:{
         x:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            autoSkip:false,
-            maxRotation:45,
-            minRotation:45
-          },
+          ticks:{color:"rgba(226,232,240,0.78)"},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
