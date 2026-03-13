@@ -1079,52 +1079,124 @@ function sortTdtTable(key){
 
 
 
-function getTdtRowDateValue(row){
-  return row?.match_date_date || row?.bet_date || row?.created_at || '';
-}
+let tdtDailyChart;
+let tdtMonthlyChart;
 
-function getTdtRowDayKey(row){
-  const raw = getTdtRowDateValue(row);
-  const dt = new Date(raw);
-  if(Number.isNaN(dt.getTime())) return String(raw || 'Unknown');
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth()+1).padStart(2,'0');
-  const d = String(dt.getDate()).padStart(2,'0');
-  return `${y}-${m}-${d}`;
-}
-
-function fmtTdtDayHeader(dayKey){
-  const dt = new Date(`${dayKey}T12:00:00`);
-  if(Number.isNaN(dt.getTime())) return dayKey;
-  return dt.toLocaleDateString('en-GB',{ weekday:'short', day:'2-digit', month:'short' });
-}
-
-function getTdtSortValue(row, key){
-  if(key === 'date') return new Date(getTdtRowDateValue(row) || 0).getTime() || 0;
-  if(key === 'stake') return Number(row?.stake || 0);
-  if(key === 'odds') return Number(row?.odds || 0);
-  if(key === 'result'){
-    const res = String(row?.result || 'pending').toLowerCase();
-    return res === 'won' ? 2 : res === 'lost' ? 1 : 0;
-  }
-  return String(row?.[key] || '').toLowerCase();
-}
-
-function sortTdtRows(rows){
-  const sorted = (Array.isArray(rows) ? rows.slice() : []);
-  sorted.sort((a,b)=>{
-    const av = getTdtSortValue(a, tdtSortKey);
-    const bv = getTdtSortValue(b, tdtSortKey);
-    if(av < bv) return tdtSortDir === 'asc' ? -1 : 1;
-    if(av > bv) return tdtSortDir === 'asc' ? 1 : -1;
-    return 0;
+function renderTdtDailyChart(history, labels){
+  const el = document.getElementById("tdtChart");
+  if(!el) return;
+  if(tdtDailyChart) tdtDailyChart.destroy();
+  const safeHistory = Array.isArray(history) ? history : [];
+  const safeLabels = Array.isArray(labels) ? labels : [];
+  const ctx = el.getContext("2d");
+  tdtDailyChart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:safeLabels,
+      datasets:[{
+        data:safeHistory,
+        tension:0.28,
+        fill:true,
+        borderWidth:3,
+        borderColor:"rgba(34,197,94,0.95)",
+        backgroundColor:"rgba(34,197,94,0.12)",
+        pointRadius:(c)=> isEndOfDay(c.dataIndex, safeLabels) ? 5 : 0,
+        pointHoverRadius:(c)=> isEndOfDay(c.dataIndex, safeLabels) ? 6 : 0,
+        pointBackgroundColor:"rgba(34,197,94,1)"
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:(ctx)=>`Profit line: £${Number(ctx.raw || 0).toFixed(2)}`
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:function(value, index){
+              const label = this.getLabelForValue(value);
+              if(index === 0) return label;
+              return label !== safeLabels[index - 1] ? label : "";
+            }
+          },
+          grid:{color:"rgba(255,255,255,0.04)"}
+        },
+        y:{
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
+          },
+          grid:{color:"rgba(255,255,255,0.05)"}
+        }
+      }
+    }
   });
-  return sorted;
 }
 
-function tdtSortArrow(key){
-  if(tdtSortKey !== key) return '↕';
-  return tdtSortDir === 'asc' ? '▲' : '▼';
+function renderTdtMonthlyChart(profits, roi, labels){
+  const el = document.getElementById("tdtMonthlyChart");
+  if(!el) return;
+  if(tdtMonthlyChart) tdtMonthlyChart.destroy();
+
+  const safeProfits = Array.isArray(profits) ? profits : [];
+  const safeRoi = Array.isArray(roi) ? roi : [];
+  const safeLabels = Array.isArray(labels) ? labels : [];
+  const maxROI = Math.max(...safeRoi, 5);
+  const minROI = Math.min(...safeRoi, -5);
+  const pad = 5;
+  const ctx = el.getContext("2d");
+
+  tdtMonthlyChart = new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels:safeLabels,
+      datasets:[{
+        data:safeRoi,
+        borderRadius:10,
+        barThickness:24,
+        backgroundColor:safeProfits.map(v=>{
+          if(v>0) return "rgba(34,197,94,0.9)";
+          if(v<0) return "rgba(239,68,68,0.9)";
+          return "rgba(100,116,139,0.4)";
+        })
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{
+          min: Math.floor(minROI - pad),
+          max: Math.ceil(maxROI + pad),
+          ticks:{callback:(v)=>v+"%"},
+          grid:{color:"rgba(255,255,255,0.05)"}
+        }
+      }
+    }
+  });
+}
+
+function toggleTdtMonthly(){
+  const wrapper = document.getElementById("tdtMonthlyWrapper");
+  const arrow = document.getElementById("tdtMonthlyArrow");
+  if(!wrapper || !arrow) return;
+  if(wrapper.classList.contains("collapsed")){
+    wrapper.classList.remove("collapsed");
+    wrapper.classList.add("expanded");
+    arrow.innerText="▲";
+  }else{
+    wrapper.classList.remove("expanded");
+    wrapper.classList.add("collapsed");
+    arrow.innerText="▼";
+  }
 }
 
 async function loadTdtTracker(){
@@ -1135,7 +1207,23 @@ async function loadTdtTracker(){
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
 
-    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
+    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0;
+
+    let html = `
+      <div class="tdt-table-wrap">
+        <table class="tdt-table tdt-table-responsive">
+          <thead>
+            <tr>
+              <th class="tdt-col-date">Date</th>
+              <th class="tdt-col-match">Match</th>
+              <th class="tdt-col-market">Market</th>
+              <th class="tdt-col-stake">Stake</th>
+              <th class="tdt-col-odds">Odds</th>
+              <th class="tdt-col-result">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
 
     rows.forEach(row=>{
       const result = String(row.result || 'pending').toLowerCase();
@@ -1147,89 +1235,30 @@ async function loadTdtTracker(){
 
       if(result==="won") wins++;
       if(result==="lost") losses++;
-      if(result !== 'pending') resolvedCount++;
       profit += p;
-      if(result !== 'pending'){
-        totalStake += Number(row.stake || 0);
-        totalOdds += Number(row.odds || 0);
-      }
-    });
+      totalStake += Number(row.stake || 0);
+      totalOdds += Number(row.odds || 0);
 
-    const sortedRows = sortTdtRows(rows);
-    const groups = [];
-    const map = new Map();
-    sortedRows.forEach(row=>{
-      const key = getTdtRowDayKey(row);
-      if(!map.has(key)){
-        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0 };
-        map.set(key, group);
-        groups.push(group);
-      }
-      const group = map.get(key);
-      group.rows.push(row);
-      const result = String(row.result || 'pending').toLowerCase();
-      if(result === 'won'){ group.wins++; group.settled++; }
-      else if(result === 'lost'){ group.losses++; group.settled++; }
-      else { group.pending++; }
-    });
-
-    let html = `<div class="tdt-groups-wrap">`;
-
-    groups.forEach((group, idx)=>{
-      const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
-      html += `
-        <div class="tdt-day-card">
-          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
-            <div class="tdt-day-left">
-              <div class="tdt-day-date">${escapeHtml(fmtTdtDayHeader(group.key))}</div>
-              <div class="tdt-day-meta">${group.rows.length} bet${group.rows.length === 1 ? '' : 's'}</div>
-            </div>
-            <div class="tdt-day-right">
-              <span class="tdt-day-chip win">Won ${group.wins}</span>
-              <span class="tdt-day-chip loss">Lost ${group.losses}</span>
-              <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
-              <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
-            </div>
-          </button>
-          <div class="tdt-day-body" style="display:${idx === 0 ? 'block' : 'none'};">
-            <div class="tdt-table-wrap">
-              <table class="tdt-table tdt-table-fit">
-                <thead>
-                  <tr>
-                    <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
-                    <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
-                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
-                    <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
-                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${tdtSortArrow('result')}</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-      `;
-
-      group.rows.forEach(row=>{
-        const result = String(row.result || 'pending').toLowerCase();
-        const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
-        html += `
-          <tr class="tdt-row ${result}">
-            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
-            <td class="tdt-market">${escapeHtml(row.market || '')}</td>
-            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
-            <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
-            <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
-          </tr>
-        `;
-      });
+      const gameDate = row.match_date_date || row.bet_date || row.created_at;
+      const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
 
       html += `
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <tr class="tdt-row ${result}">
+          <td class="tdt-date">${fmtDayLabel(gameDate)}</td>
+          <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+          <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+          <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
+          <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
+          <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
+        </tr>
       `;
     });
 
-    html += `</div>`;
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
 
     if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
 
@@ -1238,7 +1267,7 @@ async function loadTdtTracker(){
     set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
     set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
     set("tdtWonLost", `${wins}-${losses}`);
-    set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
+    set("tdtAvgOdds", rows.length?(totalOdds/rows.length).toFixed(2):0);
     set("tdtTotalBets", rows.length);
     set("tdtBetCount", rows.length);
   }catch(err){
@@ -1249,22 +1278,6 @@ async function loadTdtTracker(){
 
 
 
-
-function toggleTdtDay(btn){
-  const body = btn ? btn.nextElementSibling : null;
-  const chev = btn ? btn.querySelector(".tdt-day-chevron") : null;
-  if(!body) return;
-  const isHidden = body.style.display === "none";
-  body.style.display = isHidden ? "block" : "none";
-  if(chev) chev.innerText = isHidden ? "▼" : "▶";
-}
-
-function tdtWinrateClass(rate){
-  const n = Number(rate || 0);
-  if(n <= 50) return "ratio--red";
-  if(n <= 62) return "ratio--amber";
-  return "ratio--green";
-}
 
 function toggleTdtTracker(){
   const wrapper = document.getElementById("tdtTrackerWrapper");
@@ -1341,6 +1354,12 @@ loadTracker = async function(){
 
 
 
+function isEndOfDay(index, labels){
+  if(!labels || !labels.length) return false;
+  if(index === labels.length - 1) return true;
+  return labels[index] !== labels[index + 1];
+}
+
 function renderDailyChart(history, labels){
   const el = document.getElementById("chart");
   if(!el) return;
@@ -1361,8 +1380,8 @@ function renderDailyChart(history, labels){
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:safeHistory.length > 1 ? 3 : 4,
-        pointHoverRadius:5,
+        pointRadius:(c)=> isEndOfDay(c.dataIndex, safeLabels) ? 5 : 0,
+        pointHoverRadius:(c)=> isEndOfDay(c.dataIndex, safeLabels) ? 6 : 0,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
@@ -1379,7 +1398,14 @@ function renderDailyChart(history, labels){
       },
       scales:{
         x:{
-          ticks:{color:"rgba(226,232,240,0.78)"},
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:function(value, index){
+              const label = this.getLabelForValue(value);
+              if(index === 0) return label;
+              return label !== safeLabels[index - 1] ? label : "";
+            }
+          },
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
