@@ -1,3 +1,4 @@
+let tdtResultsOnlyChart = null;
 
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
@@ -871,7 +872,7 @@ wireTrackerFilters();
 let start=parseFloat(document.getElementById("startingBankroll").value);
 let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
 let dailyLabels=[];
-let dayKeys=[];
+let lastDayKey="";
 
 	let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 
@@ -884,9 +885,7 @@ bankroll=start+profit;
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
 const dayKey = fmtDayLabel(gameDate);
-const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
-dayKeys.push(dayKey);
-dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
+dailyLabels.push(dayKey);
 history.push(bankroll);
 
 html+=`<tr>
@@ -936,7 +935,7 @@ if(profit>0) profitCard.classList.add("glow-green");
 if(profit<0) profitCard.classList.add("glow-red");
 
 
-renderDailyChart(history, dailyLabels, dayKeys);
+renderDailyChart(history, dailyLabels);
 
 // ---- Monthly & Market analytics (tabs + mini summary) ----
 const countElem = document.getElementById("betCount");
@@ -1129,6 +1128,92 @@ function tdtSortArrow(key){
   return tdtSortDir === 'asc' ? '▲' : '▼';
 }
 
+
+function renderTdtResultsOnlyChart(rows){
+  const el = document.getElementById("tdtResultsOnlyChart");
+  if(!el || typeof Chart === "undefined") return;
+  if(tdtResultsOnlyChart) tdtResultsOnlyChart.destroy();
+
+  const safeRows = (Array.isArray(rows) ? rows : []).slice();
+  const labels = [];
+  const points = [];
+  let runningProfit = 0;
+  let lastDayKey = "";
+
+  safeRows.forEach((row)=>{
+    const result = String(row?.result || "pending").toLowerCase();
+    let value = 0;
+
+    if(result === "won"){
+      value = row.profit != null
+        ? Number(row.profit)
+        : Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+    }else if(result === "lost"){
+      value = row.profit != null
+        ? Number(row.profit)
+        : -Number(row.stake || 0);
+    }
+
+    runningProfit += value;
+
+    const rawDate = row.match_date_date || row.bet_date || row.created_at;
+    const dayKey = fmtDayLabel(rawDate);
+
+    if(dayKey !== lastDayKey){
+      labels.push(dayKey);
+      points.push(Number(runningProfit.toFixed(2)));
+      lastDayKey = dayKey;
+    }else{
+      points[points.length - 1] = Number(runningProfit.toFixed(2));
+    }
+  });
+
+  const ctx = el.getContext("2d");
+  tdtResultsOnlyChart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels,
+      datasets:[{
+        data:points,
+        tension:0.28,
+        fill:true,
+        borderWidth:3,
+        borderColor:"rgba(34,197,94,0.95)",
+        backgroundColor:"rgba(34,197,94,0.14)",
+        pointRadius:points.length > 1 ? 3 : 4,
+        pointHoverRadius:5,
+        pointBackgroundColor:"rgba(34,197,94,1)"
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:(items)=> items?.[0]?.label || "",
+            label:(ctx)=>`Profit: £${Number(ctx.raw || 0).toFixed(2)}`
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
+          grid:{color:"rgba(255,255,255,0.04)"}
+        },
+        y:{
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
+          },
+          grid:{color:"rgba(255,255,255,0.05)"}
+        }
+      }
+    }
+  });
+}
+
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
@@ -1136,6 +1221,7 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
+    renderTdtResultsOnlyChart(rows);
 
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
 
@@ -1343,87 +1429,45 @@ loadTracker = async function(){
 
 
 
-function renderDailyChart(history, labels, dayKeys){
+function renderDailyChart(history, labels){
   const el = document.getElementById("chart");
   if(!el) return;
   if(dailyChart) dailyChart.destroy();
 
   const safeHistory = Array.isArray(history) ? history : [];
   const safeLabels = Array.isArray(labels) ? labels : [];
-  const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
-  const startBankroll = Number(document.getElementById("startingBankroll")?.value || 0);
-
-  const pointRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 4 : 0;
-  });
-
-  const pointHoverRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 7 : 0;
-  });
-
-  const pointHitRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 18 : 0;
-  });
-
   const ctx = el.getContext("2d");
 
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
       labels:safeLabels,
-      datasets:[
-        {
-          label:"Starting Bankroll",
-          data:safeHistory.map(()=> startBankroll),
-          borderColor:"rgba(148,163,184,0.7)",
-          borderWidth:2,
-          pointRadius:0,
-          pointHoverRadius:0,
-          pointHitRadius:0,
-          fill:false,
-          tension:0
-        },
-        {
-          label:"Bankroll",
-          data:safeHistory,
-          tension:0.28,
-          fill:true,
-          borderWidth:3,
-          borderColor:"rgba(34,197,94,0.95)",
-          backgroundColor:"rgba(34,197,94,0.14)",
-          pointRadius:pointRadius,
-          pointHoverRadius:pointHoverRadius,
-          pointHitRadius:pointHitRadius,
-          pointBackgroundColor:"rgba(34,197,94,1)"
-        }
-      ]
+      datasets:[{
+        data:safeHistory,
+        tension:0.28,
+        fill:true,
+        borderWidth:3,
+        borderColor:"rgba(34,197,94,0.95)",
+        backgroundColor:"rgba(34,197,94,0.14)",
+        pointRadius:safeHistory.length > 1 ? 3 : 4,
+        pointHoverRadius:5,
+        pointBackgroundColor:"rgba(34,197,94,1)"
+      }]
     },
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      interaction:{
-        mode:"nearest",
-        intersect:false
-      },
       plugins:{
         legend:{display:false},
         tooltip:{
-          filter:(item)=> item.datasetIndex === 1,
           callbacks:{
-            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
       },
       scales:{
         x:{
-          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
+          ticks:{color:"rgba(226,232,240,0.78)"},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
