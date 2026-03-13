@@ -1236,6 +1236,22 @@ async function loadTdtTracker(){
     const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
     set("tdtProfit", profit.toFixed(2));
     set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
+    const roiVal = totalStake ? ((profit / totalStake) * 100) : 0;
+    const roiFill = document.getElementById("tdtRoiBarFill");
+    const roiLabel = document.getElementById("tdtRoiBarLabel");
+    const roiZero = document.getElementById("tdtRoiBarZero");
+    if(roiFill && roiLabel){
+      const maxAbs = 100;
+      const pct = Math.max(-maxAbs, Math.min(maxAbs, roiVal));
+      const width = Math.max(0, Math.min(100, Math.abs(pct)));
+      roiFill.style.width = width + "%";
+      roiFill.style.background = pct >= 0
+        ? "linear-gradient(90deg,#22c55e,#4ade80)"
+        : "linear-gradient(90deg,#ef4444,#f87171)";
+      roiFill.style.marginLeft = pct >= 0 ? "50%" : `${50 - width}%`;
+      roiLabel.textContent = `${roiVal.toFixed(1)}%`;
+      if(roiZero) roiZero.style.left = "50%";
+    }
     set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
     set("tdtWonLost", `${wins}-${losses}`);
     set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
