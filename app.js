@@ -674,7 +674,6 @@ function wireTrackerFilters(){
 let dailyChart;
 let monthlyChart;
 let marketChart;
-let tdtResultsOnlyChart;
 
 function fmtDayLabel(d){
   if(!d) return "";
@@ -884,10 +883,9 @@ profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
 bankroll=start+profit;
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
-const dayKey = getTdtRowDayKey({ match_date_date: gameDate });
-
+const dayKey = fmtDayLabel(gameDate);
 if(dayKey !== lastDayKey){
-  dailyLabels.push(fmtDayLabel(gameDate));
+  dailyLabels.push(dayKey);
   history.push(bankroll);
   lastDayKey = dayKey;
 }else{
@@ -941,7 +939,7 @@ if(profit>0) profitCard.classList.add("glow-green");
 if(profit<0) profitCard.classList.add("glow-red");
 
 
-renderDailyChart(history, dailyLabels, start);
+renderDailyChart(history, dailyLabels);
 
 // ---- Monthly & Market analytics (tabs + mini summary) ----
 const countElem = document.getElementById("betCount");
@@ -1132,6 +1130,96 @@ function sortTdtRows(rows){
 function tdtSortArrow(key){
   if(tdtSortKey !== key) return '↕';
   return tdtSortDir === 'asc' ? '▲' : '▼';
+}
+
+
+
+function renderTdtResultsOnlyChart(rows){
+  const el = document.getElementById("tdtResultsOnlyChart");
+  if(!el || typeof Chart === "undefined") return;
+  if(tdtResultsOnlyChart) tdtResultsOnlyChart.destroy();
+
+  const sorted = (Array.isArray(rows) ? rows : [])
+    .slice()
+    .sort((a,b)=> new Date((a.match_date_date || a.bet_date || a.created_at || 0)) - new Date((b.match_date_date || b.bet_date || b.created_at || 0)));
+
+  const labels = [];
+  const points = [];
+  let runningProfit = 0;
+  let lastDayKey = "";
+
+  sorted.forEach((row)=>{
+    const result = String(row?.result || "pending").toLowerCase();
+    let p = 0;
+    if(result === "won"){
+      p = row.profit != null ? Number(row.profit) : Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+    }else if(result === "lost"){
+      p = row.profit != null ? Number(row.profit) : -Number(row.stake || 0);
+    }
+    runningProfit += p;
+
+    const rawDate = row.match_date_date || row.bet_date || row.created_at;
+    const dayKey = fmtDayLabel(rawDate);
+
+    if(dayKey !== lastDayKey){
+      labels.push(dayKey);
+      points.push(Number(runningProfit.toFixed(2)));
+      lastDayKey = dayKey;
+    }else{
+      points[points.length - 1] = Number(runningProfit.toFixed(2));
+    }
+  });
+
+  const ctx = el.getContext("2d");
+  const finalValue = points.length ? Number(points[points.length - 1]) : 0;
+  const positive = finalValue >= 0;
+  const lineColor = positive ? "rgba(34,197,94,0.95)" : "rgba(239,68,68,0.95)";
+  const fillColor = positive ? "rgba(34,197,94,0.14)" : "rgba(239,68,68,0.14)";
+  const pointColor = positive ? "rgba(34,197,94,1)" : "rgba(239,68,68,1)";
+
+  tdtResultsOnlyChart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:labels,
+      datasets:[{
+        data:points,
+        tension:0.28,
+        fill:true,
+        borderWidth:3,
+        borderColor:lineColor,
+        backgroundColor:fillColor,
+        pointRadius:3,
+        pointHoverRadius:5,
+        pointBackgroundColor:pointColor
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:(items)=> items?.[0]?.label || "",
+            label:(ctx)=>`Profit: £${Number(ctx.raw || 0).toFixed(2)}`
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{color:"rgba(226,232,240,0.78)"},
+          grid:{color:"rgba(255,255,255,0.04)"}
+        },
+        y:{
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
+          },
+          grid:{color:"rgba(255,255,255,0.05)"}
+        }
+      }
+    }
+  });
 }
 
 async function loadTdtTracker(){
@@ -1349,16 +1437,20 @@ loadTracker = async function(){
 
 
 
-
-function renderDailyChart(history, labels, baseline){
+function renderDailyChart(history, labels){
   const el = document.getElementById("chart");
   if(!el) return;
   if(dailyChart) dailyChart.destroy();
 
-  const safeHistory = Array.isArray(history) ? history.map(v=>Number(v || 0)) : [];
+  const safeHistory = Array.isArray(history) ? history : [];
   const safeLabels = Array.isArray(labels) ? labels : [];
-  const baseValue = Number.isFinite(Number(baseline)) ? Number(baseline) : 0;
   const ctx = el.getContext("2d");
+  const startingBankroll = Number(document.getElementById("startingBankroll")?.value || 0);
+  const finalValue = safeHistory.length ? Number(safeHistory[safeHistory.length - 1]) : startingBankroll;
+  const positive = finalValue >= startingBankroll;
+  const lineColor = positive ? "rgba(34,197,94,0.95)" : "rgba(239,68,68,0.95)";
+  const fillColor = positive ? "rgba(34,197,94,0.14)" : "rgba(239,68,68,0.14)";
+  const pointColor = positive ? "rgba(34,197,94,1)" : "rgba(239,68,68,1)";
 
   dailyChart = new Chart(ctx,{
     type:"line",
@@ -1367,23 +1459,13 @@ function renderDailyChart(history, labels, baseline){
       datasets:[{
         data:safeHistory,
         tension:0.28,
-        fill:{ target:{ value: baseValue }, above:"rgba(34,197,94,0.14)", below:"rgba(239,68,68,0.16)" },
+        fill:true,
         borderWidth:3,
-        borderColor:"rgba(34,197,94,0.95)",
-        pointRadius:safeHistory.length ? 4 : 0,
-        pointHoverRadius:6,
-        pointBackgroundColor:(context)=>{
-          const value = Number(context.raw || 0);
-          return value < baseValue ? "rgba(239,68,68,1)" : "rgba(34,197,94,1)";
-        },
-        pointBorderWidth:0,
-        segment:{
-          borderColor:(context)=>{
-            const y0 = Number(context.p0.parsed.y || 0);
-            const y1 = Number(context.p1.parsed.y || 0);
-            return (y0 < baseValue || y1 < baseValue) ? "rgba(239,68,68,0.95)" : "rgba(34,197,94,0.95)";
-          }
-        }
+        borderColor:lineColor,
+        backgroundColor:fillColor,
+        pointRadius:3,
+        pointHoverRadius:5,
+        pointBackgroundColor:pointColor
       }]
     },
     options:{
@@ -1400,10 +1482,7 @@ function renderDailyChart(history, labels, baseline){
       },
       scales:{
         x:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            maxTicksLimit: 7
-          },
+          ticks:{color:"rgba(226,232,240,0.78)"},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
@@ -1418,112 +1497,6 @@ function renderDailyChart(history, labels, baseline){
   });
 }
 
-function renderTdtResultsOnlyChart(rows){
-  const el = document.getElementById("tdtResultsOnlyChart");
-  if(!el || typeof Chart === "undefined") return;
-  if(tdtResultsOnlyChart) tdtResultsOnlyChart.destroy();
-
-  const safeRows = (Array.isArray(rows) ? rows : [])
-    .slice()
-    .sort((a,b)=> new Date(getTdtRowDateValue(a) || 0) - new Date(getTdtRowDateValue(b) || 0));
-
-  const labels = [];
-  const points = [];
-  let runningProfit = 0;
-  let lastDayKey = "";
-
-  safeRows.forEach((row)=>{
-    const result = String(row?.result || "pending").toLowerCase();
-    let p = 0;
-
-    if(result === "won"){
-      p = row.profit != null
-        ? Number(row.profit)
-        : Number(row.stake || 0) * (Number(row.odds || 0) - 1);
-    }else if(result === "lost"){
-      p = row.profit != null
-        ? Number(row.profit)
-        : -Number(row.stake || 0);
-    }
-
-    runningProfit += p;
-
-    const rawDate = getTdtRowDateValue(row);
-    const dayKey = getTdtRowDayKey(row);
-
-    if(dayKey !== lastDayKey){
-      labels.push(fmtDayLabel(rawDate));
-      points.push(Number(runningProfit.toFixed(2)));
-      lastDayKey = dayKey;
-    }else{
-      points[points.length - 1] = Number(runningProfit.toFixed(2));
-    }
-  });
-
-  const ctx = el.getContext("2d");
-
-  tdtResultsOnlyChart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "TDT Profit",
-        data: points,
-        tension: 0.28,
-        fill:{ target:{ value: 0 }, above:"rgba(34,197,94,0.14)", below:"rgba(239,68,68,0.16)" },
-        borderWidth: 3,
-        borderColor: "rgba(34,197,94,0.95)",
-        pointRadius: points.length ? 4 : 0,
-        pointHoverRadius: 6,
-        pointBackgroundColor:(context)=>{
-          const value = Number(context.raw || 0);
-          return value < 0 ? "rgba(239,68,68,1)" : "rgba(34,197,94,1)";
-        },
-        pointBorderWidth:0,
-        segment:{
-          borderColor:(context)=>{
-            const y0 = Number(context.p0.parsed.y || 0);
-            const y1 = Number(context.p1.parsed.y || 0);
-            return (y0 < 0 || y1 < 0) ? "rgba(239,68,68,0.95)" : "rgba(34,197,94,0.95)";
-          }
-        }
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip:{
-          callbacks:{
-            title:(items)=> items?.[0]?.label || "",
-            label:(ctx)=>`Profit: £${Number(ctx.raw || 0).toFixed(2)}`
-          }
-        }
-      },
-      scales: {
-        x: {
-          ticks: {
-            maxTicksLimit: 7,
-            color: "rgba(226,232,240,0.78)"
-          },
-          grid: {
-            color: "rgba(255,255,255,0.05)"
-          }
-        },
-        y: {
-          ticks: {
-            color: "rgba(226,232,240,0.78)",
-            callback: (v) => `£${Number(v).toFixed(0)}`
-          },
-          grid: {
-            color: "rgba(255,255,255,0.05)"
-          }
-        }
-      }
-    }
-  });
-}
 
 function renderMonthlyChart(profits, roi, labels){
   const el = document.getElementById("monthlyChart");
