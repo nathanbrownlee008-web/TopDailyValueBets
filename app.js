@@ -1,4 +1,72 @@
 
+let tdtResultsOnlyChart;
+
+function renderTdtResultsOnlyChart(rows){
+  const el = document.getElementById("tdtResultsOnlyChart");
+  if(!el || typeof Chart === "undefined") return;
+
+  if(tdtResultsOnlyChart){
+    tdtResultsOnlyChart.destroy();
+    tdtResultsOnlyChart = null;
+  }
+
+  const safeRows = (Array.isArray(rows) ? rows : []).slice();
+
+  const labels = [];
+  const points = [];
+  let runningProfit = 0;
+
+  safeRows.forEach((row, i)=>{
+    const result = String(row?.result || "pending").toLowerCase();
+    let p = 0;
+
+    if(result === "won"){
+      p = row.profit != null
+        ? Number(row.profit)
+        : Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+    }else if(result === "lost"){
+      p = row.profit != null
+        ? Number(row.profit)
+        : -Number(row.stake || 0);
+    }
+
+    runningProfit += p;
+
+    labels.push(i+1);
+    points.push(Number(runningProfit.toFixed(2)));
+  });
+
+  const ctx = el.getContext("2d");
+
+  tdtResultsOnlyChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "TDT Profit",
+        data: points,
+        borderWidth: 3,
+        tension: 0.25,
+        borderColor: "rgba(34,197,94,1)",
+        backgroundColor: "rgba(34,197,94,0.12)",
+        fill: true,
+        pointRadius: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{callback:(v)=>`£${v}`}},
+        x:{display:false}
+      }
+    }
+  });
+}
+
+
+
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -1134,6 +1202,7 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
+renderTdtResultsOnlyChart(rows);
 
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
 
