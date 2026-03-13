@@ -2795,10 +2795,24 @@ body.layout-compact .vip-bar{
 }
 
 
-.tdt-graph-title{
-  font-weight:600;
-  font-size:14px;
-  opacity:.85;
-  margin-bottom:8px;
-  text-align:left;
+/* TDT graph sizing + spacing */
+.tdt-results-only-graph{
+  padding: 14px 14px 18px;
+  margin-bottom: 18px;
+}
+#tdtResultsOnlyChart{
+  width: 100% !important;
+  height: 360px !important;
+}
+#tdtTrackerSection .tracker-toggle{
+  margin-top: 18px;
+}
+.tdt-day-card{
+  margin-top: 12px;
+}
+.tdt-day-head{
+  background: rgba(15,23,42,0.45) !important;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 18px;
+  padding: 16px 16px 14px;
 }
