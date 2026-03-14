@@ -3054,3 +3054,12 @@ body.layout-compact .vip-bar{
     font-size:10.5px;
   }
 }
+/* TDT results odds column spacing */
+.tdt-table th:last-child {
+    padding-left: 6px;
+    padding-right: 14px;
+}
+
+.tdt-table td:last-child {
+    padding-right: 10px;
+}
