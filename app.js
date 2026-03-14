@@ -2084,8 +2084,8 @@ function applyPersonalTrackerCollapseState(){
     if(!cell) return;
 
     const rawText = cell.textContent.replace(/^▼|^▶|^📅/, "").trim();
-    const isNewest = index === 0;
-
+    const todayLabel = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short"});
+const isNewest = rawText === todayLabel;
     const expanded = Object.prototype.hasOwnProperty.call(state, rawText)
       ? !!state[rawText]
       : isNewest;
