@@ -3411,3 +3411,67 @@ display:flex;
 justify-content:flex-start;
 margin-top:12px;
 }
+/* ===== VALUE BET CARD RESET + CLEAN SWAP ===== */
+
+.bet-card{
+  position: relative;
+  padding: 18px 16px 16px !important;
+}
+
+.bet-title{
+  padding-right: 120px;
+}
+
+/* date = top right */
+.bet-date{
+  position: absolute !important;
+  top: 18px !important;
+  right: 16px !important;
+  bottom: auto !important;
+  left: auto !important;
+  font-size: 12px;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+/* keep meta normal */
+.bet-meta{
+  display: block !important;
+  margin-top: 8px;
+}
+
+.bet-market{
+  display: block;
+  margin-right: 0;
+}
+
+/* value row normal */
+.bet-stats{
+  margin-top: 10px;
+}
+
+/* footer = bottom row */
+.bet-footer{
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px;
+  margin-top: 12px !important;
+}
+
+/* odds = bottom left */
+.odds-badge{
+  position: static !important;
+  order: 1;
+}
+
+/* add button = bottom right */
+.bet-btn{
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  order: 2;
+  margin-left: auto;
+}
