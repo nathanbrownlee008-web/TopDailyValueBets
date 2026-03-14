@@ -1767,3 +1767,122 @@ loadTracker = async function(){
   addPersonalTrackerDateGroups();
   wirePersonalTrackerDateCollapse();
 };
+// ===== Personal Tracker: persistent collapsible date groups =====
+function getPersonalTrackerCollapseKey(){
+  const email = (localStorage.getItem("vip_email") || "guest").trim().toLowerCase();
+  return `personal_tracker_collapsed_days_${email}`;
+}
+
+function readPersonalTrackerCollapseState(){
+  try{
+    return JSON.parse(localStorage.getItem(getPersonalTrackerCollapseKey()) || "{}");
+  }catch(e){
+    return {};
+  }
+}
+
+function writePersonalTrackerCollapseState(state){
+  localStorage.setItem(getPersonalTrackerCollapseKey(), JSON.stringify(state || {}));
+}
+
+function getNewestPersonalTrackerDay(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return "";
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return "";
+
+  const firstGroup = table.querySelector("tr.date-group td");
+  if(!firstGroup) return "";
+
+  return firstGroup.textContent.replace(/^▼|^▶|^📅/, "").trim();
+}
+
+function applyPersonalTrackerCollapseState(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const saved = readPersonalTrackerCollapseState();
+  const newestDay = getNewestPersonalTrackerDay();
+
+  // if newest day changed, reset so only newest opens
+  if(saved.__latestDay !== newestDay){
+    const resetState = { __latestDay: newestDay };
+    writePersonalTrackerCollapseState(resetState);
+  }
+
+  const state = readPersonalTrackerCollapseState();
+  const groups = Array.from(table.querySelectorAll("tr.date-group"));
+
+  groups.forEach((groupRow, index) => {
+    const cell = groupRow.querySelector("td");
+    if(!cell) return;
+
+    const rawText = cell.textContent.replace(/^▼|^▶|^📅/, "").trim();
+    const isNewest = index === 0;
+
+    // default: newest open, all others collapsed
+    const expanded = Object.prototype.hasOwnProperty.call(state, rawText)
+      ? !!state[rawText]
+      : isNewest;
+
+    groupRow.dataset.expanded = expanded ? "1" : "0";
+    cell.innerHTML = `${expanded ? "▼" : "▶"} ${rawText}`;
+
+    let next = groupRow.nextElementSibling;
+    while(next && !next.classList.contains("date-group")){
+      next.style.display = expanded ? "" : "none";
+      next = next.nextElementSibling;
+    }
+  });
+}
+
+function wirePersonalTrackerDateCollapse(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const groups = Array.from(table.querySelectorAll("tr.date-group"));
+
+  groups.forEach(groupRow => {
+    if(groupRow.dataset.bound === "1") return;
+    groupRow.dataset.bound = "1";
+
+    groupRow.addEventListener("click", () => {
+      const cell = groupRow.querySelector("td");
+      if(!cell) return;
+
+      const rawText = cell.textContent.replace(/^▼|^▶|^📅/, "").trim();
+      const expanded = groupRow.dataset.expanded === "1";
+      const nextExpanded = !expanded;
+
+      groupRow.dataset.expanded = nextExpanded ? "1" : "0";
+      cell.innerHTML = `${nextExpanded ? "▼" : "▶"} ${rawText}`;
+
+      let next = groupRow.nextElementSibling;
+      while(next && !next.classList.contains("date-group")){
+        next.style.display = nextExpanded ? "" : "none";
+        next = next.nextElementSibling;
+      }
+
+      const state = readPersonalTrackerCollapseState();
+      state[rawText] = nextExpanded;
+      state.__latestDay = getNewestPersonalTrackerDay();
+      writePersonalTrackerCollapseState(state);
+    });
+  });
+}
+
+// final safe wrapper
+const __originalLoadTrackerCollapsedGroups = loadTracker;
+loadTracker = async function(){
+  await __originalLoadTrackerCollapsedGroups();
+  addPersonalTrackerDateGroups();
+  wirePersonalTrackerDateCollapse();
+  applyPersonalTrackerCollapseState();
+};
