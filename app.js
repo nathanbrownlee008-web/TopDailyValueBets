@@ -1279,7 +1279,6 @@ async function loadTdtTracker(){
     set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
     set("tdtTotalBets", rows.length);
     set("tdtBetCount", rows.length);
-    updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
   }catch(err){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
@@ -1685,3 +1684,33 @@ if(startingInput){
 setInterval(()=>{
   if(currentTopTab === "bets") loadBets();
 }, 60000);
+
+
+// === Auto group tracker rows by date (visual only) ===
+function groupTrackerRowsByDate(){
+  const table = document.getElementById("trackerTable");
+  if(!table) return;
+  const tbody = table.querySelector("tbody");
+  if(!tbody) return;
+
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+  let lastDate = "";
+
+  rows.forEach(row=>{
+    const dateCell = row.querySelector(".date-col");
+    if(!dateCell) return;
+
+    const date = dateCell.textContent.trim();
+
+    if(date !== lastDate){
+      const divider = document.createElement("tr");
+      divider.className="date-group";
+      divider.innerHTML = `<td colspan="6">📅 ${date}</td>`;
+      tbody.insertBefore(divider,row);
+      lastDate = date;
+    }
+  });
+}
+
+// run after tracker loads
+setTimeout(groupTrackerRowsByDate,500);
