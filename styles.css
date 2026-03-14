@@ -3206,3 +3206,109 @@ padding:14px 16px;
     font-size:13px;
   }
 }
+/* ===== VALUE BETS CARD LAYOUT OVERRIDE ===== */
+
+#betsGrid .bet-card{
+  padding:14px 16px;
+}
+
+#betsGrid .bet-layout{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+#betsGrid .bet-title{
+  margin:0;
+  font-size:17px;
+  font-weight:800;
+  line-height:1.2;
+  color:#f8fafc;
+}
+
+#betsGrid .bet-market-line{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+#betsGrid .bet-market{
+  font-size:14px;
+  font-weight:700;
+  color:#9bd8c2;
+  overflow:visible;
+  text-overflow:unset;
+  white-space:normal;
+}
+
+#betsGrid .bet-date{
+  font-size:12px;
+  color:rgba(255,255,255,0.55);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+#betsGrid .bet-info-line{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+#betsGrid .bet-bookie-row{
+  font-size:13px;
+  color:rgba(226,232,240,0.86);
+}
+
+#betsGrid .bet-bottom-line{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+#betsGrid .stat-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius:999px;
+}
+
+#betsGrid .odds-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:13px;
+}
+
+#betsGrid .bet-btn{
+  padding:8px 14px;
+  border-radius:14px;
+  font-size:13px;
+  font-weight:800;
+}
+
+#betsGrid .bet-locked-copy{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+@media (max-width:600px){
+  #betsGrid .bet-title{
+    font-size:16px;
+  }
+
+  #betsGrid .bet-market{
+    font-size:13px;
+  }
+
+  #betsGrid .bet-info-line{
+    align-items:flex-start;
+  }
+}
