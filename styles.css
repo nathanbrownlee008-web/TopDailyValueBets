@@ -2871,3 +2871,16 @@ body.layout-compact .vip-bar{
   padding-bottom:6px;
   border-bottom:none;
 }
+.date-group td{
+  background:#111827;
+  font-weight:700;
+  color:#9ca3af;
+  padding-top:14px;
+  padding-bottom:6px;
+  border-bottom:none;
+  cursor:pointer;
+}
+
+.date-group:hover td{
+  background:#182132;
+}
