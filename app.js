@@ -1194,24 +1194,67 @@ async function loadTdtTracker(){
     });
 
     const sortedRows = sortTdtRows(rows);
-    const groups = [];
-    const map = new Map();
-    sortedRows.forEach(row=>{
-      const key = getTdtRowDayKey(row);
-      if(!map.has(key)){
-        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0 };
-        map.set(key, group);
-        groups.push(group);
-      }
-      const group = map.get(key);
-      group.rows.push(row);
-      const result = String(row.result || 'pending').toLowerCase();
-      if(result === 'won'){ group.wins++; group.settled++; }
-      else if(result === 'lost'){ group.losses++; group.settled++; }
-      else { group.pending++; }
-    });
+    // ----- GROUP TDT RESULTS BY MONTH THEN DAY -----
 
-    let html = `<div class="tdt-groups-wrap">`;
+const monthMap = new Map();
+
+sortedRows.forEach(row => {
+
+  const date = new Date(row.date);
+  const monthKey = date.toLocaleString('default', { month:'long', year:'numeric' });
+  const dayKey = date.toLocaleDateString('en-GB',{ weekday:'short', day:'numeric', month:'short' });
+
+  if(!monthMap.has(monthKey)){
+    monthMap.set(monthKey,{ days:new Map() });
+  }
+
+  const month = monthMap.get(monthKey);
+
+  if(!month.days.has(dayKey)){
+    month.days.set(dayKey,[]);
+  }
+
+  month.days.get(dayKey).push(row);
+
+});
+
+tableEl.innerHTML = "";
+
+monthMap.forEach((month,monthKey)=>{
+
+  const monthBlock = document.createElement("div");
+
+  monthBlock.innerHTML = `
+    <div class="tracker-month-header">
+      ▼ ${monthKey}
+    </div>
+  `;
+
+  month.days.forEach((rows,dayKey)=>{
+
+    const wins = rows.filter(r=>r.result==="won").length;
+    const losses = rows.filter(r=>r.result==="lost").length;
+    const bets = rows.length;
+    const winrate = bets ? Math.round((wins/bets)*100) : 0;
+
+    const dayBlock = document.createElement("div");
+
+    dayBlock.innerHTML = `
+      <div class="tracker-day-header">
+        ${dayKey}
+        <span class="pill win">Won ${wins}</span>
+        <span class="pill loss">Lost ${losses}</span>
+        <span class="pill">Winrate ${winrate}%</span>
+      </div>
+    `;
+
+    monthBlock.appendChild(dayBlock);
+
+  });
+
+  tableEl.appendChild(monthBlock);
+
+});
 
     groups.forEach((group, idx)=>{
       const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
