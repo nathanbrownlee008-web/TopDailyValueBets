@@ -2361,3 +2361,36 @@ chip.classList.add("value-red");
 });
 
 },500);
+setTimeout(() => {
+
+document.querySelectorAll(".chip, .stat-chip").forEach(el => {
+
+const txt = el.textContent || "";
+
+if(txt.includes("Value") && txt.match(/\d/)){
+
+const num = parseFloat(txt.replace(/[^0-9.]/g,""));
+
+if(num >= 6){
+el.style.background = "rgba(34,197,94,0.18)";
+el.style.border = "1px solid rgba(34,197,94,0.35)";
+el.style.color = "#86efac";
+}
+
+else if(num >= 3){
+el.style.background = "rgba(250,204,21,0.18)";
+el.style.border = "1px solid rgba(250,204,21,0.35)";
+el.style.color = "#fde68a";
+}
+
+else{
+el.style.background = "rgba(239,68,68,0.18)";
+el.style.border = "1px solid rgba(239,68,68,0.35)";
+el.style.color = "#fca5a5";
+}
+
+}
+
+});
+
+},600);
