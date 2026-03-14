@@ -1685,3 +1685,39 @@ if(startingInput){
 setInterval(()=>{
   if(currentTopTab === "bets") loadBets();
 }, 60000);
+// ===== Personal Tracker: visual date grouping only =====
+function addPersonalTrackerDateGroups(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const existing = table.querySelectorAll("tr.date-group");
+  existing.forEach(el => el.remove());
+
+  const rows = Array.from(table.querySelectorAll("tr")).slice(1); // skip header
+  let lastDate = "";
+
+  rows.forEach(row => {
+    const dateCell = row.querySelector(".date-col");
+    if(!dateCell) return;
+
+    const dateText = dateCell.textContent.trim();
+    if(!dateText) return;
+
+    if(dateText !== lastDate){
+      const divider = document.createElement("tr");
+      divider.className = "date-group";
+      divider.innerHTML = `<td colspan="5">📅 ${dateText}</td>`;
+      row.parentNode.insertBefore(divider, row);
+      lastDate = dateText;
+    }
+  });
+}
+
+const __originalLoadTrackerWithCount = loadTracker;
+loadTracker = async function(){
+  await __originalLoadTrackerWithCount();
+  addPersonalTrackerDateGroups();
+};
