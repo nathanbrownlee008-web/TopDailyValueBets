@@ -2793,3 +2793,73 @@ body.layout-compact .vip-bar{
   #tdtTrackerTable .tdt-day-date{font-size:14px;}
   #tdtTrackerTable .tdt-table-fit th,#tdtTrackerTable .tdt-table-fit td{padding:10px 4px;font-size:11px;}
 }
+
+
+/* TDT performance bars (scoped to TDT only) */
+#tdtTrackerSection .tdt-performance{
+  padding:18px;
+  margin-bottom:22px;
+}
+#tdtTrackerSection .tdt-performance-title{
+  font-size:15px;
+  font-weight:800;
+  margin-bottom:14px;
+}
+#tdtTrackerSection .tdt-perf-row + .tdt-perf-row{
+  margin-top:16px;
+}
+#tdtTrackerSection .tdt-perf-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  font-size:14px;
+  font-weight:700;
+  margin-bottom:10px;
+}
+#tdtTrackerSection .tdt-perf-track{
+  width:100%;
+  height:14px;
+  background:rgba(255,255,255,0.08);
+  border-radius:999px;
+  overflow:hidden;
+}
+#tdtTrackerSection .tdt-perf-fill{
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  transition:width .35s ease;
+}
+#tdtTrackerSection .tdt-perf-fill--green{
+  background:linear-gradient(90deg,#22c55e,#4ade80);
+}
+#tdtTrackerSection .tdt-perf-fill--red{
+  background:linear-gradient(90deg,#ef4444,#f87171);
+}
+#tdtTrackerSection .tdt-perf-fill--amber{
+  background:linear-gradient(90deg,#f59e0b,#fbbf24);
+}
+#tdtTrackerSection .tracker-toggle{
+  margin-top:18px !important;
+  margin-bottom:16px !important;
+}
+#tdtTrackerSection #tdtTrackerTable .tdt-day-card{
+  margin-top:12px !important;
+}
+#tdtTrackerSection #tdtTrackerTable .tdt-day-head{
+  background:rgba(15,23,42,0.48) !important;
+  border:1px solid rgba(255,255,255,0.08) !important;
+  border-radius:18px !important;
+  padding:16px 16px 14px !important;
+  color:#e8eefc !important;
+}
+
+
+/* TDT header override */
+#tdtTrackerSection #tdtTrackerTable .tdt-day-head{
+  background:rgba(15,23,42,0.48) !important;
+  border:1px solid rgba(255,255,255,0.08) !important;
+  border-radius:18px !important;
+  padding:16px 16px 14px !important;
+  color:#e8eefc !important;
+}
