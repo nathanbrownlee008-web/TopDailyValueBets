@@ -2271,3 +2271,24 @@ ${button ? button.outerHTML : ""}
     setTimeout(restyleValueBetCards, 300);
   });
 })();
+/* auto value rank */
+
+setTimeout(()=>{
+
+document.querySelectorAll(".stat-chip").forEach(chip=>{
+
+const val=parseFloat(chip.innerText.replace(/[^0-9.]/g,""));
+
+chip.classList.remove("high","medium","low");
+
+if(val>=6){
+chip.classList.add("high");
+}else if(val>=3){
+chip.classList.add("medium");
+}else{
+chip.classList.add("low");
+}
+
+});
+
+},500);
