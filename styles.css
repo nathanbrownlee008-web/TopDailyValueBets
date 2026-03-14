@@ -3017,3 +3017,79 @@ body.layout-compact .vip-bar{
     font-size: 18px;
   }
 }
+/* --- TDT DAY HEADERS: SMALL ROW STYLE --- */
+
+.tdt-day-card{
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.tdt-day-head{
+  width: 100%;
+  display: grid !important;
+  grid-template-columns: 90px 1fr 26px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px !important;
+  margin: 0 0 8px 0 !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: none !important;
+  min-height: 0 !important;
+}
+
+.tdt-day-left{
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 2px !important;
+  min-width: 0;
+}
+
+.tdt-day-date{
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  color: #f8fafc !important;
+}
+
+.tdt-day-meta{
+  font-size: 12px !important;
+  color: rgba(226,232,240,0.7) !important;
+  line-height: 1.1 !important;
+}
+
+.tdt-day-right{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 6px !important;
+  flex-wrap: nowrap !important;
+  min-width: 0;
+}
+
+.tdt-day-chip{
+  min-height: 26px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+}
+
+.tdt-day-chevron{
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  color: rgba(226,232,240,0.9) !important;
+  margin: 0 !important;
+  justify-self: end;
+}
+
+.tdt-day-body{
+  margin: 0 0 10px 0 !important;
+  padding: 0 !important;
+}
