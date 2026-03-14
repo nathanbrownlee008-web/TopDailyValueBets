@@ -2897,3 +2897,32 @@ body.layout-compact .vip-bar{
 .month-group:hover td{
   background:#162033;
 }
+
+
+/* ===== Auto-colour Value chips ===== */
+.stat-chip.value-high,
+.pill.value-high{
+  background: rgba(34,197,94,0.18) !important;
+  border-color: rgba(34,197,94,0.35) !important;
+  color: #86efac !important;
+}
+
+.stat-chip.value-medium,
+.pill.value-medium{
+  background: rgba(250,204,21,0.18) !important;
+  border-color: rgba(250,204,21,0.35) !important;
+  color: #fde68a !important;
+}
+
+.stat-chip.value-low,
+.pill.value-low{
+  background: rgba(239,68,68,0.18) !important;
+  border-color: rgba(239,68,68,0.35) !important;
+  color: #fca5a5 !important;
+}
+
+.stat-chip.value-high .stat-chip__k,
+.stat-chip.value-medium .stat-chip__k,
+.stat-chip.value-low .stat-chip__k{
+  opacity: 0.88;
+}

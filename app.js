@@ -425,7 +425,11 @@ async function loadBets(){
 
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
-    const valTxt = val != null ? Number(val).toFixed(1)+'%' : '—';
+    const valNum = val != null ? Number(val) : null;
+    const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
+    const valueClass = valNum != null && !Number.isNaN(valNum)
+      ? (valNum >= 6 ? ' value-high' : (valNum >= 3 ? ' value-medium' : ' value-low'))
+      : '';
     const teaser = teaserCopyForLockedBet(row, state);
     const unlockLabel = formatUnlockLabel(state);
 
@@ -442,7 +446,7 @@ async function loadBets(){
     </div>
     <div class="bet-details">
       <div class="bet-stats ${locked ? 'vip-blur-area' : ''}">
-        <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
+        <span class="stat-chip${valueClass}"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
       </div>
       <div class="bet-footer">
         <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
@@ -460,7 +464,7 @@ async function loadBets(){
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
         <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td><span class="pill">${escapeHtml(valTxt)}</span></td>
+        <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
         <td>${escapeHtml(betDate)}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
@@ -2137,18 +2141,3 @@ loadTracker = async function(){
   applyPersonalTrackerCollapseState();
 
 };
-
-
-setTimeout(()=>{
-document.querySelectorAll('.stat-chip').forEach(ch=>{
- const v = ch.querySelector('.stat-chip__v');
- const k = ch.querySelector('.stat-chip__k');
- if(!v || !k) return;
- if(k.textContent.trim() !== 'Value') return;
- const num = parseFloat(v.textContent.replace(/[^0-9.]/g,''));
- if(isNaN(num)) return;
- if(num>=6){ ch.style.background='rgba(34,197,94,0.18)'; ch.style.border='1px solid rgba(34,197,94,0.45)'; ch.style.color='#86efac';}
- else if(num>=3){ ch.style.background='rgba(250,204,21,0.18)'; ch.style.border='1px solid rgba(250,204,21,0.45)'; ch.style.color='#fde68a';}
- else{ ch.style.background='rgba(239,68,68,0.18)'; ch.style.border='1px solid rgba(239,68,68,0.45)'; ch.style.color='#fca5a5';}
-});
-},400);
