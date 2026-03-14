@@ -3378,3 +3378,36 @@ display:flex;
 justify-content:flex-start;
 margin-top:12px;
 }
+/* ===== BET CARD FINAL LAYOUT (SWAPPED) ===== */
+
+.bet-card{
+position:relative;
+padding-top:18px;
+padding-bottom:42px;
+}
+
+/* Date top right */
+
+.bet-date{
+position:absolute;
+top:16px;
+right:16px;
+font-size:12px;
+opacity:0.7;
+}
+
+/* Add button bottom right */
+
+.bet-btn{
+position:absolute;
+bottom:14px;
+right:16px;
+}
+
+/* Odds bottom left */
+
+.bet-footer{
+display:flex;
+justify-content:flex-start;
+margin-top:12px;
+}
