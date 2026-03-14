@@ -1886,3 +1886,160 @@ loadTracker = async function(){
   wirePersonalTrackerDateCollapse();
   applyPersonalTrackerCollapseState();
 };
+// ===== Personal Tracker: month grouping (visual only) =====
+function monthKeyFromDateLabel(dateLabel){
+  const txt = (dateLabel || "").replace(/^▼|^▶|^📅/, "").trim();
+  if(!txt) return "";
+
+  const parts = txt.split(" ");
+  if(parts.length < 2) return "";
+
+  const day = parts[0];
+  const mon = parts[1];
+  const yr = new Date().getFullYear();
+
+  const d = new Date(`${day} ${mon} ${yr}`);
+  if(Number.isNaN(d.getTime())) return "";
+
+  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+}
+
+function getPersonalTrackerMonthCollapseKey(){
+  const email = (localStorage.getItem("vip_email") || "guest").trim().toLowerCase();
+  return `personal_tracker_collapsed_months_${email}`;
+}
+
+function readPersonalTrackerMonthState(){
+  try{
+    return JSON.parse(localStorage.getItem(getPersonalTrackerMonthCollapseKey()) || "{}");
+  }catch(e){
+    return {};
+  }
+}
+
+function writePersonalTrackerMonthState(state){
+  localStorage.setItem(getPersonalTrackerMonthCollapseKey(), JSON.stringify(state || {}));
+}
+
+function addPersonalTrackerMonthGroups(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  table.querySelectorAll("tr.month-group").forEach(el => el.remove());
+
+  const rows = Array.from(table.querySelectorAll("tr"));
+  const dayGroups = rows.filter(r => r.classList.contains("date-group"));
+
+  let lastMonth = "";
+  dayGroups.forEach(groupRow => {
+    const cell = groupRow.querySelector("td");
+    if(!cell) return;
+
+    const month = monthKeyFromDateLabel(cell.textContent);
+    if(!month) return;
+
+    if(month !== lastMonth){
+      const divider = document.createElement("tr");
+      divider.className = "month-group";
+      divider.innerHTML = `<td colspan="5">▼ ${month}</td>`;
+      groupRow.parentNode.insertBefore(divider, groupRow);
+      lastMonth = month;
+    }
+  });
+}
+
+function applyPersonalTrackerMonthCollapseState(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const groups = Array.from(table.querySelectorAll("tr.month-group"));
+  if(!groups.length) return;
+
+  const state = readPersonalTrackerMonthState();
+  const newestMonth = groups[0]?.querySelector("td")?.textContent.replace(/^▼|^▶/, "").trim() || "";
+
+  if(state.__latestMonth !== newestMonth){
+    writePersonalTrackerMonthState({ __latestMonth: newestMonth });
+  }
+
+  const freshState = readPersonalTrackerMonthState();
+
+  groups.forEach((groupRow, index) => {
+    const cell = groupRow.querySelector("td");
+    if(!cell) return;
+
+    const rawText = cell.textContent.replace(/^▼|^▶/, "").trim();
+    const isNewest = index === 0;
+
+    const expanded = Object.prototype.hasOwnProperty.call(freshState, rawText)
+      ? !!freshState[rawText]
+      : isNewest;
+
+    groupRow.dataset.expanded = expanded ? "1" : "0";
+    cell.innerHTML = `${expanded ? "▼" : "▶"} ${rawText}`;
+
+    let next = groupRow.nextElementSibling;
+    while(next && !next.classList.contains("month-group")){
+      next.style.display = expanded ? "" : "none";
+      next = next.nextElementSibling;
+    }
+  });
+}
+
+function wirePersonalTrackerMonthCollapse(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const groups = Array.from(table.querySelectorAll("tr.month-group"));
+
+  groups.forEach(groupRow => {
+    if(groupRow.dataset.bound === "1") return;
+    groupRow.dataset.bound = "1";
+
+    groupRow.addEventListener("click", () => {
+      const cell = groupRow.querySelector("td");
+      if(!cell) return;
+
+      const rawText = cell.textContent.replace(/^▼|^▶/, "").trim();
+      const expanded = groupRow.dataset.expanded === "1";
+      const nextExpanded = !expanded;
+
+      groupRow.dataset.expanded = nextExpanded ? "1" : "0";
+      cell.innerHTML = `${nextExpanded ? "▼" : "▶"} ${rawText}`;
+
+      let next = groupRow.nextElementSibling;
+      while(next && !next.classList.contains("month-group")){
+        next.style.display = nextExpanded ? "" : "none";
+        next = next.nextElementSibling;
+      }
+
+      const state = readPersonalTrackerMonthState();
+      state[rawText] = nextExpanded;
+      state.__latestMonth = Array.from(document.querySelectorAll("#trackerTable tr.month-group"))[0]
+        ?.querySelector("td")
+        ?.textContent.replace(/^▼|^▶/, "").trim() || "";
+      writePersonalTrackerMonthState(state);
+    });
+  });
+}
+
+// final wrapper for month + day grouping
+const __originalLoadTrackerWithMonthGroups = loadTracker;
+loadTracker = async function(){
+  await __originalLoadTrackerWithMonthGroups();
+  addPersonalTrackerDateGroups();
+  addPersonalTrackerMonthGroups();
+  wirePersonalTrackerDateCollapse();
+  applyPersonalTrackerCollapseState();
+  wirePersonalTrackerMonthCollapse();
+  applyPersonalTrackerMonthCollapseState();
+};
