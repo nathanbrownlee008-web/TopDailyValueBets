@@ -2964,3 +2964,35 @@ body.layout-compact .vip-bar{
   align-self:flex-end;
   min-width:120px;
 }
+/* --- BET CARD VALUE + ODDS ROW --- */
+
+.bet-details{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin-top:16px;
+}
+
+.bet-bottom-left{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:10px;
+}
+
+.bet-stats{
+  margin:0;
+}
+
+.bet-footer{
+  margin:0;
+}
+
+.bet-footer .odds-badge{
+  margin:0;
+}
+
+.bet-btn{
+  align-self:flex-end;
+  min-width:120px;
+}
