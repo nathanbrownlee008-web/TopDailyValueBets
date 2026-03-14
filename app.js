@@ -589,7 +589,6 @@ function _applyTrackerFilters(rows){
 function _buildTrackerTableHTML(rows){
   let html = `<table>
     <tr>
-      <th>Date</th>
       <th>Match</th>
       <th>Stake</th>
       <th>Result</th>
@@ -609,7 +608,6 @@ function _buildTrackerTableHTML(rows){
     const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
 
     html += `<tr>
-      <td class="date-col">${dateLabel}</td>
       <td>${row.match || ""}</td>
       <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td>
@@ -890,7 +888,7 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
+<td>${row.match}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td>
 <select 
@@ -908,7 +906,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
