@@ -2863,3 +2863,11 @@ body.layout-compact .vip-bar{
   padding:16px 16px 14px !important;
   color:#e8eefc !important;
 }
+.date-group td{
+  background:#111827;
+  font-weight:700;
+  color:#9ca3af;
+  padding-top:14px;
+  padding-bottom:6px;
+  border-bottom:none;
+}
