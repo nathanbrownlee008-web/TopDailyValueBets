@@ -2897,3 +2897,34 @@ body.layout-compact .vip-bar{
 .month-group:hover td{
   background:#162033;
 }
+.bet-details{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.bet-bottom-left{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:8px;
+}
+
+.bet-stats{
+  margin-top:0;
+}
+
+.bet-footer{
+  margin-top:0;
+  justify-content:flex-start;
+}
+
+.odds-badge{
+  margin-top:0;
+}
+
+.bet-btn{
+  align-self:flex-end;
+  min-width:96px;
+}
