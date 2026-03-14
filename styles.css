@@ -2884,3 +2884,16 @@ body.layout-compact .vip-bar{
 .date-group:hover td{
   background:#182132;
 }
+.month-group td{
+  background:#0f172a;
+  font-weight:800;
+  color:#cbd5e1;
+  padding-top:16px;
+  padding-bottom:8px;
+  border-bottom:none;
+  cursor:pointer;
+}
+
+.month-group:hover td{
+  background:#162033;
+}
