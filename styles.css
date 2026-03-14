@@ -3312,3 +3312,36 @@ padding:14px 16px;
     align-items:flex-start;
   }
 }
+/* ===== BET CARD MOBILE LAYOUT FIX ===== */
+
+.bet-card{
+position:relative;
+padding-top:18px;
+}
+
+.bet-btn{
+position:absolute;
+top:16px;
+right:16px;
+}
+
+.bet-meta{
+margin-bottom:8px;
+}
+
+.bet-footer{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:10px;
+}
+
+.bet-footer .odds-badge{
+order:2;
+}
+
+.bet-footer .bet-date{
+order:1;
+opacity:0.7;
+font-size:12px;
+}
