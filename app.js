@@ -1,4 +1,72 @@
 
+let tdtResultsOnlyChart;
+
+function renderTdtResultsOnlyChart(rows){
+  const el = document.getElementById("tdtResultsOnlyChart");
+  if(!el || typeof Chart === "undefined") return;
+
+  if(tdtResultsOnlyChart){
+    tdtResultsOnlyChart.destroy();
+    tdtResultsOnlyChart = null;
+  }
+
+  const safeRows = (Array.isArray(rows) ? rows : []).slice();
+
+  const labels = [];
+  const points = [];
+  let runningProfit = 0;
+
+  safeRows.forEach((row, i)=>{
+    const result = String(row?.result || "pending").toLowerCase();
+    let p = 0;
+
+    if(result === "won"){
+      p = row.profit != null
+        ? Number(row.profit)
+        : Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+    }else if(result === "lost"){
+      p = row.profit != null
+        ? Number(row.profit)
+        : -Number(row.stake || 0);
+    }
+
+    runningProfit += p;
+
+    labels.push(i+1);
+    points.push(Number(runningProfit.toFixed(2)));
+  });
+
+  const ctx = el.getContext("2d");
+
+  tdtResultsOnlyChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "TDT Profit",
+        data: points,
+        borderWidth: 3,
+        tension: 0.25,
+        borderColor: "rgba(34,197,94,1)",
+        backgroundColor: "rgba(34,197,94,0.12)",
+        fill: true,
+        pointRadius: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{ticks:{callback:(v)=>`£${v}`}},
+        x:{display:false}
+      }
+    }
+  });
+}
+
+
+
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -871,9 +939,9 @@ wireTrackerFilters();
 let start=parseFloat(document.getElementById("startingBankroll").value);
 let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
 let dailyLabels=[];
-let dayKeys=[];
+let lastDayKey="";
 
-	const tableRows = [];
+	let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 
 rows.forEach(row=>{
 let p=0;
@@ -884,12 +952,10 @@ bankroll=start+profit;
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
 const dayKey = fmtDayLabel(gameDate);
-const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
-dayKeys.push(dayKey);
-dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
+dailyLabels.push(dayKey);
 history.push(bankroll);
 
-tableRows.push(`<tr>
+html+=`<tr>
 <td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td>
@@ -905,11 +971,9 @@ onchange="updateResult('${row.id}',this.value)">
 <td class="profit-col">
 <span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span>
 </td>
-</tr>`);
+</tr>`;
 });
 
-let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
-html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
 
@@ -938,7 +1002,7 @@ if(profit>0) profitCard.classList.add("glow-green");
 if(profit<0) profitCard.classList.add("glow-red");
 
 
-renderDailyChart(history, dailyLabels, dayKeys);
+renderDailyChart(history, dailyLabels);
 
 // ---- Monthly & Market analytics (tabs + mini summary) ----
 const countElem = document.getElementById("betCount");
@@ -1131,6 +1195,40 @@ function tdtSortArrow(key){
   return tdtSortDir === 'asc' ? '▲' : '▼';
 }
 
+
+function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds }){
+  const tdtRoiVal = totalStake ? ((profit / totalStake) * 100) : 0;
+  const tdtWinrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
+  const tdtAvgOddsVal = resolvedCount ? (totalOdds / resolvedCount) : 0;
+
+  const roiFill = document.getElementById("tdtRoiBarFill");
+  const roiLabel = document.getElementById("tdtRoiBarLabel");
+  if(roiFill && roiLabel){
+    const width = Math.max(0, Math.min(100, Math.abs(tdtRoiVal)));
+    roiFill.style.width = width + "%";
+    roiFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red");
+    roiFill.classList.add(tdtRoiVal >= 0 ? "tdt-perf-fill--green" : "tdt-perf-fill--red");
+    roiLabel.textContent = `${tdtRoiVal.toFixed(1)}%`;
+  }
+
+  const winFill = document.getElementById("tdtWinrateBarFill");
+  const winLabel = document.getElementById("tdtWinrateBarLabel");
+  if(winFill && winLabel){
+    const width = Math.max(0, Math.min(100, tdtWinrateVal));
+    winFill.style.width = width + "%";
+    winLabel.textContent = `${tdtWinrateVal.toFixed(1)}%`;
+  }
+
+  const oddsFill = document.getElementById("tdtAvgOddsBarFill");
+  const oddsLabel = document.getElementById("tdtAvgOddsBarLabel");
+  if(oddsFill && oddsLabel){
+    const maxOdds = 5;
+    const width = Math.max(0, Math.min(100, (tdtAvgOddsVal / maxOdds) * 100));
+    oddsFill.style.width = width + "%";
+    oddsLabel.textContent = tdtAvgOddsVal.toFixed(2);
+  }
+}
+
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
@@ -1138,6 +1236,7 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
+renderTdtResultsOnlyChart(rows);
 
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
 
@@ -1245,6 +1344,7 @@ async function loadTdtTracker(){
     set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
     set("tdtTotalBets", rows.length);
     set("tdtBetCount", rows.length);
+    updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
   }catch(err){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
@@ -1345,31 +1445,14 @@ loadTracker = async function(){
 
 
 
-function renderDailyChart(history, labels, dayKeys){
+function renderDailyChart(history, labels){
   const el = document.getElementById("chart");
   if(!el) return;
   if(dailyChart) dailyChart.destroy();
 
   const safeHistory = Array.isArray(history) ? history : [];
   const safeLabels = Array.isArray(labels) ? labels : [];
-  const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
   const ctx = el.getContext("2d");
-
-  const pointRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 3 : 0;
-  });
-  const pointHoverRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 5 : 0;
-  });
-  const pointHitRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 14 : 0;
-  });
 
   dailyChart = new Chart(ctx,{
     type:"line",
@@ -1382,28 +1465,25 @@ function renderDailyChart(history, labels, dayKeys){
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:pointRadius,
-        pointHoverRadius:pointHoverRadius,
-        pointHitRadius:pointHitRadius,
+        pointRadius:safeHistory.length > 1 ? 3 : 4,
+        pointHoverRadius:5,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      interaction:{mode:"nearest", intersect:false},
       plugins:{
         legend:{display:false},
         tooltip:{
           callbacks:{
-            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
       },
       scales:{
         x:{
-          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
+          ticks:{color:"rgba(226,232,240,0.78)"},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
