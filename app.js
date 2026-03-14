@@ -2294,13 +2294,13 @@ chip.classList.add("low");
 },500);
 setTimeout(()=>{
 
-document.querySelectorAll("*").forEach(el=>{
+document.querySelectorAll(".chip, .stat-chip").forEach(el=>{
 
-if(el.innerText && el.innerText.includes("Value")){
+if(el.innerText.includes("Value")){
 
 const num = parseFloat(el.innerText.replace(/[^0-9.]/g,""));
 
-if(!isNaN(num)){
+el.classList.remove("value-high","value-medium","value-low");
 
 if(num >= 6){
 el.classList.add("value-high");
@@ -2310,8 +2310,6 @@ el.classList.add("value-medium");
 }
 else{
 el.classList.add("value-low");
-}
-
 }
 
 }
