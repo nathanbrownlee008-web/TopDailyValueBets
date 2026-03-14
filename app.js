@@ -874,6 +874,7 @@ let dailyLabels=[];
 let lastDayKey="";
 
 	let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+const tableRows = [];
 
 rows.forEach(row=>{
 let p=0;
@@ -887,7 +888,7 @@ const dayKey = fmtDayLabel(gameDate);
 dailyLabels.push(dayKey);
 history.push(bankroll);
 
-html+=`<tr>
+tableRows.push(`<tr>
 <td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td>
@@ -903,9 +904,10 @@ onchange="updateResult('${row.id}',this.value)">
 <td class="profit-col">
 <span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span>
 </td>
-</tr>`;
+</tr>`);
 });
 
+html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
 
@@ -1127,40 +1129,6 @@ function tdtSortArrow(key){
   return tdtSortDir === 'asc' ? '▲' : '▼';
 }
 
-
-function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds }){
-  const tdtRoiVal = totalStake ? ((profit / totalStake) * 100) : 0;
-  const tdtWinrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
-  const tdtAvgOddsVal = resolvedCount ? (totalOdds / resolvedCount) : 0;
-
-  const roiFill = document.getElementById("tdtRoiBarFill");
-  const roiLabel = document.getElementById("tdtRoiBarLabel");
-  if(roiFill && roiLabel){
-    const width = Math.max(0, Math.min(100, Math.abs(tdtRoiVal)));
-    roiFill.style.width = width + "%";
-    roiFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red");
-    roiFill.classList.add(tdtRoiVal >= 0 ? "tdt-perf-fill--green" : "tdt-perf-fill--red");
-    roiLabel.textContent = `${tdtRoiVal.toFixed(1)}%`;
-  }
-
-  const winFill = document.getElementById("tdtWinrateBarFill");
-  const winLabel = document.getElementById("tdtWinrateBarLabel");
-  if(winFill && winLabel){
-    const width = Math.max(0, Math.min(100, tdtWinrateVal));
-    winFill.style.width = width + "%";
-    winLabel.textContent = `${tdtWinrateVal.toFixed(1)}%`;
-  }
-
-  const oddsFill = document.getElementById("tdtAvgOddsBarFill");
-  const oddsLabel = document.getElementById("tdtAvgOddsBarLabel");
-  if(oddsFill && oddsLabel){
-    const maxOdds = 5;
-    const width = Math.max(0, Math.min(100, (tdtAvgOddsVal / maxOdds) * 100));
-    oddsFill.style.width = width + "%";
-    oddsLabel.textContent = tdtAvgOddsVal.toFixed(2);
-  }
-}
-
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
@@ -1275,7 +1243,6 @@ async function loadTdtTracker(){
     set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
     set("tdtTotalBets", rows.length);
     set("tdtBetCount", rows.length);
-    updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
   }catch(err){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
