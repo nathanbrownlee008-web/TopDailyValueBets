@@ -2897,3 +2897,123 @@ body.layout-compact .vip-bar{
 .month-group:hover td{
   background:#162033;
 }
+/* --- TDT DAY HEADER CARD CLEANUP --- */
+
+.tdt-day-card{
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin: 0 0 14px;
+}
+
+.tdt-day-head{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+}
+
+.tdt-day-left{
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.tdt-day-date{
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #f8fafc;
+}
+
+.tdt-day-meta{
+  font-size: 14px;
+  color: rgba(226,232,240,0.72);
+}
+
+.tdt-day-right{
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tdt-day-chip{
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.tdt-day-chip.win{
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.35);
+  color: #dcfce7;
+}
+
+.tdt-day-chip.loss{
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.35);
+  color: #fee2e2;
+}
+
+.tdt-day-chip.ratio{
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.35);
+  color: #dcfce7;
+}
+
+.tdt-day-chevron{
+  font-size: 20px;
+  font-weight: 900;
+  color: rgba(226,232,240,0.92);
+  margin-left: 4px;
+}
+
+.tdt-day-body{
+  margin-top: 10px;
+  padding: 0 4px;
+}
+
+@media (max-width: 700px){
+  .tdt-day-head{
+    padding: 14px 14px;
+    border-radius: 18px;
+  }
+
+  .tdt-day-date{
+    font-size: 16px;
+  }
+
+  .tdt-day-meta{
+    font-size: 13px;
+  }
+
+  .tdt-day-right{
+    gap: 6px;
+  }
+
+  .tdt-day-chip{
+    min-height: 30px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .tdt-day-chevron{
+    font-size: 18px;
+  }
+}
