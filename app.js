@@ -434,9 +434,9 @@ async function loadBets(){
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
       <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
+      <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
-        <span class="bet-date">${escapeHtml(betDate)}</span>
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
@@ -2271,48 +2271,3 @@ ${button ? button.outerHTML : ""}
     setTimeout(restyleValueBetCards, 300);
   });
 })();
-/* ===== VALUE BET CARD LAYOUT TEST (DESIGN 3) ===== */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  setTimeout(() => {
-
-    document.querySelectorAll(".bet-card").forEach(card => {
-
-      const title = card.querySelector(".bet-title")?.innerText || "";
-      const market = card.querySelector(".bet-market")?.innerText || "";
-      const date = card.querySelector(".bet-date")?.innerText || "";
-      const bookie = card.innerText.match(/Bookie:\s*([^\n]+)/)?.[1] || "";
-      const value = card.innerText.match(/Value\s*([0-9.]+%)/)?.[1] || "";
-      const odds = card.innerText.match(/Odds\s*([0-9.]+)/)?.[1] || "";
-
-      const button = card.querySelector(".bet-btn");
-
-      card.innerHTML = `
-        <div class="bet-title">${title}</div>
-
-        <div class="bet-info-box">
-
-          <div class="bet-info-row">
-            <span class="bet-market">${market}</span>
-            <span class="bet-date">${date}</span>
-          </div>
-
-          <div class="bet-info-row">
-            <span>Bookie: ${bookie}</span>
-            <span class="stat-chip">Value ${value}</span>
-          </div>
-
-        </div>
-
-        <div class="bet-footer">
-          <span class="odds-badge">Odds ${odds}</span>
-          ${button ? button.outerHTML : ""}
-        </div>
-      `;
-
-    });
-
-  }, 500);
-
-});
