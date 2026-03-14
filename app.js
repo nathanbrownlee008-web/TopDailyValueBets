@@ -2163,3 +2163,48 @@ loadTracker = async function(){
   applyPersonalTrackerCollapseState();
 
 };
+/* ===== FORCE CLEAN VALUE BET CARD LAYOUT ===== */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+setTimeout(()=>{
+
+document.querySelectorAll(".bet-card").forEach(card=>{
+
+const title = card.querySelector(".bet-title")?.innerText || "";
+const market = card.querySelector(".bet-market")?.innerText || "";
+const date = card.querySelector(".bet-date")?.innerText || "";
+const bookie = card.innerHTML.match(/Bookie:\s*([^<]+)/)?.[1] || "";
+const value = card.innerHTML.match(/Value\s*([0-9.]+%)/)?.[1] || "";
+const odds = card.innerHTML.match(/Odds\s*([0-9.]+)/)?.[1] || "";
+
+const button = card.querySelector(".bet-btn");
+
+card.innerHTML = `
+<div class="bet-layout">
+
+<div class="bet-teams">${title}</div>
+
+<div class="bet-market-line">
+<span class="bet-market">${market}</span>
+<span class="bet-date">${date}</span>
+</div>
+
+<div class="bet-info-line">
+<span class="bet-bookie">Bookie: ${bookie}</span>
+<span class="bet-value">Value ${value}</span>
+</div>
+
+<div class="bet-bottom-line">
+<span class="bet-odds">Odds ${odds}</span>
+${button ? button.outerHTML : ""}
+</div>
+
+</div>
+`;
+
+});
+
+},500);
+
+});
