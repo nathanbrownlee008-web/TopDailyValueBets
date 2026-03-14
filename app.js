@@ -1721,3 +1721,49 @@ loadTracker = async function(){
   await __originalLoadTrackerWithCount();
   addPersonalTrackerDateGroups();
 };
+// ===== Personal Tracker: collapsible date groups =====
+function wirePersonalTrackerDateCollapse(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const groups = Array.from(table.querySelectorAll("tr.date-group"));
+
+  groups.forEach(groupRow => {
+    if (groupRow.dataset.bound === "1") return;
+    groupRow.dataset.bound = "1";
+    groupRow.dataset.expanded = "1";
+
+    const cell = groupRow.querySelector("td");
+    if (!cell) return;
+
+    const rawText = cell.textContent.replace(/^▼|^▶/, "").trim();
+    cell.innerHTML = `▼ ${rawText}`;
+
+    groupRow.addEventListener("click", () => {
+      const expanded = groupRow.dataset.expanded === "1";
+      groupRow.dataset.expanded = expanded ? "0" : "1";
+
+      const label = groupRow.querySelector("td");
+      if (label) {
+        label.innerHTML = `${expanded ? "▶" : "▼"} ${rawText}`;
+      }
+
+      let next = groupRow.nextElementSibling;
+      while (next && !next.classList.contains("date-group")) {
+        next.style.display = expanded ? "none" : "";
+        next = next.nextElementSibling;
+      }
+    });
+  });
+}
+
+// re-wrap the current loadTracker safely
+const __originalLoadTrackerWithDateGroups = loadTracker;
+loadTracker = async function(){
+  await __originalLoadTrackerWithDateGroups();
+  addPersonalTrackerDateGroups();
+  wirePersonalTrackerDateCollapse();
+};
