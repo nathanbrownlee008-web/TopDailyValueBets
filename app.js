@@ -2208,3 +2208,66 @@ ${button ? button.outerHTML : ""}
 },500);
 
 });
+/* ===== FORCE VALUE BET CARD LAYOUT OVERRIDE ===== */
+(function(){
+  const __oldLoadBets = loadBets;
+
+  function restyleValueBetCards(){
+    document.querySelectorAll('#betsGrid .bet-card').forEach((card)=>{
+      const titleEl = card.querySelector('.bet-title');
+      const marketEl = card.querySelector('.bet-market');
+      const dateEl = card.querySelector('.bet-date');
+      const bookieEl = card.querySelector('.bet-bookie');
+      const valueEl = card.querySelector('.stat-chip');
+      const oddsEl = card.querySelector('.odds-badge');
+      const btnEl = card.querySelector('.bet-btn');
+      const teaserEl = card.querySelector('.vip-teaser-line');
+      const teaserSubEl = card.querySelector('.vip-teaser-subline');
+      const locked = card.classList.contains('bet-card--locked');
+
+      const teams = titleEl ? titleEl.outerHTML : '';
+      const market = marketEl ? marketEl.outerHTML : '';
+      const date = dateEl ? dateEl.outerHTML : '';
+      const bookie = bookieEl ? `<span class="bet-bookie-row">${bookieEl.textContent}</span>` : '';
+      const value = valueEl ? valueEl.outerHTML : '';
+      const odds = oddsEl ? oddsEl.outerHTML : '';
+      const btn = btnEl ? btnEl.outerHTML : '';
+      const teaser = teaserEl ? teaserEl.outerHTML : '';
+      const teaserSub = teaserSubEl ? teaserSubEl.outerHTML : '';
+
+      card.innerHTML = `
+        <div class="bet-layout">
+          ${teams}
+
+          <div class="bet-market-line">
+            ${market}
+            ${date}
+          </div>
+
+          ${
+            locked
+              ? `<div class="bet-locked-copy">${teaser}${teaserSub}</div>`
+              : `<div class="bet-info-line">
+                   ${bookie}
+                   ${value}
+                 </div>`
+          }
+
+          <div class="bet-bottom-line">
+            ${odds}
+            ${btn}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  loadBets = async function(){
+    await __oldLoadBets();
+    restyleValueBetCards();
+  };
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    setTimeout(restyleValueBetCards, 300);
+  });
+})();
