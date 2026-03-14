@@ -2928,36 +2928,37 @@ body.layout-compact .vip-bar{
 }
 
 
-/* ===== Value card layout A ===== */
-.bet-left{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
+/* --- Layout upgrade: Odds then Value + better spacing --- */
 
-.bet-details{
-  margin-top:8px;
+.bet-left{
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
 }
 
 .bet-footer{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:12px;
-  margin-top:0;
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+margin-top:12px;
 }
 
-.bet-footer .bet-btn{
-  margin-left:auto;
+.bet-market{
+display:block;
+font-size:16px;
+font-weight:800;
+color:#d8fff0;
+letter-spacing:0.2px;
+margin-bottom:10px;
 }
 
-@media (max-width: 600px){
-  .bet-left{
-    gap:8px;
-  }
-
-  .bet-footer{
-    align-items:flex-end;
-  }
+.bet-bookie{
+display:block;
+margin-top:0;
+margin-bottom:14px;
+font-size:14px;
+font-weight:700;
+color:rgba(226,232,240,0.96);
 }
