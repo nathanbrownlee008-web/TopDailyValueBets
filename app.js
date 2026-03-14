@@ -871,9 +871,9 @@ wireTrackerFilters();
 let start=parseFloat(document.getElementById("startingBankroll").value);
 let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
 let dailyLabels=[];
-let lastDayKey="";
+let dayKeys=[];
 
-	let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+	const tableRows = [];
 
 rows.forEach(row=>{
 let p=0;
@@ -884,10 +884,12 @@ bankroll=start+profit;
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
 const dayKey = fmtDayLabel(gameDate);
-dailyLabels.push(dayKey);
+const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
+dayKeys.push(dayKey);
+dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
-html+=`<tr>
+tableRows.push(`<tr>
 <td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td>
@@ -903,9 +905,11 @@ onchange="updateResult('${row.id}',this.value)">
 <td class="profit-col">
 <span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span>
 </td>
-</tr>`;
+</tr>`);
 });
 
+let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
 
@@ -934,7 +938,7 @@ if(profit>0) profitCard.classList.add("glow-green");
 if(profit<0) profitCard.classList.add("glow-red");
 
 
-renderDailyChart(history, dailyLabels);
+renderDailyChart(history, dailyLabels, dayKeys);
 
 // ---- Monthly & Market analytics (tabs + mini summary) ----
 const countElem = document.getElementById("betCount");
@@ -1376,14 +1380,31 @@ loadTracker = async function(){
 
 
 
-function renderDailyChart(history, labels){
+function renderDailyChart(history, labels, dayKeys){
   const el = document.getElementById("chart");
   if(!el) return;
   if(dailyChart) dailyChart.destroy();
 
   const safeHistory = Array.isArray(history) ? history : [];
   const safeLabels = Array.isArray(labels) ? labels : [];
+  const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
   const ctx = el.getContext("2d");
+
+  const pointRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 3 : 0;
+  });
+  const pointHoverRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 5 : 0;
+  });
+  const pointHitRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 14 : 0;
+  });
 
   dailyChart = new Chart(ctx,{
     type:"line",
@@ -1396,25 +1417,28 @@ function renderDailyChart(history, labels){
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:safeHistory.length > 1 ? 3 : 4,
-        pointHoverRadius:5,
+        pointRadius:pointRadius,
+        pointHoverRadius:pointHoverRadius,
+        pointHitRadius:pointHitRadius,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
     options:{
       responsive:true,
       maintainAspectRatio:false,
+      interaction:{mode:"nearest", intersect:false},
       plugins:{
         legend:{display:false},
         tooltip:{
           callbacks:{
+            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
       },
       scales:{
         x:{
-          ticks:{color:"rgba(226,232,240,0.78)"},
+          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
