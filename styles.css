@@ -2926,3 +2926,38 @@ body.layout-compact .vip-bar{
 .stat-chip.value-low .stat-chip__k{
   opacity: 0.88;
 }
+
+
+/* ===== Value card layout A ===== */
+.bet-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.bet-details{
+  margin-top:8px;
+}
+
+.bet-footer{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:0;
+}
+
+.bet-footer .bet-btn{
+  margin-left:auto;
+}
+
+@media (max-width: 600px){
+  .bet-left{
+    gap:8px;
+  }
+
+  .bet-footer{
+    align-items:flex-end;
+  }
+}
