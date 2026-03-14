@@ -2336,3 +2336,28 @@ setTimeout(() => {
     }
   });
 }, 500);
+setTimeout(() => {
+
+document.querySelectorAll(".chip, .stat-chip").forEach(chip => {
+
+const text = chip.textContent || "";
+
+if(text.includes("Value")){
+
+const num = parseFloat(text.replace(/[^0-9.]/g,""));
+
+if(num >= 6){
+chip.classList.add("value-green");
+}
+else if(num >= 3){
+chip.classList.add("value-yellow");
+}
+else{
+chip.classList.add("value-red");
+}
+
+}
+
+});
+
+},500);
