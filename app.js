@@ -2271,3 +2271,48 @@ ${button ? button.outerHTML : ""}
     setTimeout(restyleValueBetCards, 300);
   });
 })();
+/* ===== VALUE BET CARD LAYOUT TEST (DESIGN 3) ===== */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  setTimeout(() => {
+
+    document.querySelectorAll(".bet-card").forEach(card => {
+
+      const title = card.querySelector(".bet-title")?.innerText || "";
+      const market = card.querySelector(".bet-market")?.innerText || "";
+      const date = card.querySelector(".bet-date")?.innerText || "";
+      const bookie = card.innerText.match(/Bookie:\s*([^\n]+)/)?.[1] || "";
+      const value = card.innerText.match(/Value\s*([0-9.]+%)/)?.[1] || "";
+      const odds = card.innerText.match(/Odds\s*([0-9.]+)/)?.[1] || "";
+
+      const button = card.querySelector(".bet-btn");
+
+      card.innerHTML = `
+        <div class="bet-title">${title}</div>
+
+        <div class="bet-info-box">
+
+          <div class="bet-info-row">
+            <span class="bet-market">${market}</span>
+            <span class="bet-date">${date}</span>
+          </div>
+
+          <div class="bet-info-row">
+            <span>Bookie: ${bookie}</span>
+            <span class="stat-chip">Value ${value}</span>
+          </div>
+
+        </div>
+
+        <div class="bet-footer">
+          <span class="odds-badge">Odds ${odds}</span>
+          ${button ? button.outerHTML : ""}
+        </div>
+      `;
+
+    });
+
+  }, 500);
+
+});
