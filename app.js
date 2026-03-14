@@ -2292,3 +2292,30 @@ chip.classList.add("low");
 });
 
 },500);
+setTimeout(()=>{
+
+document.querySelectorAll("*").forEach(el=>{
+
+if(el.innerText && el.innerText.includes("Value")){
+
+const num = parseFloat(el.innerText.replace(/[^0-9.]/g,""));
+
+if(!isNaN(num)){
+
+if(num >= 6){
+el.classList.add("value-high");
+}
+else if(num >= 3){
+el.classList.add("value-medium");
+}
+else{
+el.classList.add("value-low");
+}
+
+}
+
+}
+
+});
+
+},500);
