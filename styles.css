@@ -3546,3 +3546,10 @@ background:rgba(239,68,68,0.18) !important;
 border:1px solid rgba(239,68,68,0.35) !important;
 color:#fca5a5 !important;
 }
+/* highlight value chip only */
+.chip:has(span:contains("Value")),
+.stat-chip:has(span:contains("Value")){
+  background: rgba(34,197,94,0.18);
+  border: 1px solid rgba(34,197,94,0.35);
+  color: #86efac;
+}
