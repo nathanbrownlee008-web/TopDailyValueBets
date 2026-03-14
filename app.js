@@ -2043,3 +2043,95 @@ loadTracker = async function(){
   wirePersonalTrackerMonthCollapse();
   applyPersonalTrackerMonthCollapseState();
 };
+/* =========================
+   PERSONAL TRACKER COLLAPSE FIX
+   Keeps:
+   - Month groups
+   - Day groups
+   - Only current day open
+   - Fixes double-click collapse
+   ========================= */
+
+function getNewestPersonalTrackerDay(){
+  const groups = Array.from(document.querySelectorAll("#trackerTable tr.date-group"));
+  if(!groups.length) return "";
+  const first = groups[0].querySelector("td");
+  if(!first) return "";
+  return first.textContent.replace(/^▼|^▶|^📅/, "").trim();
+}
+
+function applyPersonalTrackerCollapseState(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const saved = readPersonalTrackerCollapseState();
+  const newestDay = getNewestPersonalTrackerDay();
+
+  if(saved.__latestDay !== newestDay){
+    const resetState = { __latestDay: newestDay };
+    writePersonalTrackerCollapseState(resetState);
+  }
+
+  const state = readPersonalTrackerCollapseState();
+  const groups = Array.from(table.querySelectorAll("tr.date-group"));
+
+  groups.forEach((groupRow, index) => {
+
+    const cell = groupRow.querySelector("td");
+    if(!cell) return;
+
+    const rawText = cell.textContent.replace(/^▼|^▶|^📅/, "").trim();
+    const isNewest = index === 0;
+
+    const expanded = Object.prototype.hasOwnProperty.call(state, rawText)
+      ? !!state[rawText]
+      : isNewest;
+
+    groupRow.dataset.expanded = expanded ? "1" : "0";
+    cell.innerHTML = `${expanded ? "▼" : "▶"} ${rawText}`;
+
+    let next = groupRow.nextElementSibling;
+
+    while(next && !next.classList.contains("date-group") && !next.classList.contains("month-group")){
+      next.style.display = expanded ? "" : "none";
+      next = next.nextElementSibling;
+    }
+
+  });
+
+}
+
+/* ---------- final safe wrapper ---------- */
+
+const __originalLoadTrackerFinal = loadTracker;
+
+loadTracker = async function(){
+
+  await __originalLoadTrackerFinal();
+
+  if(typeof addPersonalTrackerDateGroups === "function"){
+    addPersonalTrackerDateGroups();
+  }
+
+  if(typeof addPersonalTrackerMonthGroups === "function"){
+    addPersonalTrackerMonthGroups();
+  }
+
+  if(typeof wirePersonalTrackerDateCollapse === "function"){
+    wirePersonalTrackerDateCollapse();
+  }
+
+  if(typeof wirePersonalTrackerMonthCollapse === "function"){
+    wirePersonalTrackerMonthCollapse();
+  }
+
+  if(typeof applyPersonalTrackerMonthCollapseState === "function"){
+    applyPersonalTrackerMonthCollapseState();
+  }
+
+  applyPersonalTrackerCollapseState();
+
+};
