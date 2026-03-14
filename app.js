@@ -2317,3 +2317,22 @@ el.classList.add("value-low");
 });
 
 },500);
+setTimeout(() => {
+  document.querySelectorAll('.stat-chip').forEach(chip => {
+    const txt = chip.textContent || '';
+    if (!txt.includes('Value')) return;
+
+    const num = parseFloat(txt.replace(/[^0-9.]/g, ''));
+    if (isNaN(num)) return;
+
+    chip.classList.remove('value-high', 'value-medium', 'value-low');
+
+    if (num >= 6) {
+      chip.classList.add('value-high');
+    } else if (num >= 3) {
+      chip.classList.add('value-medium');
+    } else {
+      chip.classList.add('value-low');
+    }
+  });
+}, 500);
