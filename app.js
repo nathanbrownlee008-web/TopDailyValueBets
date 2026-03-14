@@ -1097,27 +1097,10 @@ function getTdtRowDayKey(row){
   return `${y}-${m}-${d}`;
 }
 
-function getTdtRowMonthKey(row){
-  const raw = getTdtRowDateValue(row);
-  const dt = new Date(raw);
-  if(Number.isNaN(dt.getTime())) return 'Unknown';
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth()+1).padStart(2,'0');
-  return `${y}-${m}`;
-}
-
 function fmtTdtDayHeader(dayKey){
   const dt = new Date(`${dayKey}T12:00:00`);
   if(Number.isNaN(dt.getTime())) return dayKey;
   return dt.toLocaleDateString('en-GB',{ weekday:'short', day:'2-digit', month:'short' });
-}
-
-function fmtTdtMonthHeader(monthKey){
-  const parts = String(monthKey || '').split('-');
-  if(parts.length !== 2) return monthKey || 'Unknown';
-  const dt = new Date(`${parts[0]}-${parts[1]}-01T12:00:00`);
-  if(Number.isNaN(dt.getTime())) return monthKey || 'Unknown';
-  return dt.toLocaleDateString('en-GB',{ month:'long', year:'numeric' });
 }
 
 function getTdtSortValue(row, key){
@@ -1213,58 +1196,49 @@ async function loadTdtTracker(){
     const sortedRows = sortTdtRows(rows);
     const groups = [];
     const map = new Map();
-
     sortedRows.forEach(row=>{
-      const key = getTdtRowMonthKey(row);
+      const key = getTdtRowDayKey(row);
       if(!map.has(key)){
-        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0, profit:0 };
+        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0 };
         map.set(key, group);
         groups.push(group);
       }
       const group = map.get(key);
       group.rows.push(row);
       const result = String(row.result || 'pending').toLowerCase();
-      const rowProfitVal = result === 'won'
-        ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
-        : result === 'lost'
-        ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
-        : 0;
-      group.profit += rowProfitVal;
       if(result === 'won'){ group.wins++; group.settled++; }
       else if(result === 'lost'){ group.losses++; group.settled++; }
       else { group.pending++; }
     });
 
-    let html = `<div class="tdt-groups-wrap tdt-month-groups">`;
+    let html = `<div class="tdt-groups-wrap">`;
 
     groups.forEach((group, idx)=>{
-      const monthWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
-      const profitClass = group.profit > 0 ? 'profit-win' : group.profit < 0 ? 'profit-loss' : '';
-      const profitLabel = `${group.profit >= 0 ? '+' : '-'}£${Math.abs(group.profit).toFixed(2)}`;
+      const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
       html += `
-        <div class="tdt-month-card">
-          <button class="tdt-month-head" type="button" onclick="toggleTdtMonth(this)">
-            <div class="tdt-month-left">
-              <div class="tdt-month-title">${escapeHtml(fmtTdtMonthHeader(group.key))}</div>
-              <div class="tdt-month-meta">${group.rows.length} result${group.rows.length === 1 ? '' : 's'} • <span class="${profitClass}">${profitLabel}</span></div>
+        <div class="tdt-day-card">
+          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
+            <div class="tdt-day-left">
+              <div class="tdt-day-date">${escapeHtml(fmtTdtDayHeader(group.key))}</div>
+              <div class="tdt-day-meta">${group.rows.length} bet${group.rows.length === 1 ? '' : 's'}</div>
             </div>
-            <div class="tdt-month-right">
+            <div class="tdt-day-right">
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
-              <span class="tdt-day-chip ratio ${tdtWinrateClass(monthWinrate)}">Winrate ${monthWinrate}%</span>
-              <span class="tdt-month-chevron">${idx === 0 ? '▼' : '▶'}</span>
+              <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
+              <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
             </div>
           </button>
-          <div class="tdt-month-body" style="display:${idx === 0 ? 'block' : 'none'};">
-            <div class="tdt-table-wrap tdt-month-table-wrap">
-              <table class="tdt-table tdt-table-fit tdt-month-table">
+          <div class="tdt-day-body" style="display:${idx === 0 ? 'block' : 'none'};">
+            <div class="tdt-table-wrap">
+              <table class="tdt-table tdt-table-fit">
                 <thead>
                   <tr>
-                    <th class="tdt-col-date sortable" onclick="sortTdtTable('date')">Day <span>${tdtSortArrow('date')}</span></th>
                     <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
                     <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
+                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
                     <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
-                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">✅/❌ <span>${tdtSortArrow('result')}</span></th>
+                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${tdtSortArrow('result')}</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1275,9 +1249,9 @@ async function loadTdtTracker(){
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
         html += `
           <tr class="tdt-row ${result}">
-            <td class="tdt-date">${escapeHtml(fmtDayLabel(getTdtRowDateValue(row)))}</td>
             <td class="tdt-match">${escapeHtml(row.match || '')}</td>
             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
             <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
           </tr>
@@ -1315,9 +1289,9 @@ async function loadTdtTracker(){
 
 
 
-function toggleTdtMonth(btn){
+function toggleTdtDay(btn){
   const body = btn ? btn.nextElementSibling : null;
-  const chev = btn ? btn.querySelector(".tdt-month-chevron") : null;
+  const chev = btn ? btn.querySelector(".tdt-day-chevron") : null;
   if(!body) return;
   const isHidden = body.style.display === "none";
   body.style.display = isHidden ? "block" : "none";
@@ -2163,234 +2137,18 @@ loadTracker = async function(){
   applyPersonalTrackerCollapseState();
 
 };
-/* ===== FORCE CLEAN VALUE BET CARD LAYOUT ===== */
 
-document.addEventListener("DOMContentLoaded", () => {
 
 setTimeout(()=>{
-
-document.querySelectorAll(".bet-card").forEach(card=>{
-
-const title = card.querySelector(".bet-title")?.innerText || "";
-const market = card.querySelector(".bet-market")?.innerText || "";
-const date = card.querySelector(".bet-date")?.innerText || "";
-const bookie = card.innerHTML.match(/Bookie:\s*([^<]+)/)?.[1] || "";
-const value = card.innerHTML.match(/Value\s*([0-9.]+%)/)?.[1] || "";
-const odds = card.innerHTML.match(/Odds\s*([0-9.]+)/)?.[1] || "";
-
-const button = card.querySelector(".bet-btn");
-
-card.innerHTML = `
-<div class="bet-layout">
-
-<div class="bet-teams">${title}</div>
-
-<div class="bet-market-line">
-<span class="bet-market">${market}</span>
-<span class="bet-date">${date}</span>
-</div>
-
-<div class="bet-info-line">
-<span class="bet-bookie">Bookie: ${bookie}</span>
-<span class="bet-value">Value ${value}</span>
-</div>
-
-<div class="bet-bottom-line">
-<span class="bet-odds">Odds ${odds}</span>
-${button ? button.outerHTML : ""}
-</div>
-
-</div>
-`;
-
+document.querySelectorAll('.stat-chip').forEach(ch=>{
+ const v = ch.querySelector('.stat-chip__v');
+ const k = ch.querySelector('.stat-chip__k');
+ if(!v || !k) return;
+ if(k.textContent.trim() !== 'Value') return;
+ const num = parseFloat(v.textContent.replace(/[^0-9.]/g,''));
+ if(isNaN(num)) return;
+ if(num>=6){ ch.style.background='rgba(34,197,94,0.18)'; ch.style.border='1px solid rgba(34,197,94,0.45)'; ch.style.color='#86efac';}
+ else if(num>=3){ ch.style.background='rgba(250,204,21,0.18)'; ch.style.border='1px solid rgba(250,204,21,0.45)'; ch.style.color='#fde68a';}
+ else{ ch.style.background='rgba(239,68,68,0.18)'; ch.style.border='1px solid rgba(239,68,68,0.45)'; ch.style.color='#fca5a5';}
 });
-
-},500);
-
-});
-/* ===== FORCE VALUE BET CARD LAYOUT OVERRIDE ===== */
-(function(){
-  const __oldLoadBets = loadBets;
-
-  function restyleValueBetCards(){
-    document.querySelectorAll('#betsGrid .bet-card').forEach((card)=>{
-      const titleEl = card.querySelector('.bet-title');
-      const marketEl = card.querySelector('.bet-market');
-      const dateEl = card.querySelector('.bet-date');
-      const bookieEl = card.querySelector('.bet-bookie');
-      const valueEl = card.querySelector('.stat-chip');
-      const oddsEl = card.querySelector('.odds-badge');
-      const btnEl = card.querySelector('.bet-btn');
-      const teaserEl = card.querySelector('.vip-teaser-line');
-      const teaserSubEl = card.querySelector('.vip-teaser-subline');
-      const locked = card.classList.contains('bet-card--locked');
-
-      const teams = titleEl ? titleEl.outerHTML : '';
-      const market = marketEl ? marketEl.outerHTML : '';
-      const date = dateEl ? dateEl.outerHTML : '';
-      const bookie = bookieEl ? `<span class="bet-bookie-row">${bookieEl.textContent}</span>` : '';
-      const value = valueEl ? valueEl.outerHTML : '';
-      const odds = oddsEl ? oddsEl.outerHTML : '';
-      const btn = btnEl ? btnEl.outerHTML : '';
-      const teaser = teaserEl ? teaserEl.outerHTML : '';
-      const teaserSub = teaserSubEl ? teaserSubEl.outerHTML : '';
-
-      card.innerHTML = `
-        <div class="bet-layout">
-          ${teams}
-
-          <div class="bet-market-line">
-            ${market}
-            ${date}
-          </div>
-
-          ${
-            locked
-              ? `<div class="bet-locked-copy">${teaser}${teaserSub}</div>`
-              : `<div class="bet-info-line">
-                   ${bookie}
-                   ${value}
-                 </div>`
-          }
-
-          <div class="bet-bottom-line">
-            ${odds}
-            ${btn}
-          </div>
-        </div>
-      `;
-    });
-  }
-
-  loadBets = async function(){
-    await __oldLoadBets();
-    restyleValueBetCards();
-  };
-
-  document.addEventListener('DOMContentLoaded', ()=>{
-    setTimeout(restyleValueBetCards, 300);
-  });
-})();
-/* auto value rank */
-
-setTimeout(()=>{
-
-document.querySelectorAll(".stat-chip").forEach(chip=>{
-
-const val=parseFloat(chip.innerText.replace(/[^0-9.]/g,""));
-
-chip.classList.remove("high","medium","low");
-
-if(val>=6){
-chip.classList.add("high");
-}else if(val>=3){
-chip.classList.add("medium");
-}else{
-chip.classList.add("low");
-}
-
-});
-
-},500);
-setTimeout(()=>{
-
-document.querySelectorAll(".chip, .stat-chip").forEach(el=>{
-
-if(el.innerText.includes("Value")){
-
-const num = parseFloat(el.innerText.replace(/[^0-9.]/g,""));
-
-el.classList.remove("value-high","value-medium","value-low");
-
-if(num >= 6){
-el.classList.add("value-high");
-}
-else if(num >= 3){
-el.classList.add("value-medium");
-}
-else{
-el.classList.add("value-low");
-}
-
-}
-
-});
-
-},500);
-setTimeout(() => {
-  document.querySelectorAll('.stat-chip').forEach(chip => {
-    const txt = chip.textContent || '';
-    if (!txt.includes('Value')) return;
-
-    const num = parseFloat(txt.replace(/[^0-9.]/g, ''));
-    if (isNaN(num)) return;
-
-    chip.classList.remove('value-high', 'value-medium', 'value-low');
-
-    if (num >= 6) {
-      chip.classList.add('value-high');
-    } else if (num >= 3) {
-      chip.classList.add('value-medium');
-    } else {
-      chip.classList.add('value-low');
-    }
-  });
-}, 500);
-setTimeout(() => {
-
-document.querySelectorAll(".chip, .stat-chip").forEach(chip => {
-
-const text = chip.textContent || "";
-
-if(text.includes("Value")){
-
-const num = parseFloat(text.replace(/[^0-9.]/g,""));
-
-if(num >= 6){
-chip.classList.add("value-green");
-}
-else if(num >= 3){
-chip.classList.add("value-yellow");
-}
-else{
-chip.classList.add("value-red");
-}
-
-}
-
-});
-
-},500);
-setTimeout(() => {
-
-document.querySelectorAll(".chip, .stat-chip").forEach(el => {
-
-const txt = el.textContent || "";
-
-if(txt.includes("Value") && txt.match(/\d/)){
-
-const num = parseFloat(txt.replace(/[^0-9.]/g,""));
-
-if(num >= 6){
-el.style.background = "rgba(34,197,94,0.18)";
-el.style.border = "1px solid rgba(34,197,94,0.35)";
-el.style.color = "#86efac";
-}
-
-else if(num >= 3){
-el.style.background = "rgba(250,204,21,0.18)";
-el.style.border = "1px solid rgba(250,204,21,0.35)";
-el.style.color = "#fde68a";
-}
-
-else{
-el.style.background = "rgba(239,68,68,0.18)";
-el.style.border = "1px solid rgba(239,68,68,0.35)";
-el.style.color = "#fca5a5";
-}
-
-}
-
-});
-
-},600);
+},400);
