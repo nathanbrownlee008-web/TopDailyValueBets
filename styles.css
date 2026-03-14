@@ -2897,307 +2897,160 @@ body.layout-compact .vip-bar{
 .month-group:hover td{
   background:#162033;
 }
-/* --- TDT DAY HEADER CARD CLEANUP --- */
 
-.tdt-day-card{
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  margin: 0 0 14px;
+/* ===== 2026-03-14 TDT results monthly compact rows ===== */
+#tdtTrackerTable .tdt-month-groups{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
 }
-
-.tdt-day-head{
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px;
-  border-radius: 22px;
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+#tdtTrackerTable .tdt-month-card{
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  overflow:hidden;
+  background:rgba(8,18,45,0.22);
 }
-
-.tdt-day-left{
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+#tdtTrackerTable .tdt-month-head{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:14px 14px;
+  background:rgba(15,23,42,0.48);
+  color:#e8eefc;
+  border:none;
+  cursor:pointer;
 }
-
-.tdt-day-date{
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.1;
-  color: #f8fafc;
+#tdtTrackerTable .tdt-month-left{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:3px;
+  min-width:0;
 }
-
-.tdt-day-meta{
-  font-size: 14px;
-  color: rgba(226,232,240,0.72);
+#tdtTrackerTable .tdt-month-title{
+  font-weight:900;
+  font-size:15px;
 }
-
-.tdt-day-right{
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
+#tdtTrackerTable .tdt-month-meta{
+  font-size:12px;
+  opacity:.78;
 }
-
-.tdt-day-chip{
-  min-height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 800;
-  white-space: nowrap;
+#tdtTrackerTable .tdt-month-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:nowrap;
+  justify-content:flex-end;
+  flex:0 0 auto;
 }
-
-.tdt-day-chip.win{
-  background: rgba(34,197,94,0.12);
-  border: 1px solid rgba(34,197,94,0.35);
-  color: #dcfce7;
+#tdtTrackerTable .tdt-month-chevron{
+  font-size:16px;
+  font-weight:900;
+  opacity:.82;
+  min-width:14px;
+  text-align:center;
 }
-
-.tdt-day-chip.loss{
-  background: rgba(239,68,68,0.12);
-  border: 1px solid rgba(239,68,68,0.35);
-  color: #fee2e2;
+#tdtTrackerTable .tdt-month-body{
+  border-top:1px solid rgba(255,255,255,0.06);
 }
-
-.tdt-day-chip.ratio{
-  background: rgba(34,197,94,0.12);
-  border: 1px solid rgba(34,197,94,0.35);
-  color: #dcfce7;
+#tdtTrackerTable .tdt-month-table-wrap{
+  overflow-x:hidden;
 }
-
-.tdt-day-chevron{
-  font-size: 20px;
-  font-weight: 900;
-  color: rgba(226,232,240,0.92);
-  margin-left: 4px;
+#tdtTrackerTable .tdt-month-table{
+  width:100%;
+  min-width:0;
+  table-layout:fixed;
+  border-collapse:collapse;
 }
-
-.tdt-day-body{
-  margin-top: 10px;
-  padding: 0 4px;
+#tdtTrackerTable .tdt-month-table th,
+#tdtTrackerTable .tdt-month-table td{
+  box-sizing:border-box;
+  padding:8px 6px;
+  font-size:11px;
+  vertical-align:middle;
 }
-
-@media (max-width: 700px){
-  .tdt-day-head{
-    padding: 14px 14px;
-    border-radius: 18px;
+#tdtTrackerTable .tdt-month-table thead th{
+  position:sticky;
+  top:0;
+  z-index:3;
+  background:#0c1832;
+  color:#dbe7ff;
+  font-weight:800;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  white-space:nowrap;
+}
+#tdtTrackerTable .tdt-month-table thead th.sortable{
+  cursor:pointer;
+  user-select:none;
+}
+#tdtTrackerTable .tdt-month-table thead th.sortable span{
+  opacity:.68;
+  font-size:11px;
+  margin-left:4px;
+}
+#tdtTrackerTable .tdt-month-table tbody td{
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+#tdtTrackerTable .tdt-month-table .tdt-col-date{width:16%;}
+#tdtTrackerTable .tdt-month-table .tdt-col-match{width:35%;}
+#tdtTrackerTable .tdt-month-table .tdt-col-market{width:30%;}
+#tdtTrackerTable .tdt-month-table .tdt-col-odds{width:10%;}
+#tdtTrackerTable .tdt-month-table .tdt-col-result{width:9%; text-align:center;}
+#tdtTrackerTable .tdt-month-table .tdt-date,
+#tdtTrackerTable .tdt-month-table .tdt-odds{
+  white-space:nowrap;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum";
+}
+#tdtTrackerTable .tdt-month-table .tdt-match,
+#tdtTrackerTable .tdt-month-table .tdt-market{
+  line-height:1.1;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+#tdtTrackerTable .tdt-month-table .tdt-match{
+  font-weight:800;
+}
+#tdtTrackerTable .tdt-month-table .tdt-result{
+  text-align:center;
+  white-space:nowrap;
+}
+#tdtTrackerTable .tdt-month-table .tdt-result-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:20px;
+  height:20px;
+  font-size:15px;
+  line-height:1;
+}
+#tdtTrackerTable .tdt-month-table .tdt-row.won td:first-child{border-left:3px solid #22c55e;padding-left:8px;}
+#tdtTrackerTable .tdt-month-table .tdt-row.lost td:first-child{border-left:3px solid #ef4444;padding-left:8px;}
+#tdtTrackerTable .tdt-month-table .tdt-row.pending td:first-child{border-left:3px solid #eab308;padding-left:8px;}
+#tdtTrackerSection #tdtTrackerTable .tdt-month-card{
+  margin-top:12px;
+}
+@media (max-width:600px){
+  #tdtTrackerTable .tdt-month-head{
+    padding:12px 10px;
+    align-items:center;
   }
-
-  .tdt-day-date{
-    font-size: 16px;
+  #tdtTrackerTable .tdt-month-right{
+    gap:5px;
   }
-
-  .tdt-day-meta{
-    font-size: 13px;
+  #tdtTrackerTable .tdt-month-title{
+    font-size:14px;
   }
-
-  .tdt-day-right{
-    gap: 6px;
+  #tdtTrackerTable .tdt-month-meta,
+  #tdtTrackerTable .tdt-day-chip{
+    font-size:11px;
   }
-
-  .tdt-day-chip{
-    min-height: 30px;
-    padding: 0 12px;
-    font-size: 13px;
-  }
-
-  .tdt-day-chevron{
-    font-size: 18px;
-  }
-}
-/* --- TDT DAY HEADERS: SMALL ROW STYLE --- */
-
-.tdt-day-card{
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.tdt-day-head{
-  width: 100%;
-  display: grid !important;
-  grid-template-columns: 90px 1fr 26px;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px !important;
-  margin: 0 0 8px 0 !important;
-  border-radius: 12px !important;
-  background: rgba(255,255,255,0.03) !important;
-  border: 1px solid rgba(255,255,255,0.06) !important;
-  box-shadow: none !important;
-  min-height: 0 !important;
-}
-
-.tdt-day-left{
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  gap: 2px !important;
-  min-width: 0;
-}
-
-.tdt-day-date{
-  font-size: 14px !important;
-  font-weight: 800 !important;
-  line-height: 1.15 !important;
-  color: #f8fafc !important;
-}
-
-.tdt-day-meta{
-  font-size: 12px !important;
-  color: rgba(226,232,240,0.7) !important;
-  line-height: 1.1 !important;
-}
-
-.tdt-day-right{
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 6px !important;
-  flex-wrap: nowrap !important;
-  min-width: 0;
-}
-
-.tdt-day-chip{
-  min-height: 26px !important;
-  padding: 0 10px !important;
-  border-radius: 999px !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  white-space: nowrap !important;
-}
-
-.tdt-day-chevron{
-  font-size: 16px !important;
-  font-weight: 900 !important;
-  color: rgba(226,232,240,0.9) !important;
-  margin: 0 !important;
-  justify-self: end;
-}
-
-.tdt-day-body{
-  margin: 0 0 10px 0 !important;
-  padding: 0 !important;
-}
-/* ===== TDT HEADER ROWS: SMALLER / TIDIER (SAFE CSS ONLY) ===== */
-
-.tdt-day-card{
-  margin: 0 0 10px !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.tdt-day-head{
-  width: 100%;
-  min-height: 58px !important;
-  padding: 10px 12px !important;
-  border-radius: 14px !important;
-  background: rgba(255,255,255,0.03) !important;
-  border: 1px solid rgba(255,255,255,0.06) !important;
-  box-shadow: none !important;
-
-  display: grid !important;
-  grid-template-columns: 88px 1fr 20px !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.tdt-day-left{
-  min-width: 0;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  gap: 2px !important;
-}
-
-.tdt-day-date{
-  font-size: 14px !important;
-  line-height: 1.1 !important;
-  font-weight: 800 !important;
-  color: #f8fafc !important;
-}
-
-.tdt-day-meta{
-  font-size: 12px !important;
-  line-height: 1.1 !important;
-  opacity: 0.72 !important;
-}
-
-.tdt-day-right{
-  min-width: 0;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 6px !important;
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  scrollbar-width: none;
-}
-
-.tdt-day-right::-webkit-scrollbar{
-  display: none;
-}
-
-.tdt-day-chip{
-  min-height: 26px !important;
-  padding: 0 10px !important;
-  border-radius: 999px !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  white-space: nowrap !important;
-}
-
-.tdt-day-chevron{
-  font-size: 16px !important;
-  line-height: 1 !important;
-  margin: 0 !important;
-  justify-self: end !important;
-}
-
-.tdt-day-body{
-  margin-top: 6px !important;
-  padding: 0 !important;
-}
-
-@media (max-width: 480px){
-  .tdt-day-head{
-    grid-template-columns: 78px 1fr 18px !important;
-    min-height: 52px !important;
-    padding: 8px 10px !important;
-    gap: 6px !important;
-  }
-
-  .tdt-day-date{
-    font-size: 13px !important;
-  }
-
-  .tdt-day-meta{
-    font-size: 11px !important;
-  }
-
-  .tdt-day-chip{
-    min-height: 24px !important;
-    padding: 0 8px !important;
-    font-size: 11px !important;
-  }
-
-  .tdt-day-chevron{
-    font-size: 14px !important;
+  #tdtTrackerTable .tdt-month-table th,
+  #tdtTrackerTable .tdt-month-table td{
+    padding:8px 4px;
+    font-size:10.5px;
   }
 }
