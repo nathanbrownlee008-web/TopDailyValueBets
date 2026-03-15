@@ -3361,3 +3361,43 @@ body.layout-compact .vip-bar{
   }
 
 }
+/* ===== TDT MONTH HEADER CLEANUP (SAFE PATCH) ===== */
+
+#tdtTrackerTable .tdt-month-left{
+  font-size:15px;
+  font-weight:700;
+  line-height:1.1;
+}
+
+#tdtTrackerTable .tdt-month-left small{
+  font-size:12px;
+  opacity:0.8;
+}
+
+#tdtTrackerTable .tdt-month-header{
+  padding:10px 12px;
+}
+
+#tdtTrackerTable .tdt-month-right{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+#tdtTrackerTable .tdt-day-chip{
+  padding:5px 8px;
+  font-size:10px;
+  white-space:nowrap;
+}
+
+/* cleaner subtext */
+#tdtTrackerTable .tdt-month-sub{
+  font-size:12px;
+  opacity:0.9;
+}
+
+/* green profit highlight */
+#tdtTrackerTable .tdt-month-sub .positive{
+  color:#22c55e;
+  font-weight:700;
+}
