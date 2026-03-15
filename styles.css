@@ -3004,3 +3004,21 @@ body.layout-compact .vip-bar{
   #tdtTrackerTable .tdt-month-right{gap:5px;flex-wrap:nowrap;}
   #tdtTrackerTable .tdt-month-title{font-size:14px;}
 }
+/* value bet cards: teams on one line + market slightly lower */
+#betsGrid .bet-title{
+  display:block;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  padding-right:118px;
+  line-height:1.15;
+}
+
+#betsGrid .bet-meta{
+  margin-top:10px !important;
+}
+
+#betsGrid .bet-market{
+  display:block;
+  margin-top:4px !important;
+}
