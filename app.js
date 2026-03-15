@@ -2353,3 +2353,25 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
+/* ===== AUTO VALUE COLOUR ===== */
+
+document.querySelectorAll(".value-chip").forEach(chip=>{
+
+  const text = chip.textContent || "";
+  const match = text.match(/(\d+(\.\d+)?)/);
+
+  if(!match) return;
+
+  const val = parseFloat(match[1]);
+
+  if(val >= 10){
+    chip.classList.add("value-high");
+  }
+  else if(val >= 8){
+    chip.classList.add("value-mid");
+  }
+  else{
+    chip.classList.add("value-low");
+  }
+
+});
