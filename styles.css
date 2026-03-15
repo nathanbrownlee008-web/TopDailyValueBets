@@ -2966,3 +2966,70 @@ body.layout-compact .vip-bar{
   #tdtTrackerTable .tdt-month-right{gap:5px;flex-wrap:nowrap;}
   #tdtTrackerTable .tdt-month-title{font-size:14px;}
 }
+/* ===== restore Value Bets card layout ===== */
+
+#betsGrid .bet-card{
+  position: relative;
+}
+
+#betsGrid .bet-title{
+  display:block !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  padding-right:118px !important;
+  line-height:1.15 !important;
+  margin-bottom:10px !important;
+}
+
+#betsGrid .bet-date{
+  position:absolute !important;
+  top:0 !important;
+  right:0 !important;
+  font-size:12px !important;
+  opacity:.78 !important;
+  white-space:nowrap !important;
+}
+
+#betsGrid .bet-market{
+  display:block !important;
+  margin-top:2px !important;
+  margin-bottom:14px !important;
+}
+
+#betsGrid .bet-bookie{
+  display:block !important;
+  margin-top:0 !important;
+  margin-bottom:16px !important;
+  color:#d7e2ee !important;
+}
+
+#betsGrid .bet-footer{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+  margin-top:0 !important;
+}
+
+#betsGrid .bet-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  flex-wrap:nowrap !important;
+}
+
+#betsGrid .bet-stats{
+  display:none !important;
+}
+
+#betsGrid .odds-badge,
+#betsGrid .stat-chip{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+#betsGrid .bet-btn{
+  margin-left:auto !important;
+}
