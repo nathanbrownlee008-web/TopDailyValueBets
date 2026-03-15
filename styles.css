@@ -3341,3 +3341,11 @@ body.layout-compact .vip-bar{
   font-weight:600 !important;
   line-height:1.1 !important;
 }
+/* Force TDT month title smaller */
+#tdtTrackerTable h3,
+#tdtTrackerTable .tdt-month,
+#tdtTrackerTable .tdt-month-title {
+  font-size:12px !important;
+  font-weight:600 !important;
+  line-height:1.1 !important;
+}
