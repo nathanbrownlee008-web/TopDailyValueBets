@@ -3226,3 +3226,33 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 }
+/* VALUE CHIP COLOURS */
+
+.stat-chip{
+display:inline-flex;
+align-items:center;
+gap:6px;
+padding:6px 12px;
+border-radius:999px;
+font-weight:600;
+font-size:13px;
+}
+
+/* 10%+ VALUE (GREEN) */
+.stat-chip.high-value{
+background:rgba(34,197,94,.18);
+border:1px solid rgba(34,197,94,.45);
+color:#86efac;
+box-shadow:0 0 10px rgba(34,197,94,.35);
+}
+
+/* 7%–9% VALUE (BLUE) */
+.stat-chip.mid-value{
+background:rgba(59,130,246,.18);
+border:1px solid rgba(59,130,246,.45);
+color:#93c5fd;
+}
+
+/* LOW VALUE (GREY) */
+.stat-chip.low-value{
+background
