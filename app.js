@@ -2375,3 +2375,28 @@ document.querySelectorAll(".value-chip").forEach(chip=>{
   }
 
 });
+/* ===== VALUE FIRE (7%+) ===== */
+
+function addValueFire(){
+  document.querySelectorAll("*").forEach(el => {
+
+    if(!el.textContent) return;
+
+    if(el.textContent.includes("Value")){
+
+      const match = el.textContent.match(/(\d+(\.\d+)?)%/);
+
+      if(!match) return;
+
+      const value = parseFloat(match[1]);
+
+      if(value >= 7 && !el.textContent.includes("🔥")){
+        el.textContent = el.textContent + " 🔥";
+      }
+
+    }
+
+  });
+}
+
+setTimeout(addValueFire, 800);
