@@ -3313,3 +3313,45 @@ font-size:16px !important;
 font-weight:600;
 color:#d7e6ff !important;
 }
+/* BET CARD MARKET + BOOKIE UPGRADE */
+
+.bet-card .bet-meta{
+font-size:17px !important;
+font-weight:700;
+color:#e6f0ff !important;
+margin-top:8px;
+line-height:1.45;
+}
+
+.bet-card .bet-meta span{
+display:block;
+margin-top:6px;
+}
+
+/* MARKET STYLE */
+
+.bet-card .bet-meta span:first-child{
+font-size:17px !important;
+font-weight:700;
+color:#cfe3ff;
+}
+
+/* BOOKIE STYLE */
+
+.bet-card .bet-meta span:last-child{
+font-size:16px !important;
+font-weight:600;
+color:#9ecbff;
+}
+
+/* ADD SMALL ICON STYLE */
+
+.bet-card .bet-meta span:first-child::before{
+content:"📊 ";
+opacity:.85;
+}
+
+.bet-card .bet-meta span:last-child::before{
+content:"🏦 ";
+opacity:.85;
+}
