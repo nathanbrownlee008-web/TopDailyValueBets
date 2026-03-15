@@ -2353,45 +2353,28 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
-/* ===== AUTO VALUE COLOUR ===== */
-
-document.querySelectorAll(".value-chip").forEach(chip=>{
-
-  const text = chip.textContent || "";
-  const match = text.match(/(\d+(\.\d+)?)/);
-
-  if(!match) return;
-
-  const val = parseFloat(match[1]);
-
-  if(val >= 10){
-    chip.classList.add("value-high");
-  }
-  else if(val >= 8){
-    chip.classList.add("value-mid");
-  }
-  else{
-    chip.classList.add("value-low");
-  }
-
-});
-/* ===== AUTO FIRE FOR VALUE ≥ 7% (SAFE) ===== */
+/* ===== AUTO FIRE FOR VALUE ≥ 7% (WORKS WITH YOUR CARDS) ===== */
 
 setTimeout(() => {
 
-  document.querySelectorAll(".value-chip").forEach(chip => {
+  document.querySelectorAll("*").forEach(el => {
 
-    const text = chip.textContent || "";
-    const match = text.match(/(\d+(\.\d+)?)/);
+    if(!el.textContent) return;
 
-    if(!match) return;
+    if(el.textContent.includes("Value")){
 
-    const val = parseFloat(match[1]);
+      const match = el.textContent.match(/(\d+(\.\d+)?)%/);
 
-    if(val >= 7){
-      chip.innerHTML = chip.innerHTML + " 🔥";
+      if(!match) return;
+
+      const val = parseFloat(match[1]);
+
+      if(val >= 7 && !el.textContent.includes("🔥")){
+        el.textContent = el.textContent + " 🔥";
+      }
+
     }
 
   });
 
-}, 800);
+}, 1000);
