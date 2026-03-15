@@ -300,25 +300,48 @@ function toggleAboutInfo(){
   </div>
 </div>
 
-<!-- ===== ABOUT: RESULTS ===== -->
+<!-- ===== ABOUT SECTION BOXES ===== -->
+
 <div class="about-info-card">
-  <div class="about-info-header" onclick="toggleAbout('aboutResults')">
-    ℹ️ About Results
+  <div class="about-info-header" onclick="toggleAboutBox('aboutValueBets')">
+    ℹ️ About Value Bets
   </div>
-  <div class="about-info-body" id="aboutResults">
-    This section contains historical bet results and performance data
-    so users can track long-term profitability.
+  <div class="about-info-body" id="aboutValueBets">
+    This section displays the latest value betting opportunities identified by the model.
+    A value bet occurs when bookmaker odds are higher than the calculated true probability,
+    creating a positive long-term betting edge.
+  </div>
+</div>
+
+<div class="about-info-card">
+  <div class="about-info-header" onclick="toggleAboutBox('aboutMyTracker')">
+    ℹ️ About My Tracker
+  </div>
+  <div class="about-info-body" id="aboutMyTracker">
+    This section tracks your personal bets and performance. It shows statistics such as
+    profit, win rate, ROI and average odds so you can analyse your betting results over time.
+  </div>
+</div>
+
+<div class="about-info-card">
+  <div class="about-info-header" onclick="toggleAboutBox('aboutTDTTracker')">
+    ℹ️ About TDT Tracker
+  </div>
+  <div class="about-info-body" id="aboutTDTTracker">
+    This section tracks the official Top Daily Tips results. Results are grouped by month
+    and show overall performance including win rate, profit and return on investment.
   </div>
 </div>
 
 <script>
-function toggleAbout(id){
-  const el = document.getElementById(id);
-  if(el.style.display === "none"){
-    el.style.display = "block";
-  }else{
-    el.style.display = "none";
+function toggleAboutBox(id){
+  const box = document.getElementById(id);
+  if(box.style.display === "none"){
+    box.style.display = "block";
+  } else {
+    box.style.display = "none";
   }
 }
+</script>
 </script> </body>
 </html>
