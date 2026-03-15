@@ -277,5 +277,48 @@ function toggleAboutInfo(){
     arrow.textContent = "▶";
   }
 }
+</script> <!-- ===== ABOUT: VALUE BETS ===== -->
+<div class="about-info-card">
+  <div class="about-info-header" onclick="toggleAbout('aboutValue')">
+    ℹ️ About Value Bets
+  </div>
+  <div class="about-info-body" id="aboutValue">
+    This section shows the latest value bets identified by the model.
+    Value bets occur when bookmaker odds are higher than the calculated
+    true probability price.
+  </div>
+</div>
+
+<!-- ===== ABOUT: TDT TRACKER ===== -->
+<div class="about-info-card">
+  <div class="about-info-header" onclick="toggleAbout('aboutTDT')">
+    ℹ️ About TDT Tracker
+  </div>
+  <div class="about-info-body" id="aboutTDT">
+    This section tracks all official Top Daily Tips results.
+    You can view monthly performance, win rate, ROI and profit.
+  </div>
+</div>
+
+<!-- ===== ABOUT: RESULTS ===== -->
+<div class="about-info-card">
+  <div class="about-info-header" onclick="toggleAbout('aboutResults')">
+    ℹ️ About Results
+  </div>
+  <div class="about-info-body" id="aboutResults">
+    This section contains historical bet results and performance data
+    so users can track long-term profitability.
+  </div>
+</div>
+
+<script>
+function toggleAbout(id){
+  const el = document.getElementById(id);
+  if(el.style.display === "none"){
+    el.style.display = "block";
+  }else{
+    el.style.display = "none";
+  }
+}
 </script> </body>
 </html>
