@@ -2353,28 +2353,16 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
-/* ===== AUTO FIRE FOR VALUE ≥ 7% (WORKS WITH YOUR CARDS) ===== */
-
 setTimeout(() => {
-
   document.querySelectorAll("*").forEach(el => {
-
-    if(!el.textContent) return;
-
-    if(el.textContent.includes("Value")){
-
+    if (!el.textContent) return;
+    if (el.textContent.includes("Value")) {
       const match = el.textContent.match(/(\d+(\.\d+)?)%/);
-
-      if(!match) return;
-
+      if (!match) return;
       const val = parseFloat(match[1]);
-
-      if(val >= 7 && !el.textContent.includes("🔥")){
+      if (val >= 7 && !el.textContent.includes("🔥")) {
         el.textContent = el.textContent + " 🔥";
       }
-
     }
-
   });
-
 }, 1000);
