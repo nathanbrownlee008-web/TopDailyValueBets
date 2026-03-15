@@ -2141,3 +2141,215 @@ loadTracker = async function(){
   applyPersonalTrackerCollapseState();
 
 };
+/* ===== SAFE TDT RESULTS MONTHLY OVERRIDE ===== */
+
+function __tdtMonthKeySafe(row){
+  const raw = row?.match_date_date || row?.bet_date || row?.created_at;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return "Unknown";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+function __tdtMonthLabelSafe(monthKey){
+  if (!monthKey || monthKey === "Unknown") return "Unknown";
+  const [y, m] = String(monthKey).split("-");
+  const d = new Date(Number(y), Number(m) - 1, 1);
+  if (Number.isNaN(d.getTime())) return monthKey;
+  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+}
+
+window.loadTdtTracker = async function(){
+  const tableEl = document.getElementById("tdtTrackerTable");
+
+  try{
+    const { data, error } = await client
+      .from("tdt_tracker")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if(error) throw error;
+
+    const rows = Array.isArray(data) ? data : [];
+    tdtRowsCache = rows;
+
+    let profit = 0;
+    let wins = 0;
+    let losses = 0;
+    let totalStake = 0;
+    let totalOdds = 0;
+    let resolvedCount = 0;
+
+    rows.forEach(row=>{
+      const result = String(row.result || "pending").toLowerCase();
+
+      const p =
+        result === "won"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
+          : result === "lost"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : -Number(row.stake || 0))
+          : 0;
+
+      profit += p;
+
+      if(result === "won") wins++;
+      if(result === "lost") losses++;
+
+      if(result !== "pending"){
+        resolvedCount++;
+        totalStake += Number(row.stake || 0);
+        totalOdds += Number(row.odds || 0);
+      }
+    });
+
+    const monthMap = new Map();
+
+    rows.forEach(row=>{
+      const key = __tdtMonthKeySafe(row);
+
+      if(!monthMap.has(key)){
+        monthMap.set(key, {
+          key,
+          rows: [],
+          wins: 0,
+          losses: 0,
+          settled: 0,
+          profit: 0
+        });
+      }
+
+      const group = monthMap.get(key);
+      group.rows.push(row);
+
+      const result = String(row.result || "pending").toLowerCase();
+
+      const p =
+        result === "won"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
+          : result === "lost"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : -Number(row.stake || 0))
+          : 0;
+
+      group.profit += p;
+
+      if(result === "won"){
+        group.wins++;
+        group.settled++;
+      }else if(result === "lost"){
+        group.losses++;
+        group.settled++;
+      }
+    });
+
+    const monthGroups = Array.from(monthMap.values()).sort((a,b)=>a.key.localeCompare(b.key));
+
+    let html = `<div class="tdt-month-groups">`;
+
+    monthGroups.forEach((group, idx)=>{
+      const monthWinrate = group.settled
+        ? Math.round((group.wins / group.settled) * 100)
+        : 0;
+
+      const profitClass = group.profit >= 0 ? "positive" : "negative";
+      const profitSign = group.profit >= 0 ? "+" : "-";
+
+      html += `
+        <div class="tdt-month-card">
+          <button class="tdt-month-head" type="button" onclick="toggleTdtDay(this)">
+            <div class="tdt-month-left">
+              <div class="tdt-month-title">${escapeHtml(__tdtMonthLabelSafe(group.key))}</div>
+              <div class="tdt-month-sub">
+                ${group.rows.length} result${group.rows.length === 1 ? "" : "s"} •
+                <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span>
+              </div>
+            </div>
+            <div class="tdt-month-right">
+              <span class="tdt-day-chip win">Won ${group.wins}</span>
+              <span class="tdt-day-chip loss">Lost ${group.losses}</span>
+              <span class="tdt-day-chip ratio ${tdtWinrateClass(monthWinrate)}">Winrate ${monthWinrate}%</span>
+              <span class="tdt-day-chevron">${idx === monthGroups.length - 1 ? "▼" : "▶"}</span>
+            </div>
+          </button>
+          <div class="tdt-day-body" style="display:${idx === monthGroups.length - 1 ? "block" : "none"};">
+            <div class="tdt-table-wrap">
+              <table class="tdt-table tdt-table-fit tdt-month-table">
+                <thead>
+                  <tr>
+                    <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('match') : ''}</span></th>
+                    <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('market') : ''}</span></th>
+                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('stake') : ''}</span></th>
+                    <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('odds') : ''}</span></th>
+                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('result') : ''}</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+      `;
+
+      group.rows.forEach(row=>{
+        const result = String(row.result || "pending").toLowerCase();
+        const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+
+        html += `
+          <tr class="tdt-row ${result}">
+            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+            <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
+            <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
+            <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
+          </tr>
+        `;
+      });
+
+      html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+
+    if(tableEl){
+      tableEl.innerHTML = rows.length
+        ? html
+        : '<div class="card">No official TDT results yet.</div>';
+    }
+
+    const set = (id, val)=>{
+      const el = document.getElementById(id);
+      if(el) el.innerText = val;
+    };
+
+    set("tdtProfit", profit.toFixed(2));
+    set("tdtRoi", totalStake ? ((profit / totalStake) * 100).toFixed(1) : 0);
+    set("tdtWinrate", (wins + losses) ? ((wins / (wins + losses)) * 100).toFixed(1) : 0);
+    set("tdtWonLost", `${wins}-${losses}`);
+    set("tdtAvgOdds", resolvedCount ? (totalOdds / resolvedCount).toFixed(2) : 0);
+    set("tdtTotalBets", rows.length);
+    set("tdtBetCount", rows.length);
+
+    if(typeof updateTdtPerformanceBars === "function"){
+      updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
+    }
+  }catch(err){
+    console.error("TDT monthly override failed:", err);
+    if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
+  }
+};
+
+try{
+  if(typeof currentTopTab !== "undefined" && currentTopTab === "tdt"){
+    loadTdtTracker();
+  }
+}catch(e){}
