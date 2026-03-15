@@ -3290,3 +3290,26 @@ background
   border-color: rgba(255,255,255,0.14) !important;
   color: #cbd5f5 !important;
 }
+/* BET CARD READABILITY IMPROVEMENT */
+
+.bet-meta{
+font-size:16px !important;
+font-weight:600;
+color:#d7e6ff !important;
+margin-top:6px;
+}
+
+.bet-meta span{
+display:block;
+margin-top:4px;
+}
+
+.bet-teaser{
+line-height:1.45;
+}
+
+.bet-teaser div{
+font-size:16px !important;
+font-weight:600;
+color:#d7e6ff !important;
+}
