@@ -2928,35 +2928,154 @@ body.layout-compact .vip-bar{
 }
 
 
-/* --- Top value flame badge for current Value Bets layout only --- */
+/* --- card layout tidy-up: date top-right, market slightly smaller, no duplicate value chip --- */
+.bet-teaser{
+  position:relative;
+}
+
+.bet-title{
+  padding-right:120px;
+}
+
+.bet-date{
+  position:absolute;
+  top:0;
+  right:0;
+  font-size:12px;
+  opacity:0.75;
+  white-space:nowrap;
+}
+
+.bet-meta{
+  display:block;
+  margin-top:8px;
+}
+
+.bet-market{
+  display:block;
+  font-size:14px;
+  font-weight:800;
+  color:#d8fff0;
+  letter-spacing:0.15px;
+  margin-bottom:14px;
+}
+
+.bet-bookie{
+  display:block;
+  margin-top:0;
+  margin-bottom:16px;
+  font-size:14px;
+  font-weight:700;
+  color:rgba(226,232,240,0.96);
+}
+
+.bet-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.bet-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-top:4px;
+}
+
+
+/* --- Value Bets cards: single-line teams + tighter OddsJam-style layout --- */
+#betsGrid .bet-card{
+  padding: 12px 14px;
+}
+
 #betsGrid .bet-teaser{
   position: relative;
+  gap: 8px;
 }
 
-#betsGrid .bet-top-fire{
+#betsGrid .bet-title{
+  display:block;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 118px;
+  margin: 0;
+  letter-spacing: 0.1px;
+}
+
+#betsGrid .bet-date{
   position: absolute;
-  right: 18px;
-  top: 76px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: rgba(249,115,22,0.14);
-  border: 1px solid rgba(249,115,22,0.34);
-  box-shadow: 0 0 16px rgba(249,115,22,0.18);
-  font-size: 18px;
-  line-height: 1;
-  z-index: 2;
+  top: 0;
+  right: 0;
+  font-size: 12px;
+  opacity: 0.74;
+  white-space: nowrap;
 }
 
-@media (max-width: 600px){
-  #betsGrid .bet-top-fire{
-    right: 16px;
-    top: 72px;
-    width: 32px;
-    height: 32px;
-    font-size: 17px;
+#betsGrid .bet-meta{
+  display:block;
+  margin-top: 6px;
+}
+
+#betsGrid .bet-market{
+  display:block;
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 800;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+#betsGrid .bet-bookie{
+  display:block;
+  margin-top: 0;
+  margin-bottom: 14px;
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: rgba(226,232,240,0.94);
+}
+
+#betsGrid .bet-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+#betsGrid .bet-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top: 2px;
+}
+
+#betsGrid .odds-badge,
+#betsGrid .stat-chip{
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+#betsGrid .bet-btn{
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+@media (max-width: 420px){
+  #betsGrid .bet-title{
+    font-size: 13px;
+    padding-right: 108px;
+  }
+  #betsGrid .bet-market{
+    font-size: 12.5px;
+  }
+  #betsGrid .bet-bookie{
+    font-size: 12.5px;
   }
 }
