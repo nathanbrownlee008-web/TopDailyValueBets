@@ -3349,3 +3349,12 @@ body.layout-compact .vip-bar{
   font-weight:600 !important;
   line-height:1.1 !important;
 }
+/* Make bookie text stand out more on value cards */
+
+.bookie,
+.value-card .bookie,
+.card .bookie {
+  color: #9ee7c1 !important;   /* brighter green */
+  font-weight: 600 !important;
+  opacity: 1 !important;
+}
