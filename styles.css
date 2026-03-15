@@ -3033,3 +3033,59 @@ body.layout-compact .vip-bar{
 #betsGrid .bet-btn{
   margin-left:auto !important;
 }
+/* ===== restore value chip + brighten market/bookie ===== */
+
+#betsGrid .bet-stats{
+  display:flex !important;
+  gap:10px !important;
+  margin-top:0 !important;
+}
+
+#betsGrid .bet-footer{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+  margin-top:12px !important;
+}
+
+#betsGrid .bet-details{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:10px !important;
+}
+
+#betsGrid .bet-market{
+  color:#dce7f5 !important;
+  opacity:0.95 !important;
+  font-weight:700 !important;
+  margin-bottom:10px !important;
+}
+
+#betsGrid .bet-bookie{
+  color:#e8f2ff !important;
+  opacity:1 !important;
+  font-weight:700 !important;
+  margin-top:0 !important;
+  margin-bottom:12px !important;
+}
+
+#betsGrid .stat-chip{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+#betsGrid .stat-chip__k{
+  opacity:.9 !important;
+}
+
+#betsGrid .stat-chip__v{
+  font-weight:900 !important;
+}
+
+#betsGrid .odds-badge{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
