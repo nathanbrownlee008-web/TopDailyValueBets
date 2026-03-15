@@ -3256,62 +3256,37 @@ color:#93c5fd;
 /* LOW VALUE (GREY) */
 .stat-chip.low-value{
 background
-/* AUTO COLOUR VALUE CHIPS */
 
-.stat-chip{
-display:inline-flex;
-align-items:center;
-gap:6px;
-padding:6px 12px;
-border-radius:999px;
-font-weight:600;
-font-size:13px;
+
+/* ===== Restored value chip colour coding ===== */
+.stat-chip.value-high{
+  background: rgba(34,197,94,0.18) !important;
+  border: 1px solid rgba(34,197,94,0.45) !important;
+  color: #86efac !important;
+  box-shadow: 0 0 10px rgba(34,197,94,0.35) !important;
 }
-
-/* 10%+ GREEN */
-.stat-chip:has(.stat-chip__v:contains("10")),
-.stat-chip:has(.stat-chip__v:contains("11")),
-.stat-chip:has(.stat-chip__v:contains("12")),
-.stat-chip:has(.stat-chip__v:contains("13")),
-.stat-chip:has(.stat-chip__v:contains("14")),
-.stat-chip:has(.stat-chip__v:contains("15")){
-background:rgba(34,197,94,.18);
-border:1px solid rgba(34,197,94,.45);
-color:#86efac;
-box-shadow:0 0 10px rgba(34,197,94,.35);
+.stat-chip.value-medium{
+  background: rgba(59,130,246,0.18) !important;
+  border: 1px solid rgba(59,130,246,0.45) !important;
+  color: #93c5fd !important;
 }
-
-/* 7–9% BLUE */
-.stat-chip:has(.stat-chip__v:contains("7")),
-.stat-chip:has(.stat-chip__v:contains("8")),
-.stat-chip:has(.stat-chip__v:contains("9")){
-background:rgba(59,130,246,.18);
-border:1px solid rgba(59,130,246,.45);
-color:#93c5fd;
+.stat-chip.value-low{
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  color: #cbd5f5 !important;
 }
-
-/* DEFAULT GREY */
-.stat-chip{
-background:rgba(255,255,255,.06);
-border:1px solid rgba(255,255,255,.14);
-color:#cbd5f5;
+.bets-table .pill.value-high{
+  background: rgba(34,197,94,0.18) !important;
+  border-color: rgba(34,197,94,0.45) !important;
+  color: #86efac !important;
 }
-/* FORCE VALUE CHIP COLOUR */
-
-.stat-chip{
-display:inline-flex;
-align-items:center;
-gap:6px;
-padding:6px 12px;
-border-radius:999px;
-font-weight:600;
-font-size:13px;
+.bets-table .pill.value-medium{
+  background: rgba(59,130,246,0.18) !important;
+  border-color: rgba(59,130,246,0.45) !important;
+  color: #93c5fd !important;
 }
-
-/* make value chips green again */
-.stat-chip:has(.stat-chip__k){
-background:rgba(34,197,94,.18) !important;
-border:1px solid rgba(34,197,94,.45) !important;
-color:#86efac !important;
-box-shadow:0 0 10px rgba(34,197,94,.35);
+.bets-table .pill.value-low{
+  background: rgba(255,255,255,0.06) !important;
+  border-color: rgba(255,255,255,0.14) !important;
+  color: #cbd5f5 !important;
 }
