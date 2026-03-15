@@ -3235,3 +3235,68 @@ body.layout-compact .vip-bar{
     font-size:12px;
   }
 }
+/* ===== TDT MONTH HEADER TIGHTER / CLEANER ===== */
+
+#tdtTrackerTable .tdt-month-head{
+  padding:14px 16px 10px;
+}
+
+#tdtTrackerTable .tdt-month-title{
+  font-size:18px;
+  font-weight:800;
+  line-height:1.1;
+}
+
+#tdtTrackerTable .tdt-month-sub{
+  font-size:12px;
+  margin-top:2px;
+  opacity:0.8;
+}
+
+#tdtTrackerTable .tdt-month-right{
+  gap:8px;
+}
+
+/* smaller pills */
+
+#tdtTrackerTable .tdt-day-chip{
+  padding:7px 12px;
+  font-size:12px;
+  border-radius:999px;
+}
+
+/* slightly tighter rows */
+
+#tdtTrackerTable .tdt-table thead th{
+  font-size:11px;
+  padding:12px 12px;
+}
+
+#tdtTrackerTable .tdt-table tbody td{
+  padding:12px 12px;
+}
+
+/* slightly smaller chevron */
+
+#tdtTrackerTable .tdt-day-chevron{
+  font-size:16px;
+}
+
+/* mobile tightening */
+
+@media (max-width:600px){
+
+  #tdtTrackerTable .tdt-month-head{
+    padding:12px 12px 8px;
+  }
+
+  #tdtTrackerTable .tdt-month-title{
+    font-size:16px;
+  }
+
+  #tdtTrackerTable .tdt-day-chip{
+    padding:6px 10px;
+    font-size:11px;
+  }
+
+}
