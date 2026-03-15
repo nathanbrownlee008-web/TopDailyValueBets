@@ -2375,3 +2375,19 @@ document.querySelectorAll(".value-chip").forEach(chip=>{
   }
 
 });
+/* ===== AUTO FIRE FOR VALUE ≥ 7% ===== */
+
+document.querySelectorAll(".value-chip").forEach(chip => {
+
+  const text = chip.textContent || "";
+  const match = text.match(/(\d+(\.\d+)?)/);
+
+  if(!match) return;
+
+  const val = parseFloat(match[1]);
+
+  if(val >= 7){
+    chip.innerHTML = chip.innerHTML + " 🔥";
+  }
+
+});
