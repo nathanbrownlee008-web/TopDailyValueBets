@@ -3358,3 +3358,11 @@ body.layout-compact .vip-bar{
   font-weight: 600 !important;
   opacity: 1 !important;
 }
+.value-card .bookie{
+  color:#8fa3b0;
+}
+
+.value-card .bookie strong{
+  color:#9ee7c1;
+  font-weight:600;
+}
