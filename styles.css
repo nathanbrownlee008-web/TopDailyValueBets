@@ -3335,3 +3335,29 @@ body.layout-compact .vip-bar{
 #tdtTrackerTable .tdt-day-chevron{
   font-size:14px;
 }
+/* ===== keep TDT pills on one clean row ===== */
+
+#tdtTrackerTable .tdt-month-right{
+  display:flex;
+  align-items:center;
+  flex-wrap:nowrap;
+}
+
+#tdtTrackerTable .tdt-day-chip{
+  white-space:nowrap;
+}
+
+/* slightly tighter spacing on small phones */
+
+@media (max-width:600px){
+
+  #tdtTrackerTable .tdt-month-right{
+    gap:5px;
+  }
+
+  #tdtTrackerTable .tdt-day-chip{
+    padding:5px 8px;
+    font-size:10px;
+  }
+
+}
