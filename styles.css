@@ -3300,3 +3300,38 @@ body.layout-compact .vip-bar{
   }
 
 }
+/* ===== TDT header smaller + neater ===== */
+
+#tdtTrackerTable .tdt-month-head{
+  padding:10px 14px 8px;
+}
+
+#tdtTrackerTable .tdt-month-title{
+  font-size:16px;
+  font-weight:800;
+  line-height:1.05;
+}
+
+#tdtTrackerTable .tdt-month-sub{
+  font-size:11px;
+  margin-top:1px;
+  opacity:0.8;
+}
+
+#tdtTrackerTable .tdt-month-right{
+  gap:6px;
+}
+
+/* smaller pills */
+
+#tdtTrackerTable .tdt-day-chip{
+  padding:5px 10px;
+  font-size:11px;
+  border-radius:999px;
+}
+
+/* slightly smaller arrow */
+
+#tdtTrackerTable .tdt-day-chevron{
+  font-size:14px;
+}
