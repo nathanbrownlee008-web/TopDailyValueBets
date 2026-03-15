@@ -3215,3 +3215,14 @@ body.layout-compact .vip-bar{
 #betsGrid .odds-badge{
   display:inline-flex !important;
 }
+.bet-left{
+display:flex;
+align-items:center;
+gap:12px;
+}
+
+.bet-footer{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
