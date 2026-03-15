@@ -3188,3 +3188,30 @@ body.layout-compact .vip-bar{
 #betsGrid .bet-details > .odds-badge{
   display: none !important;
 }
+/* ===== Fix value bet bottom row layout ===== */
+
+#betsGrid .bet-footer{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+}
+
+#betsGrid .bet-footer-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+
+#betsGrid .bet-stats{
+  display:flex !important;
+  gap:10px !important;
+  flex-direction:row !important;
+}
+
+#betsGrid .stat-chip{
+  display:inline-flex !important;
+}
+
+#betsGrid .odds-badge{
+  display:inline-flex !important;
+}
