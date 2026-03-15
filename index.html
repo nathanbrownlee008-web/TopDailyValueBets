@@ -241,5 +241,41 @@
 </div>
 
 <script src="app.js?v=1772891001"></script>
-</body>
+<!-- ===== ABOUT SECTION BOX (SAFE PATCH) ===== -->
+
+<div class="about-info-card">
+  <div class="about-info-header" onclick="toggleAboutInfo()">
+    <span>ℹ️ About This Section</span>
+    <span id="aboutToggleArrow">▼</span>
+  </div>
+
+  <div class="about-info-body" id="aboutInfoBody">
+    <p>
+      This section displays the latest value bets identified by the model.
+      Value bets occur when bookmaker odds are higher than the calculated
+      true probability price, creating a positive expected value opportunity.
+    </p>
+
+    <p>
+      The value percentage indicates how strong the edge is. Higher value
+      bets generally provide better long-term profitability when betting
+      consistently with proper bankroll management.
+    </p>
+  </div>
+</div>
+
+<script>
+function toggleAboutInfo(){
+  const body = document.getElementById("aboutInfoBody");
+  const arrow = document.getElementById("aboutToggleArrow");
+
+  if(body.style.display === "none"){
+    body.style.display = "block";
+    arrow.textContent = "▼";
+  }else{
+    body.style.display = "none";
+    arrow.textContent = "▶";
+  }
+}
+</script> </body>
 </html>
