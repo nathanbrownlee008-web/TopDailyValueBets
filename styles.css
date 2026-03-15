@@ -3035,11 +3035,6 @@ body.layout-compact .vip-bar{
 }
 /* ===== restore value chip + brighten market/bookie ===== */
 
-#betsGrid .bet-stats{
-  display:flex !important;
-  gap:10px !important;
-  margin-top:0 !important;
-}
 
 #betsGrid .bet-footer{
   display:flex !important;
@@ -3088,4 +3083,108 @@ body.layout-compact .vip-bar{
   display:inline-flex !important;
   align-items:center !important;
   justify-content:center !important;
+}
+/* ===== RESTORE VALUE BET CARD TO SECOND PICTURE ===== */
+
+#betsGrid .bet-card,
+#betsGrid .card.bet-card{
+  position: relative !important;
+}
+
+#betsGrid .bet-teaser{
+  display: block !important;
+  position: relative !important;
+}
+
+#betsGrid .bet-title{
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  padding-right: 120px !important;
+  margin: 0 0 16px 0 !important;
+  line-height: 1.15 !important;
+}
+
+#betsGrid .bet-date{
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  font-size: 12px !important;
+  opacity: .78 !important;
+  white-space: nowrap !important;
+}
+
+#betsGrid .bet-market{
+  display: block !important;
+  margin: 0 0 14px 0 !important;
+  color: #dce7f5 !important;
+  opacity: .95 !important;
+  font-weight: 700 !important;
+}
+
+#betsGrid .bet-bookie{
+  display: block !important;
+  margin: 0 0 16px 0 !important;
+  color: #e8f2ff !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
+
+#betsGrid .bet-details{
+  display: block !important;
+}
+
+#betsGrid .bet-stats{
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+}
+
+#betsGrid .bet-footer{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-top: 14px !important;
+}
+
+#betsGrid .bet-footer > div:first-child,
+#betsGrid .bet-left{
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: nowrap !important;
+}
+
+#betsGrid .odds-badge{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}
+
+#betsGrid .stat-chip{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}
+
+#betsGrid .bet-btn{
+  margin-left: auto !important;
+  align-self: center !important;
+}
+
+/* stop value chip dropping onto its own line */
+#betsGrid .bet-footer .stat-chip,
+#betsGrid .bet-footer .odds-badge{
+  flex: 0 0 auto !important;
+}
+
+/* make sure no old stacked layout wins */
+#betsGrid .bet-details > .stat-chip,
+#betsGrid .bet-details > .odds-badge{
+  display: none !important;
 }
