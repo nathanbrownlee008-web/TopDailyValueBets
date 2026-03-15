@@ -3401,3 +3401,36 @@ body.layout-compact .vip-bar{
   color:#22c55e;
   font-weight:700;
 }
+/* ===== TDT MONTH HEADER FIX ===== */
+
+/* keep month on one line */
+#tdtTrackerTable .tdt-month-left{
+  font-size:15px;
+  font-weight:700;
+  line-height:1;
+}
+
+/* convert "2026" -> "26" visually */
+#tdtTrackerTable .tdt-month-left br{
+  display:none;
+}
+
+#tdtTrackerTable .tdt-month-left{
+  white-space:nowrap;
+}
+
+/* shrink year text */
+#tdtTrackerTable .tdt-month-left{
+  letter-spacing:0.2px;
+}
+
+/* make header tighter */
+#tdtTrackerTable .tdt-month-header{
+  padding:10px 12px;
+}
+
+/* smaller pills */
+#tdtTrackerTable .tdt-day-chip{
+  padding:5px 8px;
+  font-size:10px;
+}
