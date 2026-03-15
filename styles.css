@@ -3335,3 +3335,9 @@ body.layout-compact .vip-bar{
 #tdtTrackerTable .tdt-day-chevron{
   font-size:14px;
 }
+/* Make the month title smaller in TDT header */
+#tdtTrackerTable .tdt-month-left{
+  font-size:12px !important;
+  font-weight:600 !important;
+  line-height:1.1 !important;
+}
