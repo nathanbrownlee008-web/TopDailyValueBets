@@ -2353,16 +2353,25 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
-setTimeout(() => {
-  document.querySelectorAll("*").forEach(el => {
-    if (!el.textContent) return;
-    if (el.textContent.includes("Value")) {
-      const match = el.textContent.match(/(\d+(\.\d+)?)%/);
-      if (!match) return;
-      const val = parseFloat(match[1]);
-      if (val >= 7 && !el.textContent.includes("🔥")) {
-        el.textContent = el.textContent + " 🔥";
-      }
-    }
-  });
-}, 1000);
+/* ===== AUTO VALUE COLOUR ===== */
+
+document.querySelectorAll(".value-chip").forEach(chip=>{
+
+  const text = chip.textContent || "";
+  const match = text.match(/(\d+(\.\d+)?)/);
+
+  if(!match) return;
+
+  const val = parseFloat(match[1]);
+
+  if(val >= 10){
+    chip.classList.add("value-high");
+  }
+  else if(val >= 8){
+    chip.classList.add("value-mid");
+  }
+  else{
+    chip.classList.add("value-low");
+  }
+
+});
