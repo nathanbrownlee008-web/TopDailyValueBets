@@ -2928,37 +2928,58 @@ body.layout-compact .vip-bar{
 }
 
 
-/* --- Layout upgrade: Odds then Value + better spacing --- */
-
-.bet-left{
-display:flex;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
+/* --- card layout tidy-up: date top-right, market slightly smaller, no duplicate value chip --- */
+.bet-teaser{
+  position:relative;
 }
 
-.bet-footer{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:12px;
-margin-top:12px;
+.bet-title{
+  padding-right:120px;
+}
+
+.bet-date{
+  position:absolute;
+  top:0;
+  right:0;
+  font-size:12px;
+  opacity:0.75;
+  white-space:nowrap;
+}
+
+.bet-meta{
+  display:block;
+  margin-top:8px;
 }
 
 .bet-market{
-display:block;
-font-size:16px;
-font-weight:800;
-color:#d8fff0;
-letter-spacing:0.2px;
-margin-bottom:10px;
+  display:block;
+  font-size:14px;
+  font-weight:800;
+  color:#d8fff0;
+  letter-spacing:0.15px;
+  margin-bottom:14px;
 }
 
 .bet-bookie{
-display:block;
-margin-top:0;
-margin-bottom:14px;
-font-size:14px;
-font-weight:700;
-color:rgba(226,232,240,0.96);
+  display:block;
+  margin-top:0;
+  margin-bottom:16px;
+  font-size:14px;
+  font-weight:700;
+  color:rgba(226,232,240,0.96);
+}
+
+.bet-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.bet-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-top:4px;
 }
