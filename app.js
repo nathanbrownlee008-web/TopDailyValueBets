@@ -425,6 +425,7 @@ async function loadBets(){
 
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
+    const valNum = Number(val || 0);
     const valTxt = val != null ? Number(val).toFixed(1)+'%' : '—';
     const teaser = teaserCopyForLockedBet(row, state);
     const unlockLabel = formatUnlockLabel(state);
