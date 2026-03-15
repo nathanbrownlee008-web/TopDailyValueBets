@@ -438,20 +438,29 @@ async function loadBets(){
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
       <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
-      <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
+        <span class="bet-date">${escapeHtml(betDate)}</span>
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
     <div class="bet-details">
-      <div class="bet-footer">
-        <div class="bet-left">
-          <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
-          <span class="stat-chip${valueClass}"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
-        </div>
-        <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
-      </div>
+  <div class="bet-footer">
+    <div class="bet-left">
+      <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
+      <span class="stat-chip ${valueClass}">
+        <span class="stat-chip__k">Value</span>
+        <span class="stat-chip__v">${valTxt}</span>
+      </span>
+    </div>
+
+    <button class="bet-btn ${isAdded ? 'added' : ''}"
+      ${(isAdded || locked) ? 'disabled' : ''}
+      ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
+      ${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}
+    </button>
+  </div>
+</div>
     </div>
   </div>
   ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 Unlock VIP</button>' : ''}
@@ -1101,6 +1110,7 @@ function getTdtRowDayKey(row){
   return `${y}-${m}-${d}`;
 }
 
+
 function getTdtRowMonthKey(row){
   const raw = getTdtRowDateValue(row);
   const dt = new Date(raw);
@@ -1218,20 +1228,22 @@ async function loadTdtTracker(){
     const monthMap = new Map();
 
     sortedRows.forEach(row=>{
-      const monthKey = getTdtRowMonthKey(row);
-      if(!monthMap.has(monthKey)){
-        const group = { key: monthKey, rows: [], wins:0, losses:0, pending:0, settled:0, profit:0 };
-        monthMap.set(monthKey, group);
+      const key = getTdtRowMonthKey(row);
+      if(!monthMap.has(key)){
+        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0, profit:0 };
+        monthMap.set(key, group);
         monthGroups.push(group);
       }
-      const group = monthMap.get(monthKey);
+      const group = monthMap.get(key);
       group.rows.push(row);
+
       const result = String(row.result || 'pending').toLowerCase();
       const p = result==="won"
         ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
         : result==="lost"
         ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
         : 0;
+
       group.profit += p;
       if(result === 'won'){ group.wins++; group.settled++; }
       else if(result === 'lost'){ group.losses++; group.settled++; }
@@ -1244,9 +1256,10 @@ async function loadTdtTracker(){
       const monthWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
       const profitClass = group.profit >= 0 ? 'positive' : 'negative';
       const profitSign = group.profit >= 0 ? '+' : '-';
+
       html += `
         <div class="tdt-month-card">
-          <button class="tdt-month-head" type="button" onclick="toggleTdtMonth(this)">
+          <button class="tdt-month-head" type="button" onclick="toggleTdtDay(this)">
             <div class="tdt-month-left">
               <div class="tdt-month-title">${escapeHtml(fmtTdtMonthHeader(group.key))}</div>
               <div class="tdt-month-sub">${group.rows.length} result${group.rows.length === 1 ? '' : 's'} • <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span></div>
@@ -1258,7 +1271,7 @@ async function loadTdtTracker(){
               <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
             </div>
           </button>
-          <div class="tdt-month-body" style="display:${idx === 0 ? 'block' : 'none'};">
+          <div class="tdt-day-body" style="display:${idx === 0 ? 'block' : 'none'};">
             <div class="tdt-table-wrap">
               <table class="tdt-table tdt-table-fit tdt-month-table">
                 <thead>
@@ -1272,6 +1285,7 @@ async function loadTdtTracker(){
                 </thead>
                 <tbody>
       `;
+
       group.rows.forEach(row=>{
         const result = String(row.result || 'pending').toLowerCase();
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
@@ -1305,6 +1319,7 @@ async function loadTdtTracker(){
     set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
     set("tdtWonLost", `${wins}-${losses}`);
     set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
+    set("tdtTotalBets", rows.length);
     set("tdtBetCount", rows.length);
     updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
   }catch(err){
@@ -1312,857 +1327,7 @@ async function loadTdtTracker(){
   }
 }
 
-
-
-
-function toggleTdtMonth(btn){
-  const body = btn ? btn.nextElementSibling : null;
-  const chev = btn ? btn.querySelector(".tdt-day-chevron") : null;
-  if(!body) return;
-  const isHidden = body.style.display === "none";
-  body.style.display = isHidden ? "block" : "none";
-  if(chev) chev.innerText = isHidden ? "▼" : "▶";
-}
-
-function tdtWinrateClass(rate){
-  const n = Number(rate || 0);
-  if(n <= 50) return "ratio--red";
-  if(n <= 62) return "ratio--amber";
-  return "ratio--green";
-}
-
-function toggleTdtTracker(){
-  const wrapper = document.getElementById("tdtTrackerWrapper");
-  const arrow = document.getElementById("tdtTrackerArrow");
-  if(!wrapper || !arrow) return;
-  if(wrapper.classList.contains("collapsed")){
-    wrapper.classList.remove("collapsed");
-    wrapper.classList.add("expanded");
-    arrow.innerText="▲";
-  }else{
-    wrapper.classList.remove("expanded");
-    wrapper.classList.add("collapsed");
-    arrow.innerText="▼";
-  }
-}
-
-function exportCSV(){
-  const data = readTrackerRows();
-  let csv="match,market,odds,stake,result\n";
-  data.forEach(r=>{
-    csv+=`${r.match},${r.market},${r.odds},${r.stake},${r.result}\n`;
-  });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="bet_tracker.csv";
-  a.click();
-}
-
-loadBets();
-loadTracker();
-
-
-// Toggle with animation + memory
-function toggleTracker(){
-  const wrapper = document.getElementById("trackerWrapper");
-  const arrow = document.getElementById("trackerArrow");
-
-  if(wrapper.classList.contains("collapsed")){
-    wrapper.classList.remove("collapsed");
-    wrapper.classList.add("expanded");
-    arrow.innerText="▲";
-    localStorage.setItem("tracker_open","true");
-  }else{
-    wrapper.classList.remove("expanded");
-    wrapper.classList.add("collapsed");
-    arrow.innerText="▼";
-    localStorage.setItem("tracker_open","false");
-  }
-}
-
-// Restore state on load
-document.addEventListener("DOMContentLoaded",function(){
-  const wrapper=document.getElementById("trackerWrapper");
-  const arrow=document.getElementById("trackerArrow");
-  const open=localStorage.getItem("tracker_open");
-  if(open==="true"){
-    wrapper.classList.remove("collapsed");
-    wrapper.classList.add("expanded");
-    arrow.innerText="▲";
-  }
-});
-
-// Extend loadTracker to update bet count
-const originalLoadTracker = loadTracker;
-loadTracker = async function(){
-  await originalLoadTracker();
-  const rows=document.querySelectorAll("#trackerTable table tr").length-1;
-  const count=document.getElementById("betCount");
-  if(count && rows>=0){count.innerText=rows;}
-};
-
-
-
-
-function renderDailyChart(history, labels, dayKeys){
-  const el = document.getElementById("chart");
-  if(!el) return;
-  if(dailyChart) dailyChart.destroy();
-
-  const safeHistory = Array.isArray(history) ? history : [];
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
-  const ctx = el.getContext("2d");
-
-  const pointRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 3 : 0;
-  });
-  const pointHoverRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 5 : 0;
-  });
-  const pointHitRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 14 : 0;
-  });
-
-  dailyChart = new Chart(ctx,{
-    type:"line",
-    data:{
-      labels:safeLabels,
-      datasets:[{
-        data:safeHistory,
-        tension:0.28,
-        fill:true,
-        borderWidth:3,
-        borderColor:"rgba(34,197,94,0.95)",
-        backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:pointRadius,
-        pointHoverRadius:pointHoverRadius,
-        pointHitRadius:pointHitRadius,
-        pointBackgroundColor:"rgba(34,197,94,1)"
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      interaction:{mode:"nearest", intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
-            label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
-          }
-        }
-      },
-      scales:{
-        x:{
-          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
-          grid:{color:"rgba(255,255,255,0.04)"}
-        },
-        y:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            callback:(v)=>`£${Number(v).toFixed(0)}`
-          },
-          grid:{color:"rgba(255,255,255,0.05)"}
-        }
-      }
-    }
-  });
-}
-
-
-function renderMonthlyChart(profits, roi, labels){
-  const el = document.getElementById("monthlyChart");
-  if(!el) return;
-  if(monthlyChart) monthlyChart.destroy();
-
-  const maxROI = Math.max(...roi, 5);
-  const minROI = Math.min(...roi, -5);
-  const pad = 5;
-
-  const ctx = el.getContext("2d");
-
-  monthlyChart = new Chart(ctx,{
-    type:"bar",
-    data:{
-      labels:labels,
-      datasets:[{
-        data:roi,
-        borderRadius:10,
-        barThickness:24,
-        backgroundColor:profits.map(v=>{
-          if(v>0) return "rgba(34,197,94,0.9)";
-          if(v<0) return "rgba(239,68,68,0.9)";
-          return "rgba(100,116,139,0.4)";
-        })
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{
-        y:{
-          min: Math.floor(minROI - pad),
-          max: Math.ceil(maxROI + pad),
-          ticks:{callback:(v)=>v+"%"},
-          grid:{color:"rgba(255,255,255,0.05)"}
-        }
-      }
-    },
-    plugins:[{
-      afterDatasetsDraw(chart){
-        const {ctx} = chart;
-        chart.getDatasetMeta(0).data.forEach((bar,i)=>{
-          const val = profits[i];
-          if(val === 0) return;
-          ctx.fillStyle="#fff";
-          ctx.font="bold 13px system-ui";
-          ctx.textAlign="center";
-          ctx.fillText("£"+val.toFixed(2), bar.x, roi[i]>=0 ? bar.y-8 : bar.y+18);
-        });
-      }
-    }]
-  });
-}
-
-
-function renderMarketChart(labels, winPct, totals){
-  const el = document.getElementById("marketChart");
-  if(!el) return;
-  if(marketChart) marketChart.destroy();
-
-  const ctx = el.getContext("2d");
-  marketChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        data: winPct,
-        borderWidth: 0,
-        borderRadius: 10,
-        barThickness: 18,
-        backgroundColor: winPct.map(v=>{
-          if(v >= 55) return "rgba(34,197,94,0.85)";   // green
-          if(v >= 40) return "rgba(245,158,11,0.85)";  // amber
-          return "rgba(239,68,68,0.85)";               // red
-        }),
-        borderColor: winPct.map(v=>{
-          if(v >= 55) return "#22c55e";
-          if(v >= 40) return "#f59e0b";
-          return "#ef4444";
-        })
-      }]
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx)=>{
-              const i = ctx.dataIndex;
-              const pct = Number(ctx.raw || 0).toFixed(0) + "%";
-              const t = (totals && totals[i]) ? totals[i] : { bets: 0, wins: 0, losses: 0 };
-              return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          min: 0,
-          max: 100,
-          ticks: { display: false },
-          grid: { display: false, drawBorder: false }
-        },
-        y: {
-          ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
-          grid: { display: false, drawBorder: false }
-        }
-      },
-      animation: { duration: 250 }
-    },
-    plugins: [{
-      id: "pctLabels",
-      afterDatasetsDraw(chart){
-        const {ctx} = chart;
-        const meta = chart.getDatasetMeta(0);
-        ctx.save();
-        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-        ctx.fillStyle = "rgba(229,231,235,0.95)";
-        meta.data.forEach((bar, i)=>{
-          const val = winPct[i] ?? 0;
-          const text = Math.round(val) + "%";
-          const x = bar.x - 10; // inside bar near end
-          const y = bar.y + 4;
-          ctx.textAlign = "right";
-          ctx.fillText(text, x, y);
-        });
-        ctx.restore();
-      }
-    }]
-  });
-}
-
-function setMiniValue(id, prefix, value){
-  // legacy helper kept, now feeds Insights dropdown
-  const txt = (prefix ? (prefix + " ") : "") + (value || "—");
-  setInsight(id, txt);
-  updateInsightUI();
-}
-
-
-
-
-function initChartTabs(){
-  const btns = document.querySelectorAll(".tab-btn");
-  if(!btns.length) return;
-
-  btns.forEach(b=>{
-    b.addEventListener("click", ()=>{
-      btns.forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      const tab = b.getAttribute("data-tab");
-      document.querySelectorAll(".chart-pane").forEach(p=>p.classList.remove("active"));
-      const pane = document.getElementById("pane-"+tab);
-      if(pane) pane.classList.add("active");
-    });
-  });
-}
-
-
-function rowProfit(row){
-  if(row.result === "won") return row.stake * (row.odds - 1);
-  if(row.result === "lost") return -row.stake;
-  return 0;
-}
-
-
-function toggleInsights(){
-  const content = document.getElementById("insightsContent");
-  const arrow = document.getElementById("insightsArrow");
-
-  if(content.classList.contains("insights-collapsed")){
-    content.classList.remove("insights-collapsed");
-    content.classList.add("insights-expanded");
-    arrow.innerText="▲";
-  }else{
-    content.classList.remove("insights-expanded");
-    content.classList.add("insights-collapsed");
-    arrow.innerText="▼";
-  }
-}
-
-
-// Auto-close Insights when switching chart tabs
-document.addEventListener("click", function(e){
-  if(e.target.classList.contains("tab-btn")){
-    const content = document.getElementById("insightsContent");
-    const arrow = document.getElementById("insightsArrow");
-    if(content && !content.classList.contains("insights-collapsed")){
-      content.classList.remove("insights-expanded");
-      content.classList.add("insights-collapsed");
-      arrow.innerText="▼";
-    }
-  }
-});
-
-function toggleMonthly(){
-  const wrapper=document.getElementById("monthlyWrapper");
-  const arrow=document.getElementById("monthlyArrow");
-  if(wrapper.classList.contains("collapsed")){
-    wrapper.classList.remove("collapsed");
-    wrapper.classList.add("expanded");
-    arrow.innerText="▲";
-  }else{
-    wrapper.classList.remove("expanded");
-    wrapper.classList.add("collapsed");
-    arrow.innerText="▼";
-  }
-}
-const startingInput = document.getElementById("startingBankroll");
-
-if(startingInput){
-  // Load saved value
-  const saved = localStorage.getItem("starting_bankroll");
-  if(saved){
-    startingInput.value = saved;
-  }
-
-  // Save on change
-  startingInput.addEventListener("input", function(){
-    localStorage.setItem("starting_bankroll", this.value);
-  });
-}
-
-
-setInterval(()=>{
-  if(currentTopTab === "bets") loadBets();
-}, 60000);
-// ===== Personal Tracker: visual date grouping only =====
-function addPersonalTrackerDateGroups(){
-  const tableWrap = document.getElementById("trackerTable");
-  if(!tableWrap) return;
-
-  const table = tableWrap.querySelector("table");
-  if(!table) return;
-
-  const existing = table.querySelectorAll("tr.date-group");
-  existing.forEach(el => el.remove());
-
-  const rows = Array.from(table.querySelectorAll("tr")).slice(1); // skip header
-  let lastDate = "";
-
-  rows.forEach(row => {
-    const dateCell = row.querySelector(".date-col");
-    if(!dateCell) return;
-
-    const dateText = dateCell.textContent.trim();
-    if(!dateText) return;
-
-    if(dateText !== lastDate){
-      const divider = document.createElement("tr");
-      divider.className = "date-group";
-      divider.innerHTML = `<td colspan="5">📅 ${dateText}</td>`;
-      row.parentNode.insertBefore(divider, row);
-      lastDate = dateText;
-    }
-  });
-}
-
-const __originalLoadTrackerWithCount = loadTracker;
-loadTracker = async function(){
-  await __originalLoadTrackerWithCount();
-  addPersonalTrackerDateGroups();
-};
-// ===== Personal Tracker: collapsible date groups =====
-function wirePersonalTrackerDateCollapse(){
-  const tableWrap = document.getElementById("trackerTable");
-  if(!tableWrap) return;
-
-  const table = tableWrap.querySelector("table");
-  if(!table) return;
-
-  const groups = Array.from(table.querySelectorAll("tr.date-group"));
-
-  groups.forEach(groupRow => {
-    if (groupRow.dataset.bound === "1") return;
-    groupRow.dataset.bound = "1";
-    groupRow.dataset.expanded = "1";
-
-    const cell = groupRow.querySelector("td");
-    if (!cell) return;
-
-    const rawText = cell.textContent.replace(/^▼|^▶/, "").trim();
-    cell.innerHTML = `▼ ${rawText}`;
-
-    groupRow.addEventListener("click", () => {
-      const expanded = groupRow.dataset.expanded === "1";
-      groupRow.dataset.expanded = expanded ? "0" : "1";
-
-      const label = groupRow.querySelector("td");
-      if (label) {
-        label.innerHTML = `${expanded ? "▶" : "▼"} ${rawText}`;
-      }
-
-      let next = groupRow.nextElementSibling;
-      while (next && !next.classList.contains("date-group")) {
-        next.style.display = expanded ? "none" : "";
-        next = next.nextElementSibling;
-      }
-    });
-  });
-}
-
-// re-wrap the current loadTracker safely
-const __originalLoadTrackerWithDateGroups = loadTracker;
-loadTracker = async function(){
-  await __originalLoadTrackerWithDateGroups();
-  addPersonalTrackerDateGroups();
-  wirePersonalTrackerDateCollapse();
-};
-// ===== Personal Tracker: persistent collapsible date groups =====
-function getPersonalTrackerCollapseKey(){
-  const email = (localStorage.getItem("vip_email") || "guest").trim().toLowerCase();
-  return `personal_tracker_collapsed_days_${email}`;
-}
-
-function readPersonalTrackerCollapseState(){
-  try{
-    return JSON.parse(localStorage.getItem(getPersonalTrackerCollapseKey()) || "{}");
-  }catch(e){
-    return {};
-  }
-}
-
-function writePersonalTrackerCollapseState(state){
-  localStorage.setItem(getPersonalTrackerCollapseKey(), JSON.stringify(state || {}));
-}
-
-function getNewestPersonalTrackerDay(){
-  const tableWrap = document.getElementById("trackerTable");
-  if(!tableWrap) return "";
-
-  const table = tableWrap.querySelector("table");
-  if(!table) return "";
-
-  const firstGroup = table.querySelector("tr.date-group td");
-  if(!firstGroup) return "";
-
-  return firstGroup.textContent.replace(/^▼|^▶|^📅/, "").trim();
-}
-
-function applyPersonalTrackerCollapseState(){
-  const tableWrap = document.getElementById("trackerTable");
-  if(!tableWrap) return;
-
-  const table = tableWrap.querySelector("table");
-  if(!table) return;
-
-  const saved = readPersonalTrackerCollapseState();
-  const newestDay = getNewestPersonalTrackerDay();
-
-  // if newest day changed, reset so only newest opens
-  if(saved.__latestDay !== newestDay){
-    const resetState = { __latestDay: newestDay };
-    writePersonalTrackerCollapseState(resetState);
-  }
-
-  const state = readPersonalTrackerCollapseState();
-  const groups = Array.from(table.querySelectorAll("tr.date-group"));
-
-  groups.forEach((groupRow, index) => {
-    const cell = groupRow.querySelector("td");
-    if(!cell) return;
-
-    const rawText = cell.textContent.replace(/^▼|^▶|^📅/, "").trim();
-    const isNewest = index === 0;
-
-    // default: newest open, all others collapsed
-    const expanded = Object.prototype.hasOwnProperty.call(state, rawText)
-      ? !!state[rawText]
-      : isNewest;
-
-    groupRow.dataset.expanded = expanded ? "1" : "0";
-    cell.innerHTML = `${expanded ? "▼" : "▶"} ${rawText}`;
-
-    let next = groupRow.nextElementSibling;
-    while(next && !next.classList.contains("date-group")){
-      next.style.display = expanded ? "" : "none";
-      next = next.nextElementSibling;
-    }
-  });
-}
-
-function wirePersonalTrackerDateCollapse(){
-  const tableWrap = document.getElementById("trackerTable");
-  if(!tableWrap) return;
-
-  const table = tableWrap.querySelector("table");
-  if(!table) return;
-
-  const groups = Array.from(table.querySelectorAll("tr.date-group"));
-
-  groups.forEach(groupRow => {
-    if(groupRow.dataset.bound === "1") return;
-    groupRow.dataset.bound = "1";
-
-    groupRow.addEventListener("click", () => {
-      const cell = groupRow.querySelector("td");
-      if(!cell) return;
-
-      const rawText = cell.textContent.replace(/^▼|^▶|^📅/, "").trim();
-      const expanded = groupRow.dataset.expanded === "1";
-      const nextExpanded = !expanded;
-
-      groupRow.dataset.expanded = nextExpanded ? "1" : "0";
-      cell.innerHTML = `${nextExpanded ? "▼" : "▶"} ${rawText}`;
-
-      let next = groupRow.nextElementSibling;
-      while(next && !next.classList.contains("date-group")){
-        next.style.display = nextExpanded ? "" : "none";
-        next = next.nextElementSibling;
-      }
-
-      const state = readPersonalTrackerCollapseState();
-      state[rawText] = nextExpanded;
-      state.__latestDay = getNewestPersonalTrackerDay();
-      writePersonalTrackerCollapseState(state);
-    });
-  });
-}
-
-// final safe wrapper
-const __originalLoadTrackerCollapsedGroups = loadTracker;
-loadTracker = async function(){
-  await __originalLoadTrackerCollapsedGroups();
-  addPersonalTrackerDateGroups();
-  wirePersonalTrackerDateCollapse();
-  applyPersonalTrackerCollapseState();
-};
-// ===== Personal Tracker: month grouping (visual only) =====
-function monthKeyFromDateLabel(dateLabel){
-  const txt = (dateLabel || "").replace(/^▼|^▶|^📅/, "").trim();
-  if(!txt) return "";
-
-  const parts = txt.split(" ");
-  if(parts.length < 2) return "";
-
-  const day = parts[0];
-  const mon = parts[1];
-  const yr = new Date().getFullYear();
-
-  const d = new Date(`${day} ${mon} ${yr}`);
-  if(Number.isNaN(d.getTime())) return "";
-
-  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-}
-
-function getPersonalTrackerMonthCollapseKey(){
-  const email = (localStorage.getItem("vip_email") || "guest").trim().toLowerCase();
-  return `personal_tracker_collapsed_months_${email}`;
-}
-
-function readPersonalTrackerMonthState(){
-  try{
-    return JSON.parse(localStorage.getItem(getPersonalTrackerMonthCollapseKey()) || "{}");
-  }catch(e){
-    return {};
-  }
-}
-
-function writePersonalTrackerMonthState(state){
-  localStorage.setItem(getPersonalTrackerMonthCollapseKey(), JSON.stringify(state || {}));
-}
-
-function addPersonalTrackerMonthGroups(){
-  const tableWrap = document.getElementById("trackerTable");
-  if(!tableWrap) return;
-
-  const table = tableWrap.querySelector("table");
-  if(!table) return;
-
-  table.querySelectorAll("tr.month-group").forEach(el => el.remove());
-
-  const rows = Array.from(table.querySelectorAll("tr"));
-  const dayGroups = rows.filter(r => r.classList.contains("date-group"));
-
-  let lastMonth = "";
-  dayGroups.forEach(groupRow => {
-    const cell = groupRow.querySelector("td");
-    if(!cell) return;
-
-    const month = monthKeyFromDateLabel(cell.textContent);
-    if(!month) return;
-
-    if(month !== lastMonth){
-      const divider = document.createElement("tr");
-      divider.className = "month-group";
-      divider.innerHTML = `<td colspan="5">▼ ${month}</td>`;
-      groupRow.parentNode.insertBefore(divider, groupRow);
-      lastMonth = month;
-    }
-  });
-}
-
-function applyPersonalTrackerMonthCollapseState(){
-  const tableWrap = document.getElementById("trackerTable");
-  if(!tableWrap) return;
-
-  const table = tableWrap.querySelector("table");
-  if(!table) return;
-
-  const groups = Array.from(table.querySelectorAll("tr.month-group"));
-  if(!groups.length) return;
-
-  const state = readPersonalTrackerMonthState();
-  const newestMonth = groups[0]?.querySelector("td")?.textContent.replace(/^▼|^▶/, "").trim() || "";
-
-  if(state.__latestMonth !== newestMonth){
-    writePersonalTrackerMonthState({ __latestMonth: newestMonth });
-  }
-
-  const freshState = readPersonalTrackerMonthState();
-
-  groups.forEach((groupRow, index) => {
-    const cell = groupRow.querySelector("td");
-    if(!cell) return;
-
-    const rawText = cell.textContent.replace(/^▼|^▶/, "").trim();
-    const isNewest = index === 0;
-
-    const expanded = Object.prototype.hasOwnProperty.call(freshState, rawText)
-      ? !!freshState[rawText]
-      : isNewest;
-
-    groupRow.dataset.expanded = expanded ? "1" : "0";
-    cell.innerHTML = `${expanded ? "▼" : "▶"} ${rawText}`;
-
-    let next = groupRow.nextElementSibling;
-    while(next && !next.classList.contains("month-group")){
-      next.style.display = expanded ? "" : "none";
-      next = next.nextElementSibling;
-    }
-  });
-}
-
-function wirePersonalTrackerMonthCollapse(){
-  const tableWrap = document.getElementById("trackerTable");
-  if(!tableWrap) return;
-
-  const table = tableWrap.querySelector("table");
-  if(!table) return;
-
-  const groups = Array.from(table.querySelectorAll("tr.month-group"));
-
-  groups.forEach(groupRow => {
-    if(groupRow.dataset.bound === "1") return;
-    groupRow.dataset.bound = "1";
-
-    groupRow.addEventListener("click", () => {
-      const cell = groupRow.querySelector("td");
-      if(!cell) return;
-
-      const rawText = cell.textContent.replace(/^▼|^▶/, "").trim();
-      const expanded = groupRow.dataset.expanded === "1";
-      const nextExpanded = !expanded;
-
-      groupRow.dataset.expanded = nextExpanded ? "1" : "0";
-      cell.innerHTML = `${nextExpanded ? "▼" : "▶"} ${rawText}`;
-
-      let next = groupRow.nextElementSibling;
-      while(next && !next.classList.contains("month-group")){
-        next.style.display = nextExpanded ? "" : "none";
-        next = next.nextElementSibling;
-      }
-
-      const state = readPersonalTrackerMonthState();
-      state[rawText] = nextExpanded;
-      state.__latestMonth = Array.from(document.querySelectorAll("#trackerTable tr.month-group"))[0]
-        ?.querySelector("td")
-        ?.textContent.replace(/^▼|^▶/, "").trim() || "";
-      writePersonalTrackerMonthState(state);
-    });
-  });
-}
-
-// final wrapper for month + day grouping
-const __originalLoadTrackerWithMonthGroups = loadTracker;
-loadTracker = async function(){
-  await __originalLoadTrackerWithMonthGroups();
-  addPersonalTrackerDateGroups();
-  addPersonalTrackerMonthGroups();
-  wirePersonalTrackerDateCollapse();
-  applyPersonalTrackerCollapseState();
-  wirePersonalTrackerMonthCollapse();
-  applyPersonalTrackerMonthCollapseState();
-};
-/* =========================
-   PERSONAL TRACKER COLLAPSE FIX
-   Keeps:
-   - Month groups
-   - Day groups
-   - Only current day open
-   - Fixes double-click collapse
-   ========================= */
-
-function getNewestPersonalTrackerDay(){
-  const groups = Array.from(document.querySelectorAll("#trackerTable tr.date-group"));
-  if(!groups.length) return "";
-  const first = groups[0].querySelector("td");
-  if(!first) return "";
-  return first.textContent.replace(/^▼|^▶|^📅/, "").trim();
-}
-
-function applyPersonalTrackerCollapseState(){
-  const tableWrap = document.getElementById("trackerTable");
-  if(!tableWrap) return;
-
-  const table = tableWrap.querySelector("table");
-  if(!table) return;
-
-  const saved = readPersonalTrackerCollapseState();
-  const newestDay = getNewestPersonalTrackerDay();
-
-  if(saved.__latestDay !== newestDay){
-    const resetState = { __latestDay: newestDay };
-    writePersonalTrackerCollapseState(resetState);
-  }
-
-  const state = readPersonalTrackerCollapseState();
-  const groups = Array.from(table.querySelectorAll("tr.date-group"));
-
-  groups.forEach((groupRow, index) => {
-
-    const cell = groupRow.querySelector("td");
-    if(!cell) return;
-
-    const rawText = cell.textContent.replace(/^▼|^▶|^📅/, "").trim();
-    const todayLabel = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short"});
-const newestRow = groups[0]?.querySelector("td")?.textContent.replace(/^▼|^▶|^📅/, "").trim();
-
-const isNewest = rawText === todayLabel || rawText === newestRow;
-    const expanded = Object.prototype.hasOwnProperty.call(state, rawText)
-      ? !!state[rawText]
-      : isNewest;
-
-    groupRow.dataset.expanded = expanded ? "1" : "0";
-    cell.innerHTML = `${expanded ? "▼" : "▶"} ${rawText}`;
-
-    let next = groupRow.nextElementSibling;
-
-    while(next && !next.classList.contains("date-group") && !next.classList.contains("month-group")){
-      next.style.display = expanded ? "" : "none";
-      next = next.nextElementSibling;
-    }
-
-  });
-
-}
-
-/* ---------- final safe wrapper ---------- */
-
-const __originalLoadTrackerFinal = loadTracker;
-
-loadTracker = async function(){
-
-  await __originalLoadTrackerFinal();
-
-  if(typeof addPersonalTrackerDateGroups === "function"){
-    addPersonalTrackerDateGroups();
-  }
-
-  if(typeof addPersonalTrackerMonthGroups === "function"){
-    addPersonalTrackerMonthGroups();
-  }
-
-  if(typeof wirePersonalTrackerDateCollapse === "function"){
-    wirePersonalTrackerDateCollapse();
-  }
-
-  if(typeof wirePersonalTrackerMonthCollapse === "function"){
-    wirePersonalTrackerMonthCollapse();
-  }
-
-  if(typeof applyPersonalTrackerMonthCollapseState === "function"){
-    applyPersonalTrackerMonthCollapseState();
-  }
-
-  applyPersonalTrackerCollapseState();
-
-};function toggleTdtDay(btn){
+function toggleTdtDay(btn){
   const body = btn ? btn.nextElementSibling : null;
   const chev = btn ? btn.querySelector(".tdt-day-chevron") : null;
   if(!body) return;
