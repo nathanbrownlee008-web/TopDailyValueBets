@@ -2928,47 +2928,7 @@ body.layout-compact .vip-bar{
 }
 
 
-/* --- card layout tidy-up: date top-right, market slightly smaller, no duplicate value chip --- */
-.bet-teaser{
-  position:relative;
-}
-
-.bet-title{
-  padding-right:120px;
-}
-
-.bet-date{
-  position:absolute;
-  top:0;
-  right:0;
-  font-size:12px;
-  opacity:0.75;
-  white-space:nowrap;
-}
-
-.bet-meta{
-  display:block;
-  margin-top:8px;
-}
-
-.bet-market{
-  display:block;
-  font-size:14px;
-  font-weight:800;
-  color:#d8fff0;
-  letter-spacing:0.15px;
-  margin-bottom:14px;
-}
-
-.bet-bookie{
-  display:block;
-  margin-top:0;
-  margin-bottom:16px;
-  font-size:14px;
-  font-weight:700;
-  color:rgba(226,232,240,0.96);
-}
-
+/* ===== Value card layout A ===== */
 .bet-left{
   display:flex;
   align-items:center;
@@ -2976,10 +2936,28 @@ body.layout-compact .vip-bar{
   flex-wrap:wrap;
 }
 
+.bet-details{
+  margin-top:8px;
+}
+
 .bet-footer{
   display:flex;
+  align-items:flex-end;
   justify-content:space-between;
-  align-items:center;
   gap:12px;
-  margin-top:4px;
+  margin-top:0;
+}
+
+.bet-footer .bet-btn{
+  margin-left:auto;
+}
+
+@media (max-width: 600px){
+  .bet-left{
+    gap:8px;
+  }
+
+  .bet-footer{
+    align-items:flex-end;
+  }
 }
