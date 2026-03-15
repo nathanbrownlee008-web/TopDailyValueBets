@@ -3422,3 +3422,16 @@ body.layout-compact .vip-bar{
   color:#ffd95c;
   box-shadow:0 0 8px rgba(255,200,0,0.35);
 }
+/* refine value chip glow (cleaner) */
+
+.value-high{
+  box-shadow:0 0 6px rgba(255,200,0,0.35);
+}
+
+.value-mid{
+  box-shadow:0 0 4px rgba(34,197,94,0.25);
+}
+
+.value-low{
+  box-shadow:none;
+}
