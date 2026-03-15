@@ -448,7 +448,7 @@ async function loadBets(){
   <div class="bet-footer">
     <div class="bet-left">
       <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
-      <span class="stat-chip${valueClass}">
+      <span class="stat-chip">
         <span class="stat-chip__k">Value</span>
         <span class="stat-chip__v">${valTxt}</span>
       </span>

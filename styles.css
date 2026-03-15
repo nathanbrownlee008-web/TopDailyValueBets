@@ -3258,38 +3258,54 @@ color:#93c5fd;
 background
 
 
-/* ===== FINAL EXACT VALUE BET CARD FIX ===== */
-#betsGrid .bet-teaser .bet-market{
-  font-size: 18px !important;
-  line-height: 1.28 !important;
-  font-weight: 800 !important;
-  color: #dfe9f8 !important;
-  margin: 0 0 12px 0 !important;
-  opacity: 1 !important;
+/* ===== FINAL LIVE CARD LAYOUT + READABILITY FIX ===== */
+#betsGrid .bet-meta{
+  display:block !important;
+  margin-top:6px !important;
 }
 
-#betsGrid .bet-teaser .bet-bookie{
-  font-size: 17px !important;
-  line-height: 1.28 !important;
-  font-weight: 800 !important;
-  color: #edf4ff !important;
-  margin: 0 0 12px 0 !important;
-  opacity: 1 !important;
+#betsGrid .bet-market{
+  display:block !important;
+  font-size:17px !important;
+  line-height:1.28 !important;
+  font-weight:800 !important;
+  color:#dfe9f8 !important;
+  margin:0 0 12px 0 !important;
+  text-align:left !important;
+  opacity:1 !important;
 }
 
-#betsGrid .bet-footer{
-  margin-top: 6px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
+#betsGrid .bet-bookie{
+  display:block !important;
+  font-size:17px !important;
+  line-height:1.28 !important;
+  font-weight:800 !important;
+  color:#edf4ff !important;
+  margin:0 0 10px 0 !important;
+  opacity:1 !important;
 }
 
 #betsGrid .bet-left{
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  flex-wrap: nowrap !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  flex-wrap:nowrap !important;
+}
+
+#betsGrid .bet-footer{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+  margin-top:4px !important;
+}
+
+#betsGrid .bet-details{
+  margin-top:0 !important;
+}
+
+#betsGrid .bet-stats{
+  display:none !important;
 }
 
 #betsGrid .stat-chip.value-high{
@@ -3308,8 +3324,8 @@ background
   border: 1px solid rgba(255,255,255,0.14) !important;
   color: #cbd5f5 !important;
 }
-#betsGrid .stat-chip.value-high .stat-chip__k,
-#betsGrid .stat-chip.value-medium .stat-chip__k,
-#betsGrid .stat-chip.value-low .stat-chip__k{
-  opacity: .82 !important;
+
+@media (max-width:420px){
+  #betsGrid .bet-market{ font-size:16px !important; }
+  #betsGrid .bet-bookie{ font-size:16px !important; }
 }
