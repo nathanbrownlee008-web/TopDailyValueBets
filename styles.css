@@ -3355,7 +3355,7 @@ body.layout-compact .vip-bar{
 .value-card .bookie,
 .card .bookie {
   color: #9ee7c1 !important;   /* brighter green */
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   opacity: 1 !important;
 }
 .value-card .bookie{
@@ -3364,5 +3364,5 @@ body.layout-compact .vip-bar{
 
 .value-card .bookie strong{
   color:#9ee7c1;
-  font-weight:600;
+  font-weight:700;
 }
