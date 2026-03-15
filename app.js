@@ -2353,3 +2353,25 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
+/* ===== SAFE MONTH FORMAT PATCH ===== */
+
+(function(){
+
+const oldMonthFormat = Date.prototype.toLocaleString;
+
+Date.prototype.toLocaleString = function(locale,options){
+
+  if(options && options.month === "long" && options.year === "numeric"){
+
+    const month = oldMonthFormat.call(this,locale,{month:"long"});
+    const year = this.getFullYear().toString().slice(2);
+
+    return `${month} ${year}`;
+
+  }
+
+  return oldMonthFormat.call(this,locale,options);
+
+};
+
+})();
