@@ -425,8 +425,11 @@ async function loadBets(){
 
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
-    const valNum = Number(val || 0);
-    const valTxt = val != null ? Number(val).toFixed(1)+'%' : '—';
+    const valNum = val != null ? Number(val) : null;
+    const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
+    const valueClass = valNum != null && !Number.isNaN(valNum)
+      ? (valNum >= 6 ? ' value-high' : (valNum >= 3 ? ' value-medium' : ' value-low'))
+      : '';
     const teaser = teaserCopyForLockedBet(row, state);
     const unlockLabel = formatUnlockLabel(state);
 
@@ -438,13 +441,12 @@ async function loadBets(){
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
         <span class="bet-date">${escapeHtml(betDate)}</span>
-        ${!locked && valNum >= 7 ? '<span class="bet-top-fire" title="Top Value">🔥</span>' : ''}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
     <div class="bet-details">
       <div class="bet-stats ${locked ? 'vip-blur-area' : ''}">
-        <span class="stat-chip"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
+        <span class="stat-chip${valueClass}"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
       </div>
       <div class="bet-footer">
         <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
@@ -462,7 +464,7 @@ async function loadBets(){
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
         <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td><span class="pill">${escapeHtml(valTxt)}</span></td>
+        <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
         <td>${escapeHtml(betDate)}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
@@ -1099,23 +1101,6 @@ function getTdtRowDayKey(row){
   return `${y}-${m}-${d}`;
 }
 
-
-function getTdtRowMonthKey(row){
-  const raw = getTdtRowDateValue(row);
-  const dt = new Date(raw);
-  if(Number.isNaN(dt.getTime())) return String(raw || 'Unknown');
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth()+1).padStart(2,'0');
-  return `${y}-${m}`;
-}
-
-function fmtTdtMonthHeader(monthKey){
-  const [y,m] = String(monthKey || '').split('-');
-  const dt = new Date(Number(y), Number(m)-1, 1);
-  if(Number.isNaN(dt.getTime())) return monthKey;
-  return dt.toLocaleDateString('en-GB',{ month:'long', year:'numeric' });
-}
-
 function fmtTdtDayHeader(dayKey){
   const dt = new Date(`${dayKey}T12:00:00`);
   if(Number.isNaN(dt.getTime())) return dayKey;
@@ -1213,63 +1198,51 @@ async function loadTdtTracker(){
     });
 
     const sortedRows = sortTdtRows(rows);
-    const monthGroups = [];
-    const monthMap = new Map();
-
+    const groups = [];
+    const map = new Map();
     sortedRows.forEach(row=>{
-      const key = getTdtRowMonthKey(row);
-      if(!monthMap.has(key)){
-        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0, profit:0 };
-        monthMap.set(key, group);
-        monthGroups.push(group);
+      const key = getTdtRowDayKey(row);
+      if(!map.has(key)){
+        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0 };
+        map.set(key, group);
+        groups.push(group);
       }
-      const group = monthMap.get(key);
+      const group = map.get(key);
       group.rows.push(row);
-
       const result = String(row.result || 'pending').toLowerCase();
-      const p = result==="won"
-        ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
-        : result==="lost"
-        ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
-        : 0;
-
-      group.profit += p;
       if(result === 'won'){ group.wins++; group.settled++; }
       else if(result === 'lost'){ group.losses++; group.settled++; }
       else { group.pending++; }
     });
 
-    let html = `<div class="tdt-month-groups">`;
+    let html = `<div class="tdt-groups-wrap">`;
 
-    monthGroups.forEach((group, idx)=>{
-      const monthWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
-      const profitClass = group.profit >= 0 ? 'positive' : 'negative';
-      const profitSign = group.profit >= 0 ? '+' : '-';
-
+    groups.forEach((group, idx)=>{
+      const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
       html += `
-        <div class="tdt-month-card">
-          <button class="tdt-month-head" type="button" onclick="toggleTdtDay(this)">
-            <div class="tdt-month-left">
-              <div class="tdt-month-title">${escapeHtml(fmtTdtMonthHeader(group.key))}</div>
-              <div class="tdt-month-sub">${group.rows.length} result${group.rows.length === 1 ? '' : 's'} • <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span></div>
+        <div class="tdt-day-card">
+          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
+            <div class="tdt-day-left">
+              <div class="tdt-day-date">${escapeHtml(fmtTdtDayHeader(group.key))}</div>
+              <div class="tdt-day-meta">${group.rows.length} bet${group.rows.length === 1 ? '' : 's'}</div>
             </div>
-            <div class="tdt-month-right">
+            <div class="tdt-day-right">
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
-              <span class="tdt-day-chip ratio ${tdtWinrateClass(monthWinrate)}">Winrate ${monthWinrate}%</span>
+              <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
               <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
             </div>
           </button>
           <div class="tdt-day-body" style="display:${idx === 0 ? 'block' : 'none'};">
             <div class="tdt-table-wrap">
-              <table class="tdt-table tdt-table-fit tdt-month-table">
+              <table class="tdt-table tdt-table-fit">
                 <thead>
                   <tr>
-                    <th class="tdt-col-date sortable" onclick="sortTdtTable('date')">Day <span>${tdtSortArrow('date')}</span></th>
                     <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
                     <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
+                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
                     <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
-                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">✅/❌ <span>${tdtSortArrow('result')}</span></th>
+                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${tdtSortArrow('result')}</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1280,9 +1253,9 @@ async function loadTdtTracker(){
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
         html += `
           <tr class="tdt-row ${result}">
-            <td class="tdt-date">${escapeHtml(fmtTdtDayHeader(getTdtRowDayKey(row)).replace(/^(\w+),?\s*/, '').replace(',', ''))}</td>
             <td class="tdt-match">${escapeHtml(row.match || '')}</td>
             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
             <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
           </tr>
@@ -1315,6 +1288,10 @@ async function loadTdtTracker(){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
 }
+
+
+
+
 
 function toggleTdtDay(btn){
   const body = btn ? btn.nextElementSibling : null;
