@@ -3348,3 +3348,54 @@ opacity:0.95;
 .bet-details{
 margin-top:4px !important;
 }
+/* ===== ODDSJAM-STYLE MARKET / BOOKIE CLEANUP ===== */
+
+#betsGrid .bet-market{
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  line-height: 1.28 !important;
+  color: #dfe9f8 !important;
+  margin: 0 0 6px 0 !important;
+  opacity: 1 !important;
+}
+
+#betsGrid .bet-bookie{
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  line-height: 1.28 !important;
+  color: #edf4ff !important;
+  margin: 0 0 8px 0 !important;
+  opacity: 1 !important;
+}
+
+#betsGrid .bet-details{
+  margin-top: 2px !important;
+}
+
+#betsGrid .bet-footer{
+  margin-top: 2px !important;
+}
+
+#betsGrid .bet-teaser{
+  row-gap: 0 !important;
+}
+
+#betsGrid .bet-market::before{
+  content: "📊 ";
+  opacity: .85;
+}
+
+#betsGrid .bet-bookie::before{
+  content: "🏦 ";
+  opacity: .85;
+}
+
+@media (max-width: 420px){
+  #betsGrid .bet-market{
+    font-size: 17px !important;
+  }
+
+  #betsGrid .bet-bookie{
+    font-size: 16px !important;
+  }
+}
