@@ -3435,3 +3435,29 @@ body.layout-compact .vip-bar{
 .value-low{
   box-shadow:none;
 }
+/* ===== ABOUT SECTION CARD ===== */
+
+.about-info-card{
+  background: rgba(15,23,42,0.55);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  margin-bottom:16px;
+  overflow:hidden;
+}
+
+.about-info-header{
+  padding:12px 14px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.about-info-body{
+  padding:12px 14px;
+  font-size:12px;
+  color:#9ca3af;
+  line-height:1.5;
+}
