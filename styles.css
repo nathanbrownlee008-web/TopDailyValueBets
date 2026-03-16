@@ -3319,14 +3319,14 @@ color:#d7e6ff !important;
 .vip-restore-btn{
   width:100%;
   margin-top:12px;
-  padding:12px 14px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.12);
-  background:rgba(255,255,255,0.06);
-  color:#fff;
-  font-weight:800;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.05);
+  color:#ffffff;
+  font-weight:700;
 }
 .vip-restore-btn:disabled{
-  opacity:.7;
+  opacity:0.7;
   cursor:default;
 }
