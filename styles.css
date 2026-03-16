@@ -3384,3 +3384,17 @@ color:#d7e6ff !important;
   padding:6px 10px;
   font-size:13px;
 }
+/* Force value chip same size as odds chip */
+
+.stat-chip{
+  padding:4px 10px;
+  font-size:12px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+}
+
+.stat-chip.value{
+  padding:4px 10px !important;
+  font-size:12px !important;
+}
