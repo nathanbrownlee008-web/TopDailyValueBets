@@ -3372,3 +3372,15 @@ color:#d7e6ff !important;
     0 0 14px rgba(34,197,94,0.22),
     0 12px 28px rgba(0,0,0,0.30);
 }
+/* Make VALUE chip same size as ODDS chip */
+
+.stat-chip{
+  padding:6px 10px;
+  font-size:13px;
+  line-height:1;
+}
+
+.stat-chip.value{
+  padding:6px 10px;
+  font-size:13px;
+}
