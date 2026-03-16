@@ -471,7 +471,7 @@ th{text-align:left}
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:6px;
+  gap:10px;
   margin-top:2px;
 }
 
@@ -479,7 +479,7 @@ th{text-align:left}
   display:inline-flex;
   align-items:center;
   gap:6px;
-  padding:3px 6px;
+  padding:5px 8px;
   border-radius:999px;
   font-size:12px;
   font-weight:700;
@@ -759,7 +759,7 @@ th{text-align:left}
   display:inline-flex;
   align-items:center;
   gap:8px;
-  padding:3px 6px;
+  padding:5px 8px;
   border-radius:999px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.10);
@@ -3313,122 +3313,20 @@ font-size:16px !important;
 font-weight:600;
 color:#d7e6ff !important;
 }
-/* ===== VALUE BADGE COLOURS (safe – styles only) ===== */
 
-.stat-chip.value-high{
-  background: rgba(34,197,94,0.18);
-  border-color: rgba(34,197,94,0.38);
-  color:#bbf7d0;
-  box-shadow:0 0 8px rgba(34,197,94,0.15);
+
+/* ===== VIP restore button ===== */
+.vip-restore-btn{
+  width:100%;
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  font-weight:800;
 }
-
-.stat-chip.value-medium{
-  background: rgba(250,204,21,0.18);
-  border-color: rgba(250,204,21,0.35);
-  color:#fde68a;
-}
-
-.stat-chip.value-low{
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.12);
-  color:#e2e8f0;
-}
-
-
-/* ===== MARKET + BOOKIE READABILITY ===== */
-
-.bet-market{
-  font-size:13px;
-  font-weight:700;
-  color:#e2e8f0;
-}
-
-.bet-bookie{
-  font-size:13px;
-  font-weight:600;
-  opacity:0.85;
-}
-
-
-/* ===== CLEAN VALUE / ODDS ALIGNMENT ===== */
-
-.bet-footer{
-  gap:12px;
-}
-
-.stat-chip{
-  padding:6px 10px;
-}
-
-.odds-badge{
-  padding:6px 10px;
-}
-
-
-/* ===== OPTIONAL SUBTLE GLOW FOR HIGH VALUE ===== */
-
-.bet-card--hv{
-  box-shadow:
-    0 0 14px rgba(34,197,94,0.22),
-    0 12px 28px rgba(0,0,0,0.30);
-}
-/* Make VALUE chip same size as ODDS chip */
-
-.stat-chip{
-  padding:6px 10px;
-  font-size:13px;
-  line-height:1;
-}
-
-.stat-chip.value{
-  padding:6px 10px;
-  font-size:13px;
-}
-/* Force value chip same size as odds chip */
-
-.stat-chip{
-  padding:4px 10px;
-  font-size:12px;
-  border-radius:999px;
-  display:inline-flex;
-  align-items:center;
-}
-
-.stat-chip.value{
-  padding:4px 10px !important;
-  font-size:12px !important;
-}
-/* ===== ODDS + VALUE PRO STYLE ===== */
-
-.bet-footer{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
-/* Odds pill */
-
-.odds-pill,
-.stat-chip.odds{
-  padding:4px 10px;
-  font-size:12px;
-  font-weight:600;
-  border-radius:999px;
-}
-
-/* Value pill */
-
-.value-pill,
-.stat-chip.value{
-  padding:4px 10px !important;
-  font-size:12px !important;
-  font-weight:600;
-  border-radius:999px;
-}
-
-/* remove label look */
-
-.value-pill::before{
-  content:"+";
-  margin-right:2px;
+.vip-restore-btn:disabled{
+  opacity:.7;
+  cursor:default;
 }

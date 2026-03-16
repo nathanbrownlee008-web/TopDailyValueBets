@@ -100,6 +100,37 @@ async function startCheckout(plan){
   }
 }
 
+
+
+async function restoreVipAccess(){
+  if(vipErrorEl) vipErrorEl.textContent = "";
+  const email = (vipEmailEl?.value || "").trim();
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
+    return;
+  }
+
+  localStorage.setItem("vip_email", email);
+
+  try{
+    if(vipRestoreEl) vipRestoreEl.disabled = true;
+    const active = await checkVIP();
+
+    if(active){
+      closeVipModal();
+      await loadBets();
+      if(vipErrorEl) vipErrorEl.textContent = "";
+      return;
+    }
+
+    if(vipErrorEl) vipErrorEl.textContent = "No active VIP found for that email.";
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent = "Could not restore VIP right now.";
+  }finally{
+    if(vipRestoreEl) vipRestoreEl.disabled = false;
+  }
+}
+
 function pad2(n){return String(n).padStart(2,'0');}
 function toLocalYMD(d=new Date()){
   const yr=d.getFullYear();
@@ -140,6 +171,7 @@ const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
+const vipRestoreEl = document.getElementById("vipRestore");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -354,6 +386,7 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
