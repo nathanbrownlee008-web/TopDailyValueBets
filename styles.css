@@ -2899,129 +2899,67 @@ body.layout-compact .vip-bar{
 }
 
 
-/* ===== Auto-colour Value chips ===== */
-.stat-chip.value-high,
-.pill.value-high{
-  background: rgba(34,197,94,0.18) !important;
-  border-color: rgba(34,197,94,0.35) !important;
-  color: #86efac !important;
-}
-
-.stat-chip.value-medium,
-.pill.value-medium{
-  background: rgba(250,204,21,0.18) !important;
-  border-color: rgba(250,204,21,0.35) !important;
-  color: #fde68a !important;
-}
-
-.stat-chip.value-low,
-.pill.value-low{
-  background: rgba(239,68,68,0.18) !important;
-  border-color: rgba(239,68,68,0.35) !important;
-  color: #fca5a5 !important;
-}
-
-.stat-chip.value-high .stat-chip__k,
-.stat-chip.value-medium .stat-chip__k,
-.stat-chip.value-low .stat-chip__k{
-  opacity: 0.88;
-}
-
-
-/* --- card layout tidy-up: date top-right, market slightly smaller, no duplicate value chip --- */
-.bet-teaser{
-  position:relative;
-}
-
-.bet-title{
-  padding-right:120px;
-}
-
-.bet-date{
+/* --- Flame badge for top value bets --- */
+#betsGrid .bet-top-fire{
   position:absolute;
-  top:0;
-  right:0;
-  font-size:12px;
-  opacity:0.75;
-  white-space:nowrap;
-}
-
-.bet-meta{
-  display:block;
-  margin-top:8px;
-}
-
-.bet-market{
-  display:block;
-  font-size:14px;
-  font-weight:800;
-  color:#d8fff0;
-  letter-spacing:0.15px;
-  margin-bottom:14px;
-}
-
-.bet-bookie{
-  display:block;
-  margin-top:0;
-  margin-bottom:16px;
-  font-size:14px;
-  font-weight:700;
-  color:rgba(226,232,240,0.96);
-}
-
-.bet-left{
-  display:flex;
+  right:18px;
+  top:76px;
+  display:inline-flex;
   align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
+  justify-content:center;
+  width:34px;
+  height:34px;
+  border-radius:999px;
+  background:rgba(249,115,22,0.14);
+  border:1px solid rgba(249,115,22,0.34);
+  box-shadow:0 0 16px rgba(249,115,22,0.18);
+  font-size:18px;
+  line-height:1;
+  z-index:2;
 }
 
-.bet-footer{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  margin-top:4px;
+/* --- Monthly TDT restore --- */
+#tdtTrackerTable .tdt-month-groups{display:flex;flex-direction:column;gap:12px;}
+#tdtTrackerTable .tdt-month-card{border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;background:rgba(8,18,45,0.22);}
+#tdtTrackerTable .tdt-month-head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 14px;background:rgba(15,23,42,0.48);color:#e8eefc;border:1px solid rgba(255,255,255,0.08);cursor:pointer;border-radius:18px;}
+#tdtTrackerTable .tdt-month-left{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;}
+#tdtTrackerTable .tdt-month-title{font-weight:900;font-size:15px;}
+#tdtTrackerTable .tdt-month-sub{font-size:12px;opacity:.72;}
+#tdtTrackerTable .tdt-month-sub .positive{color:#22c55e;font-weight:800;}
+#tdtTrackerTable .tdt-month-sub .negative{color:#ef4444;font-weight:800;}
+#tdtTrackerTable .tdt-month-right{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;justify-content:flex-end;flex:0 0 auto;}
+#tdtTrackerTable .tdt-month-table .tdt-col-date{width:14%;}
+
+@media (max-width:600px){
+  #betsGrid .bet-top-fire{
+    top:72px;
+    right:16px;
+    width:32px;
+    height:32px;
+    font-size:17px;
+  }
+  #tdtTrackerTable .tdt-month-head{padding:12px 10px;align-items:center;}
+  #tdtTrackerTable .tdt-month-right{gap:5px;flex-wrap:nowrap;}
+  #tdtTrackerTable .tdt-month-title{font-size:14px;}
 }
 
 
-/* ===== Value badge tiers: 6% fire / 8% diamond ===== */
-#betsGrid .stat-chip.value-fire{
-  background: rgba(249,115,22,0.16) !important;
-  border: 1px solid rgba(249,115,22,0.45) !important;
-  color: #fdba74 !important;
-  box-shadow: 0 0 12px rgba(249,115,22,0.25) !important;
-}
-#betsGrid .stat-chip.value-diamond{
-  background: rgba(56,189,248,0.16) !important;
-  border: 1px solid rgba(56,189,248,0.45) !important;
-  color: #bae6fd !important;
-  box-shadow: 0 0 14px rgba(56,189,248,0.28) !important;
-}
-#betsGrid .stat-chip.value-low{
-  background: rgba(255,255,255,0.06) !important;
-  border: 1px solid rgba(255,255,255,0.14) !important;
-  color: #cbd5f5 !important;
-}
-#betsGrid .stat-chip.value-fire .stat-chip__k,
-#betsGrid .stat-chip.value-diamond .stat-chip__k,
-#betsGrid .stat-chip.value-low .stat-chip__k{
-  opacity: .9 !important;
-}
-
-/* Wide table pills match badge tiers */
-.bets-table .pill.value-fire{
-  background: rgba(249,115,22,0.16) !important;
-  border-color: rgba(249,115,22,0.45) !important;
-  color: #fdba74 !important;
-}
-.bets-table .pill.value-diamond{
-  background: rgba(56,189,248,0.16) !important;
-  border-color: rgba(56,189,248,0.45) !important;
-  color: #bae6fd !important;
-}
-.bets-table .pill.value-low{
-  background: rgba(255,255,255,0.06) !important;
-  border-color: rgba(255,255,255,0.14) !important;
-  color: #cbd5f5 !important;
+/* --- restore monthly TDT results layout --- */
+#tdtTrackerTable .tdt-month-groups{display:flex;flex-direction:column;gap:12px;}
+#tdtTrackerTable .tdt-month-card{border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;background:rgba(8,18,45,0.22);}
+#tdtTrackerTable .tdt-month-head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 14px;background:#102040;color:#e8eefc;border:none;cursor:pointer;}
+#tdtTrackerTable .tdt-month-left{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;}
+#tdtTrackerTable .tdt-month-title{font-weight:900;font-size:15px;}
+#tdtTrackerTable .tdt-month-sub{font-size:12px;opacity:.72;}
+#tdtTrackerTable .tdt-month-sub .positive{color:#22c55e;font-weight:800;}
+#tdtTrackerTable .tdt-month-sub .negative{color:#ef4444;font-weight:800;}
+#tdtTrackerTable .tdt-month-right{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;justify-content:flex-end;flex:0 0 auto;}
+#tdtTrackerTable .tdt-month-body{border-top:1px solid rgba(255,255,255,0.06);}
+#tdtTrackerTable .tdt-month-table .tdt-col-date{width:14%;}
+#tdtTrackerSection #tdtTrackerTable .tdt-month-card{margin-top:12px !important;}
+#tdtTrackerSection #tdtTrackerTable .tdt-month-head{background:rgba(15,23,42,0.48) !important;border:1px solid rgba(255,255,255,0.08) !important;border-radius:18px !important;padding:16px 16px 14px !important;color:#e8eefc !important;}
+@media (max-width:600px){
+  #tdtTrackerTable .tdt-month-head{padding:12px 10px;align-items:center;}
+  #tdtTrackerTable .tdt-month-right{gap:5px;flex-wrap:nowrap;}
+  #tdtTrackerTable .tdt-month-title{font-size:14px;}
 }
