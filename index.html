@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772900201"/>
+<link rel="stylesheet" href="styles.css?v=1772892016"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -61,6 +61,14 @@
 </header>
 
 <section id="betsSection">
+
+<div class="about-info-card">
+  <div class="about-info-header">ℹ️ About Value Bets</div>
+  <div class="about-info-body">
+    This section shows the latest value bets identified by the model. A value bet occurs when bookmaker odds are higher than the calculated true probability price.
+  </div>
+</div>
+
 <!-- Mobile/compact cards -->
 <div id="betsGrid" class="bets-grid"></div>
 
@@ -101,6 +109,14 @@
 </section>
 
 <section id="trackerSection" style="display:none;">
+
+<div class="about-info-card">
+  <div class="about-info-header">ℹ️ About My Tracker</div>
+  <div class="about-info-body">
+    This section tracks your personal bets and performance including profit, win rate, ROI and average odds.
+  </div>
+</div>
+
 
 <div class="bankroll-section">
   <div class="bankroll-row">
@@ -165,6 +181,14 @@
 
 
 <section id="tdtTrackerSection" style="display:none;">
+
+<div class="about-info-card">
+  <div class="about-info-header">ℹ️ About TDT Tracker</div>
+  <div class="about-info-body">
+    This section tracks official Top Daily Tips results with monthly performance statistics including win rate, profit and ROI.
+  </div>
+</div>
+
 
 <div class="card" style="margin-bottom:16px;">
   <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Official Tracker</div>
@@ -240,6 +264,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772885000"></script>
+<script src="app.js?v=1772891001"></script>
 </body>
 </html>
