@@ -3,14 +3,13 @@ const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-// =========================
-// VIP
-// =========================
-
 function normalizeVipEmail(email){
   return String(email || "").trim().toLowerCase();
 }
 
+// =========================
+// VIP
+// =========================
 
 function setVipUI(active, email){
   vipActive = !!active;
@@ -21,35 +20,44 @@ function setVipUI(active, email){
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
 
   if(active){
-    if(titleEl) titleEl.textContent = 'VIP Access';
-    if(statusEl) statusEl.textContent = email ? `Access unlocked for ${email}` : 'Access unlocked';
+    if(titleEl) titleEl.textContent = 'Account Access';
+    if(statusEl) statusEl.textContent = email ? `Signed in as ${email}` : 'Signed in';
     if(btnEl){
-      if(btnTextEl) btnTextEl.textContent = 'VIP Access Active';
-      else btnEl.textContent = 'VIP Access Active';
+      if(btnTextEl) btnTextEl.textContent = 'Logged In';
+      else btnEl.textContent = 'Logged In';
       btnEl.disabled = true;
       btnEl.style.pointerEvents = "none";
       btnEl.style.cursor = "default";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
+    const promoEl = document.getElementById('vipPromo');
+    if(promoEl) promoEl.style.display = 'none';
+    if(vipLoginEl) vipLoginEl.style.display = 'none';
+    if(vipLogoutEl) vipLogoutEl.style.display = 'inline-flex';
   }else{
-    if(titleEl) titleEl.textContent = 'VIP Access';
-    if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
+    if(titleEl) titleEl.textContent = 'Account Access';
+    if(statusEl) statusEl.textContent = 'Log in to access your account';
     if(btnEl){
-      if(btnTextEl) btnTextEl.textContent = 'Go VIP';
-      else btnEl.textContent = 'Go VIP';
+      if(btnTextEl) btnTextEl.textContent = 'Log In';
+      else btnEl.textContent = 'Log In';
       btnEl.disabled = false;
       btnEl.style.pointerEvents = "";
       btnEl.style.cursor = "pointer";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
+    const promoEl = document.getElementById('vipPromo');
+    if(promoEl) promoEl.style.display = 'none';
+    if(vipLoginEl) vipLoginEl.style.display = 'inline-flex';
+    if(vipLogoutEl) vipLogoutEl.style.display = 'none';
   }
 }
 
 function openVipModal(){
   if(!vipModalEl) return;
   if(vipErrorEl) vipErrorEl.textContent="";
-  const saved=(localStorage.getItem('vip_email')||"").trim();
-  if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
+  if(authStatusEl) authStatusEl.textContent="";
+  const saved = normalizeVipEmail(localStorage.getItem('vip_email') || "");
+  if(authEmailEl && !authEmailEl.value) authEmailEl.value = saved;
   vipModalEl.style.display="flex";
 }
 
@@ -57,73 +65,39 @@ function closeVipModal(){
   if(!vipModalEl) return;
   vipModalEl.style.display="none";
 }
-window.openVipModal = openVipModal;
-window.closeVipModal = closeVipModal;
 
 async function checkVIP(){
-  const email = normalizeVipEmail(localStorage.getItem('vip_email') || "");
+  let email = normalizeVipEmail(localStorage.getItem('vip_email') || "");
+  try{
+    const { data } = await client.auth.getUser();
+    const sessionEmail = normalizeVipEmail(data?.user?.email || "");
+    if(sessionEmail){
+      email = sessionEmail;
+      localStorage.setItem('vip_email', email);
+    }
+  }catch(e){}
+
   if(!email){
     vipActive = false;
     setVipUI(false, "");
     return false;
   }
 
-  try{
-    const { data, error } = await client.rpc('check_vip_email', { p_email: email });
-    if(!error){
-      vipActive = !!data;
-      setVipUI(vipActive, email);
-      return vipActive;
-    }
-  }catch(e){
-    // fall through to API fallback
-  }
-
-  try{
-    const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
-    const j = await r.json();
-    vipActive = !!j.active;
-    setVipUI(vipActive, email);
-    return vipActive;
-  }catch(e){
-    vipActive = false;
-    if(vipStatusEl) vipStatusEl.textContent = "VIP status check failed";
-    setVipUI(false, email);
-    return false;
-  }
+  vipActive = true;
+  setVipUI(true, email);
+  return true;
 }
 
 async function startCheckout(plan){
-  if(vipErrorEl) vipErrorEl.textContent="";
-  const email=normalizeVipEmail(vipEmailEl?.value||"");
-  if(!email || !email.includes("@")){
-    if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
-    return;
-  }
-  localStorage.setItem('vip_email',email);
-  try{
-    if(vipMonthlyEl) vipMonthlyEl.disabled=true;
-    if(vipYearlyEl) vipYearlyEl.disabled=true;
-    const r=await fetch('/api/create-checkout-session',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email,plan})
-    });
-    const j=await r.json();
-    if(!r.ok || !j.url) throw new Error(j.error||'Checkout failed');
-    window.location.href=j.url;
-  }catch(err){
-    if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
-    if(vipMonthlyEl) vipMonthlyEl.disabled=false;
-    if(vipYearlyEl) vipYearlyEl.disabled=false;
-  }
+  openVipModal();
+  if(authStatusEl) authStatusEl.textContent = "Log in or sign up to continue.";
 }
 
 
 async function restoreVipAccess(){
-  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const email = (vipEmailEl?.value || "").trim();
 
-  if(!email || !email.includes("@")){
+  if(!email){
     if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
     return;
   }
@@ -139,6 +113,7 @@ async function restoreVipAccess(){
     if(active){
       closeVipModal();
       await loadBets();
+      location.reload();
       return;
     }
 
@@ -178,6 +153,90 @@ function isValueBetActiveToday(row){
 }
 
 
+
+function setAuthStatus(msg){
+  if(authStatusEl) authStatusEl.textContent = msg || "";
+}
+
+async function syncSessionEmail(){
+  try{
+    const { data } = await client.auth.getUser();
+    const email = normalizeVipEmail(data?.user?.email || "");
+    if(email){
+      localStorage.setItem('vip_email', email);
+      if(authEmailEl) authEmailEl.value = email;
+      return email;
+    }
+  }catch(e){}
+  return normalizeVipEmail(localStorage.getItem('vip_email') || "");
+}
+
+async function signInWithPassword(){
+  const email = normalizeVipEmail(authEmailEl?.value || "");
+  const password = String(authPasswordEl?.value || "");
+  if(!email || !email.includes("@")) return setAuthStatus("Enter a valid email.");
+  if(!password) return setAuthStatus("Enter your password.");
+  try{
+    setAuthStatus("Logging in...");
+    const { error } = await client.auth.signInWithPassword({ email, password });
+    if(error) throw error;
+    localStorage.setItem('vip_email', email);
+    setVipUI(true, email);
+    setAuthStatus("Logged in.");
+    closeVipModal();
+    await loadBets();
+  }catch(err){
+    setAuthStatus(err?.message || "Could not log in.");
+  }
+}
+
+async function signUpWithPassword(){
+  const email = normalizeVipEmail(authEmailEl?.value || "");
+  const password = String(authPasswordEl?.value || "");
+  if(!email || !email.includes("@")) return setAuthStatus("Enter a valid email.");
+  if(password.length < 6) return setAuthStatus("Password must be at least 6 characters.");
+  try{
+    setAuthStatus("Creating account...");
+    const { error } = await client.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.origin }
+    });
+    if(error) throw error;
+    localStorage.setItem('vip_email', email);
+    setAuthStatus("Account created. Check your email if confirmation is enabled.");
+  }catch(err){
+    setAuthStatus(err?.message || "Could not sign up.");
+  }
+}
+
+async function sendPasswordReset(){
+  const email = normalizeVipEmail(authEmailEl?.value || "");
+  if(!email || !email.includes("@")) return setAuthStatus("Enter your email first.");
+  try{
+    setAuthStatus("Sending reset email...");
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin
+    });
+    if(error) throw error;
+    setAuthStatus("Password reset email sent.");
+  }catch(err){
+    setAuthStatus(err?.message || "Could not send reset email.");
+  }
+}
+
+async function logoutVipAccess(){
+  try{ await client.auth.signOut(); }catch(e){}
+  localStorage.removeItem('vip_email');
+  vipActive = false;
+  if(authEmailEl) authEmailEl.value = "";
+  if(authPasswordEl) authPasswordEl.value = "";
+  setVipUI(false, "");
+  setAuthStatus("Signed out.");
+  closeVipModal();
+  await loadBets();
+}
+
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -192,6 +251,14 @@ const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
 const vipRestoreEl = document.getElementById("vipRestore");
 const vipErrorEl = document.getElementById("vipError");
+const vipLoginEl = document.getElementById("vipLogin");
+const vipLogoutEl = document.getElementById("vipLogout");
+const authEmailEl = document.getElementById("authEmail");
+const authPasswordEl = document.getElementById("authPassword");
+const authSignInBtnEl = document.getElementById("authSignInBtn");
+const authSignUpBtnEl = document.getElementById("authSignUpBtn");
+const authForgotBtnEl = document.getElementById("authForgotBtn");
+const authStatusEl = document.getElementById("authStatus");
 
 
 let vipActive = false;
@@ -316,8 +383,8 @@ const profitCard=document.getElementById("profitCard");
 // Track which feed items have been added to the tracker (prevents duplicate clicks + changes button UI)
 const addedKeys = new Set();
 
-const FREE_VISIBLE_COUNT = 5;
-const FREE_DELAY_MINUTES = 0;
+const FREE_VISIBLE_COUNT = 3;
+const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
 function makeBetKey(row){
@@ -337,17 +404,34 @@ function getBetPublicState(row, idx){
     return { locked:true, reason:"vip-limit", unlocksAt:null, minutesLeft:0 };
   }
 
+  const createdRaw = row?.created_at || row?.bet_date;
+  const createdAt = createdRaw ? new Date(createdRaw) : null;
+  if(!createdAt || Number.isNaN(createdAt.getTime())){
+    return { locked:false, reason:"public", unlocksAt:null, minutesLeft:0 };
+  }
+
+  const unlocksAt = new Date(createdAt.getTime() + FREE_DELAY_MINUTES * 60 * 1000);
+  const remainingMs = unlocksAt.getTime() - Date.now();
+  const minutesLeft = Math.max(1, Math.ceil(remainingMs / 60000));
+  if(remainingMs > 0){
+    return { locked:true, reason:"delay", unlocksAt, minutesLeft };
+  }
+
   return { locked:false, reason:"public", unlocksAt:null, minutesLeft:0 };
 }
 
 function teaserCopyForLockedBet(row, state){
   const valueRaw = row?.value_pct ?? row?.value_percent ?? row?.value_percentage ?? row?.value;
   const valueText = valueRaw != null ? `${Number(valueRaw).toFixed(1)}% value` : 'High-value edge';
+  if(state?.reason === 'delay'){
+    return `Free unlock in ${state.minutesLeft} min • ${valueText}`;
+  }
   return `VIP only • ${valueText} • market hidden`;
 }
 
 function formatUnlockLabel(state){
-  return 'VIP only';
+  if(!state?.unlocksAt) return 'VIP only';
+  return `Unlocks ${state.unlocksAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
 }
 
 // Top navigation tabs
@@ -391,19 +475,36 @@ if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly')
 if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
+if(vipLoginEl) vipLoginEl.addEventListener('click', openVipModal);
+if(vipLogoutEl) vipLogoutEl.addEventListener('click', logoutVipAccess);
+if(authSignInBtnEl) authSignInBtnEl.addEventListener('click', signInWithPassword);
+if(authSignUpBtnEl) authSignUpBtnEl.addEventListener('click', signUpWithPassword);
+if(authForgotBtnEl) authForgotBtnEl.addEventListener('click', sendPasswordReset);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
-// On load: check VIP status (if email saved), then render.
-checkVIP().then(()=>{
-  // ensure tabs reflect VIP lock
-  setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+// On load: sync auth session + render.
+syncSessionEmail().then(()=>{
+  checkVIP().then(()=>{
+    setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+    refreshAdminBadgeUI();
+    loadBets();
+    loadVipPromoProof();
+    updateBetAlertUI();
+    registerServiceWorker();
+  });
+});
+
+client.auth.onAuthStateChange(async (_event, session)=>{
+  const email = normalizeVipEmail(session?.user?.email || '');
+  if(email){
+    localStorage.setItem('vip_email', email);
+  }else{
+    localStorage.removeItem('vip_email');
+  }
+  await checkVIP();
+  await loadBets();
   refreshAdminBadgeUI();
-  // re-render bets so blur/limits apply
-  loadBets();
-  loadVipPromoProof();
-  updateBetAlertUI();
-  registerServiceWorker();
 });
 
 function switchTab(tab){
@@ -2210,3 +2311,56 @@ loadTracker = async function(){
   applyPersonalTrackerCollapseState();
 
 };
+
+
+
+// SIMPLE ACCOUNT LOGIN (separate from VIP)
+const SUPABASE_URL = window.SUPABASE_URL || "";
+const SUPABASE_KEY = window.SUPABASE_KEY || "";
+let authClient = null;
+
+try{
+  if(window.supabase){
+    authClient = supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  }
+}catch(e){}
+
+async function loginUser(){
+  const email = prompt("Email");
+  const password = prompt("Password");
+  if(!email||!password) return;
+  const {error} = await authClient.auth.signInWithPassword({email,password});
+  if(error){ alert(error.message); return; }
+  updateAuthUI();
+}
+
+async function signupUser(){
+  const email = prompt("Email");
+  const password = prompt("Password");
+  if(!email||!password) return;
+  const {error} = await authClient.auth.signUp({email,password});
+  if(error){ alert(error.message); return; }
+  alert("Account created. Check email if confirmation required.");
+}
+
+async function logoutUser(){
+  await authClient.auth.signOut();
+  updateAuthUI();
+}
+
+async function updateAuthUI(){
+  if(!authClient) return;
+  const {data} = await authClient.auth.getUser();
+  const user=data?.user;
+  document.getElementById("logoutBtn").style.display=user?"inline-block":"none";
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  const l=document.getElementById("loginBtn");
+  const s=document.getElementById("signupBtn");
+  const o=document.getElementById("logoutBtn");
+  if(l) l.onclick=loginUser;
+  if(s) s.onclick=signupUser;
+  if(o) o.onclick=logoutUser;
+  updateAuthUI();
+});
