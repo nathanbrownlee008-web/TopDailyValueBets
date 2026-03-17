@@ -232,7 +232,18 @@
     </div>
     <p class="vip-modal__sub">Get instant bets, full markets, and tracker access.</p>
     <input id="vipEmail" type="email" placeholder="Enter your email" autocomplete="email" />
-    <div class="vip-modal__plans">
+    <div id="vipAuthBlock" class="vip-auth-block">
+      <div class="vip-auth-title">Already VIP? Log in</div>
+      <input id="authEmail" type="email" placeholder="Email" autocomplete="email" />
+      <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" />
+      <div class="vip-auth-actions">
+        <button id="authSignInBtn" class="vip-auth-primary vip-auth-primary--alt" type="button">Log In</button>
+        <button id="authSignUpBtn" class="vip-auth-primary" type="button">Sign Up</button>
+      </div>
+      <button id="authForgotBtn" class="vip-auth-link" type="button">Forgot password?</button>
+      <div id="authStatus" class="vip-auth-status"></div>
+    </div>
+    <div id="vipPlansBlock" class="vip-modal__plans">
       <button id="vipMonthly" class="vip-plan" type="button">£12 / month</button>
       <button id="vipYearly" class="vip-plan" type="button">£80 / year</button>
     </div>

@@ -26,6 +26,8 @@ function setVipUI(active, email){
       btnEl.style.cursor = "default";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
+    if(vipLoginEl) vipLoginEl.style.display = 'none';
+    if(vipLogoutEl) vipLogoutEl.style.display = 'inline-flex';
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
@@ -37,15 +39,20 @@ function setVipUI(active, email){
       btnEl.style.cursor = "pointer";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
+    if(vipLoginEl) vipLoginEl.style.display = 'inline-flex';
+    if(vipLogoutEl) vipLogoutEl.style.display = 'none';
   }
 }
 
 function openVipModal(){
   if(!vipModalEl) return;
   if(vipErrorEl) vipErrorEl.textContent="";
+  setAuthStatus("");
+  syncAuthFieldsFromStorage();
   const saved=(localStorage.getItem('vip_email')||"").trim();
   if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
   vipModalEl.style.display="flex";
+  setVipModalMode('vip');
 }
 
 function closeVipModal(){
@@ -53,38 +60,152 @@ function closeVipModal(){
   vipModalEl.style.display="none";
 }
 
+function setAuthStatus(msg){
+  if(authStatusEl) authStatusEl.textContent = msg || "";
+}
+
+function syncAuthFieldsFromStorage(){
+  const saved = (localStorage.getItem('vip_email') || "").trim().toLowerCase();
+  if(saved){
+    if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value = saved;
+    if(authEmailEl && !authEmailEl.value) authEmailEl.value = saved;
+  }
+}
+
 function setVipModalMode(mode){
-  const authBlock = document.getElementById('vipAuthBlock');
-  const plansBlock = document.getElementById('vipPlansBlock');
-  if(!authBlock || !plansBlock) return;
+  const plans = document.getElementById('vipPlansBlock');
+  if(!plans) return;
   if(mode === 'login'){
-    authBlock.scrollIntoView({ behavior:'auto', block:'start' });
-    plansBlock.style.opacity = '.55';
-    plansBlock.style.pointerEvents = 'none';
+    plans.style.opacity = '.55';
+    plans.style.pointerEvents = 'none';
   }else{
-    plansBlock.style.opacity = '1';
-    plansBlock.style.pointerEvents = '';
+    plans.style.opacity = '1';
+    plans.style.pointerEvents = '';
   }
 }
 
 function openLoginModal(){
   openVipModal();
   setVipModalMode('login');
-  setTimeout(()=>{
-    if(authEmailEl) authEmailEl.focus();
-  }, 50);
+  if(authEmailEl) setTimeout(()=>authEmailEl.focus(),50);
 }
 
 function openVipSignupModal(){
   openVipModal();
   setVipModalMode('vip');
-  setTimeout(()=>{
-    if(vipEmailEl) vipEmailEl.focus();
-  }, 50);
+  if(vipEmailEl) setTimeout(()=>vipEmailEl.focus(),50);
+}
+
+async function syncSessionEmail(){
+  try{
+    const { data } = await client.auth.getUser();
+    const email = String(data?.user?.email || "").trim().toLowerCase();
+    if(email){
+      localStorage.setItem('vip_email', email);
+      if(vipEmailEl) vipEmailEl.value = email;
+      if(authEmailEl) authEmailEl.value = email;
+      return email;
+    }
+  }catch(e){}
+  return (localStorage.getItem('vip_email') || "").trim().toLowerCase();
+}
+
+async function signInWithPassword(){
+  const email = String(authEmailEl?.value || "").trim().toLowerCase();
+  const password = String(authPasswordEl?.value || "");
+  if(!email || !email.includes("@")){
+    setAuthStatus("Enter a valid email.");
+    return;
+  }
+  if(!password){
+    setAuthStatus("Enter your password.");
+    return;
+  }
+  try{
+    setAuthStatus("Logging in...");
+    const { error } = await client.auth.signInWithPassword({ email, password });
+    if(error) throw error;
+    localStorage.setItem('vip_email', email);
+    if(vipEmailEl) vipEmailEl.value = email;
+    const active = await checkVIP();
+    setAuthStatus(active ? "Logged in." : "Logged in, but no active VIP found.");
+    if(active) closeVipModal();
+    await loadBets();
+  }catch(err){
+    setAuthStatus(err?.message || "Could not log in.");
+  }
+}
+
+async function signUpWithPassword(){
+  const email = String(authEmailEl?.value || "").trim().toLowerCase();
+  const password = String(authPasswordEl?.value || "");
+  if(!email || !email.includes("@")){
+    setAuthStatus("Enter a valid email.");
+    return;
+  }
+  if(password.length < 6){
+    setAuthStatus("Password must be at least 6 characters.");
+    return;
+  }
+  try{
+    setAuthStatus("Creating account...");
+    const { error } = await client.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.origin }
+    });
+    if(error) throw error;
+    localStorage.setItem('vip_email', email);
+    if(vipEmailEl) vipEmailEl.value = email;
+    setAuthStatus("Account created. Check your email if confirmation is enabled.");
+  }catch(err){
+    setAuthStatus(err?.message || "Could not sign up.");
+  }
+}
+
+async function sendPasswordReset(){
+  const email = String(authEmailEl?.value || "").trim().toLowerCase();
+  if(!email || !email.includes("@")){
+    setAuthStatus("Enter your email first.");
+    return;
+  }
+  try{
+    setAuthStatus("Sending reset email...");
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin
+    });
+    if(error) throw error;
+    setAuthStatus("Password reset email sent.");
+  }catch(err){
+    setAuthStatus(err?.message || "Could not send reset email.");
+  }
+}
+
+async function logoutVipAccess(){
+  try{ await client.auth.signOut(); }catch(e){}
+  localStorage.removeItem('vip_email');
+  vipActive = false;
+  if(vipEmailEl) vipEmailEl.value = "";
+  if(authEmailEl) authEmailEl.value = "";
+  if(authPasswordEl) authPasswordEl.value = "";
+  setVipUI(false, "");
+  setAuthStatus("Signed out.");
+  closeVipModal();
+  await loadBets();
 }
 
 async function checkVIP(){
-  const email=(localStorage.getItem('vip_email')||"").trim();
+  let email=(localStorage.getItem('vip_email')||"").trim().toLowerCase();
+  if(!email){
+    try{
+      const { data } = await client.auth.getUser();
+      const sessionEmail = String(data?.user?.email || "").trim().toLowerCase();
+      if(sessionEmail){
+        email = sessionEmail;
+        localStorage.setItem('vip_email', email);
+      }
+    }catch(e){}
+  }
   if(!email){
     vipActive=false;
     setVipUI(false,"");
@@ -171,6 +292,14 @@ const vipEmailEl = document.getElementById("vipEmail");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
 const vipErrorEl = document.getElementById("vipError");
+const vipLoginEl = document.getElementById("vipLogin");
+const vipLogoutEl = document.getElementById("vipLogout");
+const authEmailEl = document.getElementById("authEmail");
+const authPasswordEl = document.getElementById("authPassword");
+const authSignInBtnEl = document.getElementById("authSignInBtn");
+const authSignUpBtnEl = document.getElementById("authSignUpBtn");
+const authForgotBtnEl = document.getElementById("authForgotBtn");
+const authStatusEl = document.getElementById("authStatus");
 
 
 let vipActive = false;
@@ -386,20 +515,36 @@ if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthl
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipSignupModal);
-if(authLoginBtnEl) authLoginBtnEl.addEventListener('click', openLoginModal);
+if(vipLoginEl) vipLoginEl.addEventListener('click', openLoginModal);
+if(vipLogoutEl) vipLogoutEl.addEventListener('click', logoutVipAccess);
+if(authSignInBtnEl) authSignInBtnEl.addEventListener('click', signInWithPassword);
+if(authSignUpBtnEl) authSignUpBtnEl.addEventListener('click', signUpWithPassword);
+if(authForgotBtnEl) authForgotBtnEl.addEventListener('click', sendPasswordReset);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
-// On load: check VIP status (if email saved), then render.
-checkVIP().then(()=>{
-  // ensure tabs reflect VIP lock
-  setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+// On load: sync auth session + VIP, then render.
+syncSessionEmail().then(()=>{
+  checkVIP().then(()=>{
+    setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+    refreshAdminBadgeUI();
+    loadBets();
+    loadVipPromoProof();
+    updateBetAlertUI();
+    registerServiceWorker();
+  });
+});
+
+client.auth.onAuthStateChange(async (_event, session)=>{
+  const email = String(session?.user?.email || "").trim().toLowerCase();
+  if(email){
+    localStorage.setItem('vip_email', email);
+    if(vipEmailEl) vipEmailEl.value = email;
+    if(authEmailEl) authEmailEl.value = email;
+  }
+  await checkVIP();
+  await loadBets();
   refreshAdminBadgeUI();
-  // re-render bets so blur/limits apply
-  loadBets();
-  loadVipPromoProof();
-  updateBetAlertUI();
-  registerServiceWorker();
 });
 
 function switchTab(tab){
