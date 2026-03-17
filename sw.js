@@ -1,5 +1,5 @@
 // Use absolute URLs so this works reliably on Vercel and ensures correct scope.
-const CACHE_NAME = "top-daily-tips-v60";
+const CACHE_NAME = "top-daily-tips-v61";
 const CORE_ASSETS = [
   "/",
   "/index.html",
