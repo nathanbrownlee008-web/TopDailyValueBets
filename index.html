@@ -40,10 +40,14 @@
       <div id="vipStatus" class="vip-bar__status">VIP locked — subscribe to unlock</div>
       <div class="admin-badge" data-admin-badge="1" style="display:none;">Admin</div>
     </div>
-    <button id="vipButton" class="vip-button" type="button">
-      <span class="vip-button__icon" aria-hidden="true">👑</span>
-      <span class="vip-button__text">Go VIP</span>
-    </button>
+    <div class="vip-bar__actions">
+      <button id="vipLogin" class="vip-login-btn" type="button">Log In</button>
+      <button id="vipLogout" class="vip-logout-btn" type="button" style="display:none;">Sign Out</button>
+      <button id="vipButton" class="vip-button" type="button">
+        <span class="vip-button__icon" aria-hidden="true">👑</span>
+        <span class="vip-button__text">Go VIP</span>
+      </button>
+    </div>
   </div>
 
 <div class="tabs">
@@ -260,6 +264,7 @@
       <button id="vipMonthly" class="vip-plan" type="button">£12 / month</button>
       <button id="vipYearly" class="vip-plan" type="button">£80 / year</button>
 <button id="vipRestore" class="vip-restore-btn" type="button">Already subscribed? Restore VIP</button>
+    <button id="vipLoginSubmit" class="vip-login-submit-btn" type="button">Log In</button>
     </div>
     <div id="vipError"></div>
   </div>
