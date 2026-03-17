@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772911201"/>
+<link rel="stylesheet" href="styles.css?v=1772892016"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -40,14 +40,10 @@
       <div id="vipStatus" class="vip-bar__status">VIP locked — subscribe to unlock</div>
       <div class="admin-badge" data-admin-badge="1" style="display:none;">Admin</div>
     </div>
-    <div class="vip-bar__actions">
-      <button id="vipLogin" class="vip-login-btn" type="button">Log In</button>
-      <button id="vipLogout" class="vip-logout-btn" type="button" style="display:none;">Sign Out</button>
-      <button id="vipButton" class="vip-button" type="button">
-        <span class="vip-button__icon" aria-hidden="true">👑</span>
-        <span class="vip-button__text">Go VIP</span>
-      </button>
-    </div>
+    <button id="vipButton" class="vip-button" type="button">
+      <span class="vip-button__icon" aria-hidden="true">👑</span>
+      <span class="vip-button__text">Go VIP</span>
+    </button>
   </div>
 
 <div class="tabs">
@@ -263,8 +259,6 @@
     <div class="vip-modal__plans">
       <button id="vipMonthly" class="vip-plan" type="button">£12 / month</button>
       <button id="vipYearly" class="vip-plan" type="button">£80 / year</button>
-<button id="vipRestore" class="vip-restore-btn" type="button">Already subscribed? Restore VIP</button>
-    <button id="vipLoginSubmit" class="vip-login-submit-btn" type="button">Send Magic Link</button>
     </div>
     <div id="vipError"></div>
   </div>

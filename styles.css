@@ -3315,42 +3315,10 @@ color:#d7e6ff !important;
 }
 
 
-/* ===== VIP restore button ===== */
-.vip-restore-btn{
-  width:100%;
-  margin-top:12px;
-  padding:10px 12px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.15);
-  background:rgba(255,255,255,0.05);
-  color:#ffffff;
-  font-weight:700;
-}
-.vip-restore-btn:disabled{
-  opacity:0.7;
-  cursor:default;
+body.modal-open{
+  overflow:hidden !important;
 }
 
-
-/* ===== VIP login/logout buttons ===== */
-.vip-bar__actions{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  justify-content:flex-end;
-  flex-wrap:wrap;
-}
-.vip-login-btn,
-.vip-logout-btn,
-.vip-login-submit-btn{
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,0.12);
-  background:rgba(255,255,255,0.06);
-  color:#fff;
-  font-weight:800;
-}
-.vip-login-submit-btn{
-  width:100%;
-  margin-top:10px;
+#vipModal[aria-hidden="true"]{
+  display:none !important;
 }

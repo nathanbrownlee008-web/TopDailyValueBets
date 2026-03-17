@@ -3,14 +3,6 @@ const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-function normalizeVipEmail(email){
-  return String(email || "").trim().toLowerCase();
-}
-
-function getSavedVipEmail(){
-  return normalizeVipEmail(localStorage.getItem('vip_email') || "");
-}
-
 // =========================
 // VIP
 // =========================
@@ -33,8 +25,6 @@ function setVipUI(active, email){
       btnEl.style.pointerEvents = "none";
       btnEl.style.cursor = "default";
     }
-    if(vipLoginEl) vipLoginEl.style.display = "none";
-    if(vipLogoutEl) vipLogoutEl.style.display = "inline-flex";
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
@@ -46,45 +36,43 @@ function setVipUI(active, email){
       btnEl.style.pointerEvents = "";
       btnEl.style.cursor = "pointer";
     }
-    if(vipLoginEl) vipLoginEl.style.display = "inline-flex";
-    if(vipLogoutEl) vipLogoutEl.style.display = "none";
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
   }
+}
+
+function hideVipOverlayState(){
+  if(vipModalEl){
+    vipModalEl.style.display = "none";
+    vipModalEl.setAttribute("aria-hidden","true");
+  }
+  document.body.classList.remove("modal-open");
 }
 
 function openVipModal(){
   if(!vipModalEl) return;
   if(vipErrorEl) vipErrorEl.textContent="";
-  const saved=getSavedVipEmail();
+  const saved=(localStorage.getItem('vip_email')||"").trim();
   if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
   vipModalEl.style.display="flex";
   vipModalEl.setAttribute("aria-hidden","false");
+  document.body.classList.add("modal-open");
 }
 
 function closeVipModal(){
-  if(!vipModalEl) return;
-  vipModalEl.style.display="none";
-  vipModalEl.setAttribute("aria-hidden","true");
+  hideVipOverlayState();
 }
 
 async function checkVIP(){
-  const sessionRes = await client.auth.getUser().catch(()=>({ data:{ user:null } }));
-  const authUser = sessionRes?.data?.user || null;
-  const email = normalizeVipEmail(authUser?.email || getSavedVipEmail());
-
+  const email=(localStorage.getItem('vip_email')||"").trim();
   if(!email){
     vipActive=false;
     setVipUI(false,"");
     return false;
   }
-
   try{
     const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
     const j=await r.json();
     vipActive=!!j.active;
-    if(vipActive){
-      localStorage.setItem('vip_email', email);
-    }
     setVipUI(vipActive,email);
     return vipActive;
   }catch(e){
@@ -118,86 +106,6 @@ async function startCheckout(plan){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
-  }
-}
-
-
-async function loginVipAccess(){
-  const email = normalizeVipEmail(vipEmailEl?.value || "");
-
-  if(!email || !email.includes("@")){
-    if(vipErrorEl) vipErrorEl.textContent = "Enter your email.";
-    return;
-  }
-
-  try{
-    if(vipErrorEl) vipErrorEl.textContent = "";
-    if(vipLoginSubmitEl) vipLoginSubmitEl.disabled = true;
-
-    const { error } = await client.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.origin
-      }
-    });
-
-    if(error) throw error;
-
-    localStorage.setItem("vip_email", email);
-    if(vipErrorEl) vipErrorEl.textContent = "Magic link sent. Check your email.";
-  }catch(e){
-    if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not send magic link.";
-  }finally{
-    if(vipLoginSubmitEl) vipLoginSubmitEl.disabled = false;
-  }
-}
-
-async function logoutVipAccess(){
-  try{
-    await client.auth.signOut();
-  }catch(e){}
-
-  localStorage.removeItem("vip_email");
-  vipActive = false;
-
-  if(vipEmailEl) vipEmailEl.value = "";
-  if(vipErrorEl) vipErrorEl.textContent = "";
-
-  setVipUI(false, "");
-  closeVipModal();
-  refreshAdminBadgeUI();
-  await loadBets();
-  window.location.href = window.location.origin;
-}
-
-async function restoreVipAccess(){
-  const email = normalizeVipEmail(vipEmailEl?.value || "");
-
-  if(!email || !email.includes("@")){
-    if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
-    return;
-  }
-
-  localStorage.setItem("vip_email", email);
-
-  try{
-    if(vipErrorEl) vipErrorEl.textContent = "";
-    if(vipRestoreEl) vipRestoreEl.disabled = true;
-
-    const active = await checkVIP();
-
-    if(active){
-      closeVipModal();
-      await loadBets();
-      refreshAdminBadgeUI();
-      return;
-    }
-
-    if(vipErrorEl) vipErrorEl.textContent = "No VIP found for that email.";
-  }catch(e){
-    if(vipErrorEl) vipErrorEl.textContent = "Could not restore VIP right now.";
-  }finally{
-    if(vipRestoreEl) vipRestoreEl.disabled = false;
   }
 }
 
@@ -241,10 +149,6 @@ const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
-const vipRestoreEl = document.getElementById("vipRestore");
-const vipLoginEl = document.getElementById("vipLogin");
-const vipLoginSubmitEl = document.getElementById("vipLoginSubmit");
-const vipLogoutEl = document.getElementById("vipLogout");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -459,54 +363,13 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
-if(vipLoginEl) vipLoginEl.addEventListener('click', openVipModal);
-if(vipLoginSubmitEl) vipLoginSubmitEl.addEventListener('click', loginVipAccess);
-if(vipLogoutEl) vipLogoutEl.addEventListener('click', logoutVipAccess);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
-
-async function syncVipFromSession(){
-  try{
-    const { data } = await client.auth.getUser();
-    const user = data?.user || null;
-    const email = normalizeVipEmail(user?.email || "");
-    if(email){
-      localStorage.setItem("vip_email", email);
-      if(vipEmailEl) vipEmailEl.value = email;
-      await checkVIP();
-      refreshAdminBadgeUI();
-      await loadBets();
-    }else{
-      setVipUI(false, "");
-      refreshAdminBadgeUI();
-    }
-  }catch(e){
-    console.error(e);
-  }
-}
-
-client.auth.onAuthStateChange(async (event, session) => {
-  const email = normalizeVipEmail(session?.user?.email || "");
-  if(email){
-    localStorage.setItem("vip_email", email);
-    if(vipEmailEl) vipEmailEl.value = email;
-    await checkVIP();
-    refreshAdminBadgeUI();
-    await loadBets();
-    closeVipModal();
-  }else if(event === 'SIGNED_OUT'){
-    setVipUI(false, "");
-    refreshAdminBadgeUI();
-  }
-});
-
-
 // On load: check VIP status (if email saved), then render.
-checkVIP().then(async ()=>{
+checkVIP().then(()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
   refreshAdminBadgeUI();
@@ -515,7 +378,6 @@ checkVIP().then(async ()=>{
   loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
-  await syncVipFromSession();
 });
 
 function switchTab(tab){
