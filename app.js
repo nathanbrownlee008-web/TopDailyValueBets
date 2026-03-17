@@ -41,10 +41,9 @@ function setVipUI(active, email){
 }
 
 function hideVipOverlayState(){
-  if(vipModalEl){
-    vipModalEl.style.display = "none";
-    vipModalEl.setAttribute("aria-hidden","true");
-  }
+  if(!vipModalEl) return;
+  vipModalEl.style.display="none";
+  vipModalEl.setAttribute("aria-hidden","true");
   document.body.classList.remove("modal-open");
 }
 

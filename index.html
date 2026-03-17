@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772892016"/>
+<link rel="stylesheet" href="styles.css?v=1772915001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -26,6 +26,24 @@
 #vipError{margin-top:12px;color:#f87171;min-height:20px;font-size:14px;}
 @media (max-width:520px){.vip-modal__plans{grid-template-columns:1fr;}}
 </style>
+
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) {
+        await reg.unregister();
+      }
+      if (window.caches && caches.keys) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+    } catch (e) {}
+  });
+}
+</script>
 
 </head>
 <body>
@@ -264,6 +282,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772891001"></script>
+<script src="app.js?v=1772915001"></script>
 </body>
 </html>
