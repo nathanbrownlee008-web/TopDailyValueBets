@@ -7,11 +7,6 @@ const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 // VIP
 // =========================
 
-function normalizeVipEmail(email){
-  return String(email || "").trim().toLowerCase();
-}
-
-
 function setVipUI(active, email){
   vipActive = !!active;
 
@@ -59,41 +54,29 @@ function closeVipModal(){
 }
 
 async function checkVIP(){
-  const email = normalizeVipEmail(localStorage.getItem('vip_email') || "");
+  const email=(localStorage.getItem('vip_email')||"").trim();
   if(!email){
-    vipActive = false;
-    setVipUI(false, "");
+    vipActive=false;
+    setVipUI(false,"");
     return false;
   }
-
   try{
-    const { data, error } = await client.rpc('check_vip_email', { p_email: email });
-    if(!error){
-      vipActive = !!data;
-      setVipUI(vipActive, email);
-      return vipActive;
-    }
-  }catch(e){
-    // fall through to API fallback
-  }
-
-  try{
-    const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
-    const j = await r.json();
-    vipActive = !!j.active;
-    setVipUI(vipActive, email);
+    const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+    const j=await r.json();
+    vipActive=!!j.active;
+    setVipUI(vipActive,email);
     return vipActive;
   }catch(e){
-    vipActive = false;
-    if(vipStatusEl) vipStatusEl.textContent = "VIP status check failed";
-    setVipUI(false, email);
+    vipActive=false;
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
+    setVipUI(false,email);
     return false;
   }
 }
 
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
-  const email=normalizeVipEmail(vipEmailEl?.value||"");
+  const email=(vipEmailEl?.value||"").trim();
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
@@ -119,9 +102,9 @@ async function startCheckout(plan){
 
 
 async function restoreVipAccess(){
-  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const email = (vipEmailEl?.value || "").trim();
 
-  if(!email || !email.includes("@")){
+  if(!email){
     if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
     return;
   }
@@ -137,6 +120,7 @@ async function restoreVipAccess(){
     if(active){
       closeVipModal();
       await loadBets();
+      location.reload();
       return;
     }
 
