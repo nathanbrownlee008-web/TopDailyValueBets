@@ -66,27 +66,13 @@ function closeVipModal(){
   vipModalEl.style.display="none";
 }
 
+
 async function checkVIP(){
-  let email = normalizeVipEmail(localStorage.getItem('vip_email') || "");
-  try{
-    const { data } = await client.auth.getUser();
-    const sessionEmail = normalizeVipEmail(data?.user?.email || "");
-    if(sessionEmail){
-      email = sessionEmail;
-      localStorage.setItem('vip_email', email);
-    }
-  }catch(e){}
-
-  if(!email){
-    vipActive = false;
-    setVipUI(false, "");
-    return false;
-  }
-
   vipActive = true;
-  setVipUI(true, email);
+  setVipUI(true, (localStorage.getItem('vip_email')||'').trim());
   return true;
 }
+
 
 async function startCheckout(plan){
   openVipModal();
@@ -261,7 +247,7 @@ const authForgotBtnEl = document.getElementById("authForgotBtn");
 const authStatusEl = document.getElementById("authStatus");
 
 
-let vipActive = false;
+let vipActive = true;
 const ADMIN_SYNC_EMAIL = "nathanbrownlee40@gmail.com";
 let tdtRowsCache = [];
 let tdtSortKey = 'date';
@@ -458,10 +444,7 @@ let historyMode = "personal";
 
 tabBets.onclick=()=>switchTab("bets");
 tabTracker.onclick=()=>{
-  if(!vipActive){
-    openVipModal();
-    return;
-  }
+  
   switchTab("tracker");
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
@@ -630,10 +613,7 @@ async function addToTracker(btn, row){
   const key = makeBetKey(row);
   if(addedKeys.has(key)) return;
 
-  if(!vipActive){
-    openVipModal();
-    return;
-  }
+  
 
   if(btn){
     btn.disabled = true;
