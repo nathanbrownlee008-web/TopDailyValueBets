@@ -104,7 +104,7 @@ async function startCheckout(plan){
 async function restoreVipAccess(){
   const email = (vipEmailEl?.value || "").trim();
 
-  if(!email){
+  if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
     return;
   }
@@ -120,7 +120,6 @@ async function restoreVipAccess(){
     if(active){
       closeVipModal();
       await loadBets();
-      location.reload();
       return;
     }
 
