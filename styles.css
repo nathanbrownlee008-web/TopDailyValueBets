@@ -3315,87 +3315,16 @@ color:#d7e6ff !important;
 }
 
 
-/* auth controls */
-.vip-bar__actions{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.vip-auth-btn{
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.06);
-  color:#fff;
-  font-weight:800;
-}
-.vip-auth-btn--ghost{
-  background:rgba(255,255,255,.03);
-}
-.vip-auth-block{
-  margin:0 0 14px;
-  padding:14px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.03);
-}
-.vip-auth-title{
-  font-size:14px;
-  font-weight:900;
-  margin:0 0 10px;
-  color:#f8fafc;
-}
-#authEmail,
-#authPassword{
-  width:100%;
-  box-sizing:border-box;
-  padding:12px 14px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.05);
-  color:#fff;
-  margin:0 0 10px;
-  font-size:15px;
-}
-.vip-auth-actions{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-.vip-auth-primary{
-  padding:12px 14px;
-  border-radius:14px;
-  font-weight:800;
-  border:1px solid rgba(34,197,94,.32);
-  background:rgba(34,197,94,.16);
-  color:#ecfdf5;
-}
-.vip-auth-primary--alt{
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.06);
-  color:#fff;
-}
-.vip-auth-link{
-  width:100%;
-  margin-top:10px;
-  padding:10px 12px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.10);
-  background:transparent;
-  color:#cbd5e1;
-  font-weight:700;
-}
-.vip-auth-status{
-  margin-top:10px;
-  min-height:18px;
-  color:#cbd5e1;
-  font-size:13px;
-}
-#vipPlansBlock{
-  transition:opacity .18s ease;
-}
-@media (max-width:520px){
-  .vip-auth-actions{grid-template-columns:1fr;}
-}
+/* login/auth controls */
+.vip-bar__actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.vip-auth-btn{padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-weight:800}
+.vip-auth-btn--ghost{background:rgba(255,255,255,.03)}
+.vip-auth-block{margin:0 0 14px;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03)}
+.vip-auth-title{font-size:14px;font-weight:900;margin:0 0 10px;color:#f8fafc}
+#authEmail,#authPassword{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;margin:0 0 10px;font-size:15px}
+.vip-auth-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vip-auth-primary{padding:12px 14px;border-radius:14px;font-weight:800;border:1px solid rgba(34,197,94,.32);background:rgba(34,197,94,.16);color:#ecfdf5}
+.vip-auth-primary--alt{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff}
+.vip-auth-link{width:100%;margin-top:10px;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:transparent;color:#cbd5e1;font-weight:700}
+.vip-auth-status{margin-top:10px;min-height:18px;color:#cbd5e1;font-size:13px}
+@media (max-width:520px){.vip-auth-actions{grid-template-columns:1fr}}

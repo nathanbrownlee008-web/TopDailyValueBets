@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772909001"/>
+<link rel="stylesheet" href="styles.css?v=1772915002"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -37,7 +37,7 @@
   <div class="vip-bar" id="vipBar">
     <div class="vip-bar__left">
       <div class="vip-bar__title" id="vipTitle">VIP Access</div>
-      <div id="vipStatus" class="vip-bar__status">VIP locked — subscribe to unlock</div>
+      <div id="vipStatus" class="vip-bar__status">Log in to access your account</div>
       <div class="admin-badge" data-admin-badge="1" style="display:none;">Admin</div>
     </div>
     <div class="vip-bar__actions">
@@ -45,7 +45,7 @@
       <button id="vipLogout" class="vip-auth-btn vip-auth-btn--ghost" type="button" style="display:none;">Sign Out</button>
       <button id="vipButton" class="vip-button" type="button">
         <span class="vip-button__icon" aria-hidden="true">👑</span>
-        <span class="vip-button__text">Go VIP</span>
+        <span class="vip-button__text">Log In</span>
       </button>
     </div>
   </div>
@@ -100,7 +100,7 @@
       <div class="vip-promo__title">Instant bets, full markets, tracker access</div>
       <div id="vipPromoStats" class="vip-promo__stats">Loading official TDT proof...</div>
     </div>
-    <button id="vipPromoBtn" class="vip-promo__btn" type="button">Unlock VIP</button>
+    <button id="vipPromoBtn" class="vip-promo__btn" type="button">Account Access</button>
   </div>
   <div class="vip-promo__chartwrap">
     <canvas id="vipPromoChart"></canvas>
@@ -255,13 +255,12 @@
 <div id="vipModal" aria-hidden="true">
   <div class="vip-modal__card">
     <div class="vip-modal__top">
-      <div class="vip-modal__title">Unlock VIP</div>
+      <div class="vip-modal__title">Account Access</div>
       <button id="vipClose" class="vip-modal__close" type="button">×</button>
     </div>
-    <p class="vip-modal__sub">Get instant bets, full markets, and tracker access.</p>
-    <input id="vipEmail" type="email" placeholder="Enter your email" autocomplete="email" />
+    <p class="vip-modal__sub">Log in or create an account to use the app.</p>
     <div id="vipAuthBlock" class="vip-auth-block">
-      <div class="vip-auth-title">Already VIP? Log in</div>
+      <div class="vip-auth-title">Log in to access your account</div>
       <input id="authEmail" type="email" placeholder="Email" autocomplete="email" />
       <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" />
       <div class="vip-auth-actions">
@@ -271,7 +270,7 @@
       <button id="authForgotBtn" class="vip-auth-link" type="button">Forgot password?</button>
       <div id="authStatus" class="vip-auth-status"></div>
     </div>
-    <div id="vipPlansBlock" class="vip-modal__plans">
+    <div id="vipPlansBlock" class="vip-modal__plans" style="display:none;">
       <button id="vipMonthly" class="vip-plan" type="button">£12 / month</button>
       <button id="vipYearly" class="vip-plan" type="button">£80 / year</button>
     </div>
@@ -279,6 +278,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1772909001"></script>
+<script src="app.js?v=1772915002"></script>
 </body>
 </html>
