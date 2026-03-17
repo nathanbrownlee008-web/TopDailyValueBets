@@ -3330,3 +3330,35 @@ color:#d7e6ff !important;
   opacity:0.7;
   cursor:default;
 }
+
+
+/* ===== VIP login/logout buttons ===== */
+.vip-bar__actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+.vip-login-btn,
+.vip-logout-btn,
+.vip-login-submit-btn{
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  font-weight:800;
+}
+.vip-login-submit-btn{
+  width:100%;
+  margin-top:10px;
+}
+
+
+
+#vipModal{
+  display:none !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
