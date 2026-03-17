@@ -57,6 +57,8 @@ function closeVipModal(){
   if(!vipModalEl) return;
   vipModalEl.style.display="none";
 }
+window.openVipModal = openVipModal;
+window.closeVipModal = closeVipModal;
 
 async function checkVIP(){
   const email = normalizeVipEmail(localStorage.getItem('vip_email') || "");
@@ -180,37 +182,44 @@ function isValueBetActiveToday(row){
 function setAccountAuthStatus(msg){
   if(accountAuthStatusEl) accountAuthStatusEl.textContent = msg || "";
 }
+
 function openAccountModal(mode){
   if(!accountModalEl) return;
   setAccountAuthStatus("");
   accountModalEl.style.display = "flex";
-  if(mode === "signup" && accountDoSignupEl) accountDoSignupEl.focus();
-  else if(accountEmailEl) accountEmailEl.focus();
+  if(mode === "signup" && accountDoSignupEl){
+    accountDoSignupEl.focus();
+  }else if(accountEmailEl){
+    accountEmailEl.focus();
+  }
 }
+window.openAccountModal = openAccountModal;
+
 function closeAccountModal(){
   if(!accountModalEl) return;
   accountModalEl.style.display = "none";
 }
-function setAccountButtons(isAuthed, email){
+window.closeAccountModal = closeAccountModal;
+
+function setAccountButtons(isAuthed){
   if(accountLoginBtnEl) accountLoginBtnEl.style.display = isAuthed ? "none" : "inline-flex";
   if(accountSignupBtnEl) accountSignupBtnEl.style.display = isAuthed ? "none" : "inline-flex";
-  if(accountLogoutBtnEl){
-    accountLogoutBtnEl.style.display = isAuthed ? "inline-flex" : "none";
-    accountLogoutBtnEl.textContent = isAuthed ? "Sign Out" : "Sign Out";
-  }
+  if(accountLogoutBtnEl) accountLogoutBtnEl.style.display = isAuthed ? "inline-flex" : "none";
 }
+
 async function syncAccountSessionUI(){
   try{
     const { data } = await client.auth.getUser();
     const user = data?.user || null;
     const email = String(user?.email || "").trim().toLowerCase();
-    setAccountButtons(!!email, email);
+    setAccountButtons(!!email);
     return email;
   }catch(e){
-    setAccountButtons(false, "");
+    setAccountButtons(false);
     return "";
   }
 }
+
 async function accountLogin(){
   const email = String(accountEmailEl?.value || "").trim().toLowerCase();
   const password = String(accountPasswordEl?.value || "");
@@ -227,6 +236,8 @@ async function accountLogin(){
     setAccountAuthStatus(err?.message || "Could not log in.");
   }
 }
+window.accountLogin = accountLogin;
+
 async function accountSignup(){
   const email = String(accountEmailEl?.value || "").trim().toLowerCase();
   const password = String(accountPasswordEl?.value || "");
@@ -246,6 +257,8 @@ async function accountSignup(){
     setAccountAuthStatus(err?.message || "Could not sign up.");
   }
 }
+window.accountSignup = accountSignup;
+
 async function accountForgotPassword(){
   const email = String(accountEmailEl?.value || "").trim().toLowerCase();
   if(!email || !email.includes("@")) return setAccountAuthStatus("Enter your email first.");
@@ -260,10 +273,13 @@ async function accountForgotPassword(){
     setAccountAuthStatus(err?.message || "Could not send reset email.");
   }
 }
+window.accountForgotPassword = accountForgotPassword;
+
 async function accountLogout(){
   try{ await client.auth.signOut(); }catch(e){}
   await syncAccountSessionUI();
 }
+window.accountLogout = accountLogout;
 
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
@@ -489,7 +505,6 @@ if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly')
 if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
-
 if(accountLoginBtnEl) accountLoginBtnEl.addEventListener('click', ()=>openAccountModal("login"));
 if(accountSignupBtnEl) accountSignupBtnEl.addEventListener('click', ()=>openAccountModal("signup"));
 if(accountLogoutBtnEl) accountLogoutBtnEl.addEventListener('click', accountLogout);
@@ -498,7 +513,6 @@ if(accountModalEl) accountModalEl.addEventListener('click',(e)=>{ if(e.target===
 if(accountDoLoginEl) accountDoLoginEl.addEventListener('click', accountLogin);
 if(accountDoSignupEl) accountDoSignupEl.addEventListener('click', accountSignup);
 if(accountForgotBtnEl) accountForgotBtnEl.addEventListener('click', accountForgotPassword);
-
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
@@ -2318,6 +2332,7 @@ loadTracker = async function(){
   applyPersonalTrackerCollapseState();
 
 };
+
 
 client.auth.onAuthStateChange(async ()=>{
   await syncAccountSessionUI();

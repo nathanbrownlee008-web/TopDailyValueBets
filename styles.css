@@ -1508,7 +1508,7 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
   text-align:center;
 }
 
-.tab-locked{ opacity:0.55; }
+.tab-locked, .tab--locked{ opacity:0.55; }
 
 .modal-overlay{
   position:fixed;
@@ -3332,27 +3332,41 @@ color:#d7e6ff !important;
 }
 
 
-/* ===== VIP login/logout buttons ===== */
-.vip-bar__actions{
-  display:flex;
+/* ===== 2026-03-17 safe mobile VIP fixes ===== */
+.bet-card--locked{
+  border-color:rgba(255,215,0,0.18);
+  background:linear-gradient(180deg,rgba(17,24,39,0.98),rgba(10,18,32,0.98));
+}
+.vip-blur, .vip-blur-area{
+  filter:none !important;
+  opacity:1 !important;
+}
+.vip-overlay{
+  background:rgba(3,7,18,0.18) !important;
+  backdrop-filter:none !important;
+  border-color:rgba(255,215,0,0.22) !important;
+}
+.bet-market--locked{
+  display:inline-flex;
   align-items:center;
-  gap:10px;
-  justify-content:flex-end;
-  flex-wrap:wrap;
-}
-.vip-login-btn,
-.vip-logout-btn,
-.vip-login-submit-btn{
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,0.12);
-  background:rgba(255,255,255,0.06);
-  color:#fff;
+  gap:6px;
   font-weight:800;
+  color:rgba(255,240,190,0.92);
 }
-.vip-login-submit-btn{
-  width:100%;
-  margin-top:10px;
+.vip-teaser-line{
+  margin-top:6px;
+  font-size:12px;
+  color:rgba(255,240,190,0.88);
+  font-weight:700;
+}
+.vip-teaser-subline{
+  margin-top:2px;
+  font-size:12px;
+  color:rgba(255,255,255,0.72);
+}
+@media (max-width:700px){
+  .vip-promo{padding:14px 14px 16px;}
+  .vip-overlay{font-size:13px;}
 }
 
 
