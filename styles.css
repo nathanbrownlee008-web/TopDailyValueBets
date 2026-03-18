@@ -3337,114 +3337,182 @@ body.layout-compact .vip-bar{
 }
 
 
-/* My Tracker -> TDT-style table with hidden date column to keep month/day grouping */
-#trackerTable .hidden-date-col,
-#trackerTable .tracker-results-table .hidden-date-col{
-  display:none;
+
+/* ===== Personal tracker exact TDT-style monthly layout ===== */
+#trackerTable .pt-month-groups{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
 }
 
-#trackerTable table,
-#trackerTable .tracker-results-table{
+#trackerTable .pt-month-card{
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  overflow:hidden;
+  background:rgba(8,18,45,0.22);
+}
+
+#trackerTable .pt-month-head{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:14px 14px;
+  background:rgba(15,23,42,0.48);
+  color:#e8eefc;
+  border:1px solid rgba(255,255,255,0.08);
+  cursor:pointer;
+  border-radius:18px;
+}
+
+#trackerTable .pt-month-left{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:3px;
+  min-width:0;
+}
+
+#trackerTable .pt-month-title{
+  font-weight:900;
+  font-size:15px;
+}
+
+#trackerTable .pt-month-sub{
+  font-size:12px;
+  opacity:.72;
+}
+
+#trackerTable .pt-month-sub .positive{color:#22c55e;font-weight:800;}
+#trackerTable .pt-month-sub .negative{color:#ef4444;font-weight:800;}
+
+#trackerTable .pt-month-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:nowrap;
+  justify-content:flex-end;
+  flex:0 0 auto;
+}
+
+#trackerTable .pt-table-wrap{
+  width:100%;
+  overflow-x:auto;
+}
+
+#trackerTable .pt-table{
   width:100%;
   border-collapse:collapse;
   table-layout:fixed;
 }
 
-#trackerTable th,
-#trackerTable td{
-  padding:10px 6px;
-  border-bottom:1px solid #334155;
+#trackerTable .pt-table th,
+#trackerTable .pt-table td{
+  border-bottom:1px solid #22314a;
+  padding:12px 10px;
   vertical-align:middle;
-}
-
-#trackerTable th{
   text-align:left;
+}
+
+#trackerTable .pt-table th{
   font-size:12px;
-}
-
-#trackerTable .tracker-match-cell{
-  width:28%;
+  letter-spacing:0;
+  text-transform:none;
+  color:#cbd5e1;
   font-weight:800;
+}
+
+#trackerTable .pt-col-match{width:26%;}
+#trackerTable .pt-col-market{width:24%;}
+#trackerTable .pt-col-stake{width:13%;}
+#trackerTable .pt-col-odds{width:12%;}
+#trackerTable .pt-col-result{width:15%;}
+#trackerTable .pt-col-profit{width:10%;}
+
+#trackerTable .pt-match{
+  font-weight:900;
   line-height:1.08;
   overflow-wrap:anywhere;
 }
 
-#trackerTable .tracker-market-cell{
-  width:24%;
+#trackerTable .pt-market{
   line-height:1.08;
   overflow-wrap:anywhere;
 }
 
-#trackerTable input.tracker-edit-input,
-#trackerTable input[type="number"].tracker-edit-input{
-  width:52px;
+#trackerTable .pt-input{
+  width:64px;
   max-width:100%;
   box-sizing:border-box;
-  padding:4px 3px;
+  padding:7px 6px;
   text-align:center;
+  background:#182338;
+  border:1px solid rgba(255,255,255,0.10);
+  color:#fff;
+  border-radius:12px;
 }
 
-#trackerTable .tracker-odds-input{
-  width:54px;
+#trackerTable .pt-input--odds{
+  width:72px;
 }
 
-#trackerTable .result-select{
-  width:72px !important;
-  min-width:72px !important;
-  max-width:72px !important;
+#trackerTable .pt-result .result-select{
+  width:96px !important;
+  min-width:96px !important;
+  max-width:96px !important;
   box-sizing:border-box;
-  padding:3px 4px;
-  font-size:11px;
+  padding:7px 8px;
+  border-radius:12px;
 }
 
-#trackerTable .profit-col{
-  width:60px;
-  text-align:right;
+#trackerTable .pt-profit{
   white-space:nowrap;
-  font-size:12px;
-  padding-right:2px;
-}
-
-#trackerTable tr.month-group td{
+  text-align:right;
   font-weight:800;
 }
 
-@media (max-width: 600px){
-  #trackerTable th,
-  #trackerTable td{
-    padding:8px 4px;
+@media (max-width:600px){
+  #trackerTable .pt-month-head{
+    padding:12px 10px;
+    align-items:center;
+  }
+  #trackerTable .pt-month-right{
+    gap:5px;
+    flex-wrap:nowrap;
+  }
+  #trackerTable .pt-month-title{font-size:14px;}
+
+  #trackerTable .pt-table th,
+  #trackerTable .pt-table td{
+    padding:10px 8px;
     font-size:11px;
   }
 
-  #trackerTable .tracker-match-cell{
-    width:26%;
-  }
+  #trackerTable .pt-col-match{width:24%;}
+  #trackerTable .pt-col-market{width:23%;}
+  #trackerTable .pt-col-stake{width:13%;}
+  #trackerTable .pt-col-odds{width:12%;}
+  #trackerTable .pt-col-result{width:17%;}
+  #trackerTable .pt-col-profit{width:11%;}
 
-  #trackerTable .tracker-market-cell{
-    width:22%;
-  }
-
-  #trackerTable input.tracker-edit-input,
-  #trackerTable input[type="number"].tracker-edit-input{
-    width:46px;
-    padding:3px 2px;
-    font-size:11px;
-  }
-
-  #trackerTable .tracker-odds-input{
-    width:48px;
-  }
-
-  #trackerTable .result-select{
-    width:66px !important;
-    min-width:66px !important;
-    max-width:66px !important;
-    padding:3px 2px;
-    font-size:10px;
-  }
-
-  #trackerTable .profit-col{
+  #trackerTable .pt-input{
     width:54px;
+    padding:6px 4px;
     font-size:11px;
+    border-radius:11px;
+  }
+
+  #trackerTable .pt-input--odds{
+    width:58px;
+  }
+
+  #trackerTable .pt-result .result-select{
+    width:82px !important;
+    min-width:82px !important;
+    max-width:82px !important;
+    padding:6px 6px;
+    font-size:11px;
+    border-radius:11px;
   }
 }
