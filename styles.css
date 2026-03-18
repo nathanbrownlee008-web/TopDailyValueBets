@@ -3588,72 +3588,36 @@ body.layout-compact .vip-bar{
 }
 
 
-/* Personal tracker final tidy: smaller result emoji + date under match */
-#trackerTable .pt-match-main{
-  line-height:1.08;
-  overflow-wrap:anywhere;
+/* ===== Tracker mobile layout improvements ===== */
+
+/* widen match column slightly */
+#trackerTable td:nth-child(1),
+#trackerTable th:nth-child(1){
+  width:40%;
 }
 
-#trackerTable .pt-row-date{
-  margin-top:5px;
-  font-size:10px;
-  opacity:.72;
-  line-height:1.05;
+/* tighter stake + odds inputs */
+#trackerTable input[type="number"]{
+  width:52px;
 }
 
-#trackerTable .pt-market-main{
-  line-height:1.08;
-  overflow-wrap:anywhere;
-}
-
-#trackerTable .pt-result .result-select{
-  width:48px !important;
-  min-width:48px !important;
-  max-width:48px !important;
-  padding:4px 1px;
-  font-size:14px;
-  line-height:1;
-  text-align:center;
-}
-
-@media (max-width:600px){
-  #trackerTable .pt-result .result-select{
-    width:44px !important;
-    min-width:44px !important;
-    max-width:44px !important;
-    padding:3px 1px;
-    font-size:13px;
-  }
-
-  #trackerTable .pt-row-date{
-    font-size:9px;
-    margin-top:4px;
-  }
-}
-
-
-
-/* Personal tracker mobile fit fix */
+/* smaller result selector */
 #trackerTable select{
-  min-width:70px;
-  width:70px;
+  min-width:60px;
+  width:60px;
   font-size:12px;
 }
 
+/* hide PROFIT column only on mobile */
 @media (max-width:600px){
-  #trackerTable th:nth-child(5),
-  #trackerTable td:nth-child(5){
+
+  #trackerTable th:nth-child(6),
+  #trackerTable td:nth-child(6){
     display:none;
   }
 
-  #trackerTable select{
-    min-width:52px;
-    width:52px;
-    font-size:11px;
-    padding:3px 2px;
+  #trackerTable td:nth-child(1){
+    line-height:1.25;
   }
 
-  #trackerTable input[type="number"]{
-    width:52px;
-  }
 }

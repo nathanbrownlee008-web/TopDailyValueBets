@@ -2639,8 +2639,8 @@ loadTracker = async function(){
               : 0;
       html += `
         <tr class="pt-row ${res}">
-          <td class="pt-match"><div class="pt-match-main">${escapeHtml(row.match || "")}</div><div class="pt-row-date">${escapeHtml(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at))}</div></td>
-          <td class="pt-market"><div class="pt-market-main">${escapeHtml(row.market || "")}</div></td>
+          <td class="pt-match">${escapeHtml(row.match || "")}</td>
+          <td class="pt-market"><div class="pt-market-main">${escapeHtml(row.market || "")}</div><div class="pt-row-date">${escapeHtml(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at))}</div></td>
           <td class="pt-stake">
             <input class="pt-input" type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${row.id}',this.value)">
           </td>
