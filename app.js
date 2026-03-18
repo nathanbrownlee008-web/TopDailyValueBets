@@ -173,6 +173,36 @@ function isValueBetActiveToday(row){
 }
 
 
+
+function shouldTryVipFinalize(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get('vip') === 'success' || params.has('session_id');
+}
+
+async function pollVipAfterCheckout(){
+  const email = (localStorage.getItem('vip_email') || '').trim();
+  if(!email) return false;
+  if(vipStatusEl) vipStatusEl.textContent = "Finalising VIP payment...";
+  for(let i=0;i<20;i++){
+    const active = await checkVIP();
+    if(active){
+      if(vipStatusEl) vipStatusEl.textContent = `Access unlocked for ${email}`;
+      try{
+        const url = new URL(window.location.href);
+        url.searchParams.delete('vip');
+        url.searchParams.delete('session_id');
+        window.history.replaceState({}, '', url.toString());
+      }catch(e){}
+      await loadBets();
+      return true;
+    }
+    await new Promise(r=>setTimeout(r, 3000));
+  }
+  if(vipStatusEl) vipStatusEl.textContent = "Payment received? Tap Restore VIP.";
+  return false;
+}
+
+
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -408,9 +438,12 @@ const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
 // On load: check VIP status (if email saved), then render.
-checkVIP().then(()=>{
+checkVIP().then(async ()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+  if(!vipActive && shouldTryVipFinalize()){
+    await pollVipAfterCheckout();
+  }
   refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
   loadBets();
