@@ -94,7 +94,7 @@ async function forgotVipPassword(){
   try{
     if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
     const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin
+      redirectTo: window.location.origin + "/reset-password.html"
     });
     if(error) throw error;
     if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent.";
@@ -341,33 +341,117 @@ function trackerStorageKey(){
   return `tdt_tracker_${email}`;
 }
 
-function readTrackerRows(){
+function readTrackerRowsLocal(){
   try{
     const raw = localStorage.getItem(trackerStorageKey());
     const rows = raw ? JSON.parse(raw) : [];
     const safeRows = Array.isArray(rows) ? rows : [];
-    return safeRows.map((row)=>{
-      const out = { ...(row || {}) };
-      if(!out.id) out.id = makeLocalTrackerId();
-      if(!out.created_at && out.bet_date){
-        out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
-      }
-      if(!out.created_at){
-        out.created_at = new Date().toISOString();
-      }
-      return out;
-    });
+    return safeRows.map(normalizeTrackerRow);
   }catch(e){
     return [];
   }
 }
 
-function writeTrackerRows(rows){
+function writeTrackerRowsLocal(rows){
   localStorage.setItem(trackerStorageKey(), JSON.stringify(rows || []));
+}
+
+function normalizeTrackerRow(row){
+  const out = { ...(row || {}) };
+  if(!out.id) out.id = makeLocalTrackerId();
+  if(!out.created_at && out.bet_date){
+    out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
+  }
+  if(!out.created_at){
+    out.created_at = new Date().toISOString();
+  }
+  if(out.stake == null) out.stake = 10;
+  if(!out.result) out.result = "pending";
+  return out;
 }
 
 function makeLocalTrackerId(){
   return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+
+async function currentAuthUserId(){
+  try{
+    const { data, error } = await client.auth.getUser();
+    if(error) return null;
+    return data?.user?.id || null;
+  }catch(e){
+    return null;
+  }
+}
+
+async function readTrackerRows(){
+  const localRows = readTrackerRowsLocal();
+
+  const userId = await currentAuthUserId();
+  if(!userId) return localRows;
+
+  try{
+    const { data, error } = await client
+      .from("personal_tracker")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true });
+
+    if(error) throw error;
+
+    const cloudRows = (data || []).map(normalizeTrackerRow);
+    if(cloudRows.length){
+      writeTrackerRowsLocal(cloudRows);
+      return cloudRows;
+    }
+
+    // first-time cloud seed from local backup
+    if(localRows.length){
+      const seedRows = localRows.map(r => ({ ...normalizeTrackerRow(r), user_id: userId }));
+      const { error: seedError } = await client.from("personal_tracker").upsert(seedRows, { onConflict: "id" });
+      if(seedError) throw seedError;
+      writeTrackerRowsLocal(localRows);
+      return localRows;
+    }
+
+    return [];
+  }catch(e){
+    console.error("readTrackerRows cloud fallback", e);
+    return localRows;
+  }
+}
+
+async function upsertTrackerRow(row){
+  const safeRow = normalizeTrackerRow(row);
+  const userId = await currentAuthUserId();
+
+  // Always keep browser backup too
+  const localRows = readTrackerRowsLocal();
+  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
+  writeTrackerRowsLocal(nextLocal);
+
+  if(!userId) return safeRow;
+
+  const payload = { ...safeRow, user_id: userId };
+  const { error } = await client.from("personal_tracker").upsert([payload], { onConflict: "id" });
+  if(error) throw error;
+  return safeRow;
+}
+
+async function deleteTrackerRowById(id){
+  const localRows = readTrackerRowsLocal().filter(r => String(r.id) !== String(id));
+  writeTrackerRowsLocal(localRows);
+
+  const userId = await currentAuthUserId();
+  if(!userId) return;
+
+  const { error } = await client
+    .from("personal_tracker")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id);
+
+  if(error) throw error;
 }
 
 
@@ -509,6 +593,7 @@ checkVIP().then(async ()=>{
     await pollVipAfterCheckout();
   }
   refreshAdminBadgeUI();
+  try{ await readTrackerRows(); }catch(e){}
   // re-render bets so blur/limits apply
   loadBets();
   loadVipPromoProof();
@@ -542,7 +627,7 @@ function switchTab(tab){
 async function loadBets(){
   addedKeys.clear();
   try{
-    const localRows = readTrackerRows();
+    const localRows = await readTrackerRows();
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
@@ -640,7 +725,6 @@ async function addToTracker(btn, row){
     btn.textContent = 'Adding…';
   }
 
-  const rows = readTrackerRows();
   const newRow = {
     id: makeLocalTrackerId(),
     sync_id: isAdminSyncEnabled() ? makeSyncId() : null,
@@ -653,8 +737,19 @@ async function addToTracker(btn, row){
     bet_date: row.bet_date || null,
     bookie: row.bookie || null
   };
-  rows.push(newRow);
-  writeTrackerRows(rows);
+
+  try{
+    await upsertTrackerRow(newRow);
+  }catch(e){
+    console.error(e);
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = 'Add';
+    }
+    alert('Could not save tracker bet right now.');
+    return;
+  }
+
   if(isAdminSyncEnabled()){
     try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
   }
@@ -1007,17 +1102,8 @@ async function loadVipPromoProof(){
   }
 }
 
-
-function trackerTagOptions(selectedTag){
-  const tags = ["", "goals", "cards", "corners", "player", "acca", "live", "other"];
-  return tags.map(tag=>{
-    const label = tag ? (tag.charAt(0).toUpperCase() + tag.slice(1)) : "—";
-    return `<option value="${tag}" ${selectedTag===tag?"selected":""}>${label}</option>`;
-  }).join("");
-}
-
 async function loadTracker(){
-const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -1048,17 +1134,8 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td class="date-col">${fmtDayLabel(gameDate)}</td>
-<td>${row.match}</td>
+<td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
-<td>
-<select class="tracker-tag-select" onchange="updateTag('${row.id}',this.value)">
-${trackerTagOptions(row.tags || "")}
-</select>
-</td>
-<td>
-<input class="tracker-notes-input" type="text" value="${escapeHtml(row.notes || "")}" placeholder="Notes" onchange="updateNotes('${row.id}',this.value)">
-</td>
 <td>
 <select 
 class="result-select result-${row.result}" 
@@ -1075,7 +1152,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Tag</th><th>Notes</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -1202,37 +1279,13 @@ if(monthKeys.length){
 }
 
 
-
-async function updateTag(id,val){
-  const rows = await readTrackerRows();
-  const row = rows.find(r => String(r.id)===String(id));
-  if(!row) return;
-  row.tags = String(val || "");
-
-  try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
-  if(row && isAdminSyncEnabled()){
-    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
-  }
-  loadTracker();
-}
-
-async function updateNotes(id,val){
-  const rows = await readTrackerRows();
-  const row = rows.find(r => String(r.id)===String(id));
-  if(!row) return;
-  row.notes = String(val || "");
-
-  try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
-  if(row && isAdminSyncEnabled()){
-    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
-  }
-}
-
 async function updateStake(id,val){
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
-  writeTrackerRows(updated);
   const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+  }
   if(row && isAdminSyncEnabled()){
     try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
   }
@@ -1240,19 +1293,21 @@ async function updateStake(id,val){
 }
 
 async function updateResult(id,val){
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
     const row = rows.find(r => String(r.id)===String(id));
-    writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
+    try{ await deleteTrackerRowById(id); }catch(e){ console.error(e); }
     if(row && isAdminSyncEnabled() && row.sync_id){
       try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
     }
     loadBets();
   }else{
     const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
-    writeTrackerRows(updated);
     const row = updated.find(r => String(r.id)===String(id));
+    if(row){
+      try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+    }
     if(row && isAdminSyncEnabled()){
       try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
     }
