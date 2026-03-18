@@ -3079,98 +3079,259 @@ body.layout-compact .vip-bar{
     font-size: 12.5px;
   }
 }
+/* ===== TDT monthly header look like original screenshot ===== */
+#tdtTrackerTable .tdt-month-groups{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
 
+#tdtTrackerTable .tdt-month-card{
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:22px;
+  overflow:hidden;
+  background:rgba(8,18,45,0.22);
+  box-shadow:0 10px 26px rgba(0,0,0,0.18);
+}
 
-/* safer my tracker mobile layout with grouping kept */
-.tracker-results-table{
+#tdtTrackerTable .tdt-month-head{
   width:100%;
-  table-layout:fixed;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:18px 18px 14px;
+  background:transparent;
+  color:#e8eefc;
+  border:none;
+  cursor:pointer;
+  text-align:left;
 }
 
-.tracker-results-table .hidden-date-col{
-  display:none;
+#tdtTrackerTable .tdt-month-left{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:4px;
+  min-width:0;
+  flex:1;
 }
 
-.tracker-results-table .bet-col{
-  width:auto;
+#tdtTrackerTable .tdt-month-title{
+  font-weight:900;
+  font-size:20px;
+  line-height:1.05;
+  color:#f8fafc;
 }
 
-.tracker-results-table .stake-col{
-  width:60px;
+#tdtTrackerTable .tdt-month-sub{
+  font-size:13px;
+  line-height:1.25;
+  color:rgba(226,232,240,0.82);
 }
 
-.tracker-results-table .result-col{
-  width:88px;
+#tdtTrackerTable .tdt-month-sub .positive{
+  color:#22c55e;
+  font-weight:900;
 }
 
-.tracker-results-table .profit-col{
-  width:74px;
-  text-align:right;
+#tdtTrackerTable .tdt-month-sub .negative{
+  color:#ef4444;
+  font-weight:900;
+}
+
+#tdtTrackerTable .tdt-month-right{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+#tdtTrackerTable .tdt-day-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 16px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:900;
+  border:1px solid rgba(255,255,255,0.10);
+  background:rgba(255,255,255,0.04);
   white-space:nowrap;
 }
 
-.tracker-bet-cell{
-  min-width:0;
+#tdtTrackerTable .tdt-day-chip.win{
+  border-color:rgba(34,197,94,0.35);
+  background:rgba(34,197,94,0.10);
+  color:#d9ffe8;
 }
 
-.tracker-bet-match{
+#tdtTrackerTable .tdt-day-chip.loss{
+  border-color:rgba(239,68,68,0.35);
+  background:rgba(239,68,68,0.10);
+  color:#ffe1e1;
+}
+
+#tdtTrackerTable .tdt-day-chip.ratio{
+  border-color:rgba(34,197,94,0.35);
+  background:rgba(34,197,94,0.10);
+  color:#d9ffe8;
+}
+
+#tdtTrackerTable .tdt-day-chevron{
+  font-size:18px;
+  font-weight:900;
+  color:rgba(255,255,255,0.82);
+  margin-left:2px;
+}
+
+#tdtTrackerTable .tdt-day-body{
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+
+#tdtTrackerTable .tdt-table-wrap{
+  overflow-x:auto;
+}
+
+#tdtTrackerTable .tdt-table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+#tdtTrackerTable .tdt-table thead th{
+  background:rgba(2,8,23,0.22);
+  font-size:12px;
+  color:rgba(226,232,240,0.82);
+  padding:14px 14px;
+}
+
+#tdtTrackerTable .tdt-table tbody td{
+  padding:14px 14px;
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+
+@media (max-width:600px){
+  #tdtTrackerTable .tdt-month-head{
+    padding:16px 14px 12px;
+    align-items:flex-start;
+  }
+
+  #tdtTrackerTable .tdt-month-title{
+    font-size:17px;
+  }
+
+  #tdtTrackerTable .tdt-month-sub{
+    font-size:12px;
+  }
+
+  #tdtTrackerTable .tdt-month-right{
+    gap:8px;
+    justify-content:flex-start;
+  }
+
+  #tdtTrackerTable .tdt-day-chip{
+    padding:9px 13px;
+    font-size:12px;
+  }
+}
+/* ===== TDT MONTH HEADER TIGHTER / CLEANER ===== */
+
+#tdtTrackerTable .tdt-month-head{
+  padding:14px 16px 10px;
+}
+
+#tdtTrackerTable .tdt-month-title{
+  font-size:18px;
   font-weight:800;
-  line-height:1.15;
-  margin-bottom:6px;
-  overflow-wrap:anywhere;
+  line-height:1.1;
 }
 
-.tracker-bet-meta{
+#tdtTrackerTable .tdt-month-sub{
+  font-size:12px;
+  margin-top:2px;
+  opacity:0.8;
+}
+
+#tdtTrackerTable .tdt-month-right{
+  gap:8px;
+}
+
+/* smaller pills */
+
+#tdtTrackerTable .tdt-day-chip{
+  padding:7px 12px;
+  font-size:12px;
+  border-radius:999px;
+}
+
+/* slightly tighter rows */
+
+#tdtTrackerTable .tdt-table thead th{
   font-size:11px;
-  line-height:1.22;
-  opacity:.84;
-  margin-top:4px;
-  overflow-wrap:anywhere;
+  padding:12px 12px;
 }
 
-.tracker-results-table input[type="number"]{
-  width:52px !important;
-  max-width:100%;
-  box-sizing:border-box;
-  padding:4px;
+#tdtTrackerTable .tdt-table tbody td{
+  padding:12px 12px;
 }
 
-.tracker-results-table .result-select{
-  width:82px !important;
-  min-width:82px !important;
-  font-size:11px;
-  padding:3px 4px;
-  box-sizing:border-box;
+/* slightly smaller chevron */
+
+#tdtTrackerTable .tdt-day-chevron{
+  font-size:16px;
 }
 
-@media (max-width: 600px){
-  .tracker-results-table th,
-  .tracker-results-table td{
-    padding:6px 3px;
-    font-size:12px;
-    vertical-align:middle;
+/* mobile tightening */
+
+@media (max-width:600px){
+
+  #tdtTrackerTable .tdt-month-head{
+    padding:12px 12px 8px;
   }
 
-  .tracker-bet-match{
-    font-size:12px;
-    margin-bottom:6px;
+  #tdtTrackerTable .tdt-month-title{
+    font-size:16px;
   }
 
-  .tracker-bet-meta{
+  #tdtTrackerTable .tdt-day-chip{
+    padding:6px 10px;
     font-size:11px;
-    margin-top:4px;
   }
 
-  .tracker-results-table .stake-col{
-    width:56px;
-  }
+}
+/* ===== TDT header smaller + neater ===== */
 
-  .tracker-results-table .result-col{
-    width:84px;
-  }
+#tdtTrackerTable .tdt-month-head{
+  padding:10px 14px 8px;
+}
 
-  .tracker-results-table .profit-col{
-    width:70px;
-    font-size:12px;
-  }
+#tdtTrackerTable .tdt-month-title{
+  font-size:16px;
+  font-weight:800;
+  line-height:1.05;
+}
+
+#tdtTrackerTable .tdt-month-sub{
+  font-size:11px;
+  margin-top:1px;
+  opacity:0.8;
+}
+
+#tdtTrackerTable .tdt-month-right{
+  gap:6px;
+}
+
+/* smaller pills */
+
+#tdtTrackerTable .tdt-day-chip{
+  padding:5px 10px;
+  font-size:11px;
+  border-radius:999px;
+}
+
+/* slightly smaller arrow */
+
+#tdtTrackerTable .tdt-day-chevron{
+  font-size:14px;
 }
