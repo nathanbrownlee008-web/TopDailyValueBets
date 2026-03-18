@@ -96,8 +96,8 @@ async function forgotVipPassword(){
     if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
 
     const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: "https://top-daily-value-bets.vercel.app"
-    });
+  redirectTo: window.location.origin + "/reset-password.html"
+});
 
     if(error) throw error;
 
