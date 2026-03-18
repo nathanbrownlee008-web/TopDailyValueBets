@@ -754,6 +754,7 @@ function _buildTrackerTableHTML(rows){
     </tr>`;
   (rows || []).forEach(row=>{
     const stakeVal = row.stake ?? 0;
+    const oddsVal = row.odds ?? 0;
     const res = row.result || "pending";
     let profit = 0;
     if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
@@ -761,13 +762,16 @@ function _buildTrackerTableHTML(rows){
     if(res === "pending") profit = 0;
 
     const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
-    const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
-
+    const profitText = `£${profit.toFixed(2)}`;
     const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
 
     html += `<tr>
       <td class="date-col">${dateLabel}</td>
-      <td>${row.match || ""}</td>
+      <td class="tracker-rich-match">
+        <div class="tracker-match-main">${row.match || ""}</div>
+        <div class="tracker-match-sub">${row.market || ""}</div>
+        <div class="tracker-odds-inline"><span>Odds</span><input class="tracker-inline-odds" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></div>
+      </td>
       <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
@@ -794,6 +798,24 @@ function _renderFilteredTrackerTable(){
 
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
+}
+
+
+function bindTrackerTableInputs(){
+  const tableEl = document.getElementById("trackerTable");
+  if(!tableEl) return;
+
+  tableEl.querySelectorAll('input[data-field="stake"]').forEach(el=>{
+    el.addEventListener('change', ()=> updateStake(el.dataset.id, el.value));
+  });
+
+  tableEl.querySelectorAll('input[data-field="odds"]').forEach(el=>{
+    el.addEventListener('change', ()=> updateOdds(el.dataset.id, el.value));
+  });
+
+  tableEl.querySelectorAll('select[data-field="result"]').forEach(el=>{
+    el.addEventListener('change', ()=> updateResult(el.dataset.id, el.value));
+  });
 }
 
 let _filtersWired = false;
@@ -1047,7 +1069,12 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
+<td class="date-col">${fmtDayLabel(gameDate)}</td>
+<td class="tracker-rich-match">
+  <div class="tracker-match-main">${row.match}</div>
+  <div class="tracker-match-sub">${row.market || ""}</div>
+  <div class="tracker-odds-inline"><span>Odds</span><input class="tracker-inline-odds" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></div>
+</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td>
 <select 
@@ -1192,7 +1219,16 @@ if(monthKeys.length){
 }
 
 
+
+async function updateOdds(id,val){
+  const rows = readTrackerRows();
+  const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
+  writeTrackerRows(updated);
+  loadTracker();
+}
+
 async function updateStake(id,val){
+
   const rows = readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
   writeTrackerRows(updated);

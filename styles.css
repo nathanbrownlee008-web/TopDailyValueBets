@@ -3335,3 +3335,42 @@ body.layout-compact .vip-bar{
 #tdtTrackerTable .tdt-day-chevron{
   font-size:14px;
 }
+
+
+/* Option 1: market and editable odds inside Match column */
+.tracker-rich-match{
+  line-height:1.08;
+}
+.tracker-match-main{
+  font-weight:800;
+  margin-bottom:4px;
+  overflow-wrap:anywhere;
+}
+.tracker-match-sub{
+  font-size:12px;
+  opacity:.82;
+  margin-bottom:5px;
+  overflow-wrap:anywhere;
+}
+.tracker-odds-inline{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:11px;
+  opacity:.88;
+}
+.tracker-odds-inline span{
+  opacity:.75;
+  font-weight:700;
+}
+#trackerTable .tracker-inline-odds{
+  width:52px;
+  padding:3px 4px;
+  font-size:11px;
+  text-align:center;
+}
+@media (max-width:600px){
+  #trackerTable td:nth-child(2){ width:46%; }
+  #trackerTable .tracker-inline-odds{ width:48px; }
+  #trackerTable .tracker-match-sub{ font-size:11px; }
+}
