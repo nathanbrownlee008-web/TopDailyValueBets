@@ -100,38 +100,6 @@ async function startCheckout(plan){
   }
 }
 
-
-async function restoreVipAccess(){
-  const email = (vipEmailEl?.value || "").trim();
-
-  if(!email){
-    if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
-    return;
-  }
-
-  localStorage.setItem("vip_email", email);
-
-  try{
-    if(vipErrorEl) vipErrorEl.textContent = "";
-    if(vipRestoreEl) vipRestoreEl.disabled = true;
-
-    const active = await checkVIP();
-
-    if(active){
-      closeVipModal();
-      await loadBets();
-      location.reload();
-      return;
-    }
-
-    if(vipErrorEl) vipErrorEl.textContent = "No VIP found for that email.";
-  }catch(e){
-    if(vipErrorEl) vipErrorEl.textContent = "Could not restore VIP right now.";
-  }finally{
-    if(vipRestoreEl) vipRestoreEl.disabled = false;
-  }
-}
-
 function pad2(n){return String(n).padStart(2,'0');}
 function toLocalYMD(d=new Date()){
   const yr=d.getFullYear();
@@ -172,7 +140,6 @@ const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
-const vipRestoreEl = document.getElementById("vipRestore");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -387,7 +354,6 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
@@ -636,6 +602,7 @@ function _applyTrackerFilters(rows){
 function _buildTrackerTableHTML(rows){
   let html = `<table class="tracker-results-table">
     <tr>
+      <th class="hidden-date-col">Date</th>
       <th class="bet-col">Bet</th>
       <th class="stake-col">Stake</th>
       <th class="result-col">Result</th>
@@ -651,10 +618,12 @@ function _buildTrackerTableHTML(rows){
 
     const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
     const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
+    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
     const marketText = escapeHtml(row.market || "—");
     const oddsText = Number(row.odds || 0) ? Number(row.odds || 0).toFixed(2).replace(/\.00$/, "") : "—";
 
     html += `<tr>
+      <td class="date-col hidden-date-col">${dateLabel}</td>
       <td class="tracker-bet-cell">
         <div class="tracker-bet-match">${escapeHtml(row.match || "")}</div>
         <div class="tracker-bet-meta">${marketText}</div>
@@ -666,10 +635,9 @@ function _buildTrackerTableHTML(rows){
           <option value="pending" ${res==="pending"?"selected":""}>pending</option>
           <option value="won" ${res==="won"?"selected":""}>won</option>
           <option value="lost" ${res==="lost"?"selected":""}>lost</option>
-          <option value="delete">🗑 delete</option>
         </select>
       </td>
-      <td class="profit-col"><span class="${profitClass}">${profitText}</span></td>
+      <td class="profit-col ${profitClass}">${profitText}</td>
     </tr>`;
   });
   html += `</table>`;
@@ -940,10 +908,11 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
+<td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
 <td class="tracker-bet-cell">
-<div class="tracker-bet-match">${row.match}</div>
-<div class="tracker-bet-meta">${row.market || "—"}</div>
-<div class="tracker-bet-meta">Odds ${Number(row.odds || 0) ? Number(row.odds || 0).toFixed(2).replace(/\.00$/,"") : "—"}</div>
+  <div class="tracker-bet-match">${row.match}</div>
+  <div class="tracker-bet-meta">${row.market || "—"}</div>
+  <div class="tracker-bet-meta">Odds ${Number(row.odds || 0) ? Number(row.odds || 0).toFixed(2).replace(/\.00$/,"") : "—"}</div>
 </td>
 <td class="stake-col"><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td class="result-col">
@@ -962,7 +931,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table class='tracker-results-table'><tr><th class='bet-col'>Bet</th><th class='stake-col'>Stake</th><th class='result-col'>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table class='tracker-results-table'><tr><th class='hidden-date-col'>Date</th><th class='bet-col'>Bet</th><th class='stake-col'>Stake</th><th class='result-col'>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
