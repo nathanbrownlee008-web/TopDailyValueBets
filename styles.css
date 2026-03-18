@@ -3586,3 +3586,47 @@ body.layout-compact .vip-bar{
     margin-top:5px;
   }
 }
+
+
+/* Personal tracker final tidy: smaller result emoji + date under match */
+#trackerTable .pt-match-main{
+  line-height:1.08;
+  overflow-wrap:anywhere;
+}
+
+#trackerTable .pt-row-date{
+  margin-top:5px;
+  font-size:10px;
+  opacity:.72;
+  line-height:1.05;
+}
+
+#trackerTable .pt-market-main{
+  line-height:1.08;
+  overflow-wrap:anywhere;
+}
+
+#trackerTable .pt-result .result-select{
+  width:48px !important;
+  min-width:48px !important;
+  max-width:48px !important;
+  padding:4px 1px;
+  font-size:14px;
+  line-height:1;
+  text-align:center;
+}
+
+@media (max-width:600px){
+  #trackerTable .pt-result .result-select{
+    width:44px !important;
+    min-width:44px !important;
+    max-width:44px !important;
+    padding:3px 1px;
+    font-size:13px;
+  }
+
+  #trackerTable .pt-row-date{
+    font-size:9px;
+    margin-top:4px;
+  }
+}
