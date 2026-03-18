@@ -831,42 +831,32 @@ function _applyTrackerFilters(rows){
 }
 
 function _buildTrackerTableHTML(rows){
-  let html = `<table>
-    <tr>
-      <th>Date</th>
-      <th>Match</th>
-      <th>Stake</th>
-      <th>Result</th>
-      <th class="profit-col">Profit</th>
-    </tr>`;
-  (rows || []).forEach(row=>{
-    const stakeVal = row.stake ?? 0;
-    const res = row.result || "pending";
-    let profit = 0;
-    if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
-    if(res === "lost") profit = (row.profit != null ? row.profit : -row.stake);
-    if(res === "pending") profit = 0;
-
-    const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
-    const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
-
-    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
-
+  let html="<table class='tracker-results-table'><tr><th class='hidden-date-col'>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+  (rows||[]).forEach(row=>{
+    const gameDate = row.match_date_date || row.bet_date || row.created_at;
+    const p = row.result==='won' ? (Number(row.stake||0) * (Number(row.odds||0)-1)) : (row.result==='lost' ? -Number(row.stake||0) : 0);
     html += `<tr>
-      <td class="date-col">${dateLabel}</td>
-      <td>${row.match || ""}</td>
-      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
-      <td>
-        <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
-          <option value="pending" ${res==="pending"?"selected":""}>pending</option>
-          <option value="won" ${res==="won"?"selected":""}>won</option>
-          <option value="lost" ${res==="lost"?"selected":""}>lost</option>
-        </select>
-      </td>
-      <td class="profit-col ${profitClass}">${profitText}</td>
-    </tr>`;
+<td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
+<td class="tracker-match-cell">${row.match || ""}</td>
+<td class="tracker-market-cell">${row.market || "—"}</td>
+<td><input class="tracker-edit-input" type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td><input class="tracker-edit-input tracker-odds-input" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
+<td>
+<select 
+class="result-select result-${row.result}" 
+onchange="updateResult('${row.id}',this.value)">
+<option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
+<option value="won" ${row.result==="won"?"selected":""}>won</option>
+<option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
+<option value="delete">🗑 delete</option>
+</select>
+</td>
+<td class="profit-col">
+<span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span>
+</td>
+</tr>`;
   });
-  html += `</table>`;
+  html += "</table>";
   return html;
 }
 
@@ -1134,10 +1124,11 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td>${row.match}</td>
-<td>${row.market || "—"}</td>
-<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
-<td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
+<td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
+<td class="tracker-match-cell">${row.match}</td>
+<td class="tracker-market-cell">${row.market || "—"}</td>
+<td><input class="tracker-edit-input" type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td><input class="tracker-edit-input tracker-odds-input" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
 <select 
 class="result-select result-${row.result}" 
@@ -1154,7 +1145,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table class='tracker-results-table'><tr><th class='hidden-date-col'>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -1283,14 +1274,22 @@ if(monthKeys.length){
 
 
 async function updateOdds(id,val){
-  const rows = await readTrackerRows();
+  const rows = await Promise.resolve(readTrackerRows());
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
-  const row = updated.find(r => String(r.id)===String(id));
-  if(row){
-    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
-  }
-  if(row && isAdminSyncEnabled()){
-    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+  if(typeof upsertTrackerRow === "function"){
+    const row = updated.find(r => String(r.id)===String(id));
+    if(row){
+      try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+      if(typeof isAdminSyncEnabled === "function" && isAdminSyncEnabled()){
+        try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+      }
+    }
+  }else{
+    if(typeof writeTrackerRows === "function") writeTrackerRows(updated);
+    const row = updated.find(r => String(r.id)===String(id));
+    if(row && typeof isAdminSyncEnabled === "function" && isAdminSyncEnabled()){
+      try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+    }
   }
   loadTracker();
 }
@@ -2209,7 +2208,7 @@ function addPersonalTrackerMonthGroups(){
     if(month !== lastMonth){
       const divider = document.createElement("tr");
       divider.className = "month-group";
-      divider.innerHTML = `<td colspan="5">▼ ${month}</td>`;
+      divider.innerHTML = `<td colspan="7">▼ ${month}</td>`;
       groupRow.parentNode.insertBefore(divider, groupRow);
       lastMonth = month;
     }

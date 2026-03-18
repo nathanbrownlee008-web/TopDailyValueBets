@@ -3337,8 +3337,14 @@ body.layout-compact .vip-bar{
 }
 
 
-/* My Tracker results use TDT-style row layout */
-#trackerTable table{
+/* My Tracker -> TDT-style table with hidden date column to keep month/day grouping */
+#trackerTable .hidden-date-col,
+#trackerTable .tracker-results-table .hidden-date-col{
+  display:none;
+}
+
+#trackerTable table,
+#trackerTable .tracker-results-table{
   width:100%;
   border-collapse:collapse;
   table-layout:fixed;
@@ -3346,103 +3352,99 @@ body.layout-compact .vip-bar{
 
 #trackerTable th,
 #trackerTable td{
-  padding:10px 8px;
-  border-bottom:1px solid #22314a;
+  padding:10px 6px;
+  border-bottom:1px solid #334155;
   vertical-align:middle;
 }
 
 #trackerTable th{
-  font-size:13px;
-  font-weight:800;
+  text-align:left;
+  font-size:12px;
 }
 
-#trackerTable td:nth-child(1){
-  width:31%;
+#trackerTable .tracker-match-cell{
+  width:28%;
   font-weight:800;
   line-height:1.08;
   overflow-wrap:anywhere;
 }
 
-#trackerTable td:nth-child(2){
+#trackerTable .tracker-market-cell{
   width:24%;
   line-height:1.08;
   overflow-wrap:anywhere;
 }
 
-#trackerTable td:nth-child(3){
-  width:13%;
-}
-
-#trackerTable td:nth-child(4){
-  width:11%;
-}
-
-#trackerTable td:nth-child(5){
-  width:13%;
-}
-
-#trackerTable td:nth-child(6){
-  width:12%;
-}
-
-#trackerTable input[type="number"]{
-  width:58px;
+#trackerTable input.tracker-edit-input,
+#trackerTable input[type="number"].tracker-edit-input{
+  width:52px;
   max-width:100%;
   box-sizing:border-box;
-  padding:5px 4px;
+  padding:4px 3px;
   text-align:center;
 }
 
-#trackerTable select{
-  width:82px;
-  min-width:82px;
-  max-width:100%;
+#trackerTable .tracker-odds-input{
+  width:54px;
+}
+
+#trackerTable .result-select{
+  width:72px !important;
+  min-width:72px !important;
+  max-width:72px !important;
   box-sizing:border-box;
-  padding:4px 4px;
+  padding:3px 4px;
+  font-size:11px;
+}
+
+#trackerTable .profit-col{
+  width:60px;
+  text-align:right;
+  white-space:nowrap;
   font-size:12px;
+  padding-right:2px;
+}
+
+#trackerTable tr.month-group td{
+  font-weight:800;
 }
 
 @media (max-width: 600px){
   #trackerTable th,
   #trackerTable td{
-    font-size:11px;
     padding:8px 4px;
-  }
-
-  #trackerTable td:nth-child(1){
-    width:29%;
-  }
-
-  #trackerTable td:nth-child(2){
-    width:24%;
-  }
-
-  #trackerTable td:nth-child(3){
-    width:12%;
-  }
-
-  #trackerTable td:nth-child(4){
-    width:10%;
-  }
-
-  #trackerTable td:nth-child(5){
-    width:13%;
-  }
-
-  #trackerTable td:nth-child(6){
-    width:12%;
-  }
-
-  #trackerTable input[type="number"]{
-    width:46px;
-    padding:4px 2px;
     font-size:11px;
   }
 
-  #trackerTable select{
-    width:72px;
-    min-width:72px;
+  #trackerTable .tracker-match-cell{
+    width:26%;
+  }
+
+  #trackerTable .tracker-market-cell{
+    width:22%;
+  }
+
+  #trackerTable input.tracker-edit-input,
+  #trackerTable input[type="number"].tracker-edit-input{
+    width:46px;
     padding:3px 2px;
+    font-size:11px;
+  }
+
+  #trackerTable .tracker-odds-input{
+    width:48px;
+  }
+
+  #trackerTable .result-select{
+    width:66px !important;
+    min-width:66px !important;
+    max-width:66px !important;
+    padding:3px 2px;
+    font-size:10px;
+  }
+
+  #trackerTable .profit-col{
+    width:54px;
     font-size:11px;
   }
 }
