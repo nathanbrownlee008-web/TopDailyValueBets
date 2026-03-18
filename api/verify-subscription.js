@@ -14,15 +14,7 @@ module.exports = async (req, res) => {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
 
     // Find customer by email (may be multiple)
-    let customers;
-    try {
-      customers = await stripe.customers.search({
-        query: `email:'${email.replace(/'/g, "\'")}'`,
-        limit: 10
-      });
-    } catch (e) {
-      customers = await stripe.customers.list({ email, limit: 10 });
-    }
+    const customers = await stripe.customers.list({ email, limit: 10 });
 
     let active = false;
     let best = null;
