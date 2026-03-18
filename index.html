@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772891004"/>
+<link rel="stylesheet" href="styles.css?v=1772952001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -18,11 +18,12 @@
 .vip-modal__title{font-size:22px;font-weight:900;color:#f8fafc;}
 .vip-modal__close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);width:38px;height:38px;border-radius:999px;font-size:20px;line-height:1;}
 .vip-modal__sub{opacity:.82;line-height:1.45;margin:0 0 16px;}
-#vipEmail,#vipPassword{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;margin:0 0 14px;font-size:15px;}
+#vipEmail{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;margin:0 0 14px;font-size:15px;}
 .vip-modal__plans{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .vip-plan{padding:14px 12px;border-radius:16px;font-weight:900;font-size:15px;}
 #vipMonthly{background:linear-gradient(180deg,#f7d95a,#d8a800);color:#111827;}
-#vipYearly{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.38);color:#ecfdf5;}\n.vip-restore-btn{grid-column:1/-1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;padding:12px 14px;border-radius:16px;font-weight:800;}
+#vipYearly{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.38);color:#ecfdf5;}
+.vip-restore-btn{grid-column:1/-1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;padding:12px 14px;border-radius:16px;font-weight:800;}
 #vipError{margin-top:12px;color:#f87171;min-height:20px;font-size:14px;}
 @media (max-width:520px){.vip-modal__plans{grid-template-columns:1fr;}}
 </style>
@@ -40,7 +41,7 @@
       <div id="vipStatus" class="vip-bar__status">VIP locked — subscribe to unlock</div>
       <div class="admin-badge" data-admin-badge="1" style="display:none;">Admin</div>
     </div>
-    <button id="vipButton" class="vip-button" type="button">
+    <button id="vipButton" class="vip-button" type="button" onclick="openVipModal()">
       <span class="vip-button__icon" aria-hidden="true">👑</span>
       <span class="vip-button__text">Go VIP</span>
     </button>
@@ -61,6 +62,14 @@
 </header>
 
 <section id="betsSection">
+
+<div class="about-info-card">
+  <div class="about-info-header">ℹ️ About Value Bets</div>
+  <div class="about-info-body">
+    This section shows the latest value bets identified by the model. A value bet occurs when bookmaker odds are higher than the calculated true probability price.
+  </div>
+</div>
+
 <!-- Mobile/compact cards -->
 <div id="betsGrid" class="bets-grid"></div>
 
@@ -71,6 +80,7 @@
       <tr>
         <th>Match</th>
         <th>Market</th>
+        <th>Bookie</th>
         <th>Odds</th>
         <th>Value</th>
         <th>Date</th>
@@ -101,6 +111,14 @@
 </section>
 
 <section id="trackerSection" style="display:none;">
+
+<div class="about-info-card">
+  <div class="about-info-header">ℹ️ About My Tracker</div>
+  <div class="about-info-body">
+    This section tracks your personal bets and performance including profit, win rate, ROI and average odds.
+  </div>
+</div>
+
 
 <div class="bankroll-section">
   <div class="bankroll-row">
@@ -165,6 +183,14 @@
 
 
 <section id="tdtTrackerSection" style="display:none;">
+
+<div class="about-info-card">
+  <div class="about-info-header">ℹ️ About TDT Tracker</div>
+  <div class="about-info-body">
+    This section tracks official Top Daily Tips results with monthly performance statistics including win rate, profit and ROI.
+  </div>
+</div>
+
 
 <div class="card" style="margin-bottom:16px;">
   <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Official Tracker</div>
@@ -232,16 +258,15 @@
     </div>
     <p class="vip-modal__sub">Get instant bets, full markets, and tracker access.</p>
     <input id="vipEmail" type="email" placeholder="Enter your email" autocomplete="email" />
-    <input id="vipPassword" type="password" placeholder="Create or enter your VIP password" autocomplete="current-password" />
     <div class="vip-modal__plans">
-      <button id="vipMonthly" class="vip-plan" type="button">£12 / month</button>
-      <button id="vipYearly" class="vip-plan" type="button">£80 / year</button>
-      <button id="vipRestore" class="vip-restore-btn" type="button">Already subscribed? Restore VIP</button>
+      <button id="vipMonthly" class="vip-plan" type="button" onclick="startCheckout('monthly')">£12 / month</button>
+      <button id="vipYearly" class="vip-plan" type="button" onclick="startCheckout('yearly')">£80 / year</button>
+<button id="vipRestore" class="vip-restore-btn" type="button" onclick="restoreVipAccess()">Already subscribed? Restore VIP</button>
     </div>
     <div id="vipError"></div>
   </div>
 </div>
 
-<script src="app.js?v=1772949001"></script>
+<script src="app.js?v=1772952001"></script>
 </body>
 </html>
