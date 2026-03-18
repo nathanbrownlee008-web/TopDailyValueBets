@@ -6,7 +6,7 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1772891004"/>
+<link rel="stylesheet" href="styles.css?v=1772964001"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -38,17 +38,13 @@
   <div class="vip-bar" id="vipBar">
     <div class="vip-bar__left">
       <div class="vip-bar__title" id="vipTitle">VIP Access</div>
-      <div id="vipStatus" class="vip-bar__status">Log in to access your account</div>
+      <div id="vipStatus" class="vip-bar__status">VIP locked — subscribe to unlock</div>
       <div class="admin-badge" data-admin-badge="1" style="display:none;">Admin</div>
     </div>
-    <div class="vip-bar__actions">
-      <button id="vipLogin" class="vip-auth-btn" type="button">Log In</button>
-      <button id="vipLogout" class="vip-auth-btn vip-auth-btn--ghost" type="button" style="display:none;">Sign Out</button>
-      <button id="vipButton" class="vip-button" type="button">
-        <span class="vip-button__icon" aria-hidden="true">👑</span>
-        <span class="vip-button__text">Log In</span>
-      </button>
-    </div>
+    <button id="vipButton" class="vip-button" type="button">
+      <span class="vip-button__icon" aria-hidden="true">👑</span>
+      <span class="vip-button__text">Go VIP</span>
+    </button>
   </div>
 
 <div class="tabs">
@@ -66,14 +62,6 @@
 </header>
 
 <section id="betsSection">
-
-<div class="about-info-card">
-  <div class="about-info-header">ℹ️ About Value Bets</div>
-  <div class="about-info-body">
-    This section shows the latest value bets identified by the model. A value bet occurs when bookmaker odds are higher than the calculated true probability price.
-  </div>
-</div>
-
 <!-- Mobile/compact cards -->
 <div id="betsGrid" class="bets-grid"></div>
 
@@ -101,7 +89,7 @@
       <div class="vip-promo__title">Instant bets, full markets, tracker access</div>
       <div id="vipPromoStats" class="vip-promo__stats">Loading official TDT proof...</div>
     </div>
-    <button id="vipPromoBtn" class="vip-promo__btn" type="button">Account Access</button>
+    <button id="vipPromoBtn" class="vip-promo__btn" type="button">Unlock VIP</button>
   </div>
   <div class="vip-promo__chartwrap">
     <canvas id="vipPromoChart"></canvas>
@@ -114,14 +102,6 @@
 </section>
 
 <section id="trackerSection" style="display:none;">
-
-<div class="about-info-card">
-  <div class="about-info-header">ℹ️ About My Tracker</div>
-  <div class="about-info-body">
-    This section tracks your personal bets and performance including profit, win rate, ROI and average odds.
-  </div>
-</div>
-
 
 <div class="bankroll-section">
   <div class="bankroll-row">
@@ -187,14 +167,6 @@
 
 <section id="tdtTrackerSection" style="display:none;">
 
-<div class="about-info-card">
-  <div class="about-info-header">ℹ️ About TDT Tracker</div>
-  <div class="about-info-body">
-    This section tracks official Top Daily Tips results with monthly performance statistics including win rate, profit and ROI.
-  </div>
-</div>
-
-
 <div class="card" style="margin-bottom:16px;">
   <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Official Tracker</div>
   <div style="opacity:.85;">Read-only official all-time results for everyone to see.</div>
@@ -256,29 +228,21 @@
 <div id="vipModal" aria-hidden="true">
   <div class="vip-modal__card">
     <div class="vip-modal__top">
-      <div class="vip-modal__title">Account Access</div>
+      <div class="vip-modal__title">Unlock VIP</div>
       <button id="vipClose" class="vip-modal__close" type="button">×</button>
     </div>
-    <p class="vip-modal__sub">Log in or create an account to use the app.</p>
-    <div id="vipAuthBlock" class="vip-auth-block">
-      <div class="vip-auth-title">Log in to access your account</div>
-      <input id="authEmail" type="email" placeholder="Email" autocomplete="email" />
-      <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" />
-      <div class="vip-auth-actions">
-        <button id="authSignInBtn" class="vip-auth-primary vip-auth-primary--alt" type="button">Log In</button>
-        <button id="authSignUpBtn" class="vip-auth-primary" type="button">Sign Up</button>
-      </div>
-      <button id="authForgotBtn" class="vip-auth-link" type="button">Forgot password?</button>
-      <div id="authStatus" class="vip-auth-status"></div>
-    </div>
-    <div id="vipPlansBlock" class="vip-modal__plans" style="display:none;">
-      <button id="vipMonthly" class="vip-plan" type="button">£12 / month</button>
-      <button id="vipYearly" class="vip-plan" type="button">£80 / year</button>
+    <p class="vip-modal__sub">Get instant bets, full markets, and tracker access.</p>
+    <input id="vipEmail" type="email" placeholder="Enter your email" autocomplete="email" />
+    <input id="vipPassword" type="password" placeholder="Create or enter your VIP password" autocomplete="current-password" />
+    <div class="vip-modal__plans">
+      <button id="vipMonthly" class="vip-plan" type="button" onclick="startCheckout('monthly')">£12 / month</button>
+      <button id="vipYearly" class="vip-plan" type="button" onclick="startCheckout('yearly')">£80 / year</button>
+      <button id="vipRestore" class="vip-restore-btn" type="button" onclick="restoreVipAccess()">Already subscribed? Restore VIP</button>
     </div>
     <div id="vipError"></div>
   </div>
 </div>
 
-<script src="app.js?v=1772959001"></script>
+<script src="app.js?v=1772964001"></script>
 </body>
 </html>
