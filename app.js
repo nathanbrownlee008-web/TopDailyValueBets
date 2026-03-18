@@ -3,13 +3,14 @@ const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
+// =========================
+// VIP
+// =========================
+
 function normalizeVipEmail(email){
   return String(email || "").trim().toLowerCase();
 }
 
-// =========================
-// VIP
-// =========================
 
 function setVipUI(active, email){
   vipActive = !!active;
@@ -20,44 +21,36 @@ function setVipUI(active, email){
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
 
   if(active){
-    if(titleEl) titleEl.textContent = 'Account Access';
-    if(statusEl) statusEl.textContent = email ? `Signed in as ${email}` : 'Signed in';
+    if(titleEl) titleEl.textContent = 'VIP Access';
+    if(statusEl) statusEl.textContent = email ? `Access unlocked for ${email}` : 'Access unlocked';
     if(btnEl){
-      if(btnTextEl) btnTextEl.textContent = 'Logged In';
-      else btnEl.textContent = 'Logged In';
+      if(btnTextEl) btnTextEl.textContent = 'VIP Access Active';
+      else btnEl.textContent = 'VIP Access Active';
       btnEl.disabled = true;
       btnEl.style.pointerEvents = "none";
       btnEl.style.cursor = "default";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = 'none';
-    if(vipLoginEl) vipLoginEl.style.display = 'none';
-    if(vipLogoutEl) vipLogoutEl.style.display = 'inline-flex';
   }else{
-    if(titleEl) titleEl.textContent = 'Account Access';
-    if(statusEl) statusEl.textContent = 'Log in to access your account';
+    if(titleEl) titleEl.textContent = 'VIP Access';
+    if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
     if(btnEl){
-      if(btnTextEl) btnTextEl.textContent = 'Log In';
-      else btnEl.textContent = 'Log In';
+      if(btnTextEl) btnTextEl.textContent = 'Go VIP';
+      else btnEl.textContent = 'Go VIP';
       btnEl.disabled = false;
       btnEl.style.pointerEvents = "";
       btnEl.style.cursor = "pointer";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = 'none';
-    if(vipLoginEl) vipLoginEl.style.display = 'inline-flex';
-    if(vipLogoutEl) vipLogoutEl.style.display = 'none';
   }
 }
 
 function openVipModal(){
   if(!vipModalEl) return;
   if(vipErrorEl) vipErrorEl.textContent="";
-  if(authStatusEl) authStatusEl.textContent="";
-  const saved = normalizeVipEmail(localStorage.getItem('vip_email') || "");
-  if(authEmailEl && !authEmailEl.value) authEmailEl.value = saved;
+  const saved=(localStorage.getItem('vip_email')||"").trim();
+  if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
+  if(vipPasswordEl && !vipPasswordEl.value) vipPasswordEl.value="";
   vipModalEl.style.display="flex";
 }
 
@@ -66,39 +59,60 @@ function closeVipModal(){
   vipModalEl.style.display="none";
 }
 
-async function checkVIP(){
-  let email = normalizeVipEmail(localStorage.getItem('vip_email') || "");
-  try{
-    const { data } = await client.auth.getUser();
-    const sessionEmail = normalizeVipEmail(data?.user?.email || "");
-    if(sessionEmail){
-      email = sessionEmail;
-      localStorage.setItem('vip_email', email);
-    }
-  }catch(e){}
+async function ensureVipPasswordAccount(email, password){
+  const cleanEmail = normalizeVipEmail(email);
+  const cleanPassword = String(password || "");
+  if(!cleanEmail || !cleanEmail.includes("@")) throw new Error("Enter a valid email.");
+  if(cleanPassword.length < 6) throw new Error("Use at least 6 characters for your VIP password.");
 
-  if(!email){
-    vipActive = false;
-    setVipUI(false, "");
-    return false;
+  const signIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+  if(!signIn.error) return true;
+
+  const signUp = await client.auth.signUp({
+    email: cleanEmail,
+    password: cleanPassword,
+    options: { emailRedirectTo: window.location.origin }
+  });
+  if(!signUp.error) return true;
+
+  const msg = String(signUp.error?.message || "").toLowerCase();
+  if(msg.includes("already") || msg.includes("exists") || msg.includes("registered") || msg.includes("user already")){
+    const secondSignIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+    if(!secondSignIn.error) return true;
+    throw new Error("Wrong VIP password for that email.");
   }
 
-  vipActive = true;
-  setVipUI(true, email);
-  return true;
+  throw signUp.error;
 }
 
-async function startCheckout(plan){
-  openVipModal();
-  if(authStatusEl) authStatusEl.textContent = "Log in or sign up to continue.";
+async function forgotVipPassword(){
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
+    return;
+  }
+  try{
+    if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/reset-password.html"
+    });
+    if(error) throw error;
+    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent.";
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not send reset email.";
+  }
 }
-
 
 async function restoreVipAccess(){
-  const email = (vipEmailEl?.value || "").trim();
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
 
-  if(!email){
+  if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
+    return;
+  }
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your VIP password.";
     return;
   }
 
@@ -108,20 +122,73 @@ async function restoreVipAccess(){
     if(vipErrorEl) vipErrorEl.textContent = "";
     if(vipRestoreEl) vipRestoreEl.disabled = true;
 
-    const active = await checkVIP();
+    await ensureVipPasswordAccount(email, password);
+    const active = await forceVipRefreshNow(email);
 
-    if(active){
-      closeVipModal();
-      await loadBets();
-      location.reload();
-      return;
-    }
-
-    if(vipErrorEl) vipErrorEl.textContent = "No VIP found for that email.";
+    if(active) return;
+    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
   }catch(e){
-    if(vipErrorEl) vipErrorEl.textContent = "Could not restore VIP right now.";
+    if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
   }finally{
     if(vipRestoreEl) vipRestoreEl.disabled = false;
+  }
+}
+
+
+async function checkVIP(){
+  const email=(localStorage.getItem('vip_email')||"").trim();
+  if(!email){
+    vipActive=false;
+    setVipUI(false,"");
+    return false;
+  }
+  try{
+    const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+    const j=await r.json();
+    vipActive=!!j.active;
+    setVipUI(vipActive,email);
+    return vipActive;
+  }catch(e){
+    vipActive=false;
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
+    setVipUI(false,email);
+    return false;
+  }
+}
+
+async function startCheckout(plan){
+  if(vipErrorEl) vipErrorEl.textContent="";
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
+
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
+    return;
+  }
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent="Create a VIP password with at least 6 characters.";
+    return;
+  }
+
+  localStorage.setItem('vip_email', email);
+  try{
+    await ensureVipPasswordAccount(email, password);
+    if(vipMonthlyEl) vipMonthlyEl.disabled=true;
+    if(vipYearlyEl) vipYearlyEl.disabled=true;
+    if(vipRestoreEl) vipRestoreEl.disabled=true;
+    const r=await fetch('/api/create-checkout-session',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,plan})
+    });
+    const j=await r.json();
+    if(!r.ok || !j.url) throw new Error(j.error||'Checkout failed');
+    window.location.href=j.url;
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
+    if(vipMonthlyEl) vipMonthlyEl.disabled=false;
+    if(vipYearlyEl) vipYearlyEl.disabled=false;
+    if(vipRestoreEl) vipRestoreEl.disabled=false;
   }
 }
 
@@ -154,88 +221,49 @@ function isValueBetActiveToday(row){
 
 
 
-function setAuthStatus(msg){
-  if(authStatusEl) authStatusEl.textContent = msg || "";
-}
-
-async function syncSessionEmail(){
-  try{
-    const { data } = await client.auth.getUser();
-    const email = normalizeVipEmail(data?.user?.email || "");
-    if(email){
-      localStorage.setItem('vip_email', email);
-      if(authEmailEl) authEmailEl.value = email;
-      return email;
-    }
-  }catch(e){}
-  return normalizeVipEmail(localStorage.getItem('vip_email') || "");
-}
-
-async function signInWithPassword(){
-  const email = normalizeVipEmail(authEmailEl?.value || "");
-  const password = String(authPasswordEl?.value || "");
-  if(!email || !email.includes("@")) return setAuthStatus("Enter a valid email.");
-  if(!password) return setAuthStatus("Enter your password.");
-  try{
-    setAuthStatus("Logging in...");
-    const { error } = await client.auth.signInWithPassword({ email, password });
-    if(error) throw error;
-    localStorage.setItem('vip_email', email);
-    setVipUI(true, email);
-    setAuthStatus("Logged in.");
+async function forceVipRefreshNow(emailFromInput){
+  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
+  if(!email || !email.includes("@")) return false;
+  localStorage.setItem('vip_email', email);
+  const active = await checkVIP();
+  if(active){
     closeVipModal();
     await loadBets();
-  }catch(err){
-    setAuthStatus(err?.message || "Could not log in.");
+    refreshAdminBadgeUI();
+    return true;
   }
+  return false;
 }
 
-async function signUpWithPassword(){
-  const email = normalizeVipEmail(authEmailEl?.value || "");
-  const password = String(authPasswordEl?.value || "");
-  if(!email || !email.includes("@")) return setAuthStatus("Enter a valid email.");
-  if(password.length < 6) return setAuthStatus("Password must be at least 6 characters.");
+async function pollVipAfterCheckout(){
+  const email = normalizeVipEmail((localStorage.getItem('vip_email') || ""));
+  if(!email) return false;
+  if(vipStatusEl) vipStatusEl.textContent = 'Finalising VIP payment...';
+  for(let i=0;i<20;i++){
+    const active = await forceVipRefreshNow(email);
+    if(active){
+      try{
+        const url = new URL(window.location.href);
+        url.searchParams.delete('vip');
+        url.searchParams.delete('session_id');
+        window.history.replaceState({}, '', url.toString());
+      }catch(e){}
+      return true;
+    }
+    await new Promise(r=>setTimeout(r,3000));
+  }
+  if(vipStatusEl) vipStatusEl.textContent = 'Tap Restore VIP to unlock.';
+  return false;
+}
+
+function shouldTryVipFinalize(){
   try{
-    setAuthStatus("Creating account...");
-    const { error } = await client.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: window.location.origin }
-    });
-    if(error) throw error;
-    localStorage.setItem('vip_email', email);
-    setAuthStatus("Account created. Check your email if confirmation is enabled.");
-  }catch(err){
-    setAuthStatus(err?.message || "Could not sign up.");
-  }
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('vip') === 'success' || params.has('session_id')) return true;
+  }catch(e){}
+  return false;
 }
 
-async function sendPasswordReset(){
-  const email = normalizeVipEmail(authEmailEl?.value || "");
-  if(!email || !email.includes("@")) return setAuthStatus("Enter your email first.");
-  try{
-    setAuthStatus("Sending reset email...");
-    const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin
-    });
-    if(error) throw error;
-    setAuthStatus("Password reset email sent.");
-  }catch(err){
-    setAuthStatus(err?.message || "Could not send reset email.");
-  }
-}
-
-async function logoutVipAccess(){
-  try{ await client.auth.signOut(); }catch(e){}
-  localStorage.removeItem('vip_email');
-  vipActive = false;
-  if(authEmailEl) authEmailEl.value = "";
-  if(authPasswordEl) authPasswordEl.value = "";
-  setVipUI(false, "");
-  setAuthStatus("Signed out.");
-  closeVipModal();
-  await loadBets();
-}
 
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
@@ -247,18 +275,12 @@ const vipStatusEl = document.getElementById("vipStatus");
 const vipModalEl = document.getElementById("vipModal");
 const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
+const vipPasswordEl = document.getElementById("vipPassword");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
 const vipRestoreEl = document.getElementById("vipRestore");
+const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
-const vipLoginEl = document.getElementById("vipLogin");
-const vipLogoutEl = document.getElementById("vipLogout");
-const authEmailEl = document.getElementById("authEmail");
-const authPasswordEl = document.getElementById("authPassword");
-const authSignInBtnEl = document.getElementById("authSignInBtn");
-const authSignUpBtnEl = document.getElementById("authSignUpBtn");
-const authForgotBtnEl = document.getElementById("authForgotBtn");
-const authStatusEl = document.getElementById("authStatus");
 
 
 let vipActive = false;
@@ -319,33 +341,117 @@ function trackerStorageKey(){
   return `tdt_tracker_${email}`;
 }
 
-function readTrackerRows(){
+function readTrackerRowsLocal(){
   try{
     const raw = localStorage.getItem(trackerStorageKey());
     const rows = raw ? JSON.parse(raw) : [];
     const safeRows = Array.isArray(rows) ? rows : [];
-    return safeRows.map((row)=>{
-      const out = { ...(row || {}) };
-      if(!out.id) out.id = makeLocalTrackerId();
-      if(!out.created_at && out.bet_date){
-        out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
-      }
-      if(!out.created_at){
-        out.created_at = new Date().toISOString();
-      }
-      return out;
-    });
+    return safeRows.map(normalizeTrackerRow);
   }catch(e){
     return [];
   }
 }
 
-function writeTrackerRows(rows){
+function writeTrackerRowsLocal(rows){
   localStorage.setItem(trackerStorageKey(), JSON.stringify(rows || []));
+}
+
+function normalizeTrackerRow(row){
+  const out = { ...(row || {}) };
+  if(!out.id) out.id = makeLocalTrackerId();
+  if(!out.created_at && out.bet_date){
+    out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
+  }
+  if(!out.created_at){
+    out.created_at = new Date().toISOString();
+  }
+  if(out.stake == null) out.stake = 10;
+  if(!out.result) out.result = "pending";
+  return out;
 }
 
 function makeLocalTrackerId(){
   return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+
+async function currentAuthUserId(){
+  try{
+    const { data, error } = await client.auth.getUser();
+    if(error) return null;
+    return data?.user?.id || null;
+  }catch(e){
+    return null;
+  }
+}
+
+async function readTrackerRows(){
+  const localRows = readTrackerRowsLocal();
+
+  const userId = await currentAuthUserId();
+  if(!userId) return localRows;
+
+  try{
+    const { data, error } = await client
+      .from("personal_tracker")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true });
+
+    if(error) throw error;
+
+    const cloudRows = (data || []).map(normalizeTrackerRow);
+    if(cloudRows.length){
+      writeTrackerRowsLocal(cloudRows);
+      return cloudRows;
+    }
+
+    // first-time cloud seed from local backup
+    if(localRows.length){
+      const seedRows = localRows.map(r => ({ ...normalizeTrackerRow(r), user_id: userId }));
+      const { error: seedError } = await client.from("personal_tracker").upsert(seedRows, { onConflict: "id" });
+      if(seedError) throw seedError;
+      writeTrackerRowsLocal(localRows);
+      return localRows;
+    }
+
+    return [];
+  }catch(e){
+    console.error("readTrackerRows cloud fallback", e);
+    return localRows;
+  }
+}
+
+async function upsertTrackerRow(row){
+  const safeRow = normalizeTrackerRow(row);
+  const userId = await currentAuthUserId();
+
+  // Always keep browser backup too
+  const localRows = readTrackerRowsLocal();
+  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
+  writeTrackerRowsLocal(nextLocal);
+
+  if(!userId) return safeRow;
+
+  const payload = { ...safeRow, user_id: userId };
+  const { error } = await client.from("personal_tracker").upsert([payload], { onConflict: "id" });
+  if(error) throw error;
+  return safeRow;
+}
+
+async function deleteTrackerRowById(id){
+  const localRows = readTrackerRowsLocal().filter(r => String(r.id) !== String(id));
+  writeTrackerRowsLocal(localRows);
+
+  const userId = await currentAuthUserId();
+  if(!userId) return;
+
+  const { error } = await client
+    .from("personal_tracker")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id);
+
+  if(error) throw error;
 }
 
 
@@ -473,38 +579,26 @@ if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModal
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
 if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
+if(vipForgotEl) vipForgotEl.addEventListener('click', forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
-if(vipLoginEl) vipLoginEl.addEventListener('click', openVipModal);
-if(vipLogoutEl) vipLogoutEl.addEventListener('click', logoutVipAccess);
-if(authSignInBtnEl) authSignInBtnEl.addEventListener('click', signInWithPassword);
-if(authSignUpBtnEl) authSignUpBtnEl.addEventListener('click', signUpWithPassword);
-if(authForgotBtnEl) authForgotBtnEl.addEventListener('click', sendPasswordReset);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
-// On load: sync auth session + render.
-syncSessionEmail().then(()=>{
-  checkVIP().then(()=>{
-    setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
-    refreshAdminBadgeUI();
-    loadBets();
-    loadVipPromoProof();
-    updateBetAlertUI();
-    registerServiceWorker();
-  });
-});
-
-client.auth.onAuthStateChange(async (_event, session)=>{
-  const email = normalizeVipEmail(session?.user?.email || '');
-  if(email){
-    localStorage.setItem('vip_email', email);
-  }else{
-    localStorage.removeItem('vip_email');
+// On load: check VIP status (if email saved), then render.
+checkVIP().then(async ()=>{
+  // ensure tabs reflect VIP lock
+  setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+  if(!vipActive && shouldTryVipFinalize()){
+    await pollVipAfterCheckout();
   }
-  await checkVIP();
-  await loadBets();
   refreshAdminBadgeUI();
+  try{ await readTrackerRows(); }catch(e){}
+  // re-render bets so blur/limits apply
+  loadBets();
+  loadVipPromoProof();
+  updateBetAlertUI();
+  registerServiceWorker();
 });
 
 function switchTab(tab){
@@ -533,7 +627,7 @@ function switchTab(tab){
 async function loadBets(){
   addedKeys.clear();
   try{
-    const localRows = readTrackerRows();
+    const localRows = await readTrackerRows();
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
@@ -574,29 +668,20 @@ async function loadBets(){
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
       <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
+      <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
-        <span class="bet-date">${escapeHtml(betDate)}</span>
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
     <div class="bet-details">
-  <div class="bet-footer">
-    <div class="bet-left">
-      <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
-      <span class="stat-chip ${valueClass}">
-        <span class="stat-chip__k">Value</span>
-        <span class="stat-chip__v">${valTxt}</span>
-      </span>
-    </div>
-
-    <button class="bet-btn ${isAdded ? 'added' : ''}"
-      ${(isAdded || locked) ? 'disabled' : ''}
-      ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
-      ${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}
-    </button>
-  </div>
-</div>
+      <div class="bet-footer">
+        <div class="bet-left">
+          <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
+          <span class="stat-chip${valueClass}"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
+        </div>
+        <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
+      </div>
     </div>
   </div>
   ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 Unlock VIP</button>' : ''}
@@ -640,7 +725,6 @@ async function addToTracker(btn, row){
     btn.textContent = 'Adding…';
   }
 
-  const rows = readTrackerRows();
   const newRow = {
     id: makeLocalTrackerId(),
     sync_id: isAdminSyncEnabled() ? makeSyncId() : null,
@@ -653,8 +737,19 @@ async function addToTracker(btn, row){
     bet_date: row.bet_date || null,
     bookie: row.bookie || null
   };
-  rows.push(newRow);
-  writeTrackerRows(rows);
+
+  try{
+    await upsertTrackerRow(newRow);
+  }catch(e){
+    console.error(e);
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = 'Add';
+    }
+    alert('Could not save tracker bet right now.');
+    return;
+  }
+
   if(isAdminSyncEnabled()){
     try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
   }
@@ -735,13 +830,13 @@ function _applyTrackerFilters(rows){
   });
 }
 
-
 function _buildTrackerTableHTML(rows){
-  let html = `<table class="tracker-results-table">
+  let html = `<table>
     <tr>
-      <th>Bet</th>
-      <th class="stake-col">Stake</th>
-      <th class="result-col">Result</th>
+      <th>Date</th>
+      <th>Match</th>
+      <th>Stake</th>
+      <th>Result</th>
       <th class="profit-col">Profit</th>
     </tr>`;
   (rows || []).forEach(row=>{
@@ -754,17 +849,14 @@ function _buildTrackerTableHTML(rows){
 
     const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
     const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
-    const marketText = escapeHtml(row.market || "—");
-    const oddsText = Number(row.odds || 0) ? Number(row.odds || 0).toFixed(2).replace(/\.00$/, "") : "—";
+
+    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
 
     html += `<tr>
-      <td class="tracker-bet-cell">
-        <div class="tracker-bet-match">${escapeHtml(row.match || "")}</div>
-        <div class="tracker-bet-meta">${marketText}</div>
-        <div class="tracker-bet-meta">Odds ${oddsText}</div>
-      </td>
-      <td class="stake-col"><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
-      <td class="result-col">
+      <td class="date-col">${dateLabel}</td>
+      <td>${row.match || ""}</td>
+      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
+      <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
           <option value="pending" ${res==="pending"?"selected":""}>pending</option>
           <option value="won" ${res==="won"?"selected":""}>won</option>
@@ -1011,7 +1103,7 @@ async function loadVipPromoProof(){
 }
 
 async function loadTracker(){
-const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -1042,13 +1134,9 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td class="tracker-bet-cell">
-  <div class="tracker-bet-match">${escapeHtml(row.match || "")}</div>
-  <div class="tracker-bet-meta">${escapeHtml(row.market || "—")}</div>
-  <div class="tracker-bet-meta">Odds ${Number(row.odds || 0) ? Number(row.odds || 0).toFixed(2).replace(/\.00$/,"") : "—"}</div>
-</td>
-<td class="stake-col"><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
-<td class="result-col">
+<td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
+<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td>
 <select 
 class="result-select result-${row.result}" 
 onchange="updateResult('${row.id}',this.value)">
@@ -1064,7 +1152,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table class='tracker-results-table'><tr><th>Bet</th><th class='stake-col'>Stake</th><th class='result-col'>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -1192,10 +1280,12 @@ if(monthKeys.length){
 
 
 async function updateStake(id,val){
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
-  writeTrackerRows(updated);
   const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+  }
   if(row && isAdminSyncEnabled()){
     try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
   }
@@ -1203,19 +1293,21 @@ async function updateStake(id,val){
 }
 
 async function updateResult(id,val){
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
     const row = rows.find(r => String(r.id)===String(id));
-    writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
+    try{ await deleteTrackerRowById(id); }catch(e){ console.error(e); }
     if(row && isAdminSyncEnabled() && row.sync_id){
       try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
     }
     loadBets();
   }else{
     const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
-    writeTrackerRows(updated);
     const row = updated.find(r => String(r.id)===String(id));
+    if(row){
+      try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+    }
     if(row && isAdminSyncEnabled()){
       try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
     }
@@ -1251,23 +1343,6 @@ function getTdtRowDayKey(row){
   const m = String(dt.getMonth()+1).padStart(2,'0');
   const d = String(dt.getDate()).padStart(2,'0');
   return `${y}-${m}-${d}`;
-}
-
-
-function getTdtRowMonthKey(row){
-  const raw = getTdtRowDateValue(row);
-  const dt = new Date(raw);
-  if(Number.isNaN(dt.getTime())) return String(raw || 'Unknown');
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth()+1).padStart(2,'0');
-  return `${y}-${m}`;
-}
-
-function fmtTdtMonthHeader(monthKey){
-  const [y,m] = String(monthKey || '').split('-');
-  const dt = new Date(Number(y), Number(m)-1, 1);
-  if(Number.isNaN(dt.getTime())) return monthKey;
-  return dt.toLocaleDateString('en-GB',{ month:'long', year:'numeric' });
 }
 
 function fmtTdtDayHeader(dayKey){
@@ -1367,63 +1442,51 @@ async function loadTdtTracker(){
     });
 
     const sortedRows = sortTdtRows(rows);
-    const monthGroups = [];
-    const monthMap = new Map();
-
+    const groups = [];
+    const map = new Map();
     sortedRows.forEach(row=>{
-      const key = getTdtRowMonthKey(row);
-      if(!monthMap.has(key)){
-        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0, profit:0 };
-        monthMap.set(key, group);
-        monthGroups.push(group);
+      const key = getTdtRowDayKey(row);
+      if(!map.has(key)){
+        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0 };
+        map.set(key, group);
+        groups.push(group);
       }
-      const group = monthMap.get(key);
+      const group = map.get(key);
       group.rows.push(row);
-
       const result = String(row.result || 'pending').toLowerCase();
-      const p = result==="won"
-        ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
-        : result==="lost"
-        ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
-        : 0;
-
-      group.profit += p;
       if(result === 'won'){ group.wins++; group.settled++; }
       else if(result === 'lost'){ group.losses++; group.settled++; }
       else { group.pending++; }
     });
 
-    let html = `<div class="tdt-month-groups">`;
+    let html = `<div class="tdt-groups-wrap">`;
 
-    monthGroups.forEach((group, idx)=>{
-      const monthWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
-      const profitClass = group.profit >= 0 ? 'positive' : 'negative';
-      const profitSign = group.profit >= 0 ? '+' : '-';
-
+    groups.forEach((group, idx)=>{
+      const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
       html += `
-        <div class="tdt-month-card">
-          <button class="tdt-month-head" type="button" onclick="toggleTdtDay(this)">
-            <div class="tdt-month-left">
-              <div class="tdt-month-title">${escapeHtml(fmtTdtMonthHeader(group.key))}</div>
-              <div class="tdt-month-sub">${group.rows.length} result${group.rows.length === 1 ? '' : 's'} • <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span></div>
+        <div class="tdt-day-card">
+          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
+            <div class="tdt-day-left">
+              <div class="tdt-day-date">${escapeHtml(fmtTdtDayHeader(group.key))}</div>
+              <div class="tdt-day-meta">${group.rows.length} bet${group.rows.length === 1 ? '' : 's'}</div>
             </div>
-            <div class="tdt-month-right">
+            <div class="tdt-day-right">
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
-              <span class="tdt-day-chip ratio ${tdtWinrateClass(monthWinrate)}">Winrate ${monthWinrate}%</span>
+              <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
               <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
             </div>
           </button>
           <div class="tdt-day-body" style="display:${idx === 0 ? 'block' : 'none'};">
             <div class="tdt-table-wrap">
-              <table class="tdt-table tdt-table-fit tdt-month-table">
+              <table class="tdt-table tdt-table-fit">
                 <thead>
                   <tr>
-                    <th class="tdt-col-date sortable" onclick="sortTdtTable('date')">Day <span>${tdtSortArrow('date')}</span></th>
                     <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
                     <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
+                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
                     <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
-                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">✅/❌ <span>${tdtSortArrow('result')}</span></th>
+                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${tdtSortArrow('result')}</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1434,9 +1497,9 @@ async function loadTdtTracker(){
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
         html += `
           <tr class="tdt-row ${result}">
-            <td class="tdt-date">${escapeHtml(fmtTdtDayHeader(getTdtRowDayKey(row)).replace(/^(\w+),?\s*/, '').replace(',', ''))}</td>
             <td class="tdt-match">${escapeHtml(row.match || '')}</td>
             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
             <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
           </tr>
@@ -1469,6 +1532,10 @@ async function loadTdtTracker(){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
 }
+
+
+
+
 
 function toggleTdtDay(btn){
   const body = btn ? btn.nextElementSibling : null;
@@ -2318,3 +2385,218 @@ loadTracker = async function(){
   applyPersonalTrackerCollapseState();
 
 };
+/* ===== SAFE TDT RESULTS MONTHLY OVERRIDE ===== */
+
+function __tdtMonthKeySafe(row){
+  const raw = row?.match_date_date || row?.bet_date || row?.created_at;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return "Unknown";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+function __tdtMonthLabelSafe(monthKey){
+  if (!monthKey || monthKey === "Unknown") return "Unknown";
+  const [y, m] = String(monthKey).split("-");
+  const d = new Date(Number(y), Number(m) - 1, 1);
+  if (Number.isNaN(d.getTime())) return monthKey;
+  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+}
+
+window.loadTdtTracker = async function(){
+  const tableEl = document.getElementById("tdtTrackerTable");
+
+  try{
+    const { data, error } = await client
+      .from("tdt_tracker")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if(error) throw error;
+
+    const rows = Array.isArray(data) ? data : [];
+    tdtRowsCache = rows;
+
+    let profit = 0;
+    let wins = 0;
+    let losses = 0;
+    let totalStake = 0;
+    let totalOdds = 0;
+    let resolvedCount = 0;
+
+    rows.forEach(row=>{
+      const result = String(row.result || "pending").toLowerCase();
+
+      const p =
+        result === "won"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
+          : result === "lost"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : -Number(row.stake || 0))
+          : 0;
+
+      profit += p;
+
+      if(result === "won") wins++;
+      if(result === "lost") losses++;
+
+      if(result !== "pending"){
+        resolvedCount++;
+        totalStake += Number(row.stake || 0);
+        totalOdds += Number(row.odds || 0);
+      }
+    });
+
+    const monthMap = new Map();
+
+    rows.forEach(row=>{
+      const key = __tdtMonthKeySafe(row);
+
+      if(!monthMap.has(key)){
+        monthMap.set(key, {
+          key,
+          rows: [],
+          wins: 0,
+          losses: 0,
+          settled: 0,
+          profit: 0
+        });
+      }
+
+      const group = monthMap.get(key);
+      group.rows.push(row);
+
+      const result = String(row.result || "pending").toLowerCase();
+
+      const p =
+        result === "won"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
+          : result === "lost"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : -Number(row.stake || 0))
+          : 0;
+
+      group.profit += p;
+
+      if(result === "won"){
+        group.wins++;
+        group.settled++;
+      }else if(result === "lost"){
+        group.losses++;
+        group.settled++;
+      }
+    });
+
+    const monthGroups = Array.from(monthMap.values()).sort((a,b)=>a.key.localeCompare(b.key));
+
+    let html = `<div class="tdt-month-groups">`;
+
+    monthGroups.forEach((group, idx)=>{
+      const monthWinrate = group.settled
+        ? Math.round((group.wins / group.settled) * 100)
+        : 0;
+
+      const profitClass = group.profit >= 0 ? "positive" : "negative";
+      const profitSign = group.profit >= 0 ? "+" : "-";
+
+      html += `
+        <div class="tdt-month-card">
+          <button class="tdt-month-head" type="button" onclick="toggleTdtDay(this)">
+            <div class="tdt-month-left">
+              <div class="tdt-month-title">${escapeHtml(__tdtMonthLabelSafe(group.key))}</div>
+              <div class="tdt-month-sub">
+                ${group.rows.length} result${group.rows.length === 1 ? "" : "s"} •
+                <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span>
+              </div>
+            </div>
+            <div class="tdt-month-right">
+              <span class="tdt-day-chip win">Won ${group.wins}</span>
+              <span class="tdt-day-chip loss">Lost ${group.losses}</span>
+              <span class="tdt-day-chip ratio ${tdtWinrateClass(monthWinrate)}">Winrate ${monthWinrate}%</span>
+              <span class="tdt-day-chevron">${idx === monthGroups.length - 1 ? "▼" : "▶"}</span>
+            </div>
+          </button>
+          <div class="tdt-day-body" style="display:${idx === monthGroups.length - 1 ? "block" : "none"};">
+            <div class="tdt-table-wrap">
+              <table class="tdt-table tdt-table-fit tdt-month-table">
+                <thead>
+                  <tr>
+                    <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('match') : ''}</span></th>
+                    <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('market') : ''}</span></th>
+                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('stake') : ''}</span></th>
+                    <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('odds') : ''}</span></th>
+                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('result') : ''}</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+      `;
+
+      group.rows.forEach(row=>{
+        const result = String(row.result || "pending").toLowerCase();
+        const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+
+        html += `
+          <tr class="tdt-row ${result}">
+            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+            <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
+            <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
+            <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
+          </tr>
+        `;
+      });
+
+      html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+
+    if(tableEl){
+      tableEl.innerHTML = rows.length
+        ? html
+        : '<div class="card">No official TDT results yet.</div>';
+    }
+
+    const set = (id, val)=>{
+      const el = document.getElementById(id);
+      if(el) el.innerText = val;
+    };
+
+    set("tdtProfit", profit.toFixed(2));
+    set("tdtRoi", totalStake ? ((profit / totalStake) * 100).toFixed(1) : 0);
+    set("tdtWinrate", (wins + losses) ? ((wins / (wins + losses)) * 100).toFixed(1) : 0);
+    set("tdtWonLost", `${wins}-${losses}`);
+    set("tdtAvgOdds", resolvedCount ? (totalOdds / resolvedCount).toFixed(2) : 0);
+    set("tdtTotalBets", rows.length);
+    set("tdtBetCount", rows.length);
+
+    if(typeof updateTdtPerformanceBars === "function"){
+      updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
+    }
+  }catch(err){
+    console.error("TDT monthly override failed:", err);
+    if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
+  }
+};
+
+try{
+  if(typeof currentTopTab !== "undefined" && currentTopTab === "tdt"){
+    loadTdtTracker();
+  }
+}catch(e){}
+
+window.restoreVipAccess = restoreVipAccess;
+window.forgotVipPassword = forgotVipPassword;
