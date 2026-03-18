@@ -7,6 +7,11 @@ const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 // VIP
 // =========================
 
+function normalizeVipEmail(email){
+  return String(email || "").trim().toLowerCase();
+}
+
+
 function setVipUI(active, email){
   vipActive = !!active;
 
@@ -45,6 +50,7 @@ function openVipModal(){
   if(vipErrorEl) vipErrorEl.textContent="";
   const saved=(localStorage.getItem('vip_email')||"").trim();
   if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
+  if(vipPasswordEl && !vipPasswordEl.value) vipPasswordEl.value="";
   vipModalEl.style.display="flex";
 }
 
@@ -52,6 +58,82 @@ function closeVipModal(){
   if(!vipModalEl) return;
   vipModalEl.style.display="none";
 }
+
+async function ensureVipPasswordAccount(email, password){
+  const cleanEmail = normalizeVipEmail(email);
+  const cleanPassword = String(password || "");
+  if(!cleanEmail || !cleanEmail.includes("@")) throw new Error("Enter a valid email.");
+  if(cleanPassword.length < 6) throw new Error("Use at least 6 characters for your VIP password.");
+
+  const signIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+  if(!signIn.error) return true;
+
+  const signUp = await client.auth.signUp({
+    email: cleanEmail,
+    password: cleanPassword,
+    options: { emailRedirectTo: window.location.origin }
+  });
+  if(!signUp.error) return true;
+
+  const msg = String(signUp.error?.message || "").toLowerCase();
+  if(msg.includes("already") || msg.includes("exists") || msg.includes("registered") || msg.includes("user already")){
+    const secondSignIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+    if(!secondSignIn.error) return true;
+    throw new Error("Wrong VIP password for that email.");
+  }
+
+  throw signUp.error;
+}
+
+async function forgotVipPassword(){
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
+    return;
+  }
+  try{
+    if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin
+    });
+    if(error) throw error;
+    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent.";
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not send reset email.";
+  }
+}
+
+async function restoreVipAccess(){
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
+
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
+    return;
+  }
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your VIP password.";
+    return;
+  }
+
+  localStorage.setItem("vip_email", email);
+
+  try{
+    if(vipErrorEl) vipErrorEl.textContent = "";
+    if(vipRestoreEl) vipRestoreEl.disabled = true;
+
+    await ensureVipPasswordAccount(email, password);
+    const active = await forceVipRefreshNow(email);
+
+    if(active) return;
+    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
+  }catch(e){
+    if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
+  }finally{
+    if(vipRestoreEl) vipRestoreEl.disabled = false;
+  }
+}
+
 
 async function checkVIP(){
   const email=(localStorage.getItem('vip_email')||"").trim();
@@ -76,15 +158,24 @@ async function checkVIP(){
 
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
-  const email=(vipEmailEl?.value||"").trim();
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
+
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  localStorage.setItem('vip_email',email);
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent="Create a VIP password with at least 6 characters.";
+    return;
+  }
+
+  localStorage.setItem('vip_email', email);
   try{
+    await ensureVipPasswordAccount(email, password);
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
+    if(vipRestoreEl) vipRestoreEl.disabled=true;
     const r=await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -97,6 +188,7 @@ async function startCheckout(plan){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
+    if(vipRestoreEl) vipRestoreEl.disabled=false;
   }
 }
 
@@ -128,6 +220,51 @@ function isValueBetActiveToday(row){
 }
 
 
+
+async function forceVipRefreshNow(emailFromInput){
+  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
+  if(!email || !email.includes("@")) return false;
+  localStorage.setItem('vip_email', email);
+  const active = await checkVIP();
+  if(active){
+    closeVipModal();
+    await loadBets();
+    refreshAdminBadgeUI();
+    return true;
+  }
+  return false;
+}
+
+async function pollVipAfterCheckout(){
+  const email = normalizeVipEmail((localStorage.getItem('vip_email') || ""));
+  if(!email) return false;
+  if(vipStatusEl) vipStatusEl.textContent = 'Finalising VIP payment...';
+  for(let i=0;i<20;i++){
+    const active = await forceVipRefreshNow(email);
+    if(active){
+      try{
+        const url = new URL(window.location.href);
+        url.searchParams.delete('vip');
+        url.searchParams.delete('session_id');
+        window.history.replaceState({}, '', url.toString());
+      }catch(e){}
+      return true;
+    }
+    await new Promise(r=>setTimeout(r,3000));
+  }
+  if(vipStatusEl) vipStatusEl.textContent = 'Tap Restore VIP to unlock.';
+  return false;
+}
+
+function shouldTryVipFinalize(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('vip') === 'success' || params.has('session_id')) return true;
+  }catch(e){}
+  return false;
+}
+
+
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -138,8 +275,11 @@ const vipStatusEl = document.getElementById("vipStatus");
 const vipModalEl = document.getElementById("vipModal");
 const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
+const vipPasswordEl = document.getElementById("vipPassword");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
+const vipRestoreEl = document.getElementById("vipRestore");
+const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -354,15 +494,20 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
+if(vipForgotEl) vipForgotEl.addEventListener('click', forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
 // On load: check VIP status (if email saved), then render.
-checkVIP().then(()=>{
+checkVIP().then(async ()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+  if(!vipActive && shouldTryVipFinalize()){
+    await pollVipAfterCheckout();
+  }
   refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
   loadBets();
@@ -1041,9 +1186,15 @@ if(monthKeys.length){
 
 
 async function updateOdds(id,val){
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
-  writeTrackerRows(updated);
+  const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+  }
+  if(row && isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+  }
   loadTracker();
 }
 
@@ -2363,29 +2514,36 @@ try{
   }
 }catch(e){}
 
+window.restoreVipAccess = restoreVipAccess;
+window.forgotVipPassword = forgotVipPassword;
 
 
-/* === personal tracker grouped renderer override === */
-function toggleTrackerMonthGroup(btn){
-  const body = btn && btn.nextElementSibling;
-  if(!body) return;
-  const arrow = btn.querySelector(".myt-month-arrow");
-  const open = body.style.display !== "none";
-  body.style.display = open ? "none" : "block";
-  if(arrow) arrow.textContent = open ? "▶" : "▼";
+
+/* ===== Final personal tracker TDT-style monthly cards ===== */
+
+function fmtPersonalMonthKey(value){
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
 }
 
-function toggleTrackerDayGroup(btn){
-  const body = btn && btn.nextElementSibling;
+function fmtPersonalMonthLabel(key){
+  const [y,m] = String(key || "").split("-");
+  if(!y || !m) return "";
+  return new Date(Number(y), Number(m)-1, 1).toLocaleDateString("en-GB",{month:"long", year:"numeric"});
+}
+
+function togglePersonalTrackerMonth(btn){
+  const body = btn ? btn.nextElementSibling : null;
+  const chev = btn ? btn.querySelector(".pt-month-chevron") : null;
   if(!body) return;
-  const arrow = btn.querySelector(".myt-day-arrow");
-  const open = body.style.display !== "none";
-  body.style.display = open ? "none" : "block";
-  if(arrow) arrow.textContent = open ? "▶" : "▼";
+  const isHidden = body.style.display === "none";
+  body.style.display = isHidden ? "block" : "none";
+  if(chev) chev.innerText = isHidden ? "▼" : "▶";
 }
 
 loadTracker = async function(){
-  const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+  const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
   trackerRowsCache = rows;
   trackerAllRows = rows;
 
@@ -2393,159 +2551,184 @@ loadTracker = async function(){
   rows.forEach(r => addedKeys.add(makeBetKey(r)));
   wireTrackerFilters();
 
-  let start=parseFloat(document.getElementById("startingBankroll").value || 0);
-  let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
-  let dailyLabels=[];
-  let dayKeys=[];
-
-  const monthMap = new Map();
+  let start = parseFloat(document.getElementById("startingBankroll").value || 0);
+  let bankroll = start, profit = 0, wins = 0, losses = 0, totalStake = 0, totalOdds = 0, history = [];
+  let dailyLabels = [];
+  let dayKeys = [];
 
   rows.forEach(row=>{
-    let p=0;
-    if(row.result==="won"){p=Number(row.stake||0)*(Number(row.odds||0)-1);wins++;}
-    if(row.result==="lost"){p=-Number(row.stake||0);losses++;}
-    profit+=p;totalStake+=Number(row.stake||0);totalOdds+=Number(row.odds||0);
-    bankroll=start+profit;
+    let p = 0;
+    if(row.result==="won"){ p = Number(row.stake||0) * (Number(row.odds||0)-1); wins++; }
+    if(row.result==="lost"){ p = -Number(row.stake||0); losses++; }
+    profit += p;
+    totalStake += Number(row.stake||0);
+    totalOdds += Number(row.odds||0);
+    bankroll = start + profit;
 
-    const rawDate = row.match_date_date || row.bet_date || row.created_at;
-    const d = new Date(rawDate || Date.now());
-    const monthKey = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
-    const monthLabel = d.toLocaleDateString('en-GB',{month:'long', year:'numeric'});
-    const dayKey = fmtDayLabel(rawDate);
-
+    const gameDate = row.match_date_date || row.bet_date || row.created_at;
+    const dayKey = fmtDayLabel(gameDate);
     const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
     dayKeys.push(dayKey);
     dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
     history.push(bankroll);
-
-    if(!monthMap.has(monthKey)){
-      monthMap.set(monthKey, { label: monthLabel, days:new Map(), wins:0, losses:0, resolved:0, rows:0 });
-    }
-    const month = monthMap.get(monthKey);
-    month.rows += 1;
-    if(row.result==="won"){ month.wins += 1; month.resolved += 1; }
-    if(row.result==="lost"){ month.losses += 1; month.resolved += 1; }
-
-    if(!month.days.has(dayKey)) month.days.set(dayKey, []);
-    month.days.get(dayKey).push(row);
   });
 
-  let html = '<div class="myt-wrap">';
-  const monthEntries = Array.from(monthMap.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
+  // Month groups newest first
+  const monthMap = new Map();
+  const monthKeys = [];
+  rows.slice().reverse().forEach(row=>{
+    const key = fmtPersonalMonthKey(row.match_date_date || row.bet_date || row.created_at);
+    if(!monthMap.has(key)){
+      monthMap.set(key, { key, rows: [], wins:0, losses:0, settled:0, profit:0 });
+      monthKeys.push(key);
+    }
+    const group = monthMap.get(key);
+    group.rows.push(row);
 
-  monthEntries.forEach(([monthKey, month], monthIndex)=>{
-    const wr = month.resolved ? Math.round((month.wins / month.resolved) * 100) : 0;
+    const res = String(row.result || "pending").toLowerCase();
+    const p = res==="won" ? Number(row.stake||0) * (Number(row.odds||0)-1)
+            : res==="lost" ? -Number(row.stake||0)
+            : 0;
+    group.profit += p;
+    if(res==="won"){ group.wins++; group.settled++; }
+    else if(res==="lost"){ group.losses++; group.settled++; }
+  });
+
+  const tableEl = document.getElementById("trackerTable");
+  let html = `<div class="pt-month-groups">`;
+
+  monthKeys.forEach((key, idx)=>{
+    const group = monthMap.get(key);
+    const winrate = group.settled ? Math.round((group.wins / group.settled) * 100) : 0;
+    const profitClass = group.profit >= 0 ? "positive" : "negative";
+    const profitSign = group.profit >= 0 ? "+" : "-";
+
     html += `
-      <div class="myt-month-card">
-        <button class="myt-month-head" type="button" onclick="toggleTrackerMonthGroup(this)">
-          <div class="myt-month-left">
-            <div class="myt-month-title">${month.label}</div>
-            <div class="myt-month-sub">${month.rows} results</div>
+      <div class="pt-month-card">
+        <button class="pt-month-head" type="button" onclick="togglePersonalTrackerMonth(this)">
+          <div class="pt-month-left">
+            <div class="pt-month-title">${escapeHtml(fmtPersonalMonthLabel(key))}</div>
+            <div class="pt-month-sub">${group.rows.length} result${group.rows.length===1?"":"s"} • <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span></div>
           </div>
-          <div class="myt-month-right">
-            <span class="myt-chip myt-chip-win">Won ${month.wins}</span>
-            <span class="myt-chip myt-chip-loss">Lost ${month.losses}</span>
-            <span class="myt-chip myt-chip-rate">Winrate ${wr}%</span>
-            <span class="myt-month-arrow">${monthIndex===0 ? "▼" : "▶"}</span>
+          <div class="pt-month-right">
+            <span class="tdt-day-chip win">Won ${group.wins}</span>
+            <span class="tdt-day-chip loss">Lost ${group.losses}</span>
+            <span class="tdt-day-chip ratio ${tdtWinrateClass(winrate)}">Winrate ${winrate}%</span>
+            <span class="pt-month-chevron">${idx===0 ? "▼" : "▶"}</span>
           </div>
         </button>
-        <div class="myt-month-body" style="display:${monthIndex===0 ? "block" : "none"};">
-    `;
-
-    const dayEntries = Array.from(month.days.entries()).sort((a,b)=> new Date(b[1][0].match_date_date || b[1][0].bet_date || b[1][0].created_at) - new Date(a[1][0].match_date_date || a[1][0].bet_date || a[1][0].created_at));
-    dayEntries.forEach(([dayLabel, dayRows], dayIndex)=>{
-      html += `
-        <div class="myt-day-group">
-          <button class="myt-day-head" type="button" onclick="toggleTrackerDayGroup(this)">
-            <span>${dayLabel}</span>
-            <span class="myt-day-arrow">${dayIndex===0 ? "▼" : "▶"}</span>
-          </button>
-          <div class="myt-day-body" style="display:${dayIndex===0 ? "block" : "none"};">
-            <table class="myt-table">
+        <div class="pt-month-body" style="display:${idx===0 ? "block" : "none"};">
+          <div class="pt-table-wrap">
+            <table class="pt-table">
               <thead>
                 <tr>
-                  <th class="myt-col-match">Match</th>
-                  <th class="myt-col-market">Market</th>
-                  <th class="myt-col-stake">Stake</th>
-                  <th class="myt-col-odds">Odds</th>
-                  <th class="myt-col-result">Result</th>
-                  <th class="myt-col-profit">Profit</th>
+                  <th class="pt-col-match">Match</th>
+                  <th class="pt-col-market">Market</th>
+                  <th class="pt-col-stake">Stake</th>
+                  <th class="pt-col-odds">Odds</th>
+                  <th class="pt-col-result">Result</th>
+                  <th class="pt-col-profit">Profit</th>
                 </tr>
               </thead>
               <tbody>
-      `;
-      dayRows.forEach(row=>{
-        let p=0;
-        if(row.result==="won") p=Number(row.stake||0)*(Number(row.odds||0)-1);
-        if(row.result==="lost") p=-Number(row.stake||0);
-        html += `
-          <tr>
-            <td class="myt-match-cell">${row.match || ""}</td>
-            <td class="myt-market-cell">${row.market || ""}</td>
-            <td><input class="myt-input" type="number" value="${Number(row.stake||0)}" onchange="updateStake('${row.id}',this.value)"></td>
-            <td><input class="myt-input" type="number" step="0.01" value="${Number(row.odds||0)}" onchange="updateOdds('${row.id}',this.value)"></td>
-            <td>
-              <select class="result-select result-${row.result}" onchange="updateResult('${row.id}',this.value)">
-                <option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
-                <option value="won" ${row.result==="won"?"selected":""}>won</option>
-                <option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
-                <option value="delete">🗑 delete</option>
-              </select>
-            </td>
-            <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-          </tr>
-        `;
-      });
+    `;
+    group.rows.forEach(row=>{
+      const res = String(row.result || "pending").toLowerCase();
+      const p = res==="won" ? Number(row.stake||0) * (Number(row.odds||0)-1)
+              : res==="lost" ? -Number(row.stake||0)
+              : 0;
       html += `
+        <tr class="pt-row ${res}">
+          <td class="pt-match">${escapeHtml(row.match || "")}</td>
+          <td class="pt-market">${escapeHtml(row.market || "")}</td>
+          <td class="pt-stake">
+            <input class="pt-input" type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${row.id}',this.value)">
+          </td>
+          <td class="pt-odds">
+            <input class="pt-input pt-input--odds" type="number" step="0.01" value="${Number(row.odds || 0)}" onchange="updateOdds('${row.id}',this.value)">
+          </td>
+          <td class="pt-result">
+            <select class="result-select result-${res}" onchange="updateResult('${row.id}',this.value)">
+              <option value="pending" ${res==="pending"?"selected":""}>pending</option>
+              <option value="won" ${res==="won"?"selected":""}>won</option>
+              <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+              <option value="delete">🗑 delete</option>
+            </select>
+          </td>
+          <td class="pt-profit"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
+        </tr>
+      `;
+    });
+
+    html += `
               </tbody>
             </table>
           </div>
         </div>
-      `;
-    });
-
-    html += `</div></div>`;
+      </div>
+    `;
   });
 
-  html += '</div>';
-  trackerTable.innerHTML = rows.length ? html : '<div class="card">No tracker bets yet.</div>';
+  html += `</div>`;
+  if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No tracker bets yet.</div>';
 
-  bankrollElem.innerText=bankroll.toFixed(2);
-  profitElem.innerText=profit.toFixed(2);
-  roiElem.innerText=totalStake?((profit/totalStake)*100).toFixed(1):0;
-  winrateElem.innerText=(wins+losses)?((wins/(wins+losses))*100).toFixed(1):0;
+  bankrollElem.innerText = bankroll.toFixed(2);
+  profitElem.innerText = profit.toFixed(2);
+  roiElem.innerText = totalStake ? ((profit/totalStake)*100).toFixed(1) : 0;
+  winrateElem.innerText = (wins+losses) ? ((wins/(wins+losses))*100).toFixed(1) : 0;
+
   const wonLostElem = document.getElementById("wonLost");
   if(wonLostElem) wonLostElem.innerText = `${wins}-${losses}`;
+
   const totalElem = document.getElementById("totalBets");
   if(totalElem) totalElem.innerText = rows.length;
+
   const totalStakedCard = document.getElementById("totalStakedCard");
   if(totalStakedCard) totalStakedCard.innerText = totalStake.toFixed(2);
-  avgOddsElem.innerText=rows.length?(totalOdds/rows.length).toFixed(2):0;
+
+  avgOddsElem.innerText = rows.length ? (totalOdds/rows.length).toFixed(2) : 0;
 
   profitCard.classList.remove("glow-green","glow-red");
-  if(profit>0) profitCard.classList.add("glow-green");
-  if(profit<0) profitCard.classList.add("glow-red");
+  if(profit > 0) profitCard.classList.add("glow-green");
+  if(profit < 0) profitCard.classList.add("glow-red");
 
   renderDailyChart(history, dailyLabels, dayKeys);
 
   const countElem = document.getElementById("betCount");
   if(countElem) countElem.textContent = String(rows.length);
 
-  const monthProfitMap = {}, monthStakeMap2 = {};
+  const monthMapProfit = {};
+  const monthStakeMap = {};
   rows.forEach(r=>{
-    const d = new Date(r.created_at || r.bet_date || Date.now());
+    const d = new Date(r.created_at);
     const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
-    monthProfitMap[key] = (monthProfitMap[key]||0) + rowProfit(r);
-    monthStakeMap2[key] = (monthStakeMap2[key]||0) + Number(r.stake || 0);
+    monthMapProfit[key] = (monthMapProfit[key]||0) + rowProfit(r);
+    monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
   });
-  const monthKeys = Object.keys(monthProfitMap).sort();
-  const monthLabels = monthKeys.map(k=>{ const [y,m]=k.split("-"); return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'}); });
-  const monthlyProfit = monthKeys.map(k=> monthProfitMap[k]);
-  const monthlyROI = monthKeys.map(k=>{ const stake = monthStakeMap2[k] || 0; return stake ? (monthProfitMap[k] / stake) * 100 : 0; });
+
+  const breakdownKeys = Object.keys(monthMapProfit).sort();
+  const monthLabels = breakdownKeys.map(k=>{
+    const [y,m]=k.split("-");
+    return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
+  });
+  const monthlyProfit = breakdownKeys.map(k=> monthMapProfit[k]);
+  const monthlyROI = breakdownKeys.map(k=>{
+    const stake = monthStakeMap[k] || 0;
+    return stake ? (monthMapProfit[k] / stake) * 100 : 0;
+  });
+
   renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
   let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
-  monthKeys.forEach((k,i)=>{ const p = monthlyProfit[i]; const r = monthlyROI[i]; breakdownHTML += `<tr><td>${monthLabels[i]}</td><td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td><td>${r.toFixed(1)}%</td></tr>`; });
+  breakdownKeys.forEach((k,i)=>{
+    const p = monthlyProfit[i];
+    const r = monthlyROI[i];
+    breakdownHTML += `<tr>
+      <td>${monthLabels[i]}</td>
+      <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
+      <td>${r.toFixed(1)}%</td>
+    </tr>`;
+  });
   breakdownHTML += "</table>";
   const monthlyTableEl = document.getElementById("monthlyTable");
   if(monthlyTableEl) monthlyTableEl.innerHTML = breakdownHTML;
