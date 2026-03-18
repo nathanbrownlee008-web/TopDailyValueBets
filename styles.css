@@ -3516,3 +3516,23 @@ body.layout-compact .vip-bar{
     border-radius:11px;
   }
 }
+
+
+
+/* Mobile tweak: hide profit column on personal tracker only, widen match */
+@media (max-width:600px){
+  #trackerTable .pt-col-profit,
+  #trackerTable .pt-profit{
+    display:none;
+  }
+
+  #trackerTable .pt-col-match{width:30%;}
+  #trackerTable .pt-col-market{width:24%;}
+  #trackerTable .pt-col-stake{width:14%;}
+  #trackerTable .pt-col-odds{width:13%;}
+  #trackerTable .pt-col-result{width:19%;}
+
+  #trackerTable .pt-match{
+    line-height:1.04;
+  }
+}
