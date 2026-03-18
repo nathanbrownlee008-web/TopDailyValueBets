@@ -3536,3 +3536,124 @@ body.layout-compact .vip-bar{
     line-height:1.04;
   }
 }
+
+
+
+/* Final mobile tidy: smaller emoji result + date under market */
+#trackerTable .pt-market-main{
+  line-height:1.08;
+  overflow-wrap:anywhere;
+}
+
+#trackerTable .pt-row-date{
+  margin-top:6px;
+  font-size:11px;
+  opacity:.72;
+  line-height:1.05;
+}
+
+#trackerTable .pt-result .result-select{
+  width:58px !important;
+  min-width:58px !important;
+  max-width:58px !important;
+  padding:6px 2px;
+  font-size:18px;
+  line-height:1;
+  text-align:center;
+}
+
+#trackerTable .pt-col-result{
+  width:13%;
+}
+
+@media (max-width:600px){
+  #trackerTable .pt-col-match{width:28%;}
+  #trackerTable .pt-col-market{width:26%;}
+  #trackerTable .pt-col-stake{width:14%;}
+  #trackerTable .pt-col-odds{width:13%;}
+  #trackerTable .pt-col-result{width:12%;}
+
+  #trackerTable .pt-result .result-select{
+    width:52px !important;
+    min-width:52px !important;
+    max-width:52px !important;
+    padding:5px 1px;
+    font-size:17px;
+  }
+
+  #trackerTable .pt-row-date{
+    font-size:10px;
+    margin-top:5px;
+  }
+}
+
+
+/* Personal tracker final tidy: smaller result emoji + date under match */
+#trackerTable .pt-match-main{
+  line-height:1.08;
+  overflow-wrap:anywhere;
+}
+
+#trackerTable .pt-row-date{
+  margin-top:5px;
+  font-size:10px;
+  opacity:.72;
+  line-height:1.05;
+}
+
+#trackerTable .pt-market-main{
+  line-height:1.08;
+  overflow-wrap:anywhere;
+}
+
+#trackerTable .pt-result .result-select{
+  width:48px !important;
+  min-width:48px !important;
+  max-width:48px !important;
+  padding:4px 1px;
+  font-size:14px;
+  line-height:1;
+  text-align:center;
+}
+
+@media (max-width:600px){
+  #trackerTable .pt-result .result-select{
+    width:44px !important;
+    min-width:44px !important;
+    max-width:44px !important;
+    padding:3px 1px;
+    font-size:13px;
+  }
+
+  #trackerTable .pt-row-date{
+    font-size:9px;
+    margin-top:4px;
+  }
+}
+
+
+
+/* Personal tracker mobile fit fix */
+#trackerTable select{
+  min-width:70px;
+  width:70px;
+  font-size:12px;
+}
+
+@media (max-width:600px){
+  #trackerTable th:nth-child(5),
+  #trackerTable td:nth-child(5){
+    display:none;
+  }
+
+  #trackerTable select{
+    min-width:52px;
+    width:52px;
+    font-size:11px;
+    padding:3px 2px;
+  }
+
+  #trackerTable input[type="number"]{
+    width:52px;
+  }
+}

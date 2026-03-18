@@ -763,9 +763,9 @@ function _buildTrackerTableHTML(rows){
       <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
-          <option value="pending" ${res==="pending"?"selected":""}>pending</option>
-          <option value="won" ${res==="won"?"selected":""}>won</option>
-          <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+          <option value="pending" ${res==="pending"?"selected":""}>⏳</option>
+          <option value="won" ${res==="won"?"selected":""}>✅</option>
+          <option value="lost" ${res==="lost"?"selected":""}>❌</option>
         </select>
       </td>
       <td class="profit-col ${profitClass}">${profitText}</td>
@@ -1045,9 +1045,9 @@ tableRows.push(`<tr>
 <select 
 class="result-select result-${row.result}" 
 onchange="updateResult('${row.id}',this.value)">
-<option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
-<option value="won" ${row.result==="won"?"selected":""}>won</option>
-<option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
+<option value="pending" ${row.result==="pending"?"selected":""}>⏳</option>
+<option value="won" ${row.result==="won"?"selected":""}>✅</option>
+<option value="lost" ${row.result==="lost"?"selected":""}>❌</option>
 <option value="delete">🗑 delete</option>
 </select>
 </td>
@@ -2639,8 +2639,8 @@ loadTracker = async function(){
               : 0;
       html += `
         <tr class="pt-row ${res}">
-          <td class="pt-match">${escapeHtml(row.match || "")}</td>
-          <td class="pt-market">${escapeHtml(row.market || "")}</td>
+          <td class="pt-match"><div class="pt-match-main">${escapeHtml(row.match || "")}</div><div class="pt-row-date">${escapeHtml(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at))}</div></td>
+          <td class="pt-market"><div class="pt-market-main">${escapeHtml(row.market || "")}</div></td>
           <td class="pt-stake">
             <input class="pt-input" type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${row.id}',this.value)">
           </td>
@@ -2649,9 +2649,9 @@ loadTracker = async function(){
           </td>
           <td class="pt-result">
             <select class="result-select result-${res}" onchange="updateResult('${row.id}',this.value)">
-              <option value="pending" ${res==="pending"?"selected":""}>pending</option>
-              <option value="won" ${res==="won"?"selected":""}>won</option>
-              <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+              <option value="pending" ${res==="pending"?"selected":""}>⏳</option>
+              <option value="won" ${res==="won"?"selected":""}>✅</option>
+              <option value="lost" ${res==="lost"?"selected":""}>❌</option>
               <option value="delete">🗑 delete</option>
             </select>
           </td>
