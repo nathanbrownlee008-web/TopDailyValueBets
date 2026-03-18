@@ -2640,7 +2640,7 @@ loadTracker = async function(){
       html += `
         <tr class="pt-row ${res}">
           <td class="pt-match">${escapeHtml(row.match || "")}</td>
-          <td class="pt-market">${escapeHtml(row.market || "")}</td>
+          <td class="pt-market"><div class="pt-market-main">${escapeHtml(row.market || "")}</div><div class="pt-row-date">${escapeHtml(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at))}</div></td>
           <td class="pt-stake">
             <input class="pt-input" type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${row.id}',this.value)">
           </td>
@@ -2649,9 +2649,9 @@ loadTracker = async function(){
           </td>
           <td class="pt-result">
             <select class="result-select result-${res}" onchange="updateResult('${row.id}',this.value)">
-              <option value="pending" ${res==="pending"?"selected":""}>pending</option>
-              <option value="won" ${res==="won"?"selected":""}>won</option>
-              <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+              <option value="pending" ${res==="pending"?"selected":""}>⏳</option>
+              <option value="won" ${res==="won"?"selected":""}>✅</option>
+              <option value="lost" ${res==="lost"?"selected":""}>❌</option>
               <option value="delete">🗑 delete</option>
             </select>
           </td>
