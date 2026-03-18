@@ -7,6 +7,11 @@ const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 // VIP
 // =========================
 
+function normalizeVipEmail(email){
+  return String(email || "").trim().toLowerCase();
+}
+
+
 function setVipUI(active, email){
   vipActive = !!active;
 
@@ -45,6 +50,7 @@ function openVipModal(){
   if(vipErrorEl) vipErrorEl.textContent="";
   const saved=(localStorage.getItem('vip_email')||"").trim();
   if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
+  if(vipPasswordEl && !vipPasswordEl.value) vipPasswordEl.value="";
   vipModalEl.style.display="flex";
 }
 
@@ -52,6 +58,34 @@ function closeVipModal(){
   if(!vipModalEl) return;
   vipModalEl.style.display="none";
 }
+
+
+async function ensureVipPasswordAccount(email, password){
+  const cleanEmail = normalizeVipEmail(email);
+  const cleanPassword = String(password || "");
+  if(!cleanEmail || !cleanEmail.includes("@")) throw new Error("Enter a valid email.");
+  if(cleanPassword.length < 6) throw new Error("Create or enter a password with at least 6 characters.");
+
+  const signIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+  if(!signIn.error) return true;
+
+  const signUp = await client.auth.signUp({
+    email: cleanEmail,
+    password: cleanPassword,
+    options: { emailRedirectTo: window.location.origin }
+  });
+
+  if(!signUp.error) return true;
+
+  if((signUp.error.message || "").toLowerCase().includes("already") || (signUp.error.message || "").toLowerCase().includes("exists")){
+    const secondSignIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+    if(!secondSignIn.error) return true;
+    throw new Error("Wrong VIP password for that email.");
+  }
+
+  throw signUp.error;
+}
+
 
 async function checkVIP(){
   const email=(localStorage.getItem('vip_email')||"").trim();
@@ -76,27 +110,39 @@ async function checkVIP(){
 
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
-  const email=(vipEmailEl?.value||"").trim();
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
+
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  localStorage.setItem('vip_email',email);
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent="Create a VIP password with at least 6 characters.";
+    return;
+  }
+
   try{
-    if(vipMonthlyEl) vipMonthlyEl.disabled=true;
-    if(vipYearlyEl) vipYearlyEl.disabled=true;
-    const r=await fetch('/api/create-checkout-session',{
+    await ensureVipPasswordAccount(email, password);
+    localStorage.setItem('vip_email', email);
+
+    if(vipMonthlyEl) vipMonthlyEl.disabled = true;
+    if(vipYearlyEl) vipYearlyEl.disabled = true;
+    if(vipRestoreEl) vipRestoreEl.disabled = true;
+
+    const r = await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({email,plan})
     });
-    const j=await r.json();
-    if(!r.ok || !j.url) throw new Error(j.error||'Checkout failed');
-    window.location.href=j.url;
+    const j = await r.json();
+    if(!r.ok || !j.url) throw new Error(j.error || 'Checkout failed');
+    window.location.href = j.url;
   }catch(err){
-    if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
-    if(vipMonthlyEl) vipMonthlyEl.disabled=false;
-    if(vipYearlyEl) vipYearlyEl.disabled=false;
+    if(vipErrorEl) vipErrorEl.textContent = err?.message || 'Something went wrong.';
+    if(vipMonthlyEl) vipMonthlyEl.disabled = false;
+    if(vipYearlyEl) vipYearlyEl.disabled = false;
+    if(vipRestoreEl) vipRestoreEl.disabled = false;
   }
 }
 
@@ -138,6 +184,7 @@ const vipStatusEl = document.getElementById("vipStatus");
 const vipModalEl = document.getElementById("vipModal");
 const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
+const vipPasswordEl = document.getElementById("vipPassword");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
 const vipErrorEl = document.getElementById("vipError");
@@ -2353,25 +2400,3 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
-/* ===== AUTO VALUE COLOUR ===== */
-
-document.querySelectorAll(".value-chip").forEach(chip=>{
-
-  const text = chip.textContent || "";
-  const match = text.match(/(\d+(\.\d+)?)/);
-
-  if(!match) return;
-
-  const val = parseFloat(match[1]);
-
-  if(val >= 10){
-    chip.classList.add("value-high");
-  }
-  else if(val >= 8){
-    chip.classList.add("value-mid");
-  }
-  else{
-    chip.classList.add("value-low");
-  }
-
-});
