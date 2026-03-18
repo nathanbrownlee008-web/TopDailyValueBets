@@ -3338,93 +3338,111 @@ body.layout-compact .vip-bar{
 
 
 
-/* Final tracker mobile polish: small text result pills + wider match */
-#trackerTable .result-select,
-#trackerTable select.result-select,
-.result-select{
-  border-radius:8px;
-  padding:2px 6px;
-  font-size:11px;
+/* Tracker table: remove per-row date column, add market + editable odds */
+#trackerTable input.odds-input{
+  width:54px;
+}
+
+#trackerTable table th:nth-child(1),
+#trackerTable table td:nth-child(1){
+  width:34%;
+}
+
+#trackerTable table th:nth-child(2),
+#trackerTable table td:nth-child(2){
+  width:26%;
+}
+
+#trackerTable table th:nth-child(3),
+#trackerTable table td:nth-child(3){
+  width:12%;
+}
+
+#trackerTable table th:nth-child(4),
+#trackerTable table td:nth-child(4){
+  width:12%;
+}
+
+#trackerTable table th:nth-child(5),
+#trackerTable table td:nth-child(5){
+  width:16%;
+}
+
+#trackerTable table td:nth-child(1),
+#trackerTable table td:nth-child(2){
+  line-height:1.12;
+  overflow-wrap:anywhere;
+}
+
+#trackerTable .result-select{
   min-width:58px;
   width:58px;
+  padding:2px 6px;
+  font-size:11px;
+  border-radius:8px;
   text-align:center;
 }
 
-#trackerTable .result-won,
-.result-won{
+#trackerTable .result-won{
   background:rgba(34,197,94,0.12);
   color:#22c55e;
   border:1px solid rgba(34,197,94,0.35);
-  font-size:11px;
 }
 
-#trackerTable .result-lost,
-.result-lost{
+#trackerTable .result-lost{
   background:rgba(239,68,68,0.12);
   color:#ef4444;
   border:1px solid rgba(239,68,68,0.35);
-  font-size:11px;
 }
 
-#trackerTable .result-pending,
-.result-pending{
+#trackerTable .result-pending{
   background:#1e293b;
   color:#cbd5e1;
   border:1px solid #334155;
-  font-size:11px;
 }
 
 @media (max-width:600px){
-  /* keep result visible, hide profit only */
   #trackerTable th:nth-child(6),
   #trackerTable td:nth-child(6){
     display:none;
   }
 
-  /* make match column wider and market a bit tighter */
-  #trackerTable th:nth-child(1),
-  #trackerTable td:nth-child(1){
-    width:44%;
+  #trackerTable table th:nth-child(1),
+  #trackerTable table td:nth-child(1){
+    width:38%;
   }
 
-  #trackerTable th:nth-child(2),
-  #trackerTable td:nth-child(2){
-    width:24%;
+  #trackerTable table th:nth-child(2),
+  #trackerTable table td:nth-child(2){
+    width:28%;
   }
 
-  #trackerTable th:nth-child(3),
-  #trackerTable td:nth-child(3){
+  #trackerTable table th:nth-child(3),
+  #trackerTable table td:nth-child(3){
     width:12%;
   }
 
-  #trackerTable th:nth-child(4),
-  #trackerTable td:nth-child(4){
+  #trackerTable table th:nth-child(4),
+  #trackerTable table td:nth-child(4){
     width:10%;
   }
 
-  #trackerTable th:nth-child(5),
-  #trackerTable td:nth-child(5){
-    width:10%;
-  }
-
-  #trackerTable td:nth-child(1){
-    line-height:1.18;
-    overflow-wrap:anywhere;
-  }
-
-  #trackerTable td:nth-child(2){
-    line-height:1.1;
-    overflow-wrap:anywhere;
+  #trackerTable table th:nth-child(5),
+  #trackerTable table td:nth-child(5){
+    width:12%;
   }
 
   #trackerTable input[type="number"]{
-    width:48px;
+    width:46px;
     padding:3px 2px;
     font-size:11px;
   }
 
-  #trackerTable .result-select,
-  #trackerTable select.result-select{
+  #trackerTable input.odds-input{
+    width:48px;
+  }
+
+  #trackerTable .result-select{
     min-width:54px;
     width:54px;
     font-size:10px;
