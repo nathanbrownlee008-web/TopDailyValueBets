@@ -748,7 +748,7 @@ function _buildTrackerTableHTML(rows){
     <tr>
       <th>Date</th>
       <th>Match</th>
-      <th>Stake</th>
+      <th>Stake / Odds</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
     </tr>`;
@@ -770,9 +770,11 @@ function _buildTrackerTableHTML(rows){
       <td class="tracker-rich-match">
         <div class="tracker-match-main">${row.match || ""}</div>
         <div class="tracker-match-sub">${row.market || ""}</div>
-        <div class="tracker-odds-inline"><span>Odds</span><input class="tracker-inline-odds" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></div>
       </td>
-      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
+      <td class="tracker-stack-cell">
+        <div class="tracker-stack-row"><span>S</span><input class="tracker-stack-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></div>
+        <div class="tracker-stack-row"><span>O</span><input class="tracker-stack-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></div>
+      </td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
           <option value="pending" ${res==="pending"?"selected":""}>pending</option>
@@ -1073,9 +1075,11 @@ tableRows.push(`<tr>
 <td class="tracker-rich-match">
   <div class="tracker-match-main">${row.match}</div>
   <div class="tracker-match-sub">${row.market || ""}</div>
-  <div class="tracker-odds-inline"><span>Odds</span><input class="tracker-inline-odds" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></div>
 </td>
-<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td class="tracker-stack-cell">
+  <div class="tracker-stack-row"><span>S</span><input class="tracker-stack-input" type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></div>
+  <div class="tracker-stack-row"><span>O</span><input class="tracker-stack-input" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></div>
+</td>
 <td>
 <select 
 class="result-select result-${row.result}" 

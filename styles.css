@@ -3337,7 +3337,7 @@ body.layout-compact .vip-bar{
 }
 
 
-/* Option 1: market and editable odds inside Match column */
+/* Option 2: market under match, stake+odds stacked together */
 .tracker-rich-match{
   line-height:1.08;
 }
@@ -3349,28 +3349,32 @@ body.layout-compact .vip-bar{
 .tracker-match-sub{
   font-size:12px;
   opacity:.82;
-  margin-bottom:5px;
   overflow-wrap:anywhere;
 }
-.tracker-odds-inline{
+.tracker-stack-cell{
+  min-width:72px;
+}
+.tracker-stack-row{
   display:flex;
   align-items:center;
-  gap:6px;
-  font-size:11px;
-  opacity:.88;
+  gap:5px;
+  margin:2px 0;
+  font-size:10px;
+  opacity:.9;
 }
-.tracker-odds-inline span{
-  opacity:.75;
-  font-weight:700;
+.tracker-stack-row span{
+  width:10px;
+  font-weight:800;
+  opacity:.7;
 }
-#trackerTable .tracker-inline-odds{
-  width:52px;
-  padding:3px 4px;
+#trackerTable .tracker-stack-input{
+  width:46px;
+  padding:2px 3px;
   font-size:11px;
   text-align:center;
 }
 @media (max-width:600px){
-  #trackerTable td:nth-child(2){ width:46%; }
-  #trackerTable .tracker-inline-odds{ width:48px; }
+  #trackerTable td:nth-child(2){ width:42%; }
+  #trackerTable .tracker-stack-input{ width:42px; }
   #trackerTable .tracker-match-sub{ font-size:11px; }
 }
