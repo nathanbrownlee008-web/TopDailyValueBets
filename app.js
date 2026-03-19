@@ -2572,3 +2572,85 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
+
+
+
+
+/* ===== VIP PATCH (SAFE - DOES NOT TOUCH TRACKERS) ===== */
+
+async function checkVIPStatus() {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (session && session.user) {
+    document.body.classList.add("vip-active");
+  } else {
+    document.body.classList.remove("vip-active");
+  }
+}
+
+// Run on load
+checkVIPStatus();
+
+// Listen for auth changes
+supabase.auth.onAuthStateChange(() => {
+  checkVIPStatus();
+});
+
+// VIP login
+document.getElementById("vip-login-btn")?.addEventListener("click", async () => {
+  const email = document.getElementById("vip-email")?.value;
+  const password = document.getElementById("vip-password")?.value;
+
+  if (!email || !password) {
+    alert("Enter email and password");
+    return;
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    alert(error.message);
+  } else {
+    checkVIPStatus();
+  }
+});
+
+// Restore VIP
+document.getElementById("restore-vip")?.addEventListener("click", async () => {
+  const { data } = await supabase.auth.getSession();
+
+  if (data && data.session) {
+    alert("VIP restored");
+    checkVIPStatus();
+  } else {
+    alert("No active VIP session found");
+  }
+});
+
+// Forgot password
+document.getElementById("forgot-password")?.addEventListener("click", async () => {
+  const email = document.getElementById("vip-email")?.value;
+
+  if (!email) {
+    alert("Enter your email first");
+    return;
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + "/reset-password.html",
+  });
+
+  if (error) {
+    alert(error.message);
+  } else {
+    alert("Password reset sent");
+  }
+});
+
+// Stripe return fix
+if (window.location.search.includes("success=true")) {
+  checkVIPStatus();
+}
+
+/* ===== END VIP PATCH ===== */
+
