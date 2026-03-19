@@ -60,8 +60,14 @@ function normalizeVipEmail(email){
 
 async function forceVipRefreshNow(emailFromInput){
   const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
-  if(!email || !email.includes("@")) return false;
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
+    return false;
+  }
+
+  if(vipErrorEl) vipErrorEl.textContent = "";
   localStorage.setItem('vip_email', email);
+
   const active = await checkVIP();
   if(active){
     closeVipModal();
@@ -70,6 +76,10 @@ async function forceVipRefreshNow(emailFromInput){
     if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
     return true;
   }
+
+  if(vipErrorEl) vipErrorEl.textContent = "This email has no active VIP subscription.";
+  if(vipEmailEl) vipEmailEl.value = email;
+  localStorage.setItem('vip_email', email);
   return false;
 }
 
