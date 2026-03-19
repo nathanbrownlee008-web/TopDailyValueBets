@@ -153,14 +153,22 @@ function clearVipState(){
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
   const email=(vipEmailEl?.value||"").trim();
+  const password=(vipPasswordEl?.value||"").trim();
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  localStorage.setItem('vip_email',email);
+  if(!password || password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent="Enter your VIP password (at least 6 characters).";
+    return;
+  }
   try{
+    await ensureVipPasswordAccount(email, password);
+    localStorage.setItem('vip_email',email);
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
+    if(vipRestoreEl) vipRestoreEl.disabled=true;
+    if(vipForgotEl) vipForgotEl.disabled=true;
     const r=await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -173,6 +181,8 @@ async function startCheckout(plan){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
+    if(vipRestoreEl) vipRestoreEl.disabled=false;
+    if(vipForgotEl) vipForgotEl.disabled=false;
   }
 }
 
@@ -261,6 +271,9 @@ const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
+const vipPasswordEl = document.getElementById("vipPassword");
+const vipRestoreEl = document.getElementById("vipRestore");
+const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -537,6 +550,8 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
+if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
@@ -2572,61 +2587,3 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
-
-
-
-/* ===== SAFE VIP RESTORE MESSAGE PATCH ===== */
-forceVipRefreshNow = async function(emailFromInput){
-  const email = normalizeVipEmail(
-    emailFromInput ||
-    (document.getElementById("vipEmail")?.value || "") ||
-    (localStorage.getItem("vip_email") || "")
-  );
-
-  if(!email || !email.includes("@")){
-    if (typeof vipErrorEl !== "undefined" && vipErrorEl) {
-      vipErrorEl.textContent = "Enter your email first.";
-    }
-    return false;
-  }
-
-  if (typeof vipErrorEl !== "undefined" && vipErrorEl) {
-    vipErrorEl.textContent = "";
-  }
-
-  localStorage.setItem("vip_email", email);
-  const active = await checkVIP();
-
-  if(active){
-    if (typeof vipErrorEl !== "undefined" && vipErrorEl) {
-      vipErrorEl.textContent = "";
-    }
-    closeVipModal();
-    await loadBets();
-    if(typeof loadTracker === "function") await loadTracker();
-    if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
-    return true;
-  }
-
-  if (typeof vipErrorEl !== "undefined" && vipErrorEl) {
-    vipErrorEl.textContent = "This email has no active VIP subscription.";
-  }
-  return false;
-};
-
-const __vipRestoreBtn = document.getElementById("vipRestore");
-if (__vipRestoreBtn) {
-  __vipRestoreBtn.onclick = async function(e){
-    e.preventDefault();
-    await forceVipRefreshNow(document.getElementById("vipEmail")?.value || "");
-  };
-}
-
-const __vipForgotBtn = document.getElementById("vipForgot");
-if (__vipForgotBtn) {
-  __vipForgotBtn.onclick = async function(e){
-    e.preventDefault();
-    await forgotVipPassword();
-  };
-}
-/* ===== END SAFE VIP RESTORE MESSAGE PATCH ===== */
