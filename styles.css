@@ -3687,3 +3687,207 @@ body.layout-compact .vip-bar{
     font-size:11px;
   }
 }
+
+
+
+/* Exact sportsbook-style tracker cards */
+#trackerTable .trk-groups,
+#trackerTable .trk-filtered-cards{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+#trackerTable .trk-month-card{
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;
+  overflow:hidden;
+  background:rgba(11,20,43,.55);
+  box-shadow:0 14px 34px rgba(0,0,0,.22);
+}
+
+#trackerTable .trk-month-head,
+#trackerTable .trk-day-head{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  color:#e5e7eb;
+  background:rgba(255,255,255,.03);
+  border:none;
+}
+
+#trackerTable .trk-month-head{
+  padding:16px 18px;
+}
+
+#trackerTable .trk-day-head{
+  padding:10px 14px;
+  border-top:1px solid rgba(255,255,255,.06);
+  font-weight:800;
+}
+
+#trackerTable .trk-month-left{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+
+#trackerTable .trk-month-title{
+  font-size:15px;
+  font-weight:900;
+}
+
+#trackerTable .trk-month-sub{
+  font-size:12px;
+  opacity:.85;
+}
+
+#trackerTable .trk-month-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+#trackerTable .trk-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+#trackerTable .trk-chip-win{
+  color:#bbf7d0;
+  border:1px solid rgba(34,197,94,.35);
+  background:rgba(34,197,94,.12);
+}
+
+#trackerTable .trk-chip-loss{
+  color:#fecaca;
+  border:1px solid rgba(239,68,68,.35);
+  background:rgba(239,68,68,.10);
+}
+
+#trackerTable .trk-chip-rate{
+  color:#d9f99d;
+  border:1px solid rgba(132,204,22,.35);
+  background:rgba(132,204,22,.10);
+}
+
+#trackerTable .trk-day-body{
+  padding:8px 10px 12px;
+}
+
+#trackerTable .trk-bet-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto auto;
+  align-items:center;
+  gap:10px;
+  padding:14px 14px;
+  margin:8px 0;
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 10px 26px rgba(0,0,0,.18);
+}
+
+#trackerTable .trk-bet-copy{
+  min-width:0;
+}
+
+#trackerTable .trk-bet-main{
+  font-weight:800;
+  line-height:1.1;
+  font-size:14px;
+  margin-bottom:4px;
+  overflow-wrap:anywhere;
+}
+
+#trackerTable .trk-bet-market{
+  font-size:12px;
+  opacity:.82;
+  line-height:1.1;
+  overflow-wrap:anywhere;
+}
+
+#trackerTable .trk-bet-date{
+  font-size:11px;
+  opacity:.66;
+  margin-top:6px;
+}
+
+#trackerTable .trk-mini-input,
+#trackerTable .trk-mini-select{
+  width:88px;
+  box-sizing:border-box;
+  text-align:center;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);
+  color:#fff;
+  min-height:46px;
+  padding:10px 8px;
+  font-size:13px;
+}
+
+#trackerTable .trk-mini-select{
+  min-width:108px;
+}
+
+@media (max-width:600px){
+  #trackerTable .trk-month-head{
+    padding:14px 12px;
+  }
+
+  #trackerTable .trk-month-right{
+    gap:5px;
+  }
+
+  #trackerTable .trk-chip{
+    font-size:10px;
+    padding:5px 8px;
+  }
+
+  #trackerTable .trk-day-body{
+    padding:6px 8px 10px;
+  }
+
+  #trackerTable .trk-bet-card{
+    grid-template-columns:minmax(0,1fr) 72px 72px 94px;
+    gap:8px;
+    padding:12px 10px;
+    border-radius:18px;
+  }
+
+  #trackerTable .trk-bet-main{
+    font-size:13px;
+  }
+
+  #trackerTable .trk-bet-market{
+    font-size:11px;
+  }
+
+  #trackerTable .trk-bet-date{
+    font-size:10px;
+  }
+
+  #trackerTable .trk-mini-input,
+  #trackerTable .trk-mini-select{
+    width:100%;
+    min-height:42px;
+    padding:8px 6px;
+    font-size:12px;
+    border-radius:14px;
+  }
+
+  #trackerTable .trk-mini-select{
+    min-width:unset;
+  }
+}
