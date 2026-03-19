@@ -1612,7 +1612,8 @@ loadTracker = async function(){
 
 
 
-function buildAdaptiveTrackerSeries(history, dayKeys){
+
+function buildMixedTrackerSeries(history, dayKeys){
   const safeHistory = Array.isArray(history) ? history : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
 
@@ -1622,75 +1623,50 @@ function buildAdaptiveTrackerSeries(history, dayKeys){
     if(!day) return;
     const last = daily[daily.length - 1];
     if(last && last.key === day){
-      last.value = Number(value || 0); // end-of-day bankroll only
+      last.value = Number(value || 0);
     }else{
       daily.push({ key: day, value: Number(value || 0) });
     }
   });
 
-  if(daily.length <= 7){
-    return {
-      mode: "daily",
-      labels: daily.map(item=>{
-        const dt = new Date(`${item.key}T12:00:00`);
-        if(Number.isNaN(dt.getTime())) return item.key;
-        return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
-      }),
-      values: daily.map(item=>item.value),
-      rawKeys: daily.map(item=>item.key)
-    };
-  }
-
-  if(daily.length <= 35){
-    const weeks = [];
-    daily.forEach((item, idx)=>{
-      const bucket = Math.floor(idx / 7);
-      if(!weeks[bucket]){
-        weeks[bucket] = {
-          key: `week-${bucket + 1}`,
-          label: `Week ${bucket + 1}`,
-          value: item.value
-        };
-      }else{
-        weeks[bucket].value = item.value; // end of that week
-      }
-    });
-    return {
-      mode: "weekly",
-      labels: weeks.map(w=>w.label),
-      values: weeks.map(w=>w.value),
-      rawKeys: weeks.map(w=>w.key)
-    };
-  }
-
-  const months = [];
-  daily.forEach((item)=>{
+  let weekCount = 0;
+  const labels = daily.map((item, idx)=>{
     const dt = new Date(`${item.key}T12:00:00`);
-    if(Number.isNaN(dt.getTime())) return;
-    const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
-    const label = dt.toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
-    const last = months[months.length - 1];
-    if(last && last.key === key){
-      last.value = item.value; // end of month
-    }else{
-      months.push({ key, label, value: item.value });
+    if(Number.isNaN(dt.getTime())) return item.key;
+
+    const dayLabel = dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+
+    // Month change overrides week label
+    if(idx > 0){
+      const prev = new Date(`${daily[idx - 1].key}T12:00:00`);
+      if(!Number.isNaN(prev.getTime()) && prev.getMonth() !== dt.getMonth()){
+        return dt.toLocaleDateString("en-GB", { month: "short" });
+      }
     }
+
+    // Every 7th visible point becomes Week X
+    if((idx + 1) % 7 === 0){
+      weekCount += 1;
+      return `Week ${weekCount}`;
+    }
+
+    return dayLabel;
   });
 
   return {
-    mode: "monthly",
-    labels: months.map(m=>m.label),
-    values: months.map(m=>m.value),
-    rawKeys: months.map(m=>m.key)
+    labels,
+    values: daily.map(item => item.value),
+    rawKeys: daily.map(item => item.key)
   };
 }
+
 
 function renderDailyChart(history, labels, dayKeys){
   const el = document.getElementById("chart");
   if(!el) return;
   if(dailyChart) dailyChart.destroy();
 
-  const series = buildAdaptiveTrackerSeries(history, dayKeys);
+  const series = buildMixedTrackerSeries(history, dayKeys);
   const ctx = el.getContext("2d");
 
   dailyChart = new Chart(ctx,{
@@ -1718,7 +1694,14 @@ function renderDailyChart(history, labels, dayKeys){
         legend:{display:false},
         tooltip:{
           callbacks:{
-            title:(items)=> series.labels[items?.[0]?.dataIndex ?? 0] || "",
+            title:(items)=>{
+              const i = items?.[0]?.dataIndex ?? 0;
+              const rawKey = series.rawKeys[i];
+              if(!rawKey) return series.labels[i] || "";
+              const dt = new Date(`${rawKey}T12:00:00`);
+              if(Number.isNaN(dt.getTime())) return rawKey;
+              return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+            },
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
@@ -1727,7 +1710,8 @@ function renderDailyChart(history, labels, dayKeys){
         x:{
           ticks:{
             color:"rgba(226,232,240,0.78)",
-            autoSkip:false,
+            autoSkip:true,
+            maxTicksLimit:8,
             maxRotation:45,
             minRotation:45
           },
@@ -1744,6 +1728,7 @@ function renderDailyChart(history, labels, dayKeys){
     }
   });
 }
+
 
 
 function renderMonthlyChart(profits, roi, labels){
