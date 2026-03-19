@@ -3482,3 +3482,156 @@ color:#d7e6ff !important;
     padding:2px 4px;
   }
 }
+
+
+
+/* ===== PRO BET RESULTS TABLE PATCH (SAFE) ===== */
+.tracker-history{
+  margin-top: 24px;
+}
+
+.tracker-toggle{
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96));
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 14px 32px rgba(0,0,0,0.22);
+  margin-bottom: 12px; /* this creates the gap under Bet Results header */
+  font-weight: 800;
+  letter-spacing: 0.1px;
+}
+
+#trackerWrapper{
+  margin-top: 2px;
+}
+
+#trackerTable{
+  margin-top: 10px; /* extra breathing room before column headers */
+}
+
+#trackerTable table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgba(8,15,33,0.72);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.18);
+}
+
+#trackerTable th{
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(235,245,255,0.92);
+  background: rgba(255,255,255,0.04);
+  padding: 10px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+#trackerTable td{
+  font-size: 13.4px;
+  line-height: 1.28;
+  color: rgba(240,248,255,0.94);
+  padding: 10px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  vertical-align: middle;
+}
+
+#trackerTable tr:last-child td{
+  border-bottom: none;
+}
+
+#trackerTable th:first-child,
+#trackerTable td:first-child{
+  padding-left: 8px;
+}
+
+#trackerTable th:last-child,
+#trackerTable td:last-child{
+  padding-right: 8px;
+}
+
+#trackerTable input[type="number"],
+#trackerTable input[type="text"],
+#trackerTable select{
+  background: rgba(30,41,59,0.96);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #f8fafc;
+  border-radius: 10px;
+  min-height: 38px;
+  box-sizing: border-box;
+  font-size: 13px;
+}
+
+#trackerTable select{
+  padding: 4px 24px 4px 8px;
+}
+
+#trackerTable .profit-col{
+  font-weight: 800;
+}
+
+#trackerTable .profit-win,
+#trackerTable .profit-loss{
+  font-size: 13.6px;
+}
+
+#trackerTable .date-col{
+  width: 62px;
+  font-size: 12.6px;
+  line-height: 1.18;
+}
+
+@media (max-width: 600px){
+  .tracker-toggle{
+    padding: 13px 14px;
+    margin-bottom: 10px;
+  }
+
+  #trackerTable{
+    margin-top: 8px;
+  }
+
+  #trackerTable table{
+    table-layout: fixed;
+  }
+
+  #trackerTable th{
+    font-size: 11.6px;
+    padding: 9px 3px;
+  }
+
+  #trackerTable td{
+    font-size: 12.2px;
+    padding: 9px 3px;
+  }
+
+  #trackerTable .date-col{
+    width: 52px;
+    font-size: 11.4px;
+  }
+
+  #trackerTable input[type="number"]{
+    width: 58px;
+    min-width: 58px;
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  #trackerTable select{
+    min-width: 78px;
+    width: 78px;
+    font-size: 12px;
+  }
+
+  #trackerTable .profit-win,
+  #trackerTable .profit-loss{
+    font-size: 12.4px;
+  }
+}
+/* ===== END PRO BET RESULTS TABLE PATCH ===== */
+
