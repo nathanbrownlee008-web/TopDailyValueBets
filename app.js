@@ -2590,45 +2590,66 @@ try{
 
 
 
-/* ===== VIP RESTORE MESSAGE OVERRIDE ===== */
-forceVipRefreshNow = async function(emailFromInput){
-  const email = normalizeVipEmail(
-    emailFromInput ||
-    (vipEmailEl?.value || "") ||
-    (document.getElementById("vipEmail")?.value || "") ||
-    (localStorage.getItem("vip_email") || "")
-  );
+/* ===== HARD RESTORE VIP MESSAGE PATCH ===== */
+(function(){
+  function bindRestoreVipMessage(){
+    const restoreBtn = document.getElementById("vipRestore");
+    const emailInput = document.getElementById("vipEmail");
+    const errorEl = document.getElementById("vipError");
+    if(!restoreBtn || !emailInput || !errorEl) return false;
+    if(restoreBtn.dataset.restoreBound === "1") return true;
 
-  if(!email || !email.includes("@")){
-    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
-    return false;
-  }
+    restoreBtn.dataset.restoreBound = "1";
 
-  if(vipErrorEl) vipErrorEl.textContent = "";
-  localStorage.setItem("vip_email", email);
+    restoreBtn.addEventListener("click", async function(e){
+      e.preventDefault();
+      e.stopPropagation();
 
-  const active = await checkVIP();
+      const email = String(emailInput.value || "").trim().toLowerCase();
 
-  if(active){
-    if(vipErrorEl) vipErrorEl.textContent = "";
-    closeVipModal();
-    await loadBets();
-    if(typeof loadTracker === "function") await loadTracker();
-    if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
+      if(!email || !email.includes("@")){
+        errorEl.textContent = "Enter your email first.";
+        return false;
+      }
+
+      errorEl.textContent = "Checking VIP status...";
+
+      try{
+        const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+        const j = await r.json();
+
+        if(j && j.active){
+          localStorage.setItem("vip_email", email);
+          errorEl.textContent = "";
+          if(typeof checkVIP === "function") await checkVIP();
+          if(typeof closeVipModal === "function") closeVipModal();
+          if(typeof loadBets === "function") await loadBets();
+          if(typeof loadTracker === "function") await loadTracker();
+          if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
+          return true;
+        } else {
+          errorEl.textContent = "This email has no active VIP subscription.";
+          return false;
+        }
+      } catch(err){
+        errorEl.textContent = "Could not check VIP right now.";
+        return false;
+      }
+    }, true);
+
     return true;
   }
 
-  if(vipErrorEl) vipErrorEl.textContent = "This email has no active VIP subscription.";
-  return false;
-};
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", bindRestoreVipMessage);
+  } else {
+    bindRestoreVipMessage();
+  }
 
-if (vipRestoreEl) {
-  vipRestoreEl.onclick = async (e) => {
-    e.preventDefault();
-    await forceVipRefreshNow(
-      (document.getElementById("vipEmail")?.value || "") ||
-      (vipEmailEl?.value || "")
-    );
-  };
-}
-/* ===== END VIP RESTORE MESSAGE OVERRIDE ===== */
+  let tries = 0;
+  const iv = setInterval(() => {
+    tries++;
+    if(bindRestoreVipMessage() || tries > 20) clearInterval(iv);
+  }, 500);
+})();
+/* ===== END HARD RESTORE VIP MESSAGE PATCH ===== */
