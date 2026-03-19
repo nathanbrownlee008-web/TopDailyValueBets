@@ -1613,7 +1613,11 @@ loadTracker = async function(){
 
 
 
-function buildMixedTrackerSeries(history, dayKeys){
+function renderDailyChart(history, labels, dayKeys){
+  const el = document.getElementById("chart");
+  if(!el) return;
+  if(dailyChart) dailyChart.destroy();
+
   const safeHistory = Array.isArray(history) ? history : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
 
@@ -1629,52 +1633,51 @@ function buildMixedTrackerSeries(history, dayKeys){
     }
   });
 
+  const labelsSparse = [];
   let weekCount = 0;
-  const labels = daily.map((item, idx)=>{
+
+  for(let i = 0; i < daily.length; i++){
+    const item = daily[i];
     const dt = new Date(`${item.key}T12:00:00`);
-    if(Number.isNaN(dt.getTime())) return item.key;
+    if(Number.isNaN(dt.getTime())){
+      labelsSparse.push(i === 0 || i === daily.length - 1 ? item.key : "");
+      continue;
+    }
 
     const dayLabel = dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 
-    // Month change overrides week label
-    if(idx > 0){
-      const prev = new Date(`${daily[idx - 1].key}T12:00:00`);
-      if(!Number.isNaN(prev.getTime()) && prev.getMonth() !== dt.getMonth()){
-        return dt.toLocaleDateString("en-GB", { month: "short" });
-      }
+    const prevDt = i > 0 ? new Date(`${daily[i - 1].key}T12:00:00`) : null;
+    const monthChanged = !!(prevDt && !Number.isNaN(prevDt.getTime()) && prevDt.getMonth() !== dt.getMonth());
+
+    if(i === 0 || i === daily.length - 1){
+      labelsSparse.push(dayLabel);
+      continue;
     }
 
-    // Every 7th visible point becomes Week X
-    if((idx + 1) % 7 === 0){
+    if(monthChanged){
+      labelsSparse.push(dt.toLocaleDateString("en-GB", { month: "short" }));
+      continue;
+    }
+
+    if((i + 1) % 7 === 0){
       weekCount += 1;
-      return `Week ${weekCount}`;
+      labelsSparse.push(`Week ${weekCount}`);
+      continue;
     }
 
-    return dayLabel;
-  });
+    // Show a few real dates only; hide the rest to stop cramming
+    const interval = daily.length <= 10 ? 2 : daily.length <= 18 ? 3 : daily.length <= 31 ? 4 : 5;
+    labelsSparse.push(i % interval === 0 ? dayLabel : "");
+  }
 
-  return {
-    labels,
-    values: daily.map(item => item.value),
-    rawKeys: daily.map(item => item.key)
-  };
-}
-
-
-function renderDailyChart(history, labels, dayKeys){
-  const el = document.getElementById("chart");
-  if(!el) return;
-  if(dailyChart) dailyChart.destroy();
-
-  const series = buildMixedTrackerSeries(history, dayKeys);
   const ctx = el.getContext("2d");
 
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels:series.labels,
+      labels: labelsSparse,
       datasets:[{
-        data:series.values,
+        data: daily.map(item => item.value),
         tension:0.28,
         fill:true,
         borderWidth:3,
@@ -1696,8 +1699,8 @@ function renderDailyChart(history, labels, dayKeys){
           callbacks:{
             title:(items)=>{
               const i = items?.[0]?.dataIndex ?? 0;
-              const rawKey = series.rawKeys[i];
-              if(!rawKey) return series.labels[i] || "";
+              const rawKey = daily[i]?.key;
+              if(!rawKey) return "";
               const dt = new Date(`${rawKey}T12:00:00`);
               if(Number.isNaN(dt.getTime())) return rawKey;
               return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
@@ -1710,8 +1713,7 @@ function renderDailyChart(history, labels, dayKeys){
         x:{
           ticks:{
             color:"rgba(226,232,240,0.78)",
-            autoSkip:true,
-            maxTicksLimit:8,
+            autoSkip:false,
             maxRotation:45,
             minRotation:45
           },
@@ -1728,7 +1730,6 @@ function renderDailyChart(history, labels, dayKeys){
     }
   });
 }
-
 
 
 function renderMonthlyChart(profits, roi, labels){
