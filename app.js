@@ -58,28 +58,32 @@ function normalizeVipEmail(email){
   return String(email || "").trim().toLowerCase();
 }
 
-async function forceVipRefreshNow(emailFromInput){
-  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
-  if(!email || !email.includes("@")){
-    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
+async function forceVipRefreshNow(emailFromInput) {
+  const errorEl = ensureVipErrorEl();
+  const email = normalizeVipEmail(
+    emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem("vip_email") || "")
+  );
+
+  if (!email || !email.includes("@")) {
+    if (errorEl) errorEl.textContent = "Enter your email first.";
     return false;
   }
 
-  if(vipErrorEl) vipErrorEl.textContent = "";
-  localStorage.setItem('vip_email', email);
+  if (errorEl) errorEl.textContent = "";
+  localStorage.setItem("vip_email", email);
 
   const active = await checkVIP();
-  if(active){
+  if (active) {
     closeVipModal();
     await loadBets();
-    if(typeof loadTracker === "function") await loadTracker();
-    if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
+    if (typeof loadTracker === "function") await loadTracker();
+    if (typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
     return true;
   }
 
-  if(vipErrorEl) vipErrorEl.textContent = "This email has no active VIP subscription.";
-  if(vipEmailEl) vipEmailEl.value = email;
-  localStorage.setItem('vip_email', email);
+  if (errorEl) errorEl.textContent = "This email has no active VIP subscription.";
+  if (vipEmailEl) vipEmailEl.value = email;
+  localStorage.setItem("vip_email", email);
   return false;
 }
 
@@ -284,6 +288,26 @@ const vipYearlyEl = document.getElementById("vipYearly");
 const vipPasswordEl = document.getElementById("vipPassword");
 const vipRestoreEl = document.getElementById("vipRestore");
 const vipForgotEl = document.getElementById("vipForgot");
+
+function ensureVipErrorEl() {
+  let el =
+    document.getElementById("vipError") ||
+    document.querySelector(".vip-error") ||
+    document.querySelector("[data-vip-error]");
+
+  if (!el && vipModalCard) {
+    el = document.createElement("div");
+    el.id = "vipError";
+    el.style.color = "#ff7b7b";
+    el.style.fontSize = "14px";
+    el.style.marginTop = "14px";
+    el.style.minHeight = "20px";
+    vipModalCard.appendChild(el);
+  }
+
+  return el;
+}
+
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -2597,3 +2621,10 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
+
+
+vipRestoreEl?.addEventListener("click", async () => {
+  const errorEl = ensureVipErrorEl();
+  if (errorEl) errorEl.textContent = "";
+  await forceVipRefreshNow(vipEmailEl?.value || "");
+});
