@@ -91,15 +91,23 @@ async function forgotVipPassword(){
     if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
     return;
   }
+
   try{
     if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
+
     const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin
-    });
+  redirectTo: window.location.origin + "/reset-password.html"
+});
+
     if(error) throw error;
-    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent.";
+
+    if(vipErrorEl) {
+      vipErrorEl.textContent = "If that email exists, a reset email has been sent. Check inbox and spam.";
+    }
   }catch(err){
-    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not send reset email.";
+    if(vipErrorEl) {
+      vipErrorEl.textContent = err?.message || "Could not send reset email.";
+    }
   }
 }
 
