@@ -91,15 +91,23 @@ async function forgotVipPassword(){
     if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
     return;
   }
+
   try{
     if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
+
     const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin
-    });
+  redirectTo: window.location.origin + "/reset-password.html"
+});
+
     if(error) throw error;
-    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent.";
+
+    if(vipErrorEl) {
+      vipErrorEl.textContent = "If that email exists, a reset email has been sent. Check inbox and spam.";
+    }
   }catch(err){
-    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not send reset email.";
+    if(vipErrorEl) {
+      vipErrorEl.textContent = err?.message || "Could not send reset email.";
+    }
   }
 }
 
@@ -736,25 +744,42 @@ function _applyTrackerFilters(rows){
 }
 
 function _buildTrackerTableHTML(rows){
-  let html = `<div class="trk-filtered-cards">`;
+  let html = `<table>
+    <tr>
+      <th>Date</th>
+      <th>Match</th>
+      <th>Stake</th>
+      <th>Result</th>
+      <th class="profit-col">Profit</th>
+    </tr>`;
   (rows || []).forEach(row=>{
-    html += `
-      <div class="trk-bet-card">
-        <div class="trk-bet-copy">
-          <div class="trk-bet-main">${escapeHtml(row.match || "")}</div>
-          <div class="trk-bet-market">${escapeHtml(row.market || "")}</div>
-          <div class="trk-bet-date">${fmtDayLabel(row.match_date_date || row.bet_date || row.created_at)}</div>
-        </div>
-        <input class="trk-mini-input" type="number" value="${Number(row.stake||0)}" data-id="${row.id}" data-field="stake">
-        <input class="trk-mini-input" type="number" step="0.01" value="${Number(row.odds||0)}" data-id="${row.id}" data-field="odds">
-        <select class="trk-mini-select result-select result-${row.result}" data-id="${row.id}" data-field="result">
-          <option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
-          <option value="won" ${row.result==="won"?"selected":""}>won</option>
-          <option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
+    const stakeVal = row.stake ?? 0;
+    const res = row.result || "pending";
+    let profit = 0;
+    if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
+    if(res === "lost") profit = (row.profit != null ? row.profit : -row.stake);
+    if(res === "pending") profit = 0;
+
+    const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
+    const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
+
+    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
+
+    html += `<tr>
+      <td class="date-col">${dateLabel}</td>
+      <td>${row.match || ""}</td>
+      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
+      <td>
+        <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
+          <option value="pending" ${res==="pending"?"selected":""}>pending</option>
+          <option value="won" ${res==="won"?"selected":""}>won</option>
+          <option value="lost" ${res==="lost"?"selected":""}>lost</option>
         </select>
-      </div>`;
+      </td>
+      <td class="profit-col ${profitClass}">${profitText}</td>
+    </tr>`;
   });
-  html += `</div>`;
+  html += `</table>`;
   return html;
 }
 
@@ -769,22 +794,6 @@ function _renderFilteredTrackerTable(){
 
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
-}
-
-
-function bindTrackerTableInputs(){
-  const tableEl = document.getElementById("trackerTable");
-  if(!tableEl) return;
-
-  tableEl.querySelectorAll('input[data-field="stake"]').forEach(el=>{
-    el.addEventListener('change', ()=> updateStake(el.dataset.id, el.value));
-  });
-  tableEl.querySelectorAll('input[data-field="odds"]').forEach(el=>{
-    el.addEventListener('change', ()=> updateOdds(el.dataset.id, el.value));
-  });
-  tableEl.querySelectorAll('select[data-field="result"]').forEach(el=>{
-    el.addEventListener('change', ()=> updateResult(el.dataset.id, el.value));
-  });
 }
 
 let _filtersWired = false;
@@ -1006,204 +1015,140 @@ async function loadVipPromoProof(){
   }
 }
 
-
-function toggleTrackerMonth(btn){
-  const body = btn && btn.nextElementSibling;
-  if(!body) return;
-  const arrow = btn.querySelector(".trk-month-arrow");
-  const open = body.style.display !== "none";
-  body.style.display = open ? "none" : "block";
-  if(arrow) arrow.textContent = open ? "▶" : "▼";
-}
-
-function toggleTrackerDay(btn){
-  const body = btn && btn.nextElementSibling;
-  if(!body) return;
-  const arrow = btn.querySelector(".trk-day-arrow");
-  const open = body.style.display !== "none";
-  body.style.display = open ? "none" : "block";
-  if(arrow) arrow.textContent = open ? "▶" : "▼";
-}
-
 async function loadTracker(){
-const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
+// Keep Value Bets \"Added\" state synced with tracker rows
 addedKeys.clear();
 rows.forEach(r => addedKeys.add(makeBetKey(r)));
 wireTrackerFilters();
 
-let start=parseFloat(document.getElementById("startingBankroll").value || 0);
+let start=parseFloat(document.getElementById("startingBankroll").value);
 let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
-let dailyLabels=[]; let dayKeys=[];
+let dailyLabels=[];
+let dayKeys=[];
 
-const monthGroups = new Map();
+	const tableRows = [];
 
 rows.forEach(row=>{
-  let p=0;
-  if(row.result==="won"){p=Number(row.stake||0)*(Number(row.odds||0)-1);wins++;}
-  if(row.result==="lost"){p=-Number(row.stake||0);losses++;}
-  profit+=p;
-  totalStake+=Number(row.stake||0);
-  totalOdds+=Number(row.odds||0);
-  bankroll=start+profit;
+let p=0;
+if(row.result==="won"){p=row.stake*(row.odds-1);wins++;}
+if(row.result==="lost"){p=-row.stake;losses++;}
+profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
+bankroll=start+profit;
 
-  const gameDate = row.match_date_date || row.bet_date || row.created_at;
-  const dayKey = fmtDayLabel(gameDate);
-  const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
-  dayKeys.push(dayKey);
-  dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
-  history.push(bankroll);
+const gameDate = row.match_date_date || row.bet_date || row.created_at;
+const dayKey = fmtDayLabel(gameDate);
+const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
+dayKeys.push(dayKey);
+dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
+history.push(bankroll);
 
-  const dt = new Date(gameDate || row.created_at || Date.now());
-  const monthKey = dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0");
-  const monthLabel = dt.toLocaleDateString("en-GB",{month:"long",year:"numeric"});
-
-  if(!monthGroups.has(monthKey)){
-    monthGroups.set(monthKey,{label:monthLabel,rows:[],wins:0,losses:0,profit:0});
-  }
-  const grp = monthGroups.get(monthKey);
-  grp.rows.push(row);
-  grp.profit += p;
-  if(row.result==="won") grp.wins++;
-  if(row.result==="lost") grp.losses++;
+tableRows.push(`<tr>
+<td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
+<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td>
+<select 
+class="result-select result-${row.result}" 
+onchange="updateResult('${row.id}',this.value)">
+<option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
+<option value="won" ${row.result==="won"?"selected":""}>won</option>
+<option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
+<option value="delete">🗑 delete</option>
+</select>
+</td>
+<td class="profit-col">
+<span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span>
+</td>
+</tr>`);
 });
 
-let html = '<div class="trk-groups">';
-const monthEntries = Array.from(monthGroups.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
-
-monthEntries.forEach(([monthKey, grp], monthIndex)=>{
-  const resolved = grp.wins + grp.losses;
-  const wr = resolved ? Math.round((grp.wins / resolved) * 100) : 0;
-
-  html += `
-    <div class="trk-month-card">
-      <button class="trk-month-head" type="button" onclick="toggleTrackerMonth(this)">
-        <div class="trk-month-left">
-          <div class="trk-month-title">${grp.label}</div>
-          <div class="trk-month-sub">${grp.rows.length} results</div>
-        </div>
-        <div class="trk-month-right">
-          <span class="trk-chip trk-chip-win">Won ${grp.wins}</span>
-          <span class="trk-chip trk-chip-loss">Lost ${grp.losses}</span>
-          <span class="trk-chip trk-chip-rate">Winrate ${wr}%</span>
-          <span class="trk-month-arrow">${monthIndex===0 ? "▼" : "▶"}</span>
-        </div>
-      </button>
-      <div class="trk-month-body" style="display:${monthIndex===0 ? "block" : "none"};">
-  `;
-
-  const dayMap = new Map();
-  grp.rows.forEach(row=>{
-    const gameDate = row.match_date_date || row.bet_date || row.created_at;
-    const dayLabel = fmtDayLabel(gameDate);
-    if(!dayMap.has(dayLabel)) dayMap.set(dayLabel, []);
-    dayMap.get(dayLabel).push(row);
-  });
-
-  const dayEntries = Array.from(dayMap.entries()).sort((a,b)=>{
-    const da = new Date(a[1][0].match_date_date || a[1][0].bet_date || a[1][0].created_at || 0);
-    const db = new Date(b[1][0].match_date_date || b[1][0].bet_date || b[1][0].created_at || 0);
-    return db - da;
-  });
-
-  dayEntries.forEach(([dayLabel, dayRows], dayIndex)=>{
-    html += `
-      <div class="trk-day-group">
-        <button class="trk-day-head" type="button" onclick="toggleTrackerDay(this)">
-          <span>${dayLabel}</span>
-          <span class="trk-day-arrow">${monthIndex===0 && dayIndex===0 ? "▼" : "▶"}</span>
-        </button>
-        <div class="trk-day-body" style="display:${monthIndex===0 && dayIndex===0 ? "block" : "none"};">
-    `;
-
-    dayRows.slice().reverse().forEach(row=>{
-      html += `
-        <div class="trk-bet-card">
-          <div class="trk-bet-copy">
-            <div class="trk-bet-main">${escapeHtml(row.match || "")}</div>
-            <div class="trk-bet-market">${escapeHtml(row.market || "")}</div>
-            <div class="trk-bet-date">${fmtDayLabel(row.match_date_date || row.bet_date || row.created_at)}</div>
-          </div>
-          <input class="trk-mini-input" type="number" value="${Number(row.stake||0)}" onchange="updateStake('${row.id}',this.value)">
-          <input class="trk-mini-input" type="number" step="0.01" value="${Number(row.odds||0)}" onchange="updateOdds('${row.id}',this.value)">
-          <select class="trk-mini-select result-select result-${row.result}" onchange="updateResult('${row.id}',this.value)">
-            <option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
-            <option value="won" ${row.result==="won"?"selected":""}>won</option>
-            <option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
-            <option value="delete">delete</option>
-          </select>
-        </div>
-      `;
-    });
-
-    html += `</div></div>`;
-  });
-
-  html += `</div></div>`;
-});
-
-html += '</div>';
-trackerTable.innerHTML = rows.length ? html : '<div class="card">No tracker bets yet.</div>';
+let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+html += tableRows.reverse().join("");
+html+="</table>";
+trackerTable.innerHTML=html;
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
 roiElem.innerText=totalStake?((profit/totalStake)*100).toFixed(1):0;
 winrateElem.innerText=(wins+losses)?((wins/(wins+losses))*100).toFixed(1):0;
 const wonLostElem = document.getElementById("wonLost");
-if(wonLostElem) wonLostElem.innerText = `${wins}-${losses}`;
+if(wonLostElem){
+  wonLostElem.innerText = `${wins}-${losses}`;
+}
+
+const totalBets = rows.length;
 const totalElem = document.getElementById("totalBets");
-if(totalElem) totalElem.innerText = rows.length;
+if(totalElem) totalElem.innerText = totalBets;
 const totalStakedCard = document.getElementById("totalStakedCard");
-if(totalStakedCard) totalStakedCard.innerText = totalStake.toFixed(2);
+if(totalStakedCard){
+  totalStakedCard.innerText = totalStake.toFixed(2);
+}
+
+
 avgOddsElem.innerText=rows.length?(totalOdds/rows.length).toFixed(2):0;
 
 profitCard.classList.remove("glow-green","glow-red");
 if(profit>0) profitCard.classList.add("glow-green");
 if(profit<0) profitCard.classList.add("glow-red");
 
+
 renderDailyChart(history, dailyLabels, dayKeys);
 
-// Monthly & market analytics
+// ---- Monthly & Market analytics (tabs + mini summary) ----
 const countElem = document.getElementById("betCount");
 if(countElem) countElem.textContent = String(rows.length);
 
+// Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
+
 rows.forEach(r=>{
-  const d = new Date(r.created_at || r.bet_date || Date.now());
+  const d = new Date(r.created_at);
   const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
-  monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
+  monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
 });
+
 const monthKeys = Object.keys(monthMap).sort();
+
 const monthLabels = monthKeys.map(k=>{
   const [y,m]=k.split("-");
-  return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
+  return new Date(parseInt(y), parseInt(m)-1, 1)
+    .toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
 });
+
 const monthlyProfit = monthKeys.map(k=> monthMap[k]);
 const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
+
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
-monthKeys.forEach((k,i)=>{
-  const p = monthlyProfit[i];
-  const r = monthlyROI[i];
-  breakdownHTML += `<tr><td>${monthLabels[i]}</td><td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td><td>${r.toFixed(1)}%</td></tr>`;
-});
-breakdownHTML += "</table>";
-const monthlyTableEl = document.getElementById("monthlyTable");
-if(monthlyTableEl) monthlyTableEl.innerHTML = breakdownHTML;
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
+  monthKeys.forEach((k,i)=>{
+    const p = monthlyProfit[i];
+    const r = monthlyROI[i];
+    breakdownHTML += `<tr>
+      <td>${monthLabels[i]}</td>
+      <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
+      <td>${r.toFixed(1)}%</td>
+    </tr>`;
+  });
+  breakdownHTML += "</table>";
+  const tableEl = document.getElementById("monthlyTable");
+  if(tableEl) tableEl.innerHTML = breakdownHTML;
 
+// Market profit aggregation
 const marketMap = {};
-const marketWL = {};
+const marketWL = {}; // {market:{wins,losses,pending,bets}}
 rows.forEach(r=>{
   const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
   marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
+
   if(!marketWL[mk]) marketWL[mk] = {wins:0,losses:0,pending:0,bets:0};
   marketWL[mk].bets += 1;
   const res = (r.result || "pending").toLowerCase();
@@ -1212,9 +1157,11 @@ rows.forEach(r=>{
   else marketWL[mk].pending += 1;
 });
 
+// Build win% series (resolved only); show top 8 by bet count
 let entries = Object.entries(marketWL);
 entries.sort((a,b)=>(b[1].bets)-(a[1].bets));
 entries = entries.slice(0,8);
+
 const labels = entries.map(e=>e[0]);
 const totals = entries.map(e=>({ bets:e[1].bets, wins:e[1].wins, losses:e[1].losses }));
 const winPct = entries.map(e=>{
@@ -1223,6 +1170,7 @@ const winPct = entries.map(e=>{
 });
 renderMarketChart(labels, winPct, totals);
 
+// Mini summary
 if(entries.length){
   const bestM = [...Object.entries(marketMap)].sort((a,b)=>b[1]-a[1])[0];
   const worstM = [...Object.entries(marketMap)].sort((a,b)=>a[1]-b[1])[0];
@@ -1230,9 +1178,9 @@ if(entries.length){
   setMiniValue("worstMarket", worstM[0]+":", (worstM[1] >= 0 ? "+£" : "-£") + Math.abs(worstM[1]).toFixed(2));
 }
 if(monthKeys.length){
-  const monthEntries2 = monthKeys.map(k=>[k, monthMap[k]]);
-  const bestMo = [...monthEntries2].sort((a,b)=>b[1]-a[1])[0];
-  const worstMo = [...monthEntries2].sort((a,b)=>a[1]-b[1])[0];
+  const monthEntries = monthKeys.map(k=>[k, monthMap[k]]);
+  const bestMo = [...monthEntries].sort((a,b)=>b[1]-a[1])[0];
+  const worstMo = [...monthEntries].sort((a,b)=>a[1]-b[1])[0];
   const fmtMonth = (k)=>{
     const [y,m]=k.split("-");
     return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
@@ -1240,15 +1188,15 @@ if(monthKeys.length){
   setMiniValue("bestMonth", fmtMonth(bestMo[0])+":", (bestMo[1] >= 0 ? "+£" : "-£") + Math.abs(bestMo[1]).toFixed(2));
   setMiniValue("worstMonth", fmtMonth(worstMo[0])+":", (worstMo[1] >= 0 ? "+£" : "-£") + Math.abs(worstMo[1]).toFixed(2));
 }
+
 }
 
+
 async function updateStake(id,val){
-  const rows = await readTrackerRows();
+  const rows = readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
+  writeTrackerRows(updated);
   const row = updated.find(r => String(r.id)===String(id));
-  if(row){
-    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
-  }
   if(row && isAdminSyncEnabled()){
     try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
   }
@@ -1256,21 +1204,19 @@ async function updateStake(id,val){
 }
 
 async function updateResult(id,val){
-  const rows = await readTrackerRows();
+  const rows = readTrackerRows();
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
     const row = rows.find(r => String(r.id)===String(id));
-    try{ await deleteTrackerRowById(id); }catch(e){ console.error(e); }
+    writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
     if(row && isAdminSyncEnabled() && row.sync_id){
       try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
     }
     loadBets();
   }else{
     const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
+    writeTrackerRows(updated);
     const row = updated.find(r => String(r.id)===String(id));
-    if(row){
-      try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
-    }
     if(row && isAdminSyncEnabled()){
       try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
     }
@@ -2563,220 +2509,3 @@ try{
 
 window.restoreVipAccess = restoreVipAccess;
 window.forgotVipPassword = forgotVipPassword;
-
-
-
-/* ===== Final personal tracker TDT-style monthly cards ===== */
-
-function fmtPersonalMonthKey(value){
-  const d = new Date(value);
-  if(Number.isNaN(d.getTime())) return "";
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-}
-
-function fmtPersonalMonthLabel(key){
-  const [y,m] = String(key || "").split("-");
-  if(!y || !m) return "";
-  return new Date(Number(y), Number(m)-1, 1).toLocaleDateString("en-GB",{month:"long", year:"numeric"});
-}
-
-function togglePersonalTrackerMonth(btn){
-  const body = btn ? btn.nextElementSibling : null;
-  const chev = btn ? btn.querySelector(".pt-month-chevron") : null;
-  if(!body) return;
-  const isHidden = body.style.display === "none";
-  body.style.display = isHidden ? "block" : "none";
-  if(chev) chev.innerText = isHidden ? "▼" : "▶";
-}
-
-loadTracker = async function(){
-  const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
-  trackerRowsCache = rows;
-  trackerAllRows = rows;
-
-  addedKeys.clear();
-  rows.forEach(r => addedKeys.add(makeBetKey(r)));
-  wireTrackerFilters();
-
-  let start = parseFloat(document.getElementById("startingBankroll").value || 0);
-  let bankroll = start, profit = 0, wins = 0, losses = 0, totalStake = 0, totalOdds = 0, history = [];
-  let dailyLabels = [];
-  let dayKeys = [];
-
-  rows.forEach(row=>{
-    let p = 0;
-    if(row.result==="won"){ p = Number(row.stake||0) * (Number(row.odds||0)-1); wins++; }
-    if(row.result==="lost"){ p = -Number(row.stake||0); losses++; }
-    profit += p;
-    totalStake += Number(row.stake||0);
-    totalOdds += Number(row.odds||0);
-    bankroll = start + profit;
-
-    const gameDate = row.match_date_date || row.bet_date || row.created_at;
-    const dayKey = fmtDayLabel(gameDate);
-    const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
-    dayKeys.push(dayKey);
-    dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
-    history.push(bankroll);
-  });
-
-  // Month groups newest first
-  const monthMap = new Map();
-  const monthKeys = [];
-  rows.slice().reverse().forEach(row=>{
-    const key = fmtPersonalMonthKey(row.match_date_date || row.bet_date || row.created_at);
-    if(!monthMap.has(key)){
-      monthMap.set(key, { key, rows: [], wins:0, losses:0, settled:0, profit:0 });
-      monthKeys.push(key);
-    }
-    const group = monthMap.get(key);
-    group.rows.push(row);
-
-    const res = String(row.result || "pending").toLowerCase();
-    const p = res==="won" ? Number(row.stake||0) * (Number(row.odds||0)-1)
-            : res==="lost" ? -Number(row.stake||0)
-            : 0;
-    group.profit += p;
-    if(res==="won"){ group.wins++; group.settled++; }
-    else if(res==="lost"){ group.losses++; group.settled++; }
-  });
-
-  const tableEl = document.getElementById("trackerTable");
-  let html = `<div class="pt-month-groups">`;
-
-  monthKeys.forEach((key, idx)=>{
-    const group = monthMap.get(key);
-    const winrate = group.settled ? Math.round((group.wins / group.settled) * 100) : 0;
-    const profitClass = group.profit >= 0 ? "positive" : "negative";
-    const profitSign = group.profit >= 0 ? "+" : "-";
-
-    html += `
-      <div class="pt-month-card">
-        <button class="pt-month-head" type="button" onclick="togglePersonalTrackerMonth(this)">
-          <div class="pt-month-left">
-            <div class="pt-month-title">${escapeHtml(fmtPersonalMonthLabel(key))}</div>
-            <div class="pt-month-sub">${group.rows.length} result${group.rows.length===1?"":"s"} • <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span></div>
-          </div>
-          <div class="pt-month-right">
-            <span class="tdt-day-chip win">Won ${group.wins}</span>
-            <span class="tdt-day-chip loss">Lost ${group.losses}</span>
-            <span class="tdt-day-chip ratio ${tdtWinrateClass(winrate)}">Winrate ${winrate}%</span>
-            <span class="pt-month-chevron">${idx===0 ? "▼" : "▶"}</span>
-          </div>
-        </button>
-        <div class="pt-month-body" style="display:${idx===0 ? "block" : "none"};">
-          <div class="pt-table-wrap">
-            <table class="pt-table">
-              <thead>
-                <tr>
-                  <th class="pt-col-match">Match</th>
-                  <th class="pt-col-market">Market</th>
-                  <th class="pt-col-stake">Stake</th>
-                  <th class="pt-col-odds">Odds</th>
-                  <th class="pt-col-result">Result</th>
-                  <th class="pt-col-profit">Profit</th>
-                </tr>
-              </thead>
-              <tbody>
-    `;
-    group.rows.forEach(row=>{
-      const res = String(row.result || "pending").toLowerCase();
-      const p = res==="won" ? Number(row.stake||0) * (Number(row.odds||0)-1)
-              : res==="lost" ? -Number(row.stake||0)
-              : 0;
-      html += `
-        <tr class="pt-row ${res}">
-          <td class="pt-match">${escapeHtml(row.match || "")}</td>
-          <td class="pt-market"><div class="pt-market-main">${escapeHtml(row.market || "")}</div><div class="pt-row-date">${escapeHtml(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at))}</div></td>
-          <td class="pt-stake">
-            <input class="pt-input" type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${row.id}',this.value)">
-          </td>
-          <td class="pt-odds">
-            <input class="pt-input pt-input--odds" type="number" step="0.01" value="${Number(row.odds || 0)}" onchange="updateOdds('${row.id}',this.value)">
-          </td>
-          <td class="pt-result">
-            <select class="result-select result-${res}" onchange="updateResult('${row.id}',this.value)">
-              <option value="pending" ${res==="pending"?"selected":""}>⏳</option>
-              <option value="won" ${res==="won"?"selected":""}>✅</option>
-              <option value="lost" ${res==="lost"?"selected":""}>❌</option>
-              <option value="delete">🗑 delete</option>
-            </select>
-          </td>
-          <td class="pt-profit"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-        </tr>
-      `;
-    });
-
-    html += `
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    `;
-  });
-
-  html += `</div>`;
-  if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No tracker bets yet.</div>';
-
-  bankrollElem.innerText = bankroll.toFixed(2);
-  profitElem.innerText = profit.toFixed(2);
-  roiElem.innerText = totalStake ? ((profit/totalStake)*100).toFixed(1) : 0;
-  winrateElem.innerText = (wins+losses) ? ((wins/(wins+losses))*100).toFixed(1) : 0;
-
-  const wonLostElem = document.getElementById("wonLost");
-  if(wonLostElem) wonLostElem.innerText = `${wins}-${losses}`;
-
-  const totalElem = document.getElementById("totalBets");
-  if(totalElem) totalElem.innerText = rows.length;
-
-  const totalStakedCard = document.getElementById("totalStakedCard");
-  if(totalStakedCard) totalStakedCard.innerText = totalStake.toFixed(2);
-
-  avgOddsElem.innerText = rows.length ? (totalOdds/rows.length).toFixed(2) : 0;
-
-  profitCard.classList.remove("glow-green","glow-red");
-  if(profit > 0) profitCard.classList.add("glow-green");
-  if(profit < 0) profitCard.classList.add("glow-red");
-
-  renderDailyChart(history, dailyLabels, dayKeys);
-
-  const countElem = document.getElementById("betCount");
-  if(countElem) countElem.textContent = String(rows.length);
-
-  const monthMapProfit = {};
-  const monthStakeMap = {};
-  rows.forEach(r=>{
-    const d = new Date(r.created_at);
-    const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
-    monthMapProfit[key] = (monthMapProfit[key]||0) + rowProfit(r);
-    monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
-  });
-
-  const breakdownKeys = Object.keys(monthMapProfit).sort();
-  const monthLabels = breakdownKeys.map(k=>{
-    const [y,m]=k.split("-");
-    return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
-  });
-  const monthlyProfit = breakdownKeys.map(k=> monthMapProfit[k]);
-  const monthlyROI = breakdownKeys.map(k=>{
-    const stake = monthStakeMap[k] || 0;
-    return stake ? (monthMapProfit[k] / stake) * 100 : 0;
-  });
-
-  renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
-
-  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
-  breakdownKeys.forEach((k,i)=>{
-    const p = monthlyProfit[i];
-    const r = monthlyROI[i];
-    breakdownHTML += `<tr>
-      <td>${monthLabels[i]}</td>
-      <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
-      <td>${r.toFixed(1)}%</td>
-    </tr>`;
-  });
-  breakdownHTML += "</table>";
-  const monthlyTableEl = document.getElementById("monthlyTable");
-  if(monthlyTableEl) monthlyTableEl.innerHTML = breakdownHTML;
-};
