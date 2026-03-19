@@ -1498,7 +1498,16 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
   width:auto;
   max-width:100%;
 }
-
+.vip-forgot-btn {
+  margin-top: 10px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #9aa4b2;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 .vip-status{
   color: rgba(255,255,255,0.8);
