@@ -129,16 +129,27 @@ async function checkVIP(){
     const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
     const j=await r.json();
     vipActive=!!j.active;
-    setVipUI(vipActive,email);
-    return vipActive;
-  }catch(e){
-    vipActive=false;
-    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
-    setVipUI(false,email);
-    return false;
-  }
+
+if(vipActive){
+  setVipUI(true,email);
+}else{
+  clearVipState();
 }
 
+return vipActive;
+
+}catch(e){
+  clearVipState();
+  if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
+  return false;
+}
+}
+function clearVipState(){
+  vipActive = false;
+  localStorage.removeItem('vip_email');
+  setVipUI(false,"");
+  refreshAdminBadgeUI();
+}
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
   const email=(vipEmailEl?.value||"").trim();
