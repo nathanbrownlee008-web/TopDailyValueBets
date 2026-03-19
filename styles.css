@@ -3500,3 +3500,12 @@ color:#d7e6ff !important;
   }
 
 }
+/* Hide profit column on mobile (tracker) */
+@media (max-width:600px){
+
+  #trackerTable th.profit-col,
+  #trackerTable td.profit-col{
+    display:none !important;
+  }
+
+}
