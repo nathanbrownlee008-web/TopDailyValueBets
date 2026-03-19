@@ -3335,34 +3335,3 @@ body.layout-compact .vip-bar{
 #tdtTrackerTable .tdt-day-chevron{
   font-size:14px;
 }
-
-
-/* Smaller result control and move date under match */
-#trackerTable .trk-mini-select.result-select{
-  min-width: unset !important;
-  width: 88px !important;
-  min-height: 46px !important;
-  padding: 10px 8px !important;
-  font-size: 13px !important;
-  border-radius: 14px !important;
-  text-align: center;
-}
-
-#trackerTable .trk-bet-date{
-  margin-top: 4px;
-  margin-bottom: 6px;
-}
-
-#trackerTable .trk-bet-market{
-  margin-top: 0;
-}
-
-@media (max-width:600px){
-  #trackerTable .trk-mini-select.result-select{
-    width: 72px !important;
-    min-height: 42px !important;
-    padding: 8px 6px !important;
-    font-size: 12px !important;
-    border-radius: 14px !important;
-  }
-}
