@@ -2639,8 +2639,8 @@ loadTracker = async function(){
               : 0;
       html += `
         <tr class="pt-row ${res}">
-          <td class="pt-match">${escapeHtml(row.match || "")}</td>
-          <td class="pt-market">${escapeHtml(row.market || "")}</td>
+          <td class="pt-match"><div class="pt-match-main">${escapeHtml(row.match || "")}</div><div class="pt-row-date">${escapeHtml(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at))}</div></td>
+          <td class="pt-market"><div class="pt-market-main">${escapeHtml(row.market || "")}</div></td>
           <td class="pt-stake">
             <input class="pt-input" type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${row.id}',this.value)">
           </td>
@@ -2649,9 +2649,9 @@ loadTracker = async function(){
           </td>
           <td class="pt-result">
             <select class="result-select result-${res}" onchange="updateResult('${row.id}',this.value)">
-              <option value="pending" ${res==="pending"?"selected":""}>pending</option>
-              <option value="won" ${res==="won"?"selected":""}>won</option>
-              <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+              <option value="pending" ${res==="pending"?"selected":""}>⏳</option>
+              <option value="won" ${res==="won"?"selected":""}>✅</option>
+              <option value="lost" ${res==="lost"?"selected":""}>❌</option>
               <option value="delete">🗑 delete</option>
             </select>
           </td>
@@ -2733,3 +2733,44 @@ loadTracker = async function(){
   const monthlyTableEl = document.getElementById("monthlyTable");
   if(monthlyTableEl) monthlyTableEl.innerHTML = breakdownHTML;
 };
+
+
+async function syncTrackerToCloud(rows){
+  const email = (localStorage.getItem("vip_email")||"").trim();
+  if(!email) return;
+  try{
+    await client.from("bet_tracker").delete().eq("user_email",email);
+    const payload = rows.map(r=>({
+      user_email:email,
+      match:r.match,
+      market:r.market,
+      odds:r.odds,
+      stake:r.stake,
+      result:r.result,
+      created_at:r.created_at
+    }));
+    if(payload.length){
+      await client.from("bet_tracker").insert(payload);
+    }
+  }catch(e){console.log("sync error",e);}
+}
+
+async function loadTrackerFromCloud(){
+  const email=(localStorage.getItem("vip_email")||"").trim();
+  if(!email) return;
+  try{
+    const {data}=await client.from("bet_tracker").select("*").eq("user_email",email);
+    if(data && data.length){
+      const rows=data.map(r=>({
+        id:"cloud_"+Math.random().toString(36).slice(2,9),
+        match:r.match,
+        market:r.market,
+        odds:r.odds,
+        stake:r.stake,
+        result:r.result,
+        created_at:r.created_at
+      }));
+      writeTrackerRows(rows);
+    }
+  }catch(e){console.log("cloud load error",e);}
+}
