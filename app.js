@@ -926,7 +926,7 @@ async function loadVipPromoProof(){
 }
 
 async function loadTracker(){
-const rows = (await readTrackerRowsCloudMerged()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -957,6 +957,7 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
+<td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
 <td class="myt-match">${row.match}</td>
 <td class="myt-market">${row.market || ""}</td>
 <td><input class="myt-input" type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
@@ -977,7 +978,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table class='myt-table'><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table class='myt-table'><tr><th class='date-col hidden-date-col'>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;

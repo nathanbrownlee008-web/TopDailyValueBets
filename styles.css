@@ -3484,10 +3484,10 @@ color:#d7e6ff !important;
 }
 
 
-/* tracker match column cleanup */
-.myt-table .myt-match{
-  word-break: break-word;
-}
-.myt-table .myt-market{
-  word-break: break-word;
+/* FINAL FORCE: HIDE PROFIT COLUMN ON MOBILE */
+@media (max-width:600px){
+  th.profit-col,
+  td.profit-col{
+    display:none !important;
+  }
 }
