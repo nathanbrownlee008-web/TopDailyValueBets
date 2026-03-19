@@ -3552,3 +3552,21 @@ color:#d7e6ff !important;
   }
 
 }
+.market-under{
+  display:none;
+  font-size:11px;
+  opacity:.8;
+  margin-top:3px;
+}
+
+@media (max-width:600px){
+
+  .market-under{
+    display:block;
+  }
+
+  #trackerTable .myt-market{
+    display:none;
+  }
+
+}
