@@ -3482,3 +3482,12 @@ color:#d7e6ff !important;
     padding:2px 4px;
   }
 }
+/* Hide profit column on mobile */
+@media (max-width:600px){
+
+  #trackerTable th:last-child,
+  #trackerTable td:last-child{
+    display:none;
+  }
+
+}
