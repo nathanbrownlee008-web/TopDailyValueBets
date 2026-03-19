@@ -276,6 +276,157 @@ function makeLocalTrackerId(){
 }
 
 
+function normalizeTrackerRow(row){
+  const out = { ...(row || {}) };
+  if(!out.sync_id) out.sync_id = out.id || makeSyncId();
+  if(!out.id) out.id = out.sync_id || makeLocalTrackerId();
+  if(!out.created_at && out.bet_date){
+    out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
+  }
+  if(!out.created_at){
+    out.created_at = new Date().toISOString();
+  }
+  out.match = out.match || "";
+  out.market = out.market || "";
+  out.odds = Number(out.odds || 0);
+  out.stake = Number(out.stake || 0);
+  out.result = out.result || "pending";
+  return out;
+}
+
+function trackerCloudOwner(){
+  const email = ((localStorage.getItem('vip_email')||'').trim().toLowerCase());
+  return email && email.includes("@") ? `__TRACKER__:${email}` : "";
+}
+
+function trackerCanCloudSync(){
+  return !!trackerCloudOwner();
+}
+
+function mergeTrackerRows(localRows, cloudRows){
+  const map = new Map();
+  (localRows || []).map(normalizeTrackerRow).forEach(row=>{
+    map.set(String(row.sync_id || row.id), row);
+  });
+  (cloudRows || []).map(normalizeTrackerRow).forEach(row=>{
+    map.set(String(row.sync_id || row.id), row);
+  });
+  return Array.from(map.values());
+}
+
+async function readTrackerRowsCloudMerged(){
+  const localRows = readTrackerRows().map(normalizeTrackerRow);
+  if(!trackerCanCloudSync()) return localRows;
+
+  try{
+    const owner = trackerCloudOwner();
+
+    const { data: ownerRows, error: ownerErr } = await client
+      .from("tdt_tracker")
+      .select("*")
+      .eq("bookie", owner)
+      .order("created_at", { ascending: true });
+
+    if(ownerErr) throw ownerErr;
+
+    let legacyRows = [];
+    if(isAdminSyncEnabled()){
+      const { data: legacyData, error: legacyErr } = await client
+        .from("tdt_tracker")
+        .select("*")
+        .like("sync_id", "sync_%")
+        .is("bookie", null)
+        .order("created_at", { ascending: true });
+      if(!legacyErr && Array.isArray(legacyData)){
+        legacyRows = legacyData;
+      }
+    }
+
+    const cloudRows = [...(Array.isArray(ownerRows) ? ownerRows : []), ...legacyRows].map(row=>normalizeTrackerRow({
+      id: row.sync_id || row.id || makeLocalTrackerId(),
+      sync_id: row.sync_id || row.id || makeSyncId(),
+      match: row.match || "",
+      market: row.market || "",
+      odds: Number(row.odds || 0),
+      stake: Number(row.stake || 0),
+      result: row.result || "pending",
+      bet_date: row.bet_date || null,
+      created_at: row.created_at || null,
+      bookie: row.bookie || null,
+      profit: row.profit ?? null
+    }));
+
+    const merged = mergeTrackerRows(localRows, cloudRows);
+    writeTrackerRows(merged);
+    return merged;
+  }catch(e){
+    console.error("Tracker cloud read failed", e);
+    return localRows;
+  }
+}
+
+async function upsertTrackerCloud(row){
+  const normalized = normalizeTrackerRow(row);
+
+  if(!trackerCanCloudSync()) return normalized;
+
+  const payload = {
+    sync_id: normalized.sync_id,
+    match: normalized.match || "",
+    market: normalized.market || "",
+    odds: Number(normalized.odds || 0),
+    stake: Number(normalized.stake || 0),
+    result: normalized.result || "pending",
+    profit: normalized.result === "won"
+      ? Number(normalized.stake || 0) * (Number(normalized.odds || 0) - 1)
+      : normalized.result === "lost"
+      ? -Number(normalized.stake || 0)
+      : 0,
+    bet_date: normalized.bet_date || null,
+    created_at: normalized.created_at || new Date().toISOString(),
+    bookie: trackerCloudOwner()
+  };
+
+  const { data: existing, error: checkErr } = await client
+    .from("tdt_tracker")
+    .select("id")
+    .eq("sync_id", normalized.sync_id)
+    .eq("bookie", trackerCloudOwner())
+    .limit(1);
+
+  if(checkErr){
+    console.error("Tracker cloud check failed", checkErr);
+    return normalized;
+  }
+
+  if(existing && existing.length){
+    const { error } = await client
+      .from("tdt_tracker")
+      .update(payload)
+      .eq("sync_id", normalized.sync_id)
+      .eq("bookie", trackerCloudOwner());
+    if(error) console.error("Tracker cloud update failed", error);
+  }else{
+    const { error } = await client.from("tdt_tracker").insert([payload]);
+    if(error) console.error("Tracker cloud insert failed", error);
+  }
+
+  return normalized;
+}
+
+async function deleteTrackerCloud(row){
+  if(!trackerCanCloudSync() || !row) return;
+  const syncId = row.sync_id || row.id;
+  if(!syncId) return;
+  const { error } = await client
+    .from("tdt_tracker")
+    .delete()
+    .eq("sync_id", syncId)
+    .eq("bookie", trackerCloudOwner());
+  if(error) console.error("Tracker cloud delete failed", error);
+}
+
+
 function applyLayout(mode){
   document.body.classList.remove("layout-compact","layout-wide");
   document.body.classList.add(mode === "wide" ? "layout-wide" : "layout-compact");
@@ -445,7 +596,7 @@ function switchTab(tab){
 async function loadBets(){
   addedKeys.clear();
   try{
-    const localRows = readTrackerRows();
+    const localRows = await readTrackerRowsCloudMerged();
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
@@ -546,7 +697,7 @@ async function addToTracker(btn, row){
   const rows = readTrackerRows();
   const newRow = {
     id: makeLocalTrackerId(),
-    sync_id: isAdminSyncEnabled() ? makeSyncId() : null,
+    sync_id: makeSyncId(),
     match: row.match,
     market: row.market,
     odds: Number(row.odds),
@@ -558,6 +709,7 @@ async function addToTracker(btn, row){
   };
   rows.push(newRow);
   writeTrackerRows(rows);
+  try{ await upsertTrackerCloud(newRow); }catch(e){ console.error(e); }
   if(isAdminSyncEnabled()){
     try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
   }
@@ -888,7 +1040,7 @@ async function loadVipPromoProof(){
       .limit(200);
     if(error) throw error;
 
-    const rows = Array.isArray(data) ? data : [];
+    const rows = (Array.isArray(data) ? data : []).filter(r => !String(r?.bookie || '').startsWith('__TRACKER__:'));
     const settled = rows.filter(r => (r.result || 'pending') !== 'pending');
 
     if(!settled.length){
@@ -926,7 +1078,7 @@ async function loadVipPromoProof(){
 }
 
 async function loadTracker(){
-const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const rows = (await readTrackerRowsCloudMerged()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -1110,15 +1262,24 @@ async function updateOdds(id,val){
   const rows = readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
   writeTrackerRows(updated);
+  const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerCloud(row); }catch(e){ console.error(e); }
+  }
+  if(row && isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+  }
   loadTracker();
 }
 
 async function updateStake(id,val){
-
   const rows = readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
   writeTrackerRows(updated);
   const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerCloud(row); }catch(e){ console.error(e); }
+  }
   if(row && isAdminSyncEnabled()){
     try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
   }
@@ -1131,6 +1292,9 @@ async function updateResult(id,val){
     if(!confirm("Delete this bet?")){loadTracker();return;}
     const row = rows.find(r => String(r.id)===String(id));
     writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
+    if(row){
+      try{ await deleteTrackerCloud(row); }catch(e){ console.error(e); }
+    }
     if(row && isAdminSyncEnabled() && row.sync_id){
       try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
     }
@@ -1139,6 +1303,9 @@ async function updateResult(id,val){
     const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
     writeTrackerRows(updated);
     const row = updated.find(r => String(r.id)===String(id));
+    if(row){
+      try{ await upsertTrackerCloud(row); }catch(e){ console.error(e); }
+    }
     if(row && isAdminSyncEnabled()){
       try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
     }
