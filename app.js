@@ -153,14 +153,22 @@ function clearVipState(){
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
   const email=(vipEmailEl?.value||"").trim();
+  const password=(vipPasswordEl?.value||"").trim();
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  localStorage.setItem('vip_email',email);
+  if(!password || password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent="Enter your VIP password (at least 6 characters).";
+    return;
+  }
   try{
+    await ensureVipPasswordAccount(email, password);
+    localStorage.setItem('vip_email',email);
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
+    if(vipRestoreEl) vipRestoreEl.disabled=true;
+    if(vipForgotEl) vipForgotEl.disabled=true;
     const r=await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -173,6 +181,8 @@ async function startCheckout(plan){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
+    if(vipRestoreEl) vipRestoreEl.disabled=false;
+    if(vipForgotEl) vipForgotEl.disabled=false;
   }
 }
 
@@ -261,6 +271,9 @@ const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
+const vipPasswordEl = document.getElementById("vipPassword");
+const vipRestoreEl = document.getElementById("vipRestore");
+const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -537,6 +550,8 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
+if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
@@ -2572,85 +2587,3 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
-
-
-
-
-/* ===== VIP PATCH (SAFE - DOES NOT TOUCH TRACKERS) ===== */
-
-async function checkVIPStatus() {
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (session && session.user) {
-    document.body.classList.add("vip-active");
-  } else {
-    document.body.classList.remove("vip-active");
-  }
-}
-
-// Run on load
-checkVIPStatus();
-
-// Listen for auth changes
-supabase.auth.onAuthStateChange(() => {
-  checkVIPStatus();
-});
-
-// VIP login
-document.getElementById("vip-login-btn")?.addEventListener("click", async () => {
-  const email = document.getElementById("vip-email")?.value;
-  const password = document.getElementById("vip-password")?.value;
-
-  if (!email || !password) {
-    alert("Enter email and password");
-    return;
-  }
-
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    alert(error.message);
-  } else {
-    checkVIPStatus();
-  }
-});
-
-// Restore VIP
-document.getElementById("restore-vip")?.addEventListener("click", async () => {
-  const { data } = await supabase.auth.getSession();
-
-  if (data && data.session) {
-    alert("VIP restored");
-    checkVIPStatus();
-  } else {
-    alert("No active VIP session found");
-  }
-});
-
-// Forgot password
-document.getElementById("forgot-password")?.addEventListener("click", async () => {
-  const email = document.getElementById("vip-email")?.value;
-
-  if (!email) {
-    alert("Enter your email first");
-    return;
-  }
-
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + "/reset-password.html",
-  });
-
-  if (error) {
-    alert(error.message);
-  } else {
-    alert("Password reset sent");
-  }
-});
-
-// Stripe return fix
-if (window.location.search.includes("success=true")) {
-  checkVIPStatus();
-}
-
-/* ===== END VIP PATCH ===== */
-
