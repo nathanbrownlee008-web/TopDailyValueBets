@@ -246,33 +246,153 @@ function trackerStorageKey(){
   return `tdt_tracker_${email}`;
 }
 
-function readTrackerRows(){
+function makeLocalTrackerId(){
+  return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+
+function trackerCloudOwner(){
+  const email = currentVipEmail();
+  return email ? `__TRACKER__:${email}` : "";
+}
+
+function trackerCanCloudSync(){
+  const email = currentVipEmail();
+  return !!(email && email.includes("@"));
+}
+
+function normalizeTrackerRow(row){
+  const out = { ...(row || {}) };
+  out.sync_id = out.sync_id || out.id || makeSyncId();
+  out.id = out.sync_id;
+  if(!out.created_at && out.bet_date){
+    out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
+  }
+  if(!out.created_at){
+    out.created_at = new Date().toISOString();
+  }
+  out.match = out.match || "";
+  out.market = out.market || "";
+  out.odds = Number(out.odds || 0);
+  out.stake = Number(out.stake || 0);
+  out.result = out.result || "pending";
+  return out;
+}
+
+async function readTrackerRows(){
+  if(!trackerCanCloudSync()){
+    try{
+      const raw = localStorage.getItem(trackerStorageKey());
+      const rows = raw ? JSON.parse(raw) : [];
+      const safeRows = Array.isArray(rows) ? rows : [];
+      return safeRows.map(normalizeTrackerRow);
+    }catch(e){
+      return [];
+    }
+  }
+
   try{
-    const raw = localStorage.getItem(trackerStorageKey());
-    const rows = raw ? JSON.parse(raw) : [];
-    const safeRows = Array.isArray(rows) ? rows : [];
-    return safeRows.map((row)=>{
-      const out = { ...(row || {}) };
-      if(!out.id) out.id = makeLocalTrackerId();
-      if(!out.created_at && out.bet_date){
-        out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
-      }
-      if(!out.created_at){
-        out.created_at = new Date().toISOString();
-      }
-      return out;
-    });
+    const owner = trackerCloudOwner();
+    const { data, error } = await client
+      .from("tdt_tracker")
+      .select("*")
+      .eq("bookie", owner)
+      .order("created_at", { ascending: true });
+
+    if(error) throw error;
+    const rows = (Array.isArray(data) ? data : []).filter(r => !String(r?.bookie || '').startsWith('__TRACKER__:'));
+    const normalized = rows.map((row)=> normalizeTrackerRow({
+      sync_id: row.sync_id,
+      match: row.match,
+      market: row.market,
+      odds: row.odds,
+      stake: row.stake,
+      result: row.result,
+      bet_date: row.bet_date,
+      created_at: row.created_at,
+      bookie: row.bookie
+    }));
+    writeTrackerRows(normalized);
+    return normalized;
   }catch(e){
-    return [];
+    try{
+      const raw = localStorage.getItem(trackerStorageKey());
+      const rows = raw ? JSON.parse(raw) : [];
+      const safeRows = Array.isArray(rows) ? rows : [];
+      return safeRows.map(normalizeTrackerRow);
+    }catch(err){
+      return [];
+    }
   }
 }
 
 function writeTrackerRows(rows){
-  localStorage.setItem(trackerStorageKey(), JSON.stringify(rows || []));
+  localStorage.setItem(trackerStorageKey(), JSON.stringify((rows || []).map(normalizeTrackerRow)));
 }
 
-function makeLocalTrackerId(){
-  return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+async function upsertTrackerRow(row){
+  const normalized = normalizeTrackerRow(row);
+
+  // always keep local cache updated
+  const localRows = await readTrackerRows().catch(()=>[]);
+  const idx = localRows.findIndex(r => String(r.id) === String(normalized.id));
+  const nextLocal = localRows.slice();
+  if(idx >= 0) nextLocal[idx] = normalized;
+  else nextLocal.push(normalized);
+  writeTrackerRows(nextLocal);
+
+  if(!trackerCanCloudSync()) return normalized;
+
+  const payload = {
+    sync_id: normalized.sync_id,
+    match: normalized.match,
+    market: normalized.market,
+    odds: Number(normalized.odds || 0),
+    stake: Number(normalized.stake || 0),
+    result: normalized.result || "pending",
+    profit: normalized.result === "won"
+      ? Number(normalized.stake || 0) * (Number(normalized.odds || 0) - 1)
+      : normalized.result === "lost"
+      ? -Number(normalized.stake || 0)
+      : 0,
+    bet_date: normalized.bet_date || null,
+    created_at: normalized.created_at || new Date().toISOString(),
+    bookie: trackerCloudOwner()
+  };
+
+  const { data: existing, error: checkErr } = await client
+    .from("tdt_tracker")
+    .select("id")
+    .eq("sync_id", normalized.sync_id)
+    .eq("bookie", trackerCloudOwner())
+    .limit(1);
+
+  if(checkErr) throw checkErr;
+
+  if(existing && existing.length){
+    const { error } = await client.from("tdt_tracker").update(payload).eq("sync_id", normalized.sync_id).eq("bookie", trackerCloudOwner());
+    if(error) throw error;
+  }else{
+    const { error } = await client.from("tdt_tracker").insert([payload]);
+    if(error) throw error;
+  }
+
+  return normalized;
+}
+
+async function deleteTrackerRowById(id){
+  const rows = await readTrackerRows();
+  const target = rows.find(r => String(r.id) === String(id) || String(r.sync_id) === String(id));
+  writeTrackerRows(rows.filter(r => String(r.id) !== String(id) && String(r.sync_id) !== String(id)));
+
+  if(!trackerCanCloudSync() || !target) return;
+
+  const { error } = await client
+    .from("tdt_tracker")
+    .delete()
+    .eq("sync_id", target.sync_id || target.id)
+    .eq("bookie", trackerCloudOwner());
+
+  if(error) throw error;
 }
 
 
@@ -445,7 +565,7 @@ function switchTab(tab){
 async function loadBets(){
   addedKeys.clear();
   try{
-    const localRows = readTrackerRows();
+    const localRows = await readTrackerRows();
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
@@ -529,6 +649,7 @@ async function loadBets(){
 }
 
 
+
 async function addToTracker(btn, row){
   const key = makeBetKey(row);
   if(addedKeys.has(key)) return;
@@ -543,10 +664,9 @@ async function addToTracker(btn, row){
     btn.textContent = 'Adding…';
   }
 
-  const rows = readTrackerRows();
-  const newRow = {
-    id: makeLocalTrackerId(),
-    sync_id: isAdminSyncEnabled() ? makeSyncId() : null,
+  const newRow = normalizeTrackerRow({
+    id: makeSyncId(),
+    sync_id: makeSyncId(),
     match: row.match,
     market: row.market,
     odds: Number(row.odds),
@@ -555,11 +675,20 @@ async function addToTracker(btn, row){
     created_at: new Date().toISOString(),
     bet_date: row.bet_date || null,
     bookie: row.bookie || null
-  };
-  rows.push(newRow);
-  writeTrackerRows(rows);
-  if(isAdminSyncEnabled()){
-    try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
+  });
+
+  try{
+    await upsertTrackerRow(newRow);
+    if(isAdminSyncEnabled()){
+      try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
+    }
+  }catch(e){
+    console.error(e);
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = 'Add';
+    }
+    return;
   }
 
   addedKeys.add(key);
@@ -638,39 +767,47 @@ function _applyTrackerFilters(rows){
   });
 }
 
+
 function _buildTrackerTableHTML(rows){
-  let html = `<table class="myt-table">
+  const isMobile = window.innerWidth <= 600;
+  let html = `<table class="tracker-better-table">
     <tr>
-      <th class="date-col hidden-date-col">Date</th>
       <th>Match</th>
       <th>Market</th>
       <th>Stake</th>
       <th>Odds</th>
       <th>Result</th>
-      <th class="profit-col">Profit</th>
+      ${isMobile ? "" : `<th class="profit-col">Profit</th>`}
     </tr>`;
   (rows || []).forEach(row=>{
-    const stakeVal = row.stake ?? 0;
-    const oddsVal = row.odds ?? 0;
+    const stakeVal = Number(row.stake ?? 0);
+    const oddsVal = Number(row.odds ?? 0);
     const res = row.result || "pending";
     let profit = 0;
-    if(res === "won") profit = (row.profit != null ? row.profit : Number(row.stake||0) * (Number(row.odds||0) - 1));
-    if(res === "lost") profit = (row.profit != null ? row.profit : -Number(row.stake||0));
-    const gameDate = row.match_date_date || row.bet_date || row.created_at;
+    if(res === "won") profit = (row.profit != null ? Number(row.profit) : stakeVal * (oddsVal - 1));
+    if(res === "lost") profit = (row.profit != null ? Number(row.profit) : -stakeVal);
+
+    const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
+    const profitText = `£${profit.toFixed(2)}`;
+    const dateLabel = fmtDayLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
+
     html += `<tr>
-      <td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-      <td class="myt-match">${row.match || ""}</td>
-      <td class="myt-market">${row.market || ""}</td>
-      <td><input class="myt-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
-      <td><input class="myt-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>
+      <td class="tracker-match-cell">
+        <div class="tracker-match-main">${escapeHtml(row.match || "")}</div>
+        <div class="tracker-date-sub">${escapeHtml(dateLabel)}</div>
+      </td>
+      <td class="tracker-market-cell">${escapeHtml(row.market || "")}</td>
+      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
+      <td><input class="odds-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
           <option value="pending" ${res==="pending"?"selected":""}>pending</option>
           <option value="won" ${res==="won"?"selected":""}>won</option>
           <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+          <option value="delete">delete</option>
         </select>
       </td>
-      <td class="profit-col"><span class="${profit>0?'profit-win':profit<0?'profit-loss':''}">£${profit.toFixed(2)}</span></td>
+      ${isMobile ? "" : `<td class="profit-col ${profitClass}">${profitText}</td>`}
     </tr>`;
   });
   html += `</table>`;
@@ -925,12 +1062,13 @@ async function loadVipPromoProof(){
   }
 }
 
+
 async function loadTracker(){
-const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
-// Keep Value Bets \"Added\" state synced with tracker rows
+// Keep Value Bets "Added" state synced with tracker rows
 addedKeys.clear();
 rows.forEach(r => addedKeys.add(makeBetKey(r)));
 wireTrackerFilters();
@@ -940,13 +1078,11 @@ let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
 let dailyLabels=[];
 let dayKeys=[];
 
-	const tableRows = [];
-
 rows.forEach(row=>{
 let p=0;
-if(row.result==="won"){p=row.stake*(row.odds-1);wins++;}
-if(row.result==="lost"){p=-row.stake;losses++;}
-profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
+if(row.result==="won"){p=Number(row.stake||0)*(Number(row.odds||0)-1);wins++;}
+if(row.result==="lost"){p=-Number(row.stake||0);losses++;}
+profit+=p;totalStake+=Number(row.stake||0);totalOdds+=Number(row.odds||0);
 bankroll=start+profit;
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
@@ -955,33 +1091,9 @@ const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
 dayKeys.push(dayKey);
 dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
-
-tableRows.push(`<tr>
-<td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-<td class="myt-match">${row.match}</td>
-<td class="myt-market">${row.market || ""}</td>
-<td><input class="myt-input" type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
-<td><input class="myt-input" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
-<td>
-<select 
-class="result-select result-${row.result}" 
-onchange="updateResult('${row.id}',this.value)">
-<option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
-<option value="won" ${row.result==="won"?"selected":""}>won</option>
-<option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
-<option value="delete">🗑 delete</option>
-</select>
-</td>
-<td class="profit-col">
-<span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span>
-</td>
-</tr>`);
 });
 
-let html="<table class='myt-table'><tr><th class='date-col hidden-date-col'>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
-html += tableRows.reverse().join("");
-html+="</table>";
-trackerTable.innerHTML=html;
+_renderFilteredTrackerTable();
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
@@ -1000,13 +1112,11 @@ if(totalStakedCard){
   totalStakedCard.innerText = totalStake.toFixed(2);
 }
 
-
 avgOddsElem.innerText=rows.length?(totalOdds/rows.length).toFixed(2):0;
 
 profitCard.classList.remove("glow-green","glow-red");
 if(profit>0) profitCard.classList.add("glow-green");
 if(profit<0) profitCard.classList.add("glow-red");
-
 
 renderDailyChart(history, dailyLabels, dayKeys);
 
@@ -1106,39 +1216,51 @@ if(monthKeys.length){
 
 
 
+
 async function updateOdds(id,val){
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
-  writeTrackerRows(updated);
-  loadTracker();
-}
-
-async function updateStake(id,val){
-
-  const rows = readTrackerRows();
-  const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
-  writeTrackerRows(updated);
   const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+  }
   if(row && isAdminSyncEnabled()){
     try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
   }
   loadTracker();
 }
 
+
+async function updateStake(id,val){
+  const rows = await readTrackerRows();
+  const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
+  const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+  }
+  if(row && isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+  }
+  loadTracker();
+}
+
+
 async function updateResult(id,val){
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
     const row = rows.find(r => String(r.id)===String(id));
-    writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
+    try{ await deleteTrackerRowById(id); }catch(e){ console.error(e); }
     if(row && isAdminSyncEnabled() && row.sync_id){
       try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
     }
     loadBets();
   }else{
     const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
-    writeTrackerRows(updated);
     const row = updated.find(r => String(r.id)===String(id));
+    if(row){
+      try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+    }
     if(row && isAdminSyncEnabled()){
       try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
     }
