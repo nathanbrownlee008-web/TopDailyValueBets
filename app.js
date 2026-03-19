@@ -153,22 +153,14 @@ function clearVipState(){
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
   const email=(vipEmailEl?.value||"").trim();
-  const password=(vipPasswordEl?.value||"").trim();
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  if(!password || password.length < 6){
-    if(vipErrorEl) vipErrorEl.textContent="Enter your VIP password (at least 6 characters).";
-    return;
-  }
+  localStorage.setItem('vip_email',email);
   try{
-    await ensureVipPasswordAccount(email, password);
-    localStorage.setItem('vip_email',email);
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
-    if(vipRestoreEl) vipRestoreEl.disabled=true;
-    if(vipForgotEl) vipForgotEl.disabled=true;
     const r=await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -181,8 +173,6 @@ async function startCheckout(plan){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
-    if(vipRestoreEl) vipRestoreEl.disabled=false;
-    if(vipForgotEl) vipForgotEl.disabled=false;
   }
 }
 
@@ -271,9 +261,6 @@ const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
-const vipPasswordEl = document.getElementById("vipPassword");
-const vipRestoreEl = document.getElementById("vipRestore");
-const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -550,8 +537,6 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
-if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
@@ -1613,14 +1598,12 @@ loadTracker = async function(){
 
 
 
-function renderDailyChart(history, labels, dayKeys){
-  const el = document.getElementById("chart");
-  if(!el) return;
-  if(dailyChart) dailyChart.destroy();
 
+function buildCollapsedTrackerSeries(history, dayKeys){
   const safeHistory = Array.isArray(history) ? history : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
 
+  // Build unique end-of-day points first
   const daily = [];
   safeHistory.forEach((value, i)=>{
     const day = safeDayKeys[i];
@@ -1633,58 +1616,141 @@ function renderDailyChart(history, labels, dayKeys){
     }
   });
 
-  const labelsSparse = [];
-  let weekCount = 0;
+  const points = [];
+  let i = 0;
 
-  for(let i = 0; i < daily.length; i++){
-    const item = daily[i];
-    const dt = new Date(`${item.key}T12:00:00`);
-    if(Number.isNaN(dt.getTime())){
-      labelsSparse.push(i === 0 || i === daily.length - 1 ? item.key : "");
+  while(i < daily.length){
+    const startDt = new Date(`${daily[i].key}T12:00:00`);
+    if(Number.isNaN(startDt.getTime())){
+      points.push({
+        key: daily[i].key,
+        label: daily[i].key,
+        value: daily[i].value,
+        kind: "day"
+      });
+      i += 1;
       continue;
     }
 
-    const dayLabel = dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+    const month = startDt.getMonth();
+    const year = startDt.getFullYear();
 
-    const prevDt = i > 0 ? new Date(`${daily[i - 1].key}T12:00:00`) : null;
-    const monthChanged = !!(prevDt && !Number.isNaN(prevDt.getTime()) && prevDt.getMonth() !== dt.getMonth());
+    // Collect all remaining items in this month from current position
+    let j = i;
+    while(j < daily.length){
+      const dt = new Date(`${daily[j].key}T12:00:00`);
+      if(Number.isNaN(dt.getTime()) || dt.getMonth() !== month || dt.getFullYear() !== year) break;
+      j += 1;
+    }
+    const monthItems = daily.slice(i, j);
 
-    if(i === 0 || i === daily.length - 1){
-      labelsSparse.push(dayLabel);
-      continue;
+    // For each month:
+    // - days 1-6 of each 7-day block stay daily
+    // - 7th becomes Week N summary dot
+    // - 4th block of month becomes one Month summary dot
+    let weekInMonth = 0;
+    let idx = 0;
+
+    while(idx < monthItems.length){
+      const remaining = monthItems.length - idx;
+      weekInMonth += 1;
+
+      // 4th block (or later) of the month collapses to one month dot using final value in month
+      if(weekInMonth >= 4){
+        const lastItem = monthItems[monthItems.length - 1];
+        const monthLabel = new Date(`${lastItem.key}T12:00:00`).toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
+        points.push({
+          key: lastItem.key,
+          label: monthLabel,
+          value: Number(lastItem.value || 0),
+          kind: "month"
+        });
+        idx = monthItems.length;
+        break;
+      }
+
+      if(remaining >= 7){
+        // Keep first 6 daily points
+        for(let k = 0; k < 6; k++){
+          const item = monthItems[idx + k];
+          const dt = new Date(`${item.key}T12:00:00`);
+          const dayLabel = Number.isNaN(dt.getTime())
+            ? item.key
+            : dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+
+          points.push({
+            key: item.key,
+            label: dayLabel,
+            value: Number(item.value || 0),
+            kind: "day"
+          });
+        }
+
+        // 7th point becomes weekly summary point (end-of-week bankroll)
+        const summary = monthItems[idx + 6];
+        points.push({
+          key: summary.key,
+          label: `Week ${weekInMonth}`,
+          value: Number(summary.value || 0),
+          kind: "week"
+        });
+        idx += 7;
+      } else {
+        // Less than 7 remaining before month end: keep daily
+        for(let k = idx; k < monthItems.length; k++){
+          const item = monthItems[k];
+          const dt = new Date(`${item.key}T12:00:00`);
+          const dayLabel = Number.isNaN(dt.getTime())
+            ? item.key
+            : dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+
+          points.push({
+            key: item.key,
+            label: dayLabel,
+            value: Number(item.value || 0),
+            kind: "day"
+          });
+        }
+        idx = monthItems.length;
+      }
     }
 
-    if(monthChanged){
-      labelsSparse.push(dt.toLocaleDateString("en-GB", { month: "short" }));
-      continue;
-    }
-
-    if((i + 1) % 7 === 0){
-      weekCount += 1;
-      labelsSparse.push(`Week ${weekCount}`);
-      continue;
-    }
-
-    // Show a few real dates only; hide the rest to stop cramming
-    const interval = daily.length <= 10 ? 2 : daily.length <= 18 ? 3 : daily.length <= 31 ? 4 : 5;
-    labelsSparse.push(i % interval === 0 ? dayLabel : "");
+    i = j;
   }
 
+  return {
+    labels: points.map(p => p.label),
+    values: points.map(p => p.value),
+    rawKeys: points.map(p => p.key),
+    pointKinds: points.map(p => p.kind)
+  };
+}
+
+function renderDailyChart(history, labels, dayKeys){
+  const el = document.getElementById("chart");
+  if(!el) return;
+  if(dailyChart) dailyChart.destroy();
+
+  const series = buildCollapsedTrackerSeries(history, dayKeys);
   const ctx = el.getContext("2d");
 
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels: labelsSparse,
+      labels: series.labels,
       datasets:[{
-        data: daily.map(item => item.value),
+        data: series.values,
         tension:0.28,
         fill:true,
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:3,
-        pointHoverRadius:5,
+        pointRadius: (context)=>{
+          const i = context.dataIndex || 0;
+          const kind = series.pointKinds[i];
+          return kind === "month" ? 4.5 : kind === "week" ? 4 : 3;
+        },
+        pointHoverRadius:6,
         pointHitRadius:14,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
@@ -1699,8 +1765,8 @@ function renderDailyChart(history, labels, dayKeys){
           callbacks:{
             title:(items)=>{
               const i = items?.[0]?.dataIndex ?? 0;
-              const rawKey = daily[i]?.key;
-              if(!rawKey) return "";
+              const rawKey = series.rawKeys[i];
+              if(!rawKey) return series.labels[i] || "";
               const dt = new Date(`${rawKey}T12:00:00`);
               if(Number.isNaN(dt.getTime())) return rawKey;
               return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
@@ -1730,6 +1796,7 @@ function renderDailyChart(history, labels, dayKeys){
     }
   });
 }
+
 
 
 function renderMonthlyChart(profits, roi, labels){
