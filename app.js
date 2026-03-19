@@ -659,10 +659,7 @@ function _buildTrackerTableHTML(rows){
     const gameDate = row.match_date_date || row.bet_date || row.created_at;
     html += `<tr>
       <td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-      <td class="myt-match" data-market="${row.market || ""}">
-  ${row.match || ""}
-  <div class="market-under">${row.market || ""}</div>
-</td>
+      <td class="myt-match">${row.match || ""}</td>
       <td class="myt-market">${row.market || ""}</td>
       <td><input class="myt-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td><input class="myt-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>

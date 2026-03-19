@@ -3482,100 +3482,22 @@ color:#d7e6ff !important;
     padding:2px 4px;
   }
 }
-/* Hide profit column on mobile */
+
+
+/* FORCE HIDE TRACKER PROFIT COLUMN ON MOBILE */
 @media (max-width:600px){
-
-  #trackerTable th:last-child,
-  #trackerTable td:last-child{
-    display:none;
-  }
-
-}
-/* Hide profit column on mobile */
-@media (max-width:600px){
-
-  th.profit-col,
-  td.profit-col{
-    display:none !important;
-  }
-
-}
-/* Hide profit column on mobile (tracker) */
-@media (max-width:600px){
-
+  #trackerTable .profit-col,
   #trackerTable th.profit-col,
-  #trackerTable td.profit-col{
-    display:none !important;
-  }
-
-}
-@media (max-width: 600px){
-
+  #trackerTable td.profit-col,
   #trackerTable table th.profit-col,
   #trackerTable table td.profit-col,
-  #trackerTable table th:last-child,
-  #trackerTable table td:last-child{
+  #trackerTable .myt-table th.profit-col,
+  #trackerTable .myt-table td.profit-col{
     display:none !important;
+    width:0 !important;
+    max-width:0 !important;
+    padding:0 !important;
+    border:none !important;
+    overflow:hidden !important;
   }
-
-  #trackerTable table{
-    table-layout:fixed;
-    width:100%;
-  }
-
-  #trackerTable table th,
-  #trackerTable table td{
-    font-size:12px;
-    padding:6px 3px;
-  }
-
-}
-/* --- Mobile tracker layout improvement --- */
-@media (max-width:600px){
-
-  /* hide market column */
-  #trackerTable th:nth-child(3),
-  #trackerTable td:nth-child(3){
-    display:none !important;
-  }
-
-  /* stack match nicely */
-  #trackerTable td:nth-child(2){
-    line-height:1.2;
-  }
-
-  /* shrink text a little so table fits */
-  #trackerTable th,
-  #trackerTable td{
-    font-size:12px;
-    padding:6px 3px;
-  }
-
-}
-.market-under{
-  display:none;
-  font-size:11px;
-  opacity:.8;
-  margin-top:3px;
-}
-
-@media (max-width:600px){
-
-  .market-under{
-    display:block;
-  }
-
-  #trackerTable .myt-market{
-    display:none;
-  }
-
-}
-/* Hide profit column on mobile to free space */
-@media (max-width:600px){
-
-  #trackerTable th:last-child,
-  #trackerTable td:last-child{
-    display:none;
-  }
-
 }
