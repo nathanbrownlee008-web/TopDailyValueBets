@@ -3570,3 +3570,12 @@ color:#d7e6ff !important;
   }
 
 }
+/* Hide profit column on mobile to free space */
+@media (max-width:600px){
+
+  #trackerTable th:last-child,
+  #trackerTable td:last-child{
+    display:none;
+  }
+
+}
