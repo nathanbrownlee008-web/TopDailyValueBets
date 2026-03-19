@@ -2575,35 +2575,42 @@ try{
 
 
 
-/* ===== TRACKER GRAPH COLLAPSE OVERRIDE (SAFE) ===== */
-function __tdtParseDayKey(rawKey){
+/* ===== PRO GRAPH OVERRIDE ===== */
+function __proParseDayKey(rawKey){
   const raw = String(rawKey || "").trim();
   if(!raw) return null;
+
+  // Prefer YYYY-MM-DD exactly
   if(/^\d{4}-\d{2}-\d{2}$/.test(raw)){
-    const dt = new Date(raw + "T12:00:00");
+    const parts = raw.split("-");
+    const y = Number(parts[0]);
+    const m = Number(parts[1]) - 1;
+    const d = Number(parts[2]);
+    const dt = new Date(y, m, d, 12, 0, 0, 0);
     return Number.isNaN(dt.getTime()) ? null : dt;
   }
+
+  // Fallback
   const dt = new Date(raw);
   return Number.isNaN(dt.getTime()) ? null : dt;
 }
 
-function __tdtDayLabel(rawKey){
-  const dt = __tdtParseDayKey(rawKey);
+function __proShortDayLabel(rawKey){
+  const dt = __proParseDayKey(rawKey);
   if(!dt) return String(rawKey || "");
   return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 }
 
-function __tdtFullLabel(rawKey){
-  const dt = __tdtParseDayKey(rawKey);
+function __proFullDayLabel(rawKey){
+  const dt = __proParseDayKey(rawKey);
   if(!dt) return String(rawKey || "");
   return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function buildCollapsedTrackerSeries(history, dayKeys){
+function __buildProTrackerSeries(history, dayKeys){
   const safeHistory = Array.isArray(history) ? history : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
 
-  // End-of-day unique points
   const daily = [];
   safeHistory.forEach((value, i)=>{
     const key = safeDayKeys[i];
@@ -2616,82 +2623,36 @@ function buildCollapsedTrackerSeries(history, dayKeys){
     }
   });
 
-  // Group by month so the 4th completed week becomes a month dot
-  const out = [];
-  let cursor = 0;
-
-  while(cursor < daily.length){
-    const start = __tdtParseDayKey(daily[cursor].key);
-    if(!start){
-      out.push({ key: daily[cursor].key, value: daily[cursor].value, label: daily[cursor].key, kind: "day" });
-      cursor += 1;
-      continue;
-    }
-
-    const month = start.getMonth();
-    const year = start.getFullYear();
-
-    let monthEnd = cursor;
-    while(monthEnd < daily.length){
-      const dt = __tdtParseDayKey(daily[monthEnd].key);
-      if(!dt || dt.getMonth() != month || dt.getFullYear() != year) break;
-      monthEnd += 1;
-    }
-
-    const monthItems = daily.slice(cursor, monthEnd);
-
-    // Completed full weeks collapse to one dot.
-    // Current incomplete week stays daily.
-    const total = monthItems.length;
-    const completedWeeks = Math.floor(total / 7);
-    const remainingDays = total % 7;
-
-    for(let w = 0; w < completedWeeks; w++){
-      const blockStart = w * 7;
-      const blockEnd = blockStart + 6;
-      const summary = monthItems[blockEnd];
-
-      if(w === 3){
-        const dt = __tdtParseDayKey(summary.key);
-        const monthLabel = dt
-          ? dt.toLocaleDateString("en-GB", { month: "short", year: "2-digit" })
-          : "Month";
-        out.push({
-          key: summary.key,
-          value: Number(summary.value || 0),
-          label: monthLabel,
-          kind: "month"
-        });
-      }else{
-        out.push({
-          key: summary.key,
-          value: Number(summary.value || 0),
-          label: `Week ${w + 1}`,
-          kind: "week"
-        });
-      }
-    }
-
-    // Current in-progress week remains daily
-    const tailStart = completedWeeks * 7;
-    for(let i = tailStart; i < monthItems.length; i++){
-      const item = monthItems[i];
-      out.push({
-        key: item.key,
-        value: Number(item.value || 0),
-        label: __tdtDayLabel(item.key),
-        kind: "day"
-      });
-    }
-
-    cursor = monthEnd;
+  const total = daily.length;
+  if(!total){
+    return { labels: [], values: [], rawKeys: [] };
   }
 
+  let interval = 1;
+  if(total <= 8) interval = 1;
+  else if(total <= 14) interval = 2;
+  else if(total <= 24) interval = 3;
+  else if(total <= 40) interval = 4;
+  else interval = 5;
+
+  const labels = daily.map((item, i)=>{
+    if(i === 0 || i === total - 1) return __proShortDayLabel(item.key);
+
+    const dt = __proParseDayKey(item.key);
+    const prev = i > 0 ? __proParseDayKey(daily[i - 1].key) : null;
+
+    // Always show month transition
+    if(dt && prev && dt.getMonth() !== prev.getMonth()){
+      return dt.toLocaleDateString("en-GB", { month: "short" });
+    }
+
+    return i % interval === 0 ? __proShortDayLabel(item.key) : "";
+  });
+
   return {
-    labels: out.map(x => x.label),
-    values: out.map(x => x.value),
-    rawKeys: out.map(x => x.key),
-    kinds: out.map(x => x.kind)
+    labels,
+    values: daily.map(x => x.value),
+    rawKeys: daily.map(x => x.key)
   };
 }
 
@@ -2700,7 +2661,7 @@ renderDailyChart = function(history, labels, dayKeys){
   if(!el) return;
   if(typeof dailyChart !== "undefined" && dailyChart) dailyChart.destroy();
 
-  const series = buildCollapsedTrackerSeries(history, dayKeys);
+  const series = __buildProTrackerSeries(history, dayKeys);
   const ctx = el.getContext("2d");
 
   dailyChart = new Chart(ctx,{
@@ -2714,12 +2675,8 @@ renderDailyChart = function(history, labels, dayKeys){
         borderWidth: 3,
         borderColor: "rgba(34,197,94,0.95)",
         backgroundColor: "rgba(34,197,94,0.14)",
-        pointRadius: function(context){
-          const i = context.dataIndex || 0;
-          const kind = series.kinds[i];
-          return kind === "month" ? 5 : kind === "week" ? 4.5 : 3;
-        },
-        pointHoverRadius: 6,
+        pointRadius: 3,
+        pointHoverRadius: 5,
         pointHitRadius: 14,
         pointBackgroundColor: "rgba(34,197,94,1)"
       }]
@@ -2734,7 +2691,7 @@ renderDailyChart = function(history, labels, dayKeys){
           callbacks:{
             title:(items)=>{
               const i = items?.[0]?.dataIndex ?? 0;
-              return __tdtFullLabel(series.rawKeys[i]);
+              return __proFullDayLabel(series.rawKeys[i]);
             },
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
@@ -2761,5 +2718,5 @@ renderDailyChart = function(history, labels, dayKeys){
     }
   });
 };
-/* ===== END TRACKER GRAPH COLLAPSE OVERRIDE ===== */
+/* ===== END PRO GRAPH OVERRIDE ===== */
 
