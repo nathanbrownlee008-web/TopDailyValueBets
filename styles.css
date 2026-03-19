@@ -3509,3 +3509,24 @@ color:#d7e6ff !important;
   }
 
 }
+@media (max-width: 600px){
+
+  #trackerTable table th.profit-col,
+  #trackerTable table td.profit-col,
+  #trackerTable table th:last-child,
+  #trackerTable table td:last-child{
+    display:none !important;
+  }
+
+  #trackerTable table{
+    table-layout:fixed;
+    width:100%;
+  }
+
+  #trackerTable table th,
+  #trackerTable table td{
+    font-size:12px;
+    padding:6px 3px;
+  }
+
+}
