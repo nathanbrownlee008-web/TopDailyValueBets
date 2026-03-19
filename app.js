@@ -1027,9 +1027,7 @@ function renderVipPromoChart(rows){
   vipPromoChart = new Chart(canvas.getContext('2d'), {
     type:'line',
     data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:(ctx)=>{ const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0; if(len <= 1) return len ? 3 : 0; return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0; } }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{
-            padding:6, maxTicksLimit:6 } }, y:{ ticks:{
-            padding:6, callback:(v)=> `£${v}` } } } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
   });
 }
 
@@ -1678,13 +1676,11 @@ function renderDailyChart(history, labels, dayKeys){
       },
       scales:{
         x:{
-          ticks:{
-            padding:6,color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:0, minRotation:0},
+          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
           ticks:{
-            padding:6,
             color:"rgba(226,232,240,0.78)",
             callback:(v)=>`£${Number(v).toFixed(0)}`
           },
@@ -1730,8 +1726,7 @@ function renderMonthlyChart(profits, roi, labels){
         y:{
           min: Math.floor(minROI - pad),
           max: Math.ceil(maxROI + pad),
-          ticks:{
-            padding:6,callback:(v)=>v+"%"},
+          ticks:{callback:(v)=>v+"%"},
           grid:{color:"rgba(255,255,255,0.05)"}
         }
       }
@@ -1801,13 +1796,11 @@ function renderMarketChart(labels, winPct, totals){
         x: {
           min: 0,
           max: 100,
-          ticks: {
-            padding:6, display: false },
+          ticks: { display: false },
           grid: { display: false, drawBorder: false }
         },
         y: {
-          ticks: {
-            padding:6, color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
+          ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
           grid: { display: false, drawBorder: false }
         }
       },
@@ -2660,3 +2653,113 @@ try{
   }, 500);
 })();
 /* ===== END HARD RESTORE VIP MESSAGE PATCH ===== */
+
+
+
+/* ===== MARKETS 0% LABEL FIX ===== */
+renderMarketChart = function(labels, winPct, totals){
+  const el = document.getElementById("marketChart");
+  if(!el) return;
+  if(typeof marketChart !== "undefined" && marketChart) marketChart.destroy();
+
+  const safeLabels = Array.isArray(labels) ? labels : [];
+  const safePct = Array.isArray(winPct) ? winPct.map(v => Number(v || 0)) : [];
+  const safeTotals = Array.isArray(totals) ? totals : [];
+
+  const ctx = el.getContext("2d");
+  marketChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: safeLabels,
+      datasets: [{
+        data: safePct,
+        borderWidth: 0,
+        borderRadius: 10,
+        barThickness: 18,
+        backgroundColor: safePct.map(v=>{
+          if(v >= 55) return "rgba(34,197,94,0.85)";
+          if(v >= 40) return "rgba(245,158,11,0.85)";
+          return "rgba(239,68,68,0.85)";
+        }),
+        borderColor: safePct.map(v=>{
+          if(v >= 55) return "#22c55e";
+          if(v >= 40) return "#f59e0b";
+          return "#ef4444";
+        })
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: { left: 6, right: 10 }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx)=>{
+              const i = ctx.dataIndex;
+              const pct = Number(ctx.raw || 0).toFixed(0) + "%";
+              const t = safeTotals[i] ? safeTotals[i] : { bets: 0, wins: 0, losses: 0 };
+              return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          min: 0,
+          max: 100,
+          ticks: { display: false },
+          grid: { display: false, drawBorder: false }
+        },
+        y: {
+          ticks: {
+            color: "rgba(229,231,235,0.85)",
+            font: { weight: 800 }
+          },
+          grid: { display: false, drawBorder: false }
+        }
+      },
+      animation: { duration: 250 }
+    },
+    plugins: [{
+      id: "pctLabelsSafe",
+      afterDatasetsDraw(chart){
+        const {ctx, chartArea, scales} = chart;
+        const meta = chart.getDatasetMeta(0);
+        const xScale = scales.x;
+
+        ctx.save();
+        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+
+        meta.data.forEach((bar, i)=>{
+          const v = Number(safePct[i] || 0);
+          const txt = `${Math.round(v)}%`;
+
+          if(v >= 14){
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            ctx.fillText(txt, bar.x - 12, bar.y);
+            return;
+          }
+
+          const startX = xScale.getPixelForValue(Math.max(v, 0));
+          const safeX = Math.max(startX + 8, chartArea.left + 12);
+
+          ctx.fillStyle = v > 0 ? "rgba(229,231,235,0.92)" : "rgba(248,113,113,0.95)";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText(txt, safeX, bar.y);
+        });
+
+        ctx.restore();
+      }
+    }]
+  });
+};
+/* ===== END MARKETS 0% LABEL FIX ===== */
+
