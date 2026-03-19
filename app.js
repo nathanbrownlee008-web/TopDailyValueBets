@@ -7,11 +7,6 @@ const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 // VIP
 // =========================
 
-function normalizeVipEmail(email){
-  return String(email || "").trim().toLowerCase();
-}
-
-
 function setVipUI(active, email){
   vipActive = !!active;
 
@@ -50,7 +45,6 @@ function openVipModal(){
   if(vipErrorEl) vipErrorEl.textContent="";
   const saved=(localStorage.getItem('vip_email')||"").trim();
   if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
-  if(vipPasswordEl && !vipPasswordEl.value) vipPasswordEl.value="";
   vipModalEl.style.display="flex";
 }
 
@@ -58,82 +52,6 @@ function closeVipModal(){
   if(!vipModalEl) return;
   vipModalEl.style.display="none";
 }
-
-async function ensureVipPasswordAccount(email, password){
-  const cleanEmail = normalizeVipEmail(email);
-  const cleanPassword = String(password || "");
-  if(!cleanEmail || !cleanEmail.includes("@")) throw new Error("Enter a valid email.");
-  if(cleanPassword.length < 6) throw new Error("Use at least 6 characters for your VIP password.");
-
-  const signIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
-  if(!signIn.error) return true;
-
-  const signUp = await client.auth.signUp({
-    email: cleanEmail,
-    password: cleanPassword,
-    options: { emailRedirectTo: window.location.origin }
-  });
-  if(!signUp.error) return true;
-
-  const msg = String(signUp.error?.message || "").toLowerCase();
-  if(msg.includes("already") || msg.includes("exists") || msg.includes("registered") || msg.includes("user already")){
-    const secondSignIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
-    if(!secondSignIn.error) return true;
-    throw new Error("Wrong VIP password for that email.");
-  }
-
-  throw signUp.error;
-}
-
-async function forgotVipPassword(){
-  const email = normalizeVipEmail(vipEmailEl?.value || "");
-  if(!email || !email.includes("@")){
-    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
-    return;
-  }
-  try{
-    if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
-    const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin
-    });
-    if(error) throw error;
-    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent.";
-  }catch(err){
-    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not send reset email.";
-  }
-}
-
-async function restoreVipAccess(){
-  const email = normalizeVipEmail(vipEmailEl?.value || "");
-  const password = String(vipPasswordEl?.value || "").trim();
-
-  if(!email || !email.includes("@")){
-    if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
-    return;
-  }
-  if(password.length < 6){
-    if(vipErrorEl) vipErrorEl.textContent = "Enter your VIP password.";
-    return;
-  }
-
-  localStorage.setItem("vip_email", email);
-
-  try{
-    if(vipErrorEl) vipErrorEl.textContent = "";
-    if(vipRestoreEl) vipRestoreEl.disabled = true;
-
-    await ensureVipPasswordAccount(email, password);
-    const active = await forceVipRefreshNow(email);
-
-    if(active) return;
-    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
-  }catch(e){
-    if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
-  }finally{
-    if(vipRestoreEl) vipRestoreEl.disabled = false;
-  }
-}
-
 
 async function checkVIP(){
   const email=(localStorage.getItem('vip_email')||"").trim();
@@ -158,24 +76,15 @@ async function checkVIP(){
 
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
-  const email = normalizeVipEmail(vipEmailEl?.value || "");
-  const password = String(vipPasswordEl?.value || "").trim();
-
+  const email=(vipEmailEl?.value||"").trim();
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  if(password.length < 6){
-    if(vipErrorEl) vipErrorEl.textContent="Create a VIP password with at least 6 characters.";
-    return;
-  }
-
-  localStorage.setItem('vip_email', email);
+  localStorage.setItem('vip_email',email);
   try{
-    await ensureVipPasswordAccount(email, password);
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
-    if(vipRestoreEl) vipRestoreEl.disabled=true;
     const r=await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -188,7 +97,38 @@ async function startCheckout(plan){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
-    if(vipRestoreEl) vipRestoreEl.disabled=false;
+  }
+}
+
+
+async function restoreVipAccess(){
+  const email = (vipEmailEl?.value || "").trim();
+
+  if(!email){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
+    return;
+  }
+
+  localStorage.setItem("vip_email", email);
+
+  try{
+    if(vipErrorEl) vipErrorEl.textContent = "";
+    if(vipRestoreEl) vipRestoreEl.disabled = true;
+
+    const active = await checkVIP();
+
+    if(active){
+      closeVipModal();
+      await loadBets();
+      location.reload();
+      return;
+    }
+
+    if(vipErrorEl) vipErrorEl.textContent = "No VIP found for that email.";
+  }catch(e){
+    if(vipErrorEl) vipErrorEl.textContent = "Could not restore VIP right now.";
+  }finally{
+    if(vipRestoreEl) vipRestoreEl.disabled = false;
   }
 }
 
@@ -220,51 +160,6 @@ function isValueBetActiveToday(row){
 }
 
 
-
-async function forceVipRefreshNow(emailFromInput){
-  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
-  if(!email || !email.includes("@")) return false;
-  localStorage.setItem('vip_email', email);
-  const active = await checkVIP();
-  if(active){
-    closeVipModal();
-    await loadBets();
-    refreshAdminBadgeUI();
-    return true;
-  }
-  return false;
-}
-
-async function pollVipAfterCheckout(){
-  const email = normalizeVipEmail((localStorage.getItem('vip_email') || ""));
-  if(!email) return false;
-  if(vipStatusEl) vipStatusEl.textContent = 'Finalising VIP payment...';
-  for(let i=0;i<20;i++){
-    const active = await forceVipRefreshNow(email);
-    if(active){
-      try{
-        const url = new URL(window.location.href);
-        url.searchParams.delete('vip');
-        url.searchParams.delete('session_id');
-        window.history.replaceState({}, '', url.toString());
-      }catch(e){}
-      return true;
-    }
-    await new Promise(r=>setTimeout(r,3000));
-  }
-  if(vipStatusEl) vipStatusEl.textContent = 'Tap Restore VIP to unlock.';
-  return false;
-}
-
-function shouldTryVipFinalize(){
-  try{
-    const params = new URLSearchParams(window.location.search);
-    if(params.get('vip') === 'success' || params.has('session_id')) return true;
-  }catch(e){}
-  return false;
-}
-
-
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -275,11 +170,9 @@ const vipStatusEl = document.getElementById("vipStatus");
 const vipModalEl = document.getElementById("vipModal");
 const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
-const vipPasswordEl = document.getElementById("vipPassword");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
 const vipRestoreEl = document.getElementById("vipRestore");
-const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -495,19 +388,15 @@ if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModal
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
 if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
-if(vipForgotEl) vipForgotEl.addEventListener('click', forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
 // On load: check VIP status (if email saved), then render.
-checkVIP().then(async ()=>{
+checkVIP().then(()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
-  if(!vipActive && shouldTryVipFinalize()){
-    await pollVipAfterCheckout();
-  }
   refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
   loadBets();
@@ -583,20 +472,29 @@ async function loadBets(){
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
       <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
-      <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
+        <span class="bet-date">${escapeHtml(betDate)}</span>
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
     <div class="bet-details">
-      <div class="bet-footer">
-        <div class="bet-left">
-          <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
-          <span class="stat-chip${valueClass}"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
-        </div>
-        <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
-      </div>
+  <div class="bet-footer">
+    <div class="bet-left">
+      <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
+      <span class="stat-chip ${valueClass}">
+        <span class="stat-chip__k">Value</span>
+        <span class="stat-chip__v">${valTxt}</span>
+      </span>
+    </div>
+
+    <button class="bet-btn ${isAdded ? 'added' : ''}"
+      ${(isAdded || locked) ? 'disabled' : ''}
+      ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>
+      ${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}
+    </button>
+  </div>
+</div>
     </div>
   </div>
   ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 Unlock VIP</button>' : ''}
@@ -1186,15 +1084,9 @@ if(monthKeys.length){
 
 
 async function updateOdds(id,val){
-  const rows = await readTrackerRows();
+  const rows = readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
-  const row = updated.find(r => String(r.id)===String(id));
-  if(row){
-    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
-  }
-  if(row && isAdminSyncEnabled()){
-    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
-  }
+  writeTrackerRows(updated);
   loadTracker();
 }
 
@@ -1259,6 +1151,23 @@ function getTdtRowDayKey(row){
   const m = String(dt.getMonth()+1).padStart(2,'0');
   const d = String(dt.getDate()).padStart(2,'0');
   return `${y}-${m}-${d}`;
+}
+
+
+function getTdtRowMonthKey(row){
+  const raw = getTdtRowDateValue(row);
+  const dt = new Date(raw);
+  if(Number.isNaN(dt.getTime())) return String(raw || 'Unknown');
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth()+1).padStart(2,'0');
+  return `${y}-${m}`;
+}
+
+function fmtTdtMonthHeader(monthKey){
+  const [y,m] = String(monthKey || '').split('-');
+  const dt = new Date(Number(y), Number(m)-1, 1);
+  if(Number.isNaN(dt.getTime())) return monthKey;
+  return dt.toLocaleDateString('en-GB',{ month:'long', year:'numeric' });
 }
 
 function fmtTdtDayHeader(dayKey){
@@ -1358,51 +1267,63 @@ async function loadTdtTracker(){
     });
 
     const sortedRows = sortTdtRows(rows);
-    const groups = [];
-    const map = new Map();
+    const monthGroups = [];
+    const monthMap = new Map();
+
     sortedRows.forEach(row=>{
-      const key = getTdtRowDayKey(row);
-      if(!map.has(key)){
-        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0 };
-        map.set(key, group);
-        groups.push(group);
+      const key = getTdtRowMonthKey(row);
+      if(!monthMap.has(key)){
+        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0, profit:0 };
+        monthMap.set(key, group);
+        monthGroups.push(group);
       }
-      const group = map.get(key);
+      const group = monthMap.get(key);
       group.rows.push(row);
+
       const result = String(row.result || 'pending').toLowerCase();
+      const p = result==="won"
+        ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
+        : result==="lost"
+        ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
+        : 0;
+
+      group.profit += p;
       if(result === 'won'){ group.wins++; group.settled++; }
       else if(result === 'lost'){ group.losses++; group.settled++; }
       else { group.pending++; }
     });
 
-    let html = `<div class="tdt-groups-wrap">`;
+    let html = `<div class="tdt-month-groups">`;
 
-    groups.forEach((group, idx)=>{
-      const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
+    monthGroups.forEach((group, idx)=>{
+      const monthWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
+      const profitClass = group.profit >= 0 ? 'positive' : 'negative';
+      const profitSign = group.profit >= 0 ? '+' : '-';
+
       html += `
-        <div class="tdt-day-card">
-          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
-            <div class="tdt-day-left">
-              <div class="tdt-day-date">${escapeHtml(fmtTdtDayHeader(group.key))}</div>
-              <div class="tdt-day-meta">${group.rows.length} bet${group.rows.length === 1 ? '' : 's'}</div>
+        <div class="tdt-month-card">
+          <button class="tdt-month-head" type="button" onclick="toggleTdtDay(this)">
+            <div class="tdt-month-left">
+              <div class="tdt-month-title">${escapeHtml(fmtTdtMonthHeader(group.key))}</div>
+              <div class="tdt-month-sub">${group.rows.length} result${group.rows.length === 1 ? '' : 's'} • <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span></div>
             </div>
-            <div class="tdt-day-right">
+            <div class="tdt-month-right">
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
-              <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
+              <span class="tdt-day-chip ratio ${tdtWinrateClass(monthWinrate)}">Winrate ${monthWinrate}%</span>
               <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
             </div>
           </button>
           <div class="tdt-day-body" style="display:${idx === 0 ? 'block' : 'none'};">
             <div class="tdt-table-wrap">
-              <table class="tdt-table tdt-table-fit">
+              <table class="tdt-table tdt-table-fit tdt-month-table">
                 <thead>
                   <tr>
+                    <th class="tdt-col-date sortable" onclick="sortTdtTable('date')">Day <span>${tdtSortArrow('date')}</span></th>
                     <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
                     <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
-                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
                     <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
-                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${tdtSortArrow('result')}</span></th>
+                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">✅/❌ <span>${tdtSortArrow('result')}</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1413,9 +1334,9 @@ async function loadTdtTracker(){
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
         html += `
           <tr class="tdt-row ${result}">
+            <td class="tdt-date">${escapeHtml(fmtTdtDayHeader(getTdtRowDayKey(row)).replace(/^(\w+),?\s*/, '').replace(',', ''))}</td>
             <td class="tdt-match">${escapeHtml(row.match || '')}</td>
             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
-            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
             <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
           </tr>
@@ -1448,10 +1369,6 @@ async function loadTdtTracker(){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
 }
-
-
-
-
 
 function toggleTdtDay(btn){
   const body = btn ? btn.nextElementSibling : null;
@@ -2300,436 +2217,4 @@ loadTracker = async function(){
 
   applyPersonalTrackerCollapseState();
 
-};
-/* ===== SAFE TDT RESULTS MONTHLY OVERRIDE ===== */
-
-function __tdtMonthKeySafe(row){
-  const raw = row?.match_date_date || row?.bet_date || row?.created_at;
-  const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return "Unknown";
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
-}
-
-function __tdtMonthLabelSafe(monthKey){
-  if (!monthKey || monthKey === "Unknown") return "Unknown";
-  const [y, m] = String(monthKey).split("-");
-  const d = new Date(Number(y), Number(m) - 1, 1);
-  if (Number.isNaN(d.getTime())) return monthKey;
-  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-}
-
-window.loadTdtTracker = async function(){
-  const tableEl = document.getElementById("tdtTrackerTable");
-
-  try{
-    const { data, error } = await client
-      .from("tdt_tracker")
-      .select("*")
-      .order("created_at", { ascending: true });
-
-    if(error) throw error;
-
-    const rows = Array.isArray(data) ? data : [];
-    tdtRowsCache = rows;
-
-    let profit = 0;
-    let wins = 0;
-    let losses = 0;
-    let totalStake = 0;
-    let totalOdds = 0;
-    let resolvedCount = 0;
-
-    rows.forEach(row=>{
-      const result = String(row.result || "pending").toLowerCase();
-
-      const p =
-        result === "won"
-          ? (row.profit != null
-              ? Number(row.profit)
-              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
-          : result === "lost"
-          ? (row.profit != null
-              ? Number(row.profit)
-              : -Number(row.stake || 0))
-          : 0;
-
-      profit += p;
-
-      if(result === "won") wins++;
-      if(result === "lost") losses++;
-
-      if(result !== "pending"){
-        resolvedCount++;
-        totalStake += Number(row.stake || 0);
-        totalOdds += Number(row.odds || 0);
-      }
-    });
-
-    const monthMap = new Map();
-
-    rows.forEach(row=>{
-      const key = __tdtMonthKeySafe(row);
-
-      if(!monthMap.has(key)){
-        monthMap.set(key, {
-          key,
-          rows: [],
-          wins: 0,
-          losses: 0,
-          settled: 0,
-          profit: 0
-        });
-      }
-
-      const group = monthMap.get(key);
-      group.rows.push(row);
-
-      const result = String(row.result || "pending").toLowerCase();
-
-      const p =
-        result === "won"
-          ? (row.profit != null
-              ? Number(row.profit)
-              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
-          : result === "lost"
-          ? (row.profit != null
-              ? Number(row.profit)
-              : -Number(row.stake || 0))
-          : 0;
-
-      group.profit += p;
-
-      if(result === "won"){
-        group.wins++;
-        group.settled++;
-      }else if(result === "lost"){
-        group.losses++;
-        group.settled++;
-      }
-    });
-
-    const monthGroups = Array.from(monthMap.values()).sort((a,b)=>a.key.localeCompare(b.key));
-
-    let html = `<div class="tdt-month-groups">`;
-
-    monthGroups.forEach((group, idx)=>{
-      const monthWinrate = group.settled
-        ? Math.round((group.wins / group.settled) * 100)
-        : 0;
-
-      const profitClass = group.profit >= 0 ? "positive" : "negative";
-      const profitSign = group.profit >= 0 ? "+" : "-";
-
-      html += `
-        <div class="tdt-month-card">
-          <button class="tdt-month-head" type="button" onclick="toggleTdtDay(this)">
-            <div class="tdt-month-left">
-              <div class="tdt-month-title">${escapeHtml(__tdtMonthLabelSafe(group.key))}</div>
-              <div class="tdt-month-sub">
-                ${group.rows.length} result${group.rows.length === 1 ? "" : "s"} •
-                <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span>
-              </div>
-            </div>
-            <div class="tdt-month-right">
-              <span class="tdt-day-chip win">Won ${group.wins}</span>
-              <span class="tdt-day-chip loss">Lost ${group.losses}</span>
-              <span class="tdt-day-chip ratio ${tdtWinrateClass(monthWinrate)}">Winrate ${monthWinrate}%</span>
-              <span class="tdt-day-chevron">${idx === monthGroups.length - 1 ? "▼" : "▶"}</span>
-            </div>
-          </button>
-          <div class="tdt-day-body" style="display:${idx === monthGroups.length - 1 ? "block" : "none"};">
-            <div class="tdt-table-wrap">
-              <table class="tdt-table tdt-table-fit tdt-month-table">
-                <thead>
-                  <tr>
-                    <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('match') : ''}</span></th>
-                    <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('market') : ''}</span></th>
-                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('stake') : ''}</span></th>
-                    <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('odds') : ''}</span></th>
-                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('result') : ''}</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-      `;
-
-      group.rows.forEach(row=>{
-        const result = String(row.result || "pending").toLowerCase();
-        const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
-
-        html += `
-          <tr class="tdt-row ${result}">
-            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
-            <td class="tdt-market">${escapeHtml(row.market || '')}</td>
-            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
-            <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
-            <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
-          </tr>
-        `;
-      });
-
-      html += `
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-
-    html += `</div>`;
-
-    if(tableEl){
-      tableEl.innerHTML = rows.length
-        ? html
-        : '<div class="card">No official TDT results yet.</div>';
-    }
-
-    const set = (id, val)=>{
-      const el = document.getElementById(id);
-      if(el) el.innerText = val;
-    };
-
-    set("tdtProfit", profit.toFixed(2));
-    set("tdtRoi", totalStake ? ((profit / totalStake) * 100).toFixed(1) : 0);
-    set("tdtWinrate", (wins + losses) ? ((wins / (wins + losses)) * 100).toFixed(1) : 0);
-    set("tdtWonLost", `${wins}-${losses}`);
-    set("tdtAvgOdds", resolvedCount ? (totalOdds / resolvedCount).toFixed(2) : 0);
-    set("tdtTotalBets", rows.length);
-    set("tdtBetCount", rows.length);
-
-    if(typeof updateTdtPerformanceBars === "function"){
-      updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
-    }
-  }catch(err){
-    console.error("TDT monthly override failed:", err);
-    if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
-  }
-};
-
-try{
-  if(typeof currentTopTab !== "undefined" && currentTopTab === "tdt"){
-    loadTdtTracker();
-  }
-}catch(e){}
-
-window.restoreVipAccess = restoreVipAccess;
-window.forgotVipPassword = forgotVipPassword;
-
-
-
-/* ===== Final personal tracker TDT-style monthly cards ===== */
-
-function fmtPersonalMonthKey(value){
-  const d = new Date(value);
-  if(Number.isNaN(d.getTime())) return "";
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-}
-
-function fmtPersonalMonthLabel(key){
-  const [y,m] = String(key || "").split("-");
-  if(!y || !m) return "";
-  return new Date(Number(y), Number(m)-1, 1).toLocaleDateString("en-GB",{month:"long", year:"numeric"});
-}
-
-function togglePersonalTrackerMonth(btn){
-  const body = btn ? btn.nextElementSibling : null;
-  const chev = btn ? btn.querySelector(".pt-month-chevron") : null;
-  if(!body) return;
-  const isHidden = body.style.display === "none";
-  body.style.display = isHidden ? "block" : "none";
-  if(chev) chev.innerText = isHidden ? "▼" : "▶";
-}
-
-loadTracker = async function(){
-  const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
-  trackerRowsCache = rows;
-  trackerAllRows = rows;
-
-  addedKeys.clear();
-  rows.forEach(r => addedKeys.add(makeBetKey(r)));
-  wireTrackerFilters();
-
-  let start = parseFloat(document.getElementById("startingBankroll").value || 0);
-  let bankroll = start, profit = 0, wins = 0, losses = 0, totalStake = 0, totalOdds = 0, history = [];
-  let dailyLabels = [];
-  let dayKeys = [];
-
-  rows.forEach(row=>{
-    let p = 0;
-    if(row.result==="won"){ p = Number(row.stake||0) * (Number(row.odds||0)-1); wins++; }
-    if(row.result==="lost"){ p = -Number(row.stake||0); losses++; }
-    profit += p;
-    totalStake += Number(row.stake||0);
-    totalOdds += Number(row.odds||0);
-    bankroll = start + profit;
-
-    const gameDate = row.match_date_date || row.bet_date || row.created_at;
-    const dayKey = fmtDayLabel(gameDate);
-    const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
-    dayKeys.push(dayKey);
-    dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
-    history.push(bankroll);
-  });
-
-  // Month groups newest first
-  const monthMap = new Map();
-  const monthKeys = [];
-  rows.slice().reverse().forEach(row=>{
-    const key = fmtPersonalMonthKey(row.match_date_date || row.bet_date || row.created_at);
-    if(!monthMap.has(key)){
-      monthMap.set(key, { key, rows: [], wins:0, losses:0, settled:0, profit:0 });
-      monthKeys.push(key);
-    }
-    const group = monthMap.get(key);
-    group.rows.push(row);
-
-    const res = String(row.result || "pending").toLowerCase();
-    const p = res==="won" ? Number(row.stake||0) * (Number(row.odds||0)-1)
-            : res==="lost" ? -Number(row.stake||0)
-            : 0;
-    group.profit += p;
-    if(res==="won"){ group.wins++; group.settled++; }
-    else if(res==="lost"){ group.losses++; group.settled++; }
-  });
-
-  const tableEl = document.getElementById("trackerTable");
-  let html = `<div class="pt-month-groups">`;
-
-  monthKeys.forEach((key, idx)=>{
-    const group = monthMap.get(key);
-    const winrate = group.settled ? Math.round((group.wins / group.settled) * 100) : 0;
-    const profitClass = group.profit >= 0 ? "positive" : "negative";
-    const profitSign = group.profit >= 0 ? "+" : "-";
-
-    html += `
-      <div class="pt-month-card">
-        <button class="pt-month-head" type="button" onclick="togglePersonalTrackerMonth(this)">
-          <div class="pt-month-left">
-            <div class="pt-month-title">${escapeHtml(fmtPersonalMonthLabel(key))}</div>
-            <div class="pt-month-sub">${group.rows.length} result${group.rows.length===1?"":"s"} • <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span></div>
-          </div>
-          <div class="pt-month-right">
-            <span class="tdt-day-chip win">Won ${group.wins}</span>
-            <span class="tdt-day-chip loss">Lost ${group.losses}</span>
-            <span class="tdt-day-chip ratio ${tdtWinrateClass(winrate)}">Winrate ${winrate}%</span>
-            <span class="pt-month-chevron">${idx===0 ? "▼" : "▶"}</span>
-          </div>
-        </button>
-        <div class="pt-month-body" style="display:${idx===0 ? "block" : "none"};">
-          <div class="pt-table-wrap">
-            <table class="pt-table">
-              <thead>
-                <tr>
-                  <th class="pt-col-match">Match</th>
-                  <th class="pt-col-market">Market</th>
-                  <th class="pt-col-stake">Stake</th>
-                  <th class="pt-col-odds">Odds</th>
-                  <th class="pt-col-result">Result</th>
-                  <th class="pt-col-profit">Profit</th>
-                </tr>
-              </thead>
-              <tbody>
-    `;
-    group.rows.forEach(row=>{
-      const res = String(row.result || "pending").toLowerCase();
-      const p = res==="won" ? Number(row.stake||0) * (Number(row.odds||0)-1)
-              : res==="lost" ? -Number(row.stake||0)
-              : 0;
-      html += `
-        <tr class="pt-row ${res}">
-          <td class="pt-match">${escapeHtml(row.match || "")}</td>
-          <td class="pt-market">${escapeHtml(row.market || "")}</td>
-          <td class="pt-stake">
-            <input class="pt-input" type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${row.id}',this.value)">
-          </td>
-          <td class="pt-odds">
-            <input class="pt-input pt-input--odds" type="number" step="0.01" value="${Number(row.odds || 0)}" onchange="updateOdds('${row.id}',this.value)">
-          </td>
-          <td class="pt-result">
-            <select class="result-select result-${res}" onchange="updateResult('${row.id}',this.value)">
-              <option value="pending" ${res==="pending"?"selected":""}>pending</option>
-              <option value="won" ${res==="won"?"selected":""}>won</option>
-              <option value="lost" ${res==="lost"?"selected":""}>lost</option>
-              <option value="delete">🗑 delete</option>
-            </select>
-          </td>
-          <td class="pt-profit"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-        </tr>
-      `;
-    });
-
-    html += `
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    `;
-  });
-
-  html += `</div>`;
-  if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No tracker bets yet.</div>';
-
-  bankrollElem.innerText = bankroll.toFixed(2);
-  profitElem.innerText = profit.toFixed(2);
-  roiElem.innerText = totalStake ? ((profit/totalStake)*100).toFixed(1) : 0;
-  winrateElem.innerText = (wins+losses) ? ((wins/(wins+losses))*100).toFixed(1) : 0;
-
-  const wonLostElem = document.getElementById("wonLost");
-  if(wonLostElem) wonLostElem.innerText = `${wins}-${losses}`;
-
-  const totalElem = document.getElementById("totalBets");
-  if(totalElem) totalElem.innerText = rows.length;
-
-  const totalStakedCard = document.getElementById("totalStakedCard");
-  if(totalStakedCard) totalStakedCard.innerText = totalStake.toFixed(2);
-
-  avgOddsElem.innerText = rows.length ? (totalOdds/rows.length).toFixed(2) : 0;
-
-  profitCard.classList.remove("glow-green","glow-red");
-  if(profit > 0) profitCard.classList.add("glow-green");
-  if(profit < 0) profitCard.classList.add("glow-red");
-
-  renderDailyChart(history, dailyLabels, dayKeys);
-
-  const countElem = document.getElementById("betCount");
-  if(countElem) countElem.textContent = String(rows.length);
-
-  const monthMapProfit = {};
-  const monthStakeMap = {};
-  rows.forEach(r=>{
-    const d = new Date(r.created_at);
-    const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
-    monthMapProfit[key] = (monthMapProfit[key]||0) + rowProfit(r);
-    monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
-  });
-
-  const breakdownKeys = Object.keys(monthMapProfit).sort();
-  const monthLabels = breakdownKeys.map(k=>{
-    const [y,m]=k.split("-");
-    return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
-  });
-  const monthlyProfit = breakdownKeys.map(k=> monthMapProfit[k]);
-  const monthlyROI = breakdownKeys.map(k=>{
-    const stake = monthStakeMap[k] || 0;
-    return stake ? (monthMapProfit[k] / stake) * 100 : 0;
-  });
-
-  renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
-
-  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
-  breakdownKeys.forEach((k,i)=>{
-    const p = monthlyProfit[i];
-    const r = monthlyROI[i];
-    breakdownHTML += `<tr>
-      <td>${monthLabels[i]}</td>
-      <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
-      <td>${r.toFixed(1)}%</td>
-    </tr>`;
-  });
-  breakdownHTML += "</table>";
-  const monthlyTableEl = document.getElementById("monthlyTable");
-  if(monthlyTableEl) monthlyTableEl.innerHTML = breakdownHTML;
 };
