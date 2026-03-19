@@ -2587,3 +2587,48 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
+
+
+
+/* ===== VIP RESTORE MESSAGE OVERRIDE ===== */
+forceVipRefreshNow = async function(emailFromInput){
+  const email = normalizeVipEmail(
+    emailFromInput ||
+    (vipEmailEl?.value || "") ||
+    (document.getElementById("vipEmail")?.value || "") ||
+    (localStorage.getItem("vip_email") || "")
+  );
+
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
+    return false;
+  }
+
+  if(vipErrorEl) vipErrorEl.textContent = "";
+  localStorage.setItem("vip_email", email);
+
+  const active = await checkVIP();
+
+  if(active){
+    if(vipErrorEl) vipErrorEl.textContent = "";
+    closeVipModal();
+    await loadBets();
+    if(typeof loadTracker === "function") await loadTracker();
+    if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
+    return true;
+  }
+
+  if(vipErrorEl) vipErrorEl.textContent = "This email has no active VIP subscription.";
+  return false;
+};
+
+if (vipRestoreEl) {
+  vipRestoreEl.onclick = async (e) => {
+    e.preventDefault();
+    await forceVipRefreshNow(
+      (document.getElementById("vipEmail")?.value || "") ||
+      (vipEmailEl?.value || "")
+    );
+  };
+}
+/* ===== END VIP RESTORE MESSAGE OVERRIDE ===== */
