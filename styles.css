@@ -3541,3 +3541,17 @@ color:#d7e6ff !important;
   }
   .tracker-match-cell{width:34%;}
 }
+/* 🔥 MOBILE ONLY - HIDE PROFIT COLUMN */
+@media (max-width: 768px) {
+
+  /* hide header */
+  th:last-child {
+    display: none !important;
+  }
+
+  /* hide profit cells */
+  td:last-child {
+    display: none !important;
+  }
+
+}
