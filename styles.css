@@ -365,31 +365,28 @@ th{text-align:left}
 
 /* ===== Mobile Fit Tracker Table ===== */
 @media (max-width: 600px){
+@media (max-width: 600px){
+
+  #trackerTable{
+    transform: scale(0.85);
+    transform-origin: top left;
+    width:118%;
+  }
 
   #trackerTable th,
   #trackerTable td{
-    font-size:12px;
-    padding:6px 2px;
-  }
-
-  .date-col{
-    width:60px;
     font-size:11px;
+    padding:4px 2px;
   }
 
   #trackerTable input[type="number"]{
-    width:55px;
+    width:50px;
   }
 
   #trackerTable select{
-    width:75px;
-    min-width:75px;
+    width:65px;
+    min-width:65px;
     font-size:11px;
-    padding:3px;
-  }
-
-  .profit-col{
-    font-size:12px;
   }
 
 }
@@ -3485,7 +3482,3 @@ color:#d7e6ff !important;
     padding:2px 4px;
   }
 }
-
-
-/* tracker cleanup */
-.date-col{display:none;}
