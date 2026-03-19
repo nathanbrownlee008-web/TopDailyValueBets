@@ -1595,40 +1595,46 @@ function renderDailyChart(history, labels, dayKeys){
   if(dailyChart) dailyChart.destroy();
 
   const safeHistory = Array.isArray(history) ? history : [];
-  const safeLabels = Array.isArray(labels) ? labels : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
-  const ctx = el.getContext("2d");
 
-  const pointRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 3 : 0;
+  const compressedLabels = [];
+  const compressedHistory = [];
+
+  safeHistory.forEach((value, i)=>{
+    const day = safeDayKeys[i];
+    if(!day) return;
+
+    const lastIdx = compressedLabels.length - 1;
+    if(lastIdx >= 0 && compressedLabels[lastIdx] === day){
+      compressedHistory[lastIdx] = value; // keep only end-of-day bankroll
+    }else{
+      compressedLabels.push(day);
+      compressedHistory.push(value);
+    }
   });
-  const pointHoverRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 5 : 0;
+
+  const prettyLabels = compressedLabels.map(day=>{
+    const dt = new Date(`${day}T12:00:00`);
+    if(Number.isNaN(dt.getTime())) return day;
+    return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
   });
-  const pointHitRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 14 : 0;
-  });
+
+  const ctx = el.getContext("2d");
 
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels:safeLabels,
+      labels:prettyLabels,
       datasets:[{
-        data:safeHistory,
+        data:compressedHistory,
         tension:0.28,
         fill:true,
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:pointRadius,
-        pointHoverRadius:pointHoverRadius,
-        pointHitRadius:pointHitRadius,
+        pointRadius:3,
+        pointHoverRadius:5,
+        pointHitRadius:14,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
@@ -1640,7 +1646,7 @@ function renderDailyChart(history, labels, dayKeys){
         legend:{display:false},
         tooltip:{
           callbacks:{
-            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
+            title:(items)=> compressedLabels[items?.[0]?.dataIndex ?? 0] || "",
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
