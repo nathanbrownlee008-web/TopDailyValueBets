@@ -3536,3 +3536,162 @@ body.layout-compact .vip-bar{
     line-height:1.04;
   }
 }
+
+
+
+/* Final mobile tidy: smaller emoji result + date under market */
+#trackerTable .pt-market-main{
+  line-height:1.08;
+  overflow-wrap:anywhere;
+}
+
+#trackerTable .pt-row-date{
+  margin-top:6px;
+  font-size:11px;
+  opacity:.72;
+  line-height:1.05;
+}
+
+#trackerTable .pt-result .result-select{
+  width:58px !important;
+  min-width:58px !important;
+  max-width:58px !important;
+  padding:6px 2px;
+  font-size:18px;
+  line-height:1;
+  text-align:center;
+}
+
+#trackerTable .pt-col-result{
+  width:13%;
+}
+
+@media (max-width:600px){
+  #trackerTable .pt-col-match{width:28%;}
+  #trackerTable .pt-col-market{width:26%;}
+  #trackerTable .pt-col-stake{width:14%;}
+  #trackerTable .pt-col-odds{width:13%;}
+  #trackerTable .pt-col-result{width:12%;}
+
+  #trackerTable .pt-result .result-select{
+    width:52px !important;
+    min-width:52px !important;
+    max-width:52px !important;
+    padding:5px 1px;
+    font-size:17px;
+  }
+
+  #trackerTable .pt-row-date{
+    font-size:10px;
+    margin-top:5px;
+  }
+}
+
+
+
+/* Tracker better mobile table: date under match, market + odds */
+.tracker-better-table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+
+.tracker-match-cell{
+  line-height:1.08;
+  overflow-wrap:anywhere;
+}
+
+.tracker-match-main{
+  font-weight:800;
+  font-size:14px;
+}
+
+.tracker-date-sub{
+  font-size:11px;
+  opacity:.65;
+  margin-top:3px;
+}
+
+.tracker-market-cell{
+  overflow-wrap:anywhere;
+  line-height:1.12;
+}
+
+#trackerTable .odds-input{
+  width:60px;
+  text-align:center;
+}
+
+#trackerTable .tracker-better-table th:nth-child(1),
+#trackerTable .tracker-better-table td:nth-child(1){ width:32%; }
+#trackerTable .tracker-better-table th:nth-child(2),
+#trackerTable .tracker-better-table td:nth-child(2){ width:23%; }
+#trackerTable .tracker-better-table th:nth-child(3),
+#trackerTable .tracker-better-table td:nth-child(3){ width:12%; }
+#trackerTable .tracker-better-table th:nth-child(4),
+#trackerTable .tracker-better-table td:nth-child(4){ width:12%; }
+#trackerTable .tracker-better-table th:nth-child(5),
+#trackerTable .tracker-better-table td:nth-child(5){ width:13%; }
+#trackerTable .tracker-better-table th:nth-child(6),
+#trackerTable .tracker-better-table td:nth-child(6){ width:8%; }
+
+@media (max-width:600px){
+  #trackerTable .tracker-better-table th,
+  #trackerTable .tracker-better-table td{
+    font-size:12px;
+    padding:6px 3px;
+  }
+
+  #trackerTable .tracker-better-table th:nth-child(1),
+  #trackerTable .tracker-better-table td:nth-child(1){ width:34%; }
+  #trackerTable .tracker-better-table th:nth-child(2),
+  #trackerTable .tracker-better-table td:nth-child(2){ width:23%; }
+  #trackerTable .tracker-better-table th:nth-child(3),
+  #trackerTable .tracker-better-table td:nth-child(3){ width:12%; }
+  #trackerTable .tracker-better-table th:nth-child(4),
+  #trackerTable .tracker-better-table td:nth-child(4){ width:12%; }
+  #trackerTable .tracker-better-table th:nth-child(5),
+  #trackerTable .tracker-better-table td:nth-child(5){ width:19%; }
+
+  #trackerTable .tracker-better-table th:nth-child(6),
+  #trackerTable .tracker-better-table td:nth-child(6){
+    display:none;
+  }
+
+  #trackerTable input[type="number"]{
+    width:48px;
+    padding:4px 2px;
+    font-size:11px;
+  }
+
+  #trackerTable .odds-input{
+    width:48px;
+  }
+
+  #trackerTable select{
+    min-width:64px;
+    width:64px;
+    font-size:11px;
+    padding:3px 4px;
+  }
+
+  .tracker-match-main{
+    font-size:13px;
+  }
+
+  .tracker-date-sub{
+    font-size:10px;
+  }
+
+  .tracker-market-cell{
+    font-size:11px;
+  }
+}
+
+
+/* clean tracker table mobile */
+@media (max-width:600px){
+  .myt-table .profit-col{
+    display:none !important;
+  }
+}
