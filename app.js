@@ -736,31 +736,35 @@ function _applyTrackerFilters(rows){
 }
 
 function _buildTrackerTableHTML(rows){
-  let html = `<table>
+  let html = `<table class="tracker-better-table">
     <tr>
-      <th>Date</th>
       <th>Match</th>
+      <th>Market</th>
       <th>Stake</th>
+      <th>Odds</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
     </tr>`;
   (rows || []).forEach(row=>{
-    const stakeVal = row.stake ?? 0;
+    const stakeVal = Number(row.stake ?? 0);
+    const oddsVal = Number(row.odds ?? 0);
     const res = row.result || "pending";
     let profit = 0;
-    if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
-    if(res === "lost") profit = (row.profit != null ? row.profit : -row.stake);
-    if(res === "pending") profit = 0;
+    if(res === "won") profit = (row.profit != null ? Number(row.profit) : stakeVal * (oddsVal - 1));
+    if(res === "lost") profit = (row.profit != null ? Number(row.profit) : -stakeVal);
 
     const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
-    const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
-
-    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
+    const profitText = `£${profit.toFixed(2)}`;
+    const dateLabel = fmtDayLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
 
     html += `<tr>
-      <td class="date-col">${dateLabel}</td>
-      <td>${row.match || ""}</td>
+      <td class="tracker-match-cell">
+        <div class="tracker-match-main">${escapeHtml(row.match || "")}</div>
+        <div class="tracker-date-sub">${escapeHtml(dateLabel)}</div>
+      </td>
+      <td class="tracker-market-cell">${escapeHtml(row.market || "")}</td>
       <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
+      <td><input class="odds-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
           <option value="pending" ${res==="pending"?"selected":""}>pending</option>
@@ -786,6 +790,22 @@ function _renderFilteredTrackerTable(){
 
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
+}
+
+
+function bindTrackerTableInputs(){
+  const tableEl = document.getElementById("trackerTable");
+  if(!tableEl) return;
+
+  tableEl.querySelectorAll('input[data-field="stake"]').forEach(el=>{
+    el.addEventListener('change', ()=> updateStake(el.dataset.id, el.value));
+  });
+  tableEl.querySelectorAll('input[data-field="odds"]').forEach(el=>{
+    el.addEventListener('change', ()=> updateOdds(el.dataset.id, el.value));
+  });
+  tableEl.querySelectorAll('select[data-field="result"]').forEach(el=>{
+    el.addEventListener('change', ()=> updateResult(el.dataset.id, el.value));
+  });
 }
 
 let _filtersWired = false;
@@ -1039,8 +1059,13 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
+<td class="tracker-match-cell">
+  <div class="tracker-match-main">${escapeHtml(row.match || "")}</div>
+  <div class="tracker-date-sub">${fmtDayLabel(gameDate)}</div>
+</td>
+<td class="tracker-market-cell">${escapeHtml(row.market || "")}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td><input class="odds-input" type="number" step="0.01" value="${Number(row.odds || 0)}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
 <select 
 class="result-select result-${row.result}" 
@@ -1057,7 +1082,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table class='tracker-better-table'><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -1199,11 +1224,12 @@ async function updateOdds(id,val){
 }
 
 async function updateStake(id,val){
-
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
-  writeTrackerRows(updated);
   const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+  }
   if(row && isAdminSyncEnabled()){
     try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
   }
@@ -1211,19 +1237,21 @@ async function updateStake(id,val){
 }
 
 async function updateResult(id,val){
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
     const row = rows.find(r => String(r.id)===String(id));
-    writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
+    try{ await deleteTrackerRowById(id); }catch(e){ console.error(e); }
     if(row && isAdminSyncEnabled() && row.sync_id){
       try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
     }
     loadBets();
   }else{
     const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
-    writeTrackerRows(updated);
     const row = updated.find(r => String(r.id)===String(id));
+    if(row){
+      try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+    }
     if(row && isAdminSyncEnabled()){
       try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
     }
@@ -2639,8 +2667,8 @@ loadTracker = async function(){
               : 0;
       html += `
         <tr class="pt-row ${res}">
-          <td class="pt-match"><div class="pt-match-main">${escapeHtml(row.match || "")}</div><div class="pt-row-date">${escapeHtml(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at))}</div></td>
-          <td class="pt-market"><div class="pt-market-main">${escapeHtml(row.market || "")}</div></td>
+          <td class="pt-match">${escapeHtml(row.match || "")}</td>
+          <td class="pt-market"><div class="pt-market-main">${escapeHtml(row.market || "")}</div><div class="pt-row-date">${escapeHtml(fmtDayLabel(row.match_date_date || row.bet_date || row.created_at))}</div></td>
           <td class="pt-stake">
             <input class="pt-input" type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${row.id}',this.value)">
           </td>
@@ -2733,44 +2761,3 @@ loadTracker = async function(){
   const monthlyTableEl = document.getElementById("monthlyTable");
   if(monthlyTableEl) monthlyTableEl.innerHTML = breakdownHTML;
 };
-
-
-async function syncTrackerToCloud(rows){
-  const email = (localStorage.getItem("vip_email")||"").trim();
-  if(!email) return;
-  try{
-    await client.from("bet_tracker").delete().eq("user_email",email);
-    const payload = rows.map(r=>({
-      user_email:email,
-      match:r.match,
-      market:r.market,
-      odds:r.odds,
-      stake:r.stake,
-      result:r.result,
-      created_at:r.created_at
-    }));
-    if(payload.length){
-      await client.from("bet_tracker").insert(payload);
-    }
-  }catch(e){console.log("sync error",e);}
-}
-
-async function loadTrackerFromCloud(){
-  const email=(localStorage.getItem("vip_email")||"").trim();
-  if(!email) return;
-  try{
-    const {data}=await client.from("bet_tracker").select("*").eq("user_email",email);
-    if(data && data.length){
-      const rows=data.map(r=>({
-        id:"cloud_"+Math.random().toString(36).slice(2,9),
-        match:r.match,
-        market:r.market,
-        odds:r.odds,
-        stake:r.stake,
-        result:r.result,
-        created_at:r.created_at
-      }));
-      writeTrackerRows(rows);
-    }
-  }catch(e){console.log("cloud load error",e);}
-}
