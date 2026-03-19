@@ -3484,10 +3484,20 @@ color:#d7e6ff !important;
 }
 
 
-/* FINAL FORCE: HIDE PROFIT COLUMN ON MOBILE */
+/* FORCE HIDE TRACKER PROFIT COLUMN ON MOBILE */
 @media (max-width:600px){
-  th.profit-col,
-  td.profit-col{
+  #trackerTable .profit-col,
+  #trackerTable th.profit-col,
+  #trackerTable td.profit-col,
+  #trackerTable table th.profit-col,
+  #trackerTable table td.profit-col,
+  #trackerTable .myt-table th.profit-col,
+  #trackerTable .myt-table td.profit-col{
     display:none !important;
+    width:0 !important;
+    max-width:0 !important;
+    padding:0 !important;
+    border:none !important;
+    overflow:hidden !important;
   }
 }
