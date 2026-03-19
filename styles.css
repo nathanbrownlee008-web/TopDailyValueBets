@@ -3530,3 +3530,25 @@ color:#d7e6ff !important;
   }
 
 }
+/* --- Mobile tracker layout improvement --- */
+@media (max-width:600px){
+
+  /* hide market column */
+  #trackerTable th:nth-child(3),
+  #trackerTable td:nth-child(3){
+    display:none !important;
+  }
+
+  /* stack match nicely */
+  #trackerTable td:nth-child(2){
+    line-height:1.2;
+  }
+
+  /* shrink text a little so table fits */
+  #trackerTable th,
+  #trackerTable td{
+    font-size:12px;
+    padding:6px 3px;
+  }
+
+}
