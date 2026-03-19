@@ -265,9 +265,36 @@ function currentVipEmail(){
 function isAdminSyncEnabled(){
   return currentVipEmail() === ADMIN_SYNC_EMAIL;
 }
-function refreshAdminBadgeUI(){
-  const badges = document.querySelectorAll('[data-admin-badge="1"]');
-  badges.forEach(el=>{ el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none"; });
+async function checkVIP(){
+  const email = (localStorage.getItem('vip_email')||"").trim();
+
+  if(!email){
+    vipActive = false;
+    setVipUI(false,"");
+    refreshAdminBadgeUI();
+    return false;
+  }
+
+  try{
+    const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+    const j = await r.json();
+
+    vipActive = !!j.active;
+
+    if(vipActive){
+      setVipUI(true,email);
+    }else{
+      setVipUI(false,"");
+    }
+
+    refreshAdminBadgeUI();
+    return vipActive;
+  }catch(e){
+    vipActive = false;
+    setVipUI(false,"");
+    refreshAdminBadgeUI();
+    return false;
+  }
 }
 function makeSyncId(){
   return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
