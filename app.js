@@ -7,11 +7,6 @@ const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 // VIP
 // =========================
 
-function normalizeVipEmail(email){
-  return String(email || "").trim().toLowerCase();
-}
-
-
 function setVipUI(active, email){
   vipActive = !!active;
 
@@ -59,41 +54,29 @@ function closeVipModal(){
 }
 
 async function checkVIP(){
-  const email = normalizeVipEmail(localStorage.getItem('vip_email') || "");
+  const email=(localStorage.getItem('vip_email')||"").trim();
   if(!email){
-    vipActive = false;
-    setVipUI(false, "");
+    vipActive=false;
+    setVipUI(false,"");
     return false;
   }
-
   try{
-    const { data, error } = await client.rpc('check_vip_email', { p_email: email });
-    if(!error){
-      vipActive = !!data;
-      setVipUI(vipActive, email);
-      return vipActive;
-    }
-  }catch(e){
-    // fall through to API fallback
-  }
-
-  try{
-    const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
-    const j = await r.json();
-    vipActive = !!j.active;
-    setVipUI(vipActive, email);
+    const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+    const j=await r.json();
+    vipActive=!!j.active;
+    setVipUI(vipActive,email);
     return vipActive;
   }catch(e){
-    vipActive = false;
-    if(vipStatusEl) vipStatusEl.textContent = "VIP status check failed";
-    setVipUI(false, email);
+    vipActive=false;
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
+    setVipUI(false,email);
     return false;
   }
 }
 
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
-  const email=normalizeVipEmail(vipEmailEl?.value||"");
+  const email=(vipEmailEl?.value||"").trim();
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
@@ -119,9 +102,9 @@ async function startCheckout(plan){
 
 
 async function restoreVipAccess(){
-  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const email = (vipEmailEl?.value || "").trim();
 
-  if(!email || !email.includes("@")){
+  if(!email){
     if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
     return;
   }
@@ -137,6 +120,7 @@ async function restoreVipAccess(){
     if(active){
       closeVipModal();
       await loadBets();
+      location.reload();
       return;
     }
 
@@ -314,8 +298,8 @@ const profitCard=document.getElementById("profitCard");
 // Track which feed items have been added to the tracker (prevents duplicate clicks + changes button UI)
 const addedKeys = new Set();
 
-const FREE_VISIBLE_COUNT = 5;
-const FREE_DELAY_MINUTES = 0;
+const FREE_VISIBLE_COUNT = 3;
+const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
 function makeBetKey(row){
@@ -335,17 +319,34 @@ function getBetPublicState(row, idx){
     return { locked:true, reason:"vip-limit", unlocksAt:null, minutesLeft:0 };
   }
 
+  const createdRaw = row?.created_at || row?.bet_date;
+  const createdAt = createdRaw ? new Date(createdRaw) : null;
+  if(!createdAt || Number.isNaN(createdAt.getTime())){
+    return { locked:false, reason:"public", unlocksAt:null, minutesLeft:0 };
+  }
+
+  const unlocksAt = new Date(createdAt.getTime() + FREE_DELAY_MINUTES * 60 * 1000);
+  const remainingMs = unlocksAt.getTime() - Date.now();
+  const minutesLeft = Math.max(1, Math.ceil(remainingMs / 60000));
+  if(remainingMs > 0){
+    return { locked:true, reason:"delay", unlocksAt, minutesLeft };
+  }
+
   return { locked:false, reason:"public", unlocksAt:null, minutesLeft:0 };
 }
 
 function teaserCopyForLockedBet(row, state){
   const valueRaw = row?.value_pct ?? row?.value_percent ?? row?.value_percentage ?? row?.value;
   const valueText = valueRaw != null ? `${Number(valueRaw).toFixed(1)}% value` : 'High-value edge';
+  if(state?.reason === 'delay'){
+    return `Free unlock in ${state.minutesLeft} min • ${valueText}`;
+  }
   return `VIP only • ${valueText} • market hidden`;
 }
 
 function formatUnlockLabel(state){
-  return 'VIP only';
+  if(!state?.unlocksAt) return 'VIP only';
+  return `Unlocks ${state.unlocksAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
 }
 
 // Top navigation tabs
@@ -633,35 +634,44 @@ function _applyTrackerFilters(rows){
 }
 
 function _buildTrackerTableHTML(rows){
-      let html="<table class='tracker-mobile-neat'><tr><th class='date-col hidden-date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
-      (rows||[]).forEach(row=>{
-        const gameDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
-        const p = row.result==='won' ? (Number(row.stake||0) * (Number(row.odds||0)-1)) : (row.result==='lost' ? -Number(row.stake||0) : 0);
-        html += `<tr>
-<td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-<td class="tracker-match-rich">
-  <div class="tracker-match-main">${row.match || ""}</div>
-  <div class="tracker-market-sub">${row.market || ""}</div>
-  <div class="tracker-odds-line">
-    <span>Odds</span>
-    <input class="tracker-odds-mini" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)">
-  </div>
-</td>
-<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
-<td>
-<select class="result-select result-${row.result}" onchange="updateResult('${row.id}',this.value)">
-<option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
-<option value="won" ${row.result==="won"?"selected":""}>won</option>
-<option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
-<option value="delete">🗑 delete</option>
-</select>
-</td>
-<td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-</tr>`;
-      });
-      html += "</table>";
-      return html;
-    }
+  let html = `<table>
+    <tr>
+      <th>Date</th>
+      <th>Match</th>
+      <th>Stake</th>
+      <th>Result</th>
+      <th class="profit-col">Profit</th>
+    </tr>`;
+  (rows || []).forEach(row=>{
+    const stakeVal = row.stake ?? 0;
+    const res = row.result || "pending";
+    let profit = 0;
+    if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
+    if(res === "lost") profit = (row.profit != null ? row.profit : -row.stake);
+    if(res === "pending") profit = 0;
+
+    const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
+    const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
+
+    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
+
+    html += `<tr>
+      <td class="date-col">${dateLabel}</td>
+      <td>${row.match || ""}</td>
+      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
+      <td>
+        <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
+          <option value="pending" ${res==="pending"?"selected":""}>pending</option>
+          <option value="won" ${res==="won"?"selected":""}>won</option>
+          <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+        </select>
+      </td>
+      <td class="profit-col ${profitClass}">${profitText}</td>
+    </tr>`;
+  });
+  html += `</table>`;
+  return html;
+}
 
 function _renderFilteredTrackerTable(){
   const tableEl = document.getElementById("trackerTable");
@@ -927,15 +937,7 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-<td class="tracker-match-rich">
-  <div class="tracker-match-main">${row.match}</div>
-  <div class="tracker-market-sub">${row.market || ""}</div>
-  <div class="tracker-odds-line">
-    <span>Odds</span>
-    <input class="tracker-odds-mini" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)">
-  </div>
-</td>
+<td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td>
 <select 
@@ -953,7 +955,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table class='tracker-mobile-neat'><tr><th class='date-col hidden-date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
