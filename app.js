@@ -1170,18 +1170,12 @@ if(countElem) countElem.textContent = String(rows.length);
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
-const monthWinsMap = {};
-const monthLossesMap = {};
-const monthBetsMap = {};
 
 rows.forEach(r=>{
   const d = new Date(r.created_at);
   const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
-  monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
-  monthBetsMap[key] = (monthBetsMap[key]||0) + 1;
-  if(r.result === "won") monthWinsMap[key] = (monthWinsMap[key]||0) + 1;
-  if(r.result === "lost") monthLossesMap[key] = (monthLossesMap[key]||0) + 1;
+  monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
 });
 
 const monthKeys = Object.keys(monthMap).sort();
@@ -1197,25 +1191,15 @@ const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
-const monthlyBets = monthKeys.map(k=> monthBetsMap[k] || 0);
-const monthlyWinRate = monthKeys.map(k=>{
-  const wins = monthWinsMap[k] || 0;
-  const losses = monthLossesMap[k] || 0;
-  return (wins + losses) ? (wins / (wins + losses)) * 100 : 0;
-});
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Total Bets</th><th>Win Rate</th><th>Profit</th><th>ROI</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
-    const b = monthlyBets[i];
-    const w = monthlyWinRate[i];
     breakdownHTML += `<tr>
       <td>${monthLabels[i]}</td>
-      <td>${b}</td>
-      <td>${w.toFixed(1)}%</td>
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
     </tr>`;
@@ -2606,66 +2590,179 @@ try{
 
 
 
-/* ===== HARD RESTORE VIP MESSAGE PATCH ===== */
-(function(){
-  function bindRestoreVipMessage(){
-    const restoreBtn = document.getElementById("vipRestore");
-    const emailInput = document.getElementById("vipEmail");
-    const errorEl = document.getElementById("vipError");
-    if(!restoreBtn || !emailInput || !errorEl) return false;
-    if(restoreBtn.dataset.restoreBound === "1") return true;
+/* ===== KEEP FLAT GRAPH LABELS + SAFE MARKETS % LABELS ===== */
 
-    restoreBtn.dataset.restoreBound = "1";
+/* Force Daily graph labels flat */
+renderDailyChart = (function(originalRenderDailyChart){
+  return function(history, labels, dayKeys){
+    const el = document.getElementById("chart");
+    if(!el) return;
+    if(typeof dailyChart !== "undefined" && dailyChart) dailyChart.destroy();
 
-    restoreBtn.addEventListener("click", async function(e){
-      e.preventDefault();
-      e.stopPropagation();
+    if(typeof __buildSmartDailySeries === "function"){
+      const series = __buildSmartDailySeries(history, dayKeys);
+      const ctx = el.getContext("2d");
 
-      const email = String(emailInput.value || "").trim().toLowerCase();
-
-      if(!email || !email.includes("@")){
-        errorEl.textContent = "Enter your email first.";
-        return false;
-      }
-
-      errorEl.textContent = "Checking VIP status...";
-
-      try{
-        const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
-        const j = await r.json();
-
-        if(j && j.active){
-          localStorage.setItem("vip_email", email);
-          errorEl.textContent = "";
-          if(typeof checkVIP === "function") await checkVIP();
-          if(typeof closeVipModal === "function") closeVipModal();
-          if(typeof loadBets === "function") await loadBets();
-          if(typeof loadTracker === "function") await loadTracker();
-          if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
-          return true;
-        } else {
-          errorEl.textContent = "This email has no active VIP subscription.";
-          return false;
+      dailyChart = new Chart(ctx,{
+        type:"line",
+        data:{
+          labels: series.labels,
+          datasets:[{
+            data: series.values,
+            tension: 0.28,
+            fill: true,
+            borderWidth: 3,
+            borderColor: "rgba(34,197,94,0.95)",
+            backgroundColor: "rgba(34,197,94,0.14)",
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            pointHitRadius: 14,
+            pointBackgroundColor: "rgba(34,197,94,1)"
+          }]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          interaction:{mode:"nearest", intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              callbacks:{
+                title:(items)=>{
+                  const i = items?.[0]?.dataIndex ?? 0;
+                  return (typeof __graphFullLabel === "function") ? __graphFullLabel(series.rawKeys[i]) : (series.rawKeys[i] || "");
+                },
+                label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
+              }
+            }
+          },
+          scales:{
+            x:{
+              ticks:{
+                color:"rgba(226,232,240,0.78)",
+                autoSkip:false,
+                maxRotation:0,
+                minRotation:0,
+                padding:6
+              },
+              grid:{color:"rgba(255,255,255,0.04)"}
+            },
+            y:{
+              ticks:{
+                color:"rgba(226,232,240,0.78)",
+                callback:(v)=>`£${Number(v).toFixed(0)}`
+              },
+              grid:{color:"rgba(255,255,255,0.05)"}
+            }
+          }
         }
-      } catch(err){
-        errorEl.textContent = "Could not check VIP right now.";
-        return false;
+      });
+      return;
+    }
+
+    return originalRenderDailyChart ? originalRenderDailyChart(history, labels, dayKeys) : undefined;
+  };
+})(typeof renderDailyChart === "function" ? renderDailyChart : null);
+
+/* Force Markets 0% labels to stay off the market names */
+renderMarketChart = function(labels, winPct, totals){
+  const el = document.getElementById("marketChart");
+  if(!el) return;
+  if(typeof marketChart !== "undefined" && marketChart) marketChart.destroy();
+
+  const safeLabels = Array.isArray(labels) ? labels : [];
+  const safePct = Array.isArray(winPct) ? winPct.map(v => Number(v || 0)) : [];
+  const safeTotals = Array.isArray(totals) ? totals : [];
+
+  const ctx = el.getContext("2d");
+  marketChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: safeLabels,
+      datasets: [{
+        data: safePct,
+        borderWidth: 0,
+        borderRadius: 10,
+        barThickness: 18,
+        backgroundColor: safePct.map(v=>{
+          if(v >= 55) return "rgba(34,197,94,0.85)";
+          if(v >= 40) return "rgba(245,158,11,0.85)";
+          return "rgba(239,68,68,0.85)";
+        }),
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: { left: 8, right: 14 }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx)=>{
+              const i = ctx.dataIndex;
+              const pct = Number(ctx.raw || 0).toFixed(0) + "%";
+              const t = safeTotals[i] ? safeTotals[i] : { bets: 0, wins: 0, losses: 0 };
+              return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          min: 0,
+          max: 100,
+          ticks: { display: false },
+          grid: { display: false, drawBorder: false }
+        },
+        y: {
+          ticks: {
+            color: "rgba(229,231,235,0.85)",
+            font: { weight: 800 }
+          },
+          grid: { display: false, drawBorder: false }
+        }
+      },
+      animation: { duration: 250 }
+    },
+    plugins: [{
+      id: "pctLabelsSafeFinal",
+      afterDatasetsDraw(chart){
+        const {ctx, chartArea, scales} = chart;
+        const meta = chart.getDatasetMeta(0);
+        const xScale = scales.x;
+
+        ctx.save();
+        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+
+        meta.data.forEach((bar, i)=>{
+          const v = Number(safePct[i] || 0);
+          const txt = `${Math.round(v)}%`;
+
+          if(v >= 14){
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            ctx.fillText(txt, bar.x - 12, bar.y);
+            return;
+          }
+
+          const safeX = Math.max(xScale.getPixelForValue(0) + 10, chartArea.left + 10);
+
+          ctx.fillStyle = v > 0 ? "rgba(229,231,235,0.92)" : "rgba(248,113,113,0.95)";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText(txt, safeX, bar.y);
+        });
+
+        ctx.restore();
       }
-    }, true);
+    }]
+  });
+};
 
-    return true;
-  }
+/* ===== END KEEP FLAT GRAPH LABELS + SAFE MARKETS % LABELS ===== */
 
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", bindRestoreVipMessage);
-  } else {
-    bindRestoreVipMessage();
-  }
-
-  let tries = 0;
-  const iv = setInterval(() => {
-    tries++;
-    if(bindRestoreVipMessage() || tries > 20) clearInterval(iv);
-  }, 500);
-})();
-/* ===== END HARD RESTORE VIP MESSAGE PATCH ===== */
