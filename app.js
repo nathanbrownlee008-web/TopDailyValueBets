@@ -153,14 +153,22 @@ function clearVipState(){
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
   const email=(vipEmailEl?.value||"").trim();
+  const password=(vipPasswordEl?.value||"").trim();
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  localStorage.setItem('vip_email',email);
+  if(!password || password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent="Enter your VIP password (at least 6 characters).";
+    return;
+  }
   try{
+    await ensureVipPasswordAccount(email, password);
+    localStorage.setItem('vip_email',email);
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
+    if(vipRestoreEl) vipRestoreEl.disabled=true;
+    if(vipForgotEl) vipForgotEl.disabled=true;
     const r=await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -173,6 +181,8 @@ async function startCheckout(plan){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
+    if(vipRestoreEl) vipRestoreEl.disabled=false;
+    if(vipForgotEl) vipForgotEl.disabled=false;
   }
 }
 
@@ -261,6 +271,9 @@ const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
+const vipPasswordEl = document.getElementById("vipPassword");
+const vipRestoreEl = document.getElementById("vipRestore");
+const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -537,6 +550,8 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
+if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
@@ -1012,7 +1027,9 @@ function renderVipPromoChart(rows){
   vipPromoChart = new Chart(canvas.getContext('2d'), {
     type:'line',
     data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:(ctx)=>{ const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0; if(len <= 1) return len ? 3 : 0; return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0; } }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{
+            padding:6, maxTicksLimit:6 } }, y:{ ticks:{
+            padding:6, callback:(v)=> `£${v}` } } } }
   });
 }
 
@@ -1661,11 +1678,13 @@ function renderDailyChart(history, labels, dayKeys){
       },
       scales:{
         x:{
-          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
+          ticks:{
+            padding:6,color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:0, minRotation:0},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
           ticks:{
+            padding:6,
             color:"rgba(226,232,240,0.78)",
             callback:(v)=>`£${Number(v).toFixed(0)}`
           },
@@ -1711,7 +1730,8 @@ function renderMonthlyChart(profits, roi, labels){
         y:{
           min: Math.floor(minROI - pad),
           max: Math.ceil(maxROI + pad),
-          ticks:{callback:(v)=>v+"%"},
+          ticks:{
+            padding:6,callback:(v)=>v+"%"},
           grid:{color:"rgba(255,255,255,0.05)"}
         }
       }
@@ -1781,11 +1801,13 @@ function renderMarketChart(labels, winPct, totals){
         x: {
           min: 0,
           max: 100,
-          ticks: { display: false },
+          ticks: {
+            padding:6, display: false },
           grid: { display: false, drawBorder: false }
         },
         y: {
-          ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
+          ticks: {
+            padding:6, color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
           grid: { display: false, drawBorder: false }
         }
       },
@@ -2575,148 +2597,66 @@ try{
 
 
 
-/* ===== PRO GRAPH OVERRIDE ===== */
-function __proParseDayKey(rawKey){
-  const raw = String(rawKey || "").trim();
-  if(!raw) return null;
+/* ===== HARD RESTORE VIP MESSAGE PATCH ===== */
+(function(){
+  function bindRestoreVipMessage(){
+    const restoreBtn = document.getElementById("vipRestore");
+    const emailInput = document.getElementById("vipEmail");
+    const errorEl = document.getElementById("vipError");
+    if(!restoreBtn || !emailInput || !errorEl) return false;
+    if(restoreBtn.dataset.restoreBound === "1") return true;
 
-  // Prefer YYYY-MM-DD exactly
-  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)){
-    const parts = raw.split("-");
-    const y = Number(parts[0]);
-    const m = Number(parts[1]) - 1;
-    const d = Number(parts[2]);
-    const dt = new Date(y, m, d, 12, 0, 0, 0);
-    return Number.isNaN(dt.getTime()) ? null : dt;
-  }
+    restoreBtn.dataset.restoreBound = "1";
 
-  // Fallback
-  const dt = new Date(raw);
-  return Number.isNaN(dt.getTime()) ? null : dt;
-}
+    restoreBtn.addEventListener("click", async function(e){
+      e.preventDefault();
+      e.stopPropagation();
 
-function __proShortDayLabel(rawKey){
-  const dt = __proParseDayKey(rawKey);
-  if(!dt) return String(rawKey || "");
-  return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
-}
+      const email = String(emailInput.value || "").trim().toLowerCase();
 
-function __proFullDayLabel(rawKey){
-  const dt = __proParseDayKey(rawKey);
-  if(!dt) return String(rawKey || "");
-  return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function __buildProTrackerSeries(history, dayKeys){
-  const safeHistory = Array.isArray(history) ? history : [];
-  const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
-
-  const daily = [];
-  safeHistory.forEach((value, i)=>{
-    const key = safeDayKeys[i];
-    if(!key) return;
-    const last = daily[daily.length - 1];
-    if(last && last.key === key){
-      last.value = Number(value || 0);
-    }else{
-      daily.push({ key, value: Number(value || 0) });
-    }
-  });
-
-  const total = daily.length;
-  if(!total){
-    return { labels: [], values: [], rawKeys: [] };
-  }
-
-  let interval = 1;
-  if(total <= 8) interval = 1;
-  else if(total <= 14) interval = 2;
-  else if(total <= 24) interval = 3;
-  else if(total <= 40) interval = 4;
-  else interval = 5;
-
-  const labels = daily.map((item, i)=>{
-    if(i === 0 || i === total - 1) return __proShortDayLabel(item.key);
-
-    const dt = __proParseDayKey(item.key);
-    const prev = i > 0 ? __proParseDayKey(daily[i - 1].key) : null;
-
-    // Always show month transition
-    if(dt && prev && dt.getMonth() !== prev.getMonth()){
-      return dt.toLocaleDateString("en-GB", { month: "short" });
-    }
-
-    return i % interval === 0 ? __proShortDayLabel(item.key) : "";
-  });
-
-  return {
-    labels,
-    values: daily.map(x => x.value),
-    rawKeys: daily.map(x => x.key)
-  };
-}
-
-renderDailyChart = function(history, labels, dayKeys){
-  const el = document.getElementById("chart");
-  if(!el) return;
-  if(typeof dailyChart !== "undefined" && dailyChart) dailyChart.destroy();
-
-  const series = __buildProTrackerSeries(history, dayKeys);
-  const ctx = el.getContext("2d");
-
-  dailyChart = new Chart(ctx,{
-    type:"line",
-    data:{
-      labels: series.labels,
-      datasets:[{
-        data: series.values,
-        tension: 0.28,
-        fill: true,
-        borderWidth: 3,
-        borderColor: "rgba(34,197,94,0.95)",
-        backgroundColor: "rgba(34,197,94,0.14)",
-        pointRadius: 3,
-        pointHoverRadius: 5,
-        pointHitRadius: 14,
-        pointBackgroundColor: "rgba(34,197,94,1)"
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      interaction:{mode:"nearest", intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            title:(items)=>{
-              const i = items?.[0]?.dataIndex ?? 0;
-              return __proFullDayLabel(series.rawKeys[i]);
-            },
-            label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
-          }
-        }
-      },
-      scales:{
-        x:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            autoSkip:false,
-            maxRotation:45,
-            minRotation:45
-          },
-          grid:{color:"rgba(255,255,255,0.04)"}
-        },
-        y:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            callback:(v)=>`£${Number(v).toFixed(0)}`
-          },
-          grid:{color:"rgba(255,255,255,0.05)"}
-        }
+      if(!email || !email.includes("@")){
+        errorEl.textContent = "Enter your email first.";
+        return false;
       }
-    }
-  });
-};
-/* ===== END PRO GRAPH OVERRIDE ===== */
 
+      errorEl.textContent = "Checking VIP status...";
+
+      try{
+        const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+        const j = await r.json();
+
+        if(j && j.active){
+          localStorage.setItem("vip_email", email);
+          errorEl.textContent = "";
+          if(typeof checkVIP === "function") await checkVIP();
+          if(typeof closeVipModal === "function") closeVipModal();
+          if(typeof loadBets === "function") await loadBets();
+          if(typeof loadTracker === "function") await loadTracker();
+          if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
+          return true;
+        } else {
+          errorEl.textContent = "This email has no active VIP subscription.";
+          return false;
+        }
+      } catch(err){
+        errorEl.textContent = "Could not check VIP right now.";
+        return false;
+      }
+    }, true);
+
+    return true;
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", bindRestoreVipMessage);
+  } else {
+    bindRestoreVipMessage();
+  }
+
+  let tries = 0;
+  const iv = setInterval(() => {
+    tries++;
+    if(bindRestoreVipMessage() || tries > 20) clearInterval(iv);
+  }, 500);
+})();
+/* ===== END HARD RESTORE VIP MESSAGE PATCH ===== */
