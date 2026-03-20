@@ -3448,59 +3448,74 @@ body.layout-compact .vip-bar{
 }
 
 
-/* Mobile tracker spacing tweak: push stake/odds left and give match more room */
-@media (max-width: 768px){
 
-  /* hide profit on mobile */
+/* Mobile shrunk results-table try */
+.tracker-scale-wrap{
+  width:100%;
+  overflow:visible;
+}
+
+.tracker-scale-inner{
+  width:100%;
+  transform-origin: top left;
+}
+
+@media (max-width: 768px){
+  .tracker-scale-wrap{
+    overflow-x: visible;
+  }
+
+  .tracker-scale-inner{
+    width:111%;
+    transform: scale(0.90);
+  }
+
+  /* keep desktop-like row feel but fit it on mobile */
+  #trackerTable{
+    min-width: 100%;
+  }
+
+  #trackerTable th,
+  #trackerTable td{
+    font-size: 11px !important;
+    padding: 5px 3px !important;
+  }
+
+  #trackerTable td.match-market-cell{
+    width: 46% !important;
+    vertical-align: top;
+  }
+
+  #trackerTable .tracker-match-name{
+    font-size: 11px !important;
+    line-height: 1.02 !important;
+  }
+
+  #trackerTable .tracker-market-sub{
+    font-size: 10px !important;
+    margin-top: 2px !important;
+    line-height: 1.02 !important;
+  }
+
+  #trackerTable input[type="number"]{
+    width: 42px !important;
+    min-width: 42px !important;
+    font-size: 11px !important;
+    padding: 3px 2px !important;
+  }
+
+  #trackerTable select{
+    min-width: 70px !important;
+    width: 70px !important;
+    font-size: 11px !important;
+    padding: 3px 2px !important;
+  }
+
+  /* hide profit on mobile for extra room */
   #trackerTable table th.profit-col,
   #trackerTable table td.profit-col,
   #trackerTable table th:last-child,
   #trackerTable table td:last-child{
     display:none !important;
   }
-
-  /* match gets more space */
-  #trackerTable td.match-market-cell{
-    width: 74% !important;
-    vertical-align: top;
-  }
-
-  #trackerTable .tracker-match-name{
-    font-size: 12px;
-    line-height: 1.05;
-    white-space: normal;
-    overflow-wrap: break-word;
-  }
-
-  #trackerTable .tracker-market-sub{
-    font-size: 11px;
-    margin-top: 3px;
-  }
-
-  /* pull stake + odds left */
-  #trackerTable td:nth-child(3),
-  #trackerTable td:nth-child(4){
-    text-align: left !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-
-  #trackerTable td:nth-child(3) input,
-  #trackerTable td:nth-child(4) input{
-    margin-left: -10px !important;
-  }
-
-  #trackerTable td:nth-child(3) input{
-    margin-right: -8px !important;
-  }
-
-  #trackerTable input[type="number"]{
-    width: 40px !important;
-    min-width: 40px !important;
-  }
-
-  #trackerTable td:nth-child(5){
-    width: 14% !important;
-  }
 }
-
