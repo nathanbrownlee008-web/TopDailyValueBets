@@ -7,6 +7,11 @@ const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 // VIP
 // =========================
 
+function normalizeVipEmail(email){
+  return String(email || "").trim().toLowerCase();
+}
+
+
 function setVipUI(active, email){
   vipActive = !!active;
 
@@ -45,6 +50,7 @@ function openVipModal(){
   if(vipErrorEl) vipErrorEl.textContent="";
   const saved=(localStorage.getItem('vip_email')||"").trim();
   if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
+  if(vipPasswordEl && !vipPasswordEl.value) vipPasswordEl.value="";
   vipModalEl.style.display="flex";
 }
 
@@ -52,6 +58,82 @@ function closeVipModal(){
   if(!vipModalEl) return;
   vipModalEl.style.display="none";
 }
+
+async function ensureVipPasswordAccount(email, password){
+  const cleanEmail = normalizeVipEmail(email);
+  const cleanPassword = String(password || "");
+  if(!cleanEmail || !cleanEmail.includes("@")) throw new Error("Enter a valid email.");
+  if(cleanPassword.length < 6) throw new Error("Use at least 6 characters for your VIP password.");
+
+  const signIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+  if(!signIn.error) return true;
+
+  const signUp = await client.auth.signUp({
+    email: cleanEmail,
+    password: cleanPassword,
+    options: { emailRedirectTo: window.location.origin }
+  });
+  if(!signUp.error) return true;
+
+  const msg = String(signUp.error?.message || "").toLowerCase();
+  if(msg.includes("already") || msg.includes("exists") || msg.includes("registered") || msg.includes("user already")){
+    const secondSignIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+    if(!secondSignIn.error) return true;
+    throw new Error("Wrong VIP password for that email.");
+  }
+
+  throw signUp.error;
+}
+
+async function forgotVipPassword(){
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
+    return;
+  }
+  try{
+    if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin
+    });
+    if(error) throw error;
+    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent.";
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not send reset email.";
+  }
+}
+
+async function restoreVipAccess(){
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
+
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
+    return;
+  }
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your VIP password.";
+    return;
+  }
+
+  localStorage.setItem("vip_email", email);
+
+  try{
+    if(vipErrorEl) vipErrorEl.textContent = "";
+    if(vipRestoreEl) vipRestoreEl.disabled = true;
+
+    await ensureVipPasswordAccount(email, password);
+    const active = await forceVipRefreshNow(email);
+
+    if(active) return;
+    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
+  }catch(e){
+    if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
+  }finally{
+    if(vipRestoreEl) vipRestoreEl.disabled = false;
+  }
+}
+
 
 async function checkVIP(){
   const email=(localStorage.getItem('vip_email')||"").trim();
@@ -76,15 +158,24 @@ async function checkVIP(){
 
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
-  const email=(vipEmailEl?.value||"").trim();
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
+
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  localStorage.setItem('vip_email',email);
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent="Create a VIP password with at least 6 characters.";
+    return;
+  }
+
+  localStorage.setItem('vip_email', email);
   try{
+    await ensureVipPasswordAccount(email, password);
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
+    if(vipRestoreEl) vipRestoreEl.disabled=true;
     const r=await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -97,6 +188,7 @@ async function startCheckout(plan){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
+    if(vipRestoreEl) vipRestoreEl.disabled=false;
   }
 }
 
@@ -183,8 +275,11 @@ const vipStatusEl = document.getElementById("vipStatus");
 const vipModalEl = document.getElementById("vipModal");
 const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
+const vipPasswordEl = document.getElementById("vipPassword");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
+const vipRestoreEl = document.getElementById("vipRestore");
+const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -399,6 +494,8 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
+if(vipForgotEl) vipForgotEl.addEventListener('click', forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
@@ -639,30 +736,31 @@ function _applyTrackerFilters(rows){
 }
 
 function _buildTrackerTableHTML(rows){
-  let html = `<table class="myt-table">
+  let html = `<table>
     <tr>
-      <th class="date-col hidden-date-col">Date</th>
+      <th>Date</th>
       <th>Match</th>
-      <th>Market</th>
       <th>Stake</th>
-      <th>Odds</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
     </tr>`;
   (rows || []).forEach(row=>{
     const stakeVal = row.stake ?? 0;
-    const oddsVal = row.odds ?? 0;
     const res = row.result || "pending";
     let profit = 0;
-    if(res === "won") profit = (row.profit != null ? row.profit : Number(row.stake||0) * (Number(row.odds||0) - 1));
-    if(res === "lost") profit = (row.profit != null ? row.profit : -Number(row.stake||0));
-    const gameDate = row.match_date_date || row.bet_date || row.created_at;
+    if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
+    if(res === "lost") profit = (row.profit != null ? row.profit : -row.stake);
+    if(res === "pending") profit = 0;
+
+    const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
+    const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
+
+    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
+
     html += `<tr>
-      <td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-      <td class="myt-match">${row.match || ""}</td>
-      <td class="myt-market">${row.market || ""}</td>
-      <td><input class="myt-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
-      <td><input class="myt-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>
+      <td class="date-col">${dateLabel}</td>
+      <td>${row.match || ""}</td>
+      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
           <option value="pending" ${res==="pending"?"selected":""}>pending</option>
@@ -670,7 +768,7 @@ function _buildTrackerTableHTML(rows){
           <option value="lost" ${res==="lost"?"selected":""}>lost</option>
         </select>
       </td>
-      <td class="profit-col"><span class="${profit>0?'profit-win':profit<0?'profit-loss':''}">£${profit.toFixed(2)}</span></td>
+      <td class="profit-col ${profitClass}">${profitText}</td>
     </tr>`;
   });
   html += `</table>`;
@@ -688,22 +786,6 @@ function _renderFilteredTrackerTable(){
 
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
-}
-
-
-function bindTrackerTableInputs(){
-  const tableEl = document.getElementById("trackerTable");
-  if(!tableEl) return;
-
-  tableEl.querySelectorAll('input[data-field="stake"]').forEach(el=>{
-    el.addEventListener('change', ()=> updateStake(el.dataset.id, el.value));
-  });
-  tableEl.querySelectorAll('input[data-field="odds"]').forEach(el=>{
-    el.addEventListener('change', ()=> updateOdds(el.dataset.id, el.value));
-  });
-  tableEl.querySelectorAll('select[data-field="result"]').forEach(el=>{
-    el.addEventListener('change', ()=> updateResult(el.dataset.id, el.value));
-  });
 }
 
 let _filtersWired = false;
@@ -957,11 +1039,8 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-<td class="myt-match">${row.match}</td>
-<td class="myt-market">${row.market || ""}</td>
-<td><input class="myt-input" type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
-<td><input class="myt-input" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
+<td class="date-col">${fmtDayLabel(gameDate)}</td><td>${row.match}</td>
+<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td>
 <select 
 class="result-select result-${row.result}" 
@@ -978,7 +1057,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table class='myt-table'><tr><th class='date-col hidden-date-col'>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th class='date-col'>Date</th><th>Match</th><th>Stake</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -1105,16 +1184,7 @@ if(monthKeys.length){
 }
 
 
-
-async function updateOdds(id,val){
-  const rows = readTrackerRows();
-  const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
-  writeTrackerRows(updated);
-  loadTracker();
-}
-
 async function updateStake(id,val){
-
   const rows = readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
   writeTrackerRows(updated);
@@ -1788,7 +1858,7 @@ function addPersonalTrackerDateGroups(){
     if(dateText !== lastDate){
       const divider = document.createElement("tr");
       divider.className = "date-group";
-      divider.innerHTML = `<td colspan="7">▼ ${dateText}</td>`;
+      divider.innerHTML = `<td colspan="5">📅 ${dateText}</td>`;
       row.parentNode.insertBefore(divider, row);
       lastDate = dateText;
     }
@@ -2023,7 +2093,7 @@ function addPersonalTrackerMonthGroups(){
     if(month !== lastMonth){
       const divider = document.createElement("tr");
       divider.className = "month-group";
-      divider.innerHTML = `<td colspan="7">▼ ${month}</td>`;
+      divider.innerHTML = `<td colspan="5">▼ ${month}</td>`;
       groupRow.parentNode.insertBefore(divider, groupRow);
       lastMonth = month;
     }
@@ -2428,3 +2498,6 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
+
+window.restoreVipAccess = restoreVipAccess;
+window.forgotVipPassword = forgotVipPassword;
