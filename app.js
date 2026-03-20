@@ -79,10 +79,10 @@ async function ensureVipPasswordAccount(email, password){
   if(!cleanEmail || !cleanEmail.includes("@")) throw new Error("Enter a valid email.");
   if(cleanPassword.length < 6) throw new Error("Use at least 6 characters for your VIP password.");
 
-  const signIn = if(!client){console.log('NO CLIENT');return;} await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+  const signIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
   if(!signIn.error) return true;
 
-  const signUp = if(!client){console.log('NO CLIENT');return;} await client.auth.signUp({
+  const signUp = await client.auth.signUp({
     email: cleanEmail,
     password: cleanPassword,
     options: { emailRedirectTo: window.location.origin + "/reset-password.html" }
@@ -91,7 +91,7 @@ async function ensureVipPasswordAccount(email, password){
 
   const msg = String(signUp.error?.message || "").toLowerCase();
   if(msg.includes("already") || msg.includes("exists") || msg.includes("registered") || msg.includes("user already")){
-    const secondSignIn = if(!client){console.log('NO CLIENT');return;} await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+    const secondSignIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
     if(!secondSignIn.error) return true;
     throw new Error("Wrong VIP password for that email.");
   }
@@ -107,7 +107,7 @@ async function forgotVipPassword(){
   }
   try{
     if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
-    const { error } = if(!client){console.log('NO CLIENT');return;} await client.auth.resetPasswordForEmail(email, {
+    const { error } = await client.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin + "/reset-password.html"
     });
     if(error) throw error;
@@ -153,22 +153,14 @@ function clearVipState(){
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
   const email=(vipEmailEl?.value||"").trim();
-  const password=(vipPasswordEl?.value||"").trim();
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  if(!password || password.length < 6){
-    if(vipErrorEl) vipErrorEl.textContent="Enter your VIP password (at least 6 characters).";
-    return;
-  }
+  localStorage.setItem('vip_email',email);
   try{
-    await ensureVipPasswordAccount(email, password);
-    localStorage.setItem('vip_email',email);
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
-    if(vipRestoreEl) vipRestoreEl.disabled=true;
-    if(vipForgotEl) vipForgotEl.disabled=true;
     const r=await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -181,8 +173,6 @@ async function startCheckout(plan){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
-    if(vipRestoreEl) vipRestoreEl.disabled=false;
-    if(vipForgotEl) vipForgotEl.disabled=false;
   }
 }
 
@@ -271,9 +261,6 @@ const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
-const vipPasswordEl = document.getElementById("vipPassword");
-const vipRestoreEl = document.getElementById("vipRestore");
-const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -310,19 +297,19 @@ async function upsertTdtMirror(row){
     created_at: row.created_at || new Date().toISOString(),
     bookie: row.bookie || null
   };
-  const { data: existing, error: checkErr } = if(!client){console.log('NO CLIENT');return;} await client.from("tdt_tracker").select("id").eq("sync_id", row.sync_id).limit(1);
+  const { data: existing, error: checkErr } = await client.from("tdt_tracker").select("id").eq("sync_id", row.sync_id).limit(1);
   if(checkErr) throw checkErr;
   if(existing && existing.length){
-    const { error } = if(!client){console.log('NO CLIENT');return;} await client.from("tdt_tracker").update(payload).eq("sync_id", row.sync_id);
+    const { error } = await client.from("tdt_tracker").update(payload).eq("sync_id", row.sync_id);
     if(error) throw error;
   }else{
-    const { error } = if(!client){console.log('NO CLIENT');return;} await client.from("tdt_tracker").insert([payload]);
+    const { error } = await client.from("tdt_tracker").insert([payload]);
     if(error) throw error;
   }
 }
 async function deleteTdtMirror(syncId){
   if(!isAdminSyncEnabled() || !syncId) return;
-  const { error } = if(!client){console.log('NO CLIENT');return;} await client.from("tdt_tracker").delete().eq("sync_id", syncId);
+  const { error } = await client.from("tdt_tracker").delete().eq("sync_id", syncId);
   if(error) throw error;
 }
 
@@ -395,7 +382,7 @@ async function readTrackerRowsCloudMerged(){
   if(!isAdminSyncEnabled()) return localRows;
 
   try{
-    const { data, error } = if(!client){console.log('NO CLIENT');return;} await client
+    const { data, error } = await client
       .from("tdt_tracker")
       .select("*")
       .like("sync_id", "sync_%")
@@ -550,8 +537,6 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
-if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
@@ -567,7 +552,8 @@ checkVIP().then(async ()=>{
   refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
   loadBets();
-  loadVipPromoProof();
+  await loadVipPromoProof();
+  setTimeout(()=>loadVipPromoProof(), 1500);
   updateBetAlertUI();
   registerServiceWorker();
 });
@@ -602,7 +588,7 @@ async function loadBets(){
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
-  const {data} = if(!client){console.log('NO CLIENT');return;} await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
+  const {data} = await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
   betsGrid.innerHTML="";
   const betsTable=document.getElementById('betsTable');
   const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
@@ -1033,16 +1019,26 @@ function renderVipPromoChart(rows){
 
 async function loadVipPromoProof(){
   const statsEl = document.getElementById('vipPromoStats');
-  try{
-    const { data, error } = if(!client){console.log('NO CLIENT');return;} await client
-      .from('tdt_tracker')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .limit(200);
-    if(error) throw error;
 
-    const rows = Array.isArray(data) ? data : [];
-    const settled = rows.filter(r => (r.result || 'pending') !== 'pending');
+  try{
+    if(statsEl) statsEl.textContent = 'Loading official TDT proof...';
+
+    // Use direct REST fetch so this works even if the Supabase client session/state is awkward.
+    const url = `${SUPABASE_URL}/rest/v1/tdt_tracker?select=*&order=created_at.asc&limit=200`;
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
+      }
+    });
+
+    if(!res.ok){
+      throw new Error(`REST fetch failed: ${res.status}`);
+    }
+
+    const rows = await res.json();
+    const safeRows = Array.isArray(rows) ? rows : [];
+    const settled = safeRows.filter(r => String(r.result || 'pending').toLowerCase() !== 'pending');
 
     if(!settled.length){
       if(statsEl) statsEl.textContent = 'Official proof updates soon';
@@ -1054,23 +1050,31 @@ async function loadVipPromoProof(){
     let losses = 0;
     let stake = 0;
     let profit = 0;
+
     settled.forEach((row)=>{
-      const result = row.result || 'pending';
+      const result = String(row.result || 'pending').toLowerCase();
       if(result === 'won') wins += 1;
       if(result === 'lost') losses += 1;
       stake += Number(row.stake || 0);
-      profit += rowProfit({
-        stake: Number(row.stake || 0),
-        odds: Number(row.odds || 0),
-        result
-      });
+
+      const rowProfitValue = row.profit != null
+        ? Number(row.profit || 0)
+        : rowProfit({
+            stake: Number(row.stake || 0),
+            odds: Number(row.odds || 0),
+            result
+          });
+
+      profit += rowProfitValue;
     });
 
     const roi = stake ? ((profit / stake) * 100) : 0;
+    const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
+
     if(statsEl){
-      const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
       statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
     }
+
     renderVipPromoChart(settled);
   }catch(err){
     console.error('VIP proof load failed', err);
@@ -1400,7 +1404,7 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
-    const {data, error} = if(!client){console.log('NO CLIENT');return;} await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
+    const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
@@ -2398,7 +2402,7 @@ window.loadTdtTracker = async function(){
   const tableEl = document.getElementById("tdtTrackerTable");
 
   try{
-    const { data, error } = if(!client){console.log('NO CLIENT');return;} await client
+    const { data, error } = await client
       .from("tdt_tracker")
       .select("*")
       .order("created_at", { ascending: true });
@@ -2587,81 +2591,3 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
-
-
-
-/* ===== HARD RESTORE VIP MESSAGE PATCH ===== */
-(function(){
-  function bindRestoreVipMessage(){
-    const restoreBtn = document.getElementById("vipRestore");
-    const emailInput = document.getElementById("vipEmail");
-    const errorEl = document.getElementById("vipError");
-    if(!restoreBtn || !emailInput || !errorEl) return false;
-    if(restoreBtn.dataset.restoreBound === "1") return true;
-
-    restoreBtn.dataset.restoreBound = "1";
-
-    restoreBtn.addEventListener("click", async function(e){
-      e.preventDefault();
-      e.stopPropagation();
-
-      const email = String(emailInput.value || "").trim().toLowerCase();
-
-      if(!email || !email.includes("@")){
-        errorEl.textContent = "Enter your email first.";
-        return false;
-      }
-
-      errorEl.textContent = "Checking VIP status...";
-
-      try{
-        const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
-        const j = await r.json();
-
-        if(j && j.active){
-          localStorage.setItem("vip_email", email);
-          errorEl.textContent = "";
-          if(typeof checkVIP === "function") await checkVIP();
-          if(typeof closeVipModal === "function") closeVipModal();
-          if(typeof loadBets === "function") await loadBets();
-          if(typeof loadTracker === "function") await loadTracker();
-          if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
-          return true;
-        } else {
-          errorEl.textContent = "This email has no active VIP subscription.";
-          return false;
-        }
-      } catch(err){
-        errorEl.textContent = "Could not check VIP right now.";
-        return false;
-      }
-    }, true);
-
-    return true;
-  }
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", bindRestoreVipMessage);
-  } else {
-    bindRestoreVipMessage();
-  }
-
-  let tries = 0;
-  const iv = setInterval(() => {
-    tries++;
-    if(bindRestoreVipMessage() || tries > 20) clearInterval(iv);
-  }, 500);
-})();
-/* ===== END HARD RESTORE VIP MESSAGE PATCH ===== */
-
-
-// FORCE VIP LOAD (FINAL FIX)
-setInterval(()=>{
-  try{
-    if(typeof loadVipPromoProof==="function"){
-      loadVipPromoProof();
-    }
-  }catch(e){
-    console.log("VIP retry error", e);
-  }
-},3000);
