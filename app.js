@@ -63,17 +63,43 @@ function normalizeVipEmail(email){
 
 async function forceVipRefreshNow(emailFromInput){
   const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
-  if(!email || !email.includes("@")) return false;
-  localStorage.setItem('vip_email', email);
-  const active = await checkVIP();
-  if(active){
-    closeVipModal();
-    await loadBets();
-    if(typeof loadTracker === "function") await loadTracker();
-    if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
-    return true;
+  const password = String(vipPasswordEl?.value || "").trim();
+
+  if(vipErrorEl) vipErrorEl.textContent = "";
+
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your VIP email first.";
+    return false;
   }
-  return false;
+
+  if(!password || password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your VIP password first.";
+    return false;
+  }
+
+  try{
+    const signIn = await client.auth.signInWithPassword({ email, password });
+    if(signIn.error){
+      throw new Error("Wrong VIP password for that email.");
+    }
+
+    localStorage.setItem('vip_email', email);
+
+    const active = await checkVIP();
+    if(active){
+      closeVipModal();
+      await loadBets();
+      if(typeof loadTracker === "function") await loadTracker();
+      if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
+      return true;
+    }
+
+    if(vipErrorEl) vipErrorEl.textContent = "No active VIP subscription linked to this email.";
+    return false;
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not restore VIP.";
+    return false;
+  }
 }
 
 async function ensureVipPasswordAccount(email, password){
@@ -556,7 +582,14 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
+if(vipRestoreEl) vipRestoreEl.addEventListener('click',async ()=>{
+  if(vipErrorEl) vipErrorEl.textContent = "Checking VIP account...";
+  try{
+    await forceVipRefreshNow();
+  }finally{
+    if(vipRestoreEl) vipRestoreEl.blur();
+  }
+});
 if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
