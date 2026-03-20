@@ -3482,3 +3482,62 @@ color:#d7e6ff !important;
     padding:2px 4px;
   }
 }
+
+
+/* Clean tracker table */
+.tracker-better-table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+.tracker-better-table th,
+.tracker-better-table td{
+  padding:8px 6px;
+  border-bottom:1px solid #334155;
+  vertical-align:middle;
+}
+.tracker-match-cell{width:30%;}
+.tracker-match-main{
+  font-weight:700;
+  line-height:1.15;
+}
+.tracker-date-sub{
+  font-size:11px;
+  opacity:.68;
+  margin-top:4px;
+}
+.tracker-market-cell{
+  line-height:1.15;
+  word-break:break-word;
+}
+.tracker-better-table .stake-input,
+.tracker-better-table .odds-input{
+  width:72px;
+}
+.tracker-better-table .result-select{
+  width:96px;
+  min-width:96px;
+}
+
+@media (max-width:600px){
+  .tracker-better-table .profit-col{
+    display:none !important;
+  }
+  .tracker-better-table th,
+  .tracker-better-table td{
+    font-size:12px;
+    padding:7px 4px;
+  }
+  .tracker-better-table .stake-input,
+  .tracker-better-table .odds-input{
+    width:58px;
+    padding:6px 4px;
+  }
+  .tracker-better-table .result-select{
+    width:78px;
+    min-width:78px;
+    font-size:12px;
+    padding:5px 4px;
+  }
+  .tracker-match-cell{width:34%;}
+}
