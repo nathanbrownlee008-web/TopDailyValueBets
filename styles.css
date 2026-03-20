@@ -3448,21 +3448,26 @@ body.layout-compact .vip-bar{
 }
 
 
-/* Results table: use full-width match name with market underneath */
+/* Keep hidden tracker date column for grouping logic only */
+.hidden-date-col{
+  display:none !important;
+}
+
+/* Full-width team names with market underneath */
 #trackerTable td.match-market-cell{
-  width:46%;
-  font-weight:800;
-  line-height:1.08;
-  overflow-wrap:anywhere;
+  width: 46%;
+  vertical-align: top;
 }
 
 #trackerTable .tracker-match-name{
+  display:block;
   font-weight:800;
   line-height:1.08;
   overflow-wrap:anywhere;
 }
 
 #trackerTable .tracker-market-sub{
+  display:block;
   margin-top:4px;
   font-size:0.92em;
   font-weight:600;
@@ -3471,45 +3476,35 @@ body.layout-compact .vip-bar{
   overflow-wrap:anywhere;
 }
 
-#trackerTable td:nth-child(2){
-  width:14%;
-}
+/* Desktop/tablet widths */
+#trackerTable td:nth-child(3){ width: 14%; } /* stake */
+#trackerTable td:nth-child(4){ width: 14%; } /* odds */
+#trackerTable td:nth-child(5){ width: 16%; } /* result */
+#trackerTable td:nth-child(6){ width: 10%; } /* profit */
 
-#trackerTable td:nth-child(3){
-  width:13%;
-}
+/* Mobile: hide profit only, keep desktop profit visible */
+@media (max-width: 768px) {
+  #trackerTable table th.profit-col,
+  #trackerTable table td.profit-col,
+  #trackerTable table th:last-child,
+  #trackerTable table td:last-child {
+    display: none !important;
+  }
 
-#trackerTable td:nth-child(4){
-  width:15%;
-}
-
-#trackerTable td:nth-child(5){
-  width:12%;
-}
-
-@media (max-width: 600px){
   #trackerTable td.match-market-cell{
-    width:44%;
+    width: 58%;
+  }
+
+  #trackerTable .tracker-match-name{
+    line-height:1.04;
   }
 
   #trackerTable .tracker-market-sub{
-    margin-top:3px;
     font-size:0.88em;
+    margin-top:3px;
   }
 
-  #trackerTable td:nth-child(2){
-    width:14%;
-  }
-
-  #trackerTable td:nth-child(3){
-    width:12%;
-  }
-
-  #trackerTable td:nth-child(4){
-    width:16%;
-  }
-
-  #trackerTable td:nth-child(5){
-    width:12%;
-  }
+  #trackerTable td:nth-child(3){ width: 12%; }
+  #trackerTable td:nth-child(4){ width: 12%; }
+  #trackerTable td:nth-child(5){ width: 18%; }
 }
