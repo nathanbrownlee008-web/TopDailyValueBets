@@ -831,31 +831,33 @@ function _applyTrackerFilters(rows){
 }
 
 function _buildTrackerTableHTML(rows){
-  let html = `<table>
+  let html = `<table class="myt-table">
     <tr>
-      <th>Date</th>
+      <th class="date-col hidden-date-col">Date</th>
       <th>Match</th>
       <th>Stake</th>
+      <th>Odds</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
     </tr>`;
   (rows || []).forEach(row=>{
     const stakeVal = row.stake ?? 0;
+    const oddsVal = row.odds ?? 0;
     const res = row.result || "pending";
     let profit = 0;
-    if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
-    if(res === "lost") profit = (row.profit != null ? row.profit : -row.stake);
+    if(res === "won") profit = (row.profit != null ? row.profit : Number(row.stake||0) * (Number(row.odds||0) - 1));
+    if(res === "lost") profit = (row.profit != null ? row.profit : -Number(row.stake||0));
     if(res === "pending") profit = 0;
 
-    const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
-    const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
-
-    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
-
+    const gameDate = row.match_date_date || row.bet_date || row.created_at;
     html += `<tr>
-      <td class="date-col">${dateLabel}</td>
-      <td>${row.match || ""}</td>
-      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
+      <td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
+      <td class="match-market-cell">
+        <div class="tracker-match-name">${row.match || ""}</div>
+        <div class="tracker-market-sub">${row.market || "—"}</div>
+      </td>
+      <td><input class="myt-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
+      <td><input class="myt-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
           <option value="pending" ${res==="pending"?"selected":""}>pending</option>
@@ -863,7 +865,7 @@ function _buildTrackerTableHTML(rows){
           <option value="lost" ${res==="lost"?"selected":""}>lost</option>
         </select>
       </td>
-      <td class="profit-col ${profitClass}">${profitText}</td>
+      <td class="profit-col"><span class="${profit>0?'profit-win':profit<0?'profit-loss':''}">£${profit.toFixed(2)}</span></td>
     </tr>`;
   });
   html += `</table>`;
@@ -1168,6 +1170,12 @@ let html="<table><tr><th class='hidden-date-col'>Date</th><th>Match</th><th>Stak
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
+if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups();
+if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups();
+if(typeof wirePersonalTrackerDateCollapse === "function") wirePersonalTrackerDateCollapse();
+if(typeof wirePersonalTrackerMonthCollapse === "function") wirePersonalTrackerMonthCollapse();
+if(typeof applyPersonalTrackerMonthCollapseState === "function") applyPersonalTrackerMonthCollapseState();
+if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState();
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
