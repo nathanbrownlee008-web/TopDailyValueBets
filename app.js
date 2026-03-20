@@ -70,6 +70,7 @@ async function forceVipRefreshNow(emailFromInput){
     if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
     return true;
   }
+  if(vipErrorEl) vipErrorEl.textContent = "No active VIP subscription linked to this email.";
   return false;
 }
 
@@ -130,19 +131,27 @@ async function checkVIP(){
     const j=await r.json();
     vipActive=!!j.active;
 
-if(vipActive){
-  setVipUI(true,email);
-}else{
-  clearVipState();
-}
+    if(vipActive){
+      setVipUI(true,email);
+      // Force everything that reads vipActive to re-render from the same source of truth
+      if(typeof loadBets === "function") await loadBets();
+      if(typeof loadTracker === "function") await loadTracker();
+      if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
+    }else{
+      // Keep saved email so Restore VIP still works after refresh
+      vipActive = false;
+      setVipUI(false,email);
+    }
 
-return vipActive;
+    return vipActive;
 
-}catch(e){
-  clearVipState();
-  if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
-  return false;
-}
+  }catch(e){
+    // Do not wipe saved VIP email on refresh/network hiccups
+    vipActive = false;
+    setVipUI(false,email);
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed — tap Restore VIP";
+    return false;
+  }
 }
 function clearVipState(){
   vipActive = false;
@@ -550,7 +559,38 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
+if(vipRestoreEl) vipRestoreEl.addEventListener('click', async ()=>{
+  if(vipErrorEl) vipErrorEl.textContent = "";
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
+
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
+    return;
+  }
+
+  if(!password || password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your VIP password first.";
+    return;
+  }
+
+  try{
+    const signIn = await client.auth.signInWithPassword({ email, password });
+    if(signIn.error){
+      if(vipErrorEl) vipErrorEl.textContent = "Wrong VIP password for that email.";
+      return;
+    }
+
+    localStorage.setItem('vip_email', email);
+    const ok = await forceVipRefreshNow(email);
+
+    if(!ok && vipErrorEl && !vipErrorEl.textContent){
+      vipErrorEl.textContent = "No active VIP subscription linked to this email.";
+    }
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not restore VIP.";
+  }
+});
 if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
@@ -2587,3 +2627,69 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
+
+
+
+/* ===== HARD RESTORE VIP MESSAGE PATCH ===== */
+(function(){
+  function bindRestoreVipMessage(){
+    const restoreBtn = document.getElementById("vipRestore");
+    const emailInput = document.getElementById("vipEmail");
+    const errorEl = document.getElementById("vipError");
+    if(!restoreBtn || !emailInput || !errorEl) return false;
+    if(restoreBtn.dataset.restoreBound === "1") return true;
+
+    restoreBtn.dataset.restoreBound = "1";
+
+    restoreBtn.addEventListener("click", async function(e){
+      e.preventDefault();
+      e.stopPropagation();
+
+      const email = String(emailInput.value || "").trim().toLowerCase();
+
+      if(!email || !email.includes("@")){
+        errorEl.textContent = "Enter your email first.";
+        return false;
+      }
+
+      errorEl.textContent = "Checking VIP status...";
+
+      try{
+        const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+        const j = await r.json();
+
+        if(j && j.active){
+          localStorage.setItem("vip_email", email);
+          errorEl.textContent = "";
+          if(typeof checkVIP === "function") await checkVIP();
+          if(typeof closeVipModal === "function") closeVipModal();
+          if(typeof loadBets === "function") await loadBets();
+          if(typeof loadTracker === "function") await loadTracker();
+          if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
+          return true;
+        } else {
+          errorEl.textContent = "This email has no active VIP subscription.";
+          return false;
+        }
+      } catch(err){
+        errorEl.textContent = "Could not check VIP right now.";
+        return false;
+      }
+    }, true);
+
+    return true;
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", bindRestoreVipMessage);
+  } else {
+    bindRestoreVipMessage();
+  }
+
+  let tries = 0;
+  const iv = setInterval(() => {
+    tries++;
+    if(bindRestoreVipMessage() || tries > 20) clearInterval(iv);
+  }, 500);
+})();
+/* ===== END HARD RESTORE VIP MESSAGE PATCH ===== */
