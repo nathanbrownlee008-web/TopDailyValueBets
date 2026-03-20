@@ -3484,40 +3484,63 @@ color:#d7e6ff !important;
 }
 
 
-/* VIP PREMIUM UI */
-#vipPromoKpis{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
+
+/* BASIC VIP PREVIEW STABLE */
+.vip-promo{
+  padding:20px;
+  border-radius:24px;
+}
+.vip-promo__top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+}
+.vip-promo__eyebrow{
+  text-transform:uppercase;
+  letter-spacing:.18em;
+  font-size:12px;
+  opacity:.72;
+  margin-bottom:8px;
+}
+.vip-promo__title{
+  font-size:20px;
+  line-height:1.2;
+  font-weight:900;
+  max-width:520px;
+}
+.vip-promo__stats{
   margin-top:12px;
+  color:#cbd5e1;
+  line-height:1.45;
+  font-size:14px;
 }
-.vip-kpi{
-  background:rgba(255,255,255,0.04);
-  border-radius:12px;
-  padding:10px;
+.vip-promo__chartwrap{
+  margin-top:14px;
+  min-height:170px;
 }
-.vip-kpi__value{
-  font-weight:800;
-  font-size:16px;
+#vipPromoChart{
+  width:100% !important;
+  height:160px !important;
 }
-.vip-green{color:#22c55e;}
-.vip-red{color:#ef4444;}
-
-.vip-badge{
-  margin-top:8px;
-  font-size:13px;
-  opacity:0.8;
+.vip-promo__actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:14px;
 }
-
-.vip-blur{
-  filter:blur(6px);
-  opacity:0.6;
-}
-
-.vip-fake-bets{
-  margin-top:12px;
-  padding:10px;
-  border-radius:12px;
-  background:rgba(255,255,255,0.03);
+.vip-promo__status{
+  color:#cbd5e1;
   font-size:13px;
 }
+@media (max-width:700px){
+  .vip-promo__top{
+    flex-direction:column;
+  }
+  .vip-promo__title{
+    font-size:18px;
+  }
+}
+/* END BASIC VIP PREVIEW STABLE */
+

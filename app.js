@@ -14,7 +14,6 @@ function setVipUI(active, email){
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
-  const promoEl = document.getElementById('vipPromo');
 
   if(active){
     if(titleEl) titleEl.textContent = 'VIP Access';
@@ -22,12 +21,11 @@ function setVipUI(active, email){
     if(btnEl){
       if(btnTextEl) btnTextEl.textContent = 'VIP Access Active';
       else btnEl.textContent = 'VIP Access Active';
-      btnEl.disabled = false;
-      btnEl.style.pointerEvents = "auto";
-      btnEl.style.cursor = "pointer";
+      btnEl.disabled = true;
+      btnEl.style.pointerEvents = "none";
+      btnEl.style.cursor = "default";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
-    if(promoEl) promoEl.style.display = 'none';
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
@@ -39,7 +37,6 @@ function setVipUI(active, email){
       btnEl.style.cursor = "pointer";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
-    if(promoEl) promoEl.style.display = 'flex';
   }
 }
 
@@ -548,7 +545,7 @@ tabTracker.onclick=()=>{
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 
 // VIP events
-if(vipButtonEl) vipButtonEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
+if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
 if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
@@ -556,7 +553,7 @@ if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly')
 if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
 if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
-if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
+if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
@@ -568,13 +565,13 @@ checkVIP().then(async ()=>{
     await pollVipAfterCheckout();
   }
   refreshAdminBadgeUI();
-  // re-render bets so blur/limits apply
   await loadBets();
   if(vipActive){
     const promoEl = document.getElementById('vipPromo');
     if(promoEl) promoEl.style.display = 'none';
   }else{
-    loadVipPromoProof();
+    await loadVipPromoProof();
+    setTimeout(()=>{ if(!vipActive) loadVipPromoProof(); }, 1200);
   }
   updateBetAlertUI();
   registerServiceWorker();
@@ -1009,6 +1006,7 @@ function notifyForNewVisibleBets(rows){
 function renderVipPromoChart(rows){
   const canvas = document.getElementById('vipPromoChart');
   if(!canvas || typeof Chart === 'undefined') return;
+
   const safeRows = Array.isArray(rows) ? rows : [];
   const labels = [];
   const points = [];
@@ -1016,41 +1014,70 @@ function renderVipPromoChart(rows){
   let lastDayKey = '';
 
   safeRows.slice(-200).forEach((row)=>{
-    running += rowProfit({
-      stake: Number(row.stake || 0),
-      odds: Number(row.odds || 0),
-      result: row.result || 'pending'
-    });
+    const result = String(row.result || 'pending').toLowerCase();
+    const rowProfitValue = row.profit != null
+      ? Number(row.profit || 0)
+      : rowProfit({
+          stake: Number(row.stake || 0),
+          odds: Number(row.odds || 0),
+          result
+        });
+
+    running += rowProfitValue;
+
     const dayKey = fmtDayLabel(row.match_date_date || row.bet_date || row.created_at);
     if(dayKey !== lastDayKey){
       labels.push(dayKey);
       points.push(running);
       lastDayKey = dayKey;
-    }else{
+    }else if(points.length){
       points[points.length - 1] = running;
     }
   });
 
   if(vipPromoChart) vipPromoChart.destroy();
+
   vipPromoChart = new Chart(canvas.getContext('2d'), {
     type:'line',
-    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:(ctx)=>{ const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0; if(len <= 1) return len ? 3 : 0; return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0; } }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
+    data:{
+      labels,
+      datasets:[{
+        data: points,
+        tension:0.3,
+        fill:true,
+        backgroundColor:'rgba(34,197,94,0.10)',
+        borderColor:'#22c55e',
+        borderWidth:2,
+        pointRadius:0
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ ticks:{ maxTicksLimit:6 } },
+        y:{ ticks:{ callback:(v)=> `£${v}` } }
+      }
+    }
   });
 }
 
 async function loadVipPromoProof(){
   const statsEl = document.getElementById('vipPromoStats');
   try{
+    if(statsEl) statsEl.textContent = 'Loading official TDT proof...';
+
     const { data, error } = await client
       .from('tdt_tracker')
       .select('*')
       .order('created_at', { ascending: true })
       .limit(200);
+
     if(error) throw error;
 
     const rows = Array.isArray(data) ? data : [];
-    const settled = rows.filter(r => (r.result || 'pending') !== 'pending');
+    const settled = rows.filter(r => String(r.result || 'pending').toLowerCase() !== 'pending');
 
     if(!settled.length){
       if(statsEl) statsEl.textContent = 'Official proof updates soon';
@@ -1062,23 +1089,31 @@ async function loadVipPromoProof(){
     let losses = 0;
     let stake = 0;
     let profit = 0;
+
     settled.forEach((row)=>{
-      const result = row.result || 'pending';
+      const result = String(row.result || 'pending').toLowerCase();
       if(result === 'won') wins += 1;
       if(result === 'lost') losses += 1;
       stake += Number(row.stake || 0);
-      profit += rowProfit({
-        stake: Number(row.stake || 0),
-        odds: Number(row.odds || 0),
-        result
-      });
+
+      const rowProfitValue = row.profit != null
+        ? Number(row.profit || 0)
+        : rowProfit({
+            stake: Number(row.stake || 0),
+            odds: Number(row.odds || 0),
+            result
+          });
+
+      profit += rowProfitValue;
     });
 
     const roi = stake ? ((profit / stake) * 100) : 0;
+    const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
+
     if(statsEl){
-      const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
       statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
     }
+
     renderVipPromoChart(settled);
   }catch(err){
     console.error('VIP proof load failed', err);
@@ -1178,18 +1213,12 @@ if(countElem) countElem.textContent = String(rows.length);
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
-const monthWinsMap = {};
-const monthLossesMap = {};
-const monthBetsMap = {};
 
 rows.forEach(r=>{
   const d = new Date(r.created_at);
   const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
-  monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
-  monthBetsMap[key] = (monthBetsMap[key]||0) + 1;
-  if(r.result === "won") monthWinsMap[key] = (monthWinsMap[key]||0) + 1;
-  if(r.result === "lost") monthLossesMap[key] = (monthLossesMap[key]||0) + 1;
+  monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
 });
 
 const monthKeys = Object.keys(monthMap).sort();
@@ -1205,25 +1234,15 @@ const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
-const monthlyBets = monthKeys.map(k=> monthBetsMap[k] || 0);
-const monthlyWinRate = monthKeys.map(k=>{
-  const wins = monthWinsMap[k] || 0;
-  const losses = monthLossesMap[k] || 0;
-  return (wins + losses) ? (wins / (wins + losses)) * 100 : 0;
-});
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Total Bets</th><th>Win Rate</th><th>Profit</th><th>ROI</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
-    const b = monthlyBets[i];
-    const w = monthlyWinRate[i];
     breakdownHTML += `<tr>
       <td>${monthLabels[i]}</td>
-      <td>${b}</td>
-      <td>${w.toFixed(1)}%</td>
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
     </tr>`;
@@ -1644,58 +1663,36 @@ function renderDailyChart(history, labels, dayKeys){
   const safeHistory = Array.isArray(history) ? history : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
 
-  const daily = [];
+  const compressedLabels = [];
+  const compressedHistory = [];
+
   safeHistory.forEach((value, i)=>{
-    const key = safeDayKeys[i];
-    if(!key) return;
-    const last = daily[daily.length - 1];
-    if(last && last.key === key){
-      last.value = Number(value || 0);
+    const day = safeDayKeys[i];
+    if(!day) return;
+
+    const lastIdx = compressedLabels.length - 1;
+    if(lastIdx >= 0 && compressedLabels[lastIdx] === day){
+      compressedHistory[lastIdx] = value; // keep only end-of-day bankroll
     }else{
-      daily.push({ key, value: Number(value || 0) });
+      compressedLabels.push(day);
+      compressedHistory.push(value);
     }
   });
 
-  function parseDay(rawKey){
-    const raw = String(rawKey || "").trim();
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(!m) return null;
-    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0, 0);
-  }
-  function shortLabel(rawKey){
-    const dt = parseDay(rawKey);
-    return dt ? dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : String(rawKey || "");
-  }
-  function fullLabel(rawKey){
-    const dt = parseDay(rawKey);
-    return dt ? dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : String(rawKey || "");
-  }
-
-  const total = daily.length;
-  let interval = 1;
-  if(total < 10) interval = 1;
-  else if(total < 20) interval = 2;
-  else if(total < 36) interval = 3;
-  else if(total < 55) interval = 4;
-  else interval = 5;
-
-  const displayLabels = daily.map((item, i)=>{
-    if(i === 0 || i === total - 1) return shortLabel(item.key);
-    const dt = parseDay(item.key);
-    const prev = i > 0 ? parseDay(daily[i - 1].key) : null;
-    if(dt && prev && (dt.getMonth() !== prev.getMonth() || dt.getFullYear() !== prev.getFullYear())){
-      return dt.toLocaleDateString("en-GB", { month: "short" });
-    }
-    return i % interval === 0 ? shortLabel(item.key) : "";
+  const prettyLabels = compressedLabels.map(day=>{
+    const dt = new Date(`${day}T12:00:00`);
+    if(Number.isNaN(dt.getTime())) return day;
+    return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
   });
 
   const ctx = el.getContext("2d");
+
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels:displayLabels,
+      labels:prettyLabels,
       datasets:[{
-        data:daily.map(x => x.value),
+        data:compressedHistory,
         tension:0.28,
         fill:true,
         borderWidth:3,
@@ -1715,21 +1712,21 @@ function renderDailyChart(history, labels, dayKeys){
         legend:{display:false},
         tooltip:{
           callbacks:{
-            title:(items)=>{
-              const i = items?.[0]?.dataIndex ?? 0;
-              return fullLabel(daily[i]?.key || "");
-            },
+            title:(items)=> compressedLabels[items?.[0]?.dataIndex ?? 0] || "",
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
       },
       scales:{
         x:{
-          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:0, minRotation:0, padding:6},
+          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
-          ticks:{color:"rgba(226,232,240,0.78)", callback:(v)=>`£${Number(v).toFixed(0)}`},
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
+          },
           grid:{color:"rgba(255,255,255,0.05)"}
         }
       }
@@ -1799,26 +1796,22 @@ function renderMarketChart(labels, winPct, totals){
   if(!el) return;
   if(marketChart) marketChart.destroy();
 
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safePct = Array.isArray(winPct) ? winPct.map(v => Number(v || 0)) : [];
-  const safeTotals = Array.isArray(totals) ? totals : [];
-
   const ctx = el.getContext("2d");
   marketChart = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: safeLabels,
+      labels,
       datasets: [{
-        data: safePct,
+        data: winPct,
         borderWidth: 0,
         borderRadius: 10,
         barThickness: 18,
-        backgroundColor: safePct.map(v=>{
-          if(v >= 55) return "rgba(34,197,94,0.85)";
-          if(v >= 40) return "rgba(245,158,11,0.85)";
-          return "rgba(239,68,68,0.85)";
+        backgroundColor: winPct.map(v=>{
+          if(v >= 55) return "rgba(34,197,94,0.85)";   // green
+          if(v >= 40) return "rgba(245,158,11,0.85)";  // amber
+          return "rgba(239,68,68,0.85)";               // red
         }),
-        borderColor: safePct.map(v=>{
+        borderColor: winPct.map(v=>{
           if(v >= 55) return "#22c55e";
           if(v >= 40) return "#f59e0b";
           return "#ef4444";
@@ -1829,7 +1822,6 @@ function renderMarketChart(labels, winPct, totals){
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { left: 8, right: 14 } },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1837,41 +1829,41 @@ function renderMarketChart(labels, winPct, totals){
             label: (ctx)=>{
               const i = ctx.dataIndex;
               const pct = Number(ctx.raw || 0).toFixed(0) + "%";
-              const t = safeTotals[i] ? safeTotals[i] : { bets: 0, wins: 0, losses: 0 };
+              const t = (totals && totals[i]) ? totals[i] : { bets: 0, wins: 0, losses: 0 };
               return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
             }
           }
         }
       },
       scales: {
-        x: { min: 0, max: 100, ticks: { display: false }, grid: { display: false, drawBorder: false } },
-        y: { ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } }, grid: { display: false, drawBorder: false } }
+        x: {
+          min: 0,
+          max: 100,
+          ticks: { display: false },
+          grid: { display: false, drawBorder: false }
+        },
+        y: {
+          ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
+          grid: { display: false, drawBorder: false }
+        }
       },
       animation: { duration: 250 }
     },
     plugins: [{
-      id: "pctLabelsSafe",
+      id: "pctLabels",
       afterDatasetsDraw(chart){
-        const {ctx, chartArea, scales} = chart;
+        const {ctx} = chart;
         const meta = chart.getDatasetMeta(0);
-        const xScale = scales.x;
         ctx.save();
         ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillStyle = "rgba(229,231,235,0.95)";
         meta.data.forEach((bar, i)=>{
-          const v = Number(safePct[i] || 0);
-          const txt = `${Math.round(v)}%`;
-          if(v >= 14){
-            ctx.fillStyle = "#ffffff";
-            ctx.textAlign = "right";
-            ctx.textBaseline = "middle";
-            ctx.fillText(txt, bar.x - 12, bar.y + 4);
-            return;
-          }
-          const safeX = Math.max(xScale.getPixelForValue(0) + 10, chartArea.left + 10);
-          ctx.fillStyle = v > 0 ? "rgba(229,231,235,0.92)" : "rgba(248,113,113,0.95)";
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.fillText(txt, safeX, bar.y + 4);
+          const val = winPct[i] ?? 0;
+          const text = Math.round(val) + "%";
+          const x = bar.x - 10; // inside bar near end
+          const y = bar.y + 4;
+          ctx.textAlign = "right";
+          ctx.fillText(text, x, y);
         });
         ctx.restore();
       }
@@ -2814,73 +2806,3 @@ renderMarketChart = function(labels, winPct, totals){
 };
 /* ===== END MARKETS 0% LABEL FIX ===== */
 
-
-
-/* ===== SAFE VIP BUTTON RESYNC PATCH ===== */
-(function(){
-  function bindVipButtonsSafe(){
-    const topBtn = document.getElementById('vipButton');
-    const promoBtn = document.getElementById('vipPromoBtn');
-    if(topBtn){
-      topBtn.onclick = function(e){
-        e.preventDefault();
-        openVipModal();
-      };
-    }
-    if(promoBtn){
-      promoBtn.onclick = function(e){
-        e.preventDefault();
-        openVipModal();
-      };
-    }
-  }
-
-  const originalCheckVIP = checkVIP;
-  checkVIP = async function(){
-    const active = await originalCheckVIP();
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = active ? 'none' : 'flex';
-    return active;
-  };
-
-  bindVipButtonsSafe();
-  setTimeout(bindVipButtonsSafe, 300);
-})();
-/* ===== END SAFE VIP BUTTON RESYNC PATCH ===== */
-
-
-
-// VIP PREMIUM ADDONS
-function updateVipExtras(wins, losses, profit){
-  const badge = document.getElementById('vipBadge');
-  if(!badge) return;
-
-  const total = wins+losses;
-  const streak = wins > losses ? "🔥 Hot streak" : (losses > wins ? "⚠️ Cold streak" : "Even");
-
-  badge.textContent = `Last ${total} bets • ${streak}`;
-
-  const profitEl = document.getElementById('vipPromoProfit');
-  if(profitEl){
-    profitEl.classList.remove('vip-green','vip-red');
-    profitEl.classList.add(profit >= 0 ? 'vip-green' : 'vip-red');
-  }
-}
-
-// patch into existing load function
-const oldLoadVip = loadVipPromoProof;
-loadVipPromoProof = async function(){
-  await oldLoadVip();
-  try{
-    const stats = document.getElementById('vipPromoStats')?.textContent || "";
-    const match = stats.match(/(\d+)-(\d+)/);
-    const profitMatch = stats.match(/£([0-9\.]+)/);
-
-    if(match){
-      const wins = parseInt(match[1]);
-      const losses = parseInt(match[2]);
-      const profit = profitMatch ? parseFloat(profitMatch[1]) : 0;
-      updateVipExtras(wins, losses, profit);
-    }
-  }catch(e){}
-};
