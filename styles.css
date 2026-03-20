@@ -365,31 +365,28 @@ th{text-align:left}
 
 /* ===== Mobile Fit Tracker Table ===== */
 @media (max-width: 600px){
+@media (max-width: 600px){
+
+  #trackerTable{
+    transform: scale(0.85);
+    transform-origin: top left;
+    width:118%;
+  }
 
   #trackerTable th,
   #trackerTable td{
-    font-size:12px;
-    padding:6px 2px;
-  }
-
-  .date-col{
-    width:60px;
     font-size:11px;
+    padding:4px 2px;
   }
 
   #trackerTable input[type="number"]{
-    width:55px;
+    width:50px;
   }
 
   #trackerTable select{
-    width:75px;
-    min-width:75px;
+    width:65px;
+    min-width:65px;
     font-size:11px;
-    padding:3px;
-  }
-
-  .profit-col{
-    font-size:12px;
   }
 
 }
@@ -1508,7 +1505,7 @@ body.layout-wide body.layout-wide /* Keep Daily History as single-column even in
   text-align:center;
 }
 
-.tab-locked{ opacity:0.55; }
+.tab-locked, .tab--locked{ opacity:0.55; }
 
 .modal-overlay{
   position:fixed;
@@ -2928,410 +2925,560 @@ body.layout-compact .vip-bar{
 }
 
 
-/* --- card layout tidy-up: date top-right, market slightly smaller, no duplicate value chip --- */
-.bet-teaser{
-  position:relative;
+/* ===== About info boxes per tab ===== */
+.about-info-card{
+  background: rgba(15,23,42,0.55);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  margin:0 0 16px;
+  overflow:hidden;
 }
-
-.bet-title{
-  padding-right:120px;
-}
-
-.bet-date{
-  position:absolute;
-  top:0;
-  right:0;
-  font-size:12px;
-  opacity:0.75;
-  white-space:nowrap;
-}
-
-.bet-meta{
-  display:block;
-  margin-top:8px;
-}
-
-.bet-market{
-  display:block;
+.about-info-header{
+  padding:12px 14px 8px;
   font-size:14px;
   font-weight:800;
-  color:#d8fff0;
-  letter-spacing:0.15px;
-  margin-bottom:14px;
+  color:#f8fafc;
 }
-
-.bet-bookie{
-  display:block;
-  margin-top:0;
-  margin-bottom:16px;
-  font-size:14px;
-  font-weight:700;
-  color:rgba(226,232,240,0.96);
-}
-
-.bet-left{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.bet-footer{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  margin-top:4px;
+.about-info-body{
+  padding:0 14px 14px;
+  font-size:12px;
+  color:#aab6c7;
+  line-height:1.5;
 }
 
 
-/* --- Value Bets cards: single-line teams + tighter OddsJam-style layout --- */
+/* ===== TDT monthly groups restore ===== */
+#tdtTrackerTable .tdt-month-groups{display:flex;flex-direction:column;gap:12px;}
+#tdtTrackerTable .tdt-month-card{border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;background:rgba(8,18,45,0.22);}
+#tdtTrackerTable .tdt-month-head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 14px;background:rgba(15,23,42,0.48);color:#e8eefc;border:1px solid rgba(255,255,255,0.08);cursor:pointer;border-radius:18px;}
+#tdtTrackerTable .tdt-month-left{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;}
+#tdtTrackerTable .tdt-month-title{font-weight:900;font-size:15px;}
+#tdtTrackerTable .tdt-month-sub{font-size:12px;opacity:.72;}
+#tdtTrackerTable .tdt-month-sub .positive{color:#22c55e;font-weight:800;}
+#tdtTrackerTable .tdt-month-sub .negative{color:#ef4444;font-weight:800;}
+#tdtTrackerTable .tdt-month-right{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;justify-content:flex-end;flex:0 0 auto;}
+#tdtTrackerTable .tdt-month-table .tdt-col-date{width:14%;}
+@media (max-width:600px){
+  #tdtTrackerTable .tdt-month-head{padding:12px 10px;align-items:center;}
+  #tdtTrackerTable .tdt-month-right{gap:5px;flex-wrap:nowrap;}
+  #tdtTrackerTable .tdt-month-title{font-size:14px;}
+}
+/* ===== restore Value Bets card layout ===== */
+
 #betsGrid .bet-card{
-  padding: 12px 14px;
-}
-
-#betsGrid .bet-teaser{
   position: relative;
-  gap: 8px;
 }
 
 #betsGrid .bet-title{
-  display:block;
-  font-size: 14px;
-  line-height: 1.2;
-  font-weight: 900;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding-right: 118px;
-  margin: 0;
-  letter-spacing: 0.1px;
+  display:block !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  padding-right:118px !important;
+  line-height:1.15 !important;
+  margin-bottom:10px !important;
 }
 
 #betsGrid .bet-date{
-  position: absolute;
-  top: 0;
-  right: 0;
-  font-size: 12px;
-  opacity: 0.74;
-  white-space: nowrap;
-}
-
-#betsGrid .bet-meta{
-  display:block;
-  margin-top: 6px;
+  position:absolute !important;
+  top:0 !important;
+  right:0 !important;
+  font-size:12px !important;
+  opacity:.78 !important;
+  white-space:nowrap !important;
 }
 
 #betsGrid .bet-market{
-  display:block;
-  font-size: 13px;
-  line-height: 1.2;
-  font-weight: 800;
-  margin-bottom: 10px;
-  text-align: left;
+  display:block !important;
+  margin-top:2px !important;
+  margin-bottom:14px !important;
 }
 
 #betsGrid .bet-bookie{
-  display:block;
-  margin-top: 0;
-  margin-bottom: 14px;
-  font-size: 13px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: rgba(226,232,240,0.94);
-}
-
-#betsGrid .bet-left{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
+  display:block !important;
+  margin-top:0 !important;
+  margin-bottom:16px !important;
+  color:#d7e2ee !important;
 }
 
 #betsGrid .bet-footer{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-top: 2px;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+  margin-top:0 !important;
+}
+
+#betsGrid .bet-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  flex-wrap:nowrap !important;
+}
+
+#betsGrid .bet-stats{
+  display:none !important;
 }
 
 #betsGrid .odds-badge,
 #betsGrid .stat-chip{
-  padding: 6px 12px;
-  font-size: 12px;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
 }
 
 #betsGrid .bet-btn{
-  padding: 6px 12px;
-  border-radius: 999px;
+  margin-left:auto !important;
+}
+/* ===== restore value chip + brighten market/bookie ===== */
+
+
+#betsGrid .bet-footer{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+  margin-top:12px !important;
 }
 
-@media (max-width: 420px){
-  #betsGrid .bet-title{
-    font-size: 13px;
-    padding-right: 108px;
-  }
-  #betsGrid .bet-market{
-    font-size: 12.5px;
-  }
-  #betsGrid .bet-bookie{
-    font-size: 12.5px;
-  }
-}
-/* ===== TDT monthly header look like original screenshot ===== */
-#tdtTrackerTable .tdt-month-groups{
-  display:flex;
-  flex-direction:column;
-  gap:18px;
+#betsGrid .bet-details{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:10px !important;
 }
 
-#tdtTrackerTable .tdt-month-card{
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:22px;
-  overflow:hidden;
-  background:rgba(8,18,45,0.22);
-  box-shadow:0 10px 26px rgba(0,0,0,0.18);
+#betsGrid .bet-market{
+  color:#dce7f5 !important;
+  opacity:0.95 !important;
+  font-weight:700 !important;
+  margin-bottom:10px !important;
 }
 
-#tdtTrackerTable .tdt-month-head{
+#betsGrid .bet-bookie{
+  color:#e8f2ff !important;
+  opacity:1 !important;
+  font-weight:700 !important;
+  margin-top:0 !important;
+  margin-bottom:12px !important;
+}
+
+#betsGrid .stat-chip{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+#betsGrid .stat-chip__k{
+  opacity:.9 !important;
+}
+
+#betsGrid .stat-chip__v{
+  font-weight:900 !important;
+}
+
+#betsGrid .odds-badge{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+/* ===== RESTORE VALUE BET CARD TO SECOND PICTURE ===== */
+
+#betsGrid .bet-card,
+#betsGrid .card.bet-card{
+  position: relative !important;
+}
+
+#betsGrid .bet-teaser{
+  display: block !important;
+  position: relative !important;
+}
+
+#betsGrid .bet-title{
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  padding-right: 120px !important;
+  margin: 0 0 16px 0 !important;
+  line-height: 1.15 !important;
+}
+
+#betsGrid .bet-date{
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  font-size: 12px !important;
+  opacity: .78 !important;
+  white-space: nowrap !important;
+}
+
+#betsGrid .bet-market{
+  display: block !important;
+  margin: 0 0 14px 0 !important;
+  color: #dce7f5 !important;
+  opacity: .95 !important;
+  font-weight: 700 !important;
+}
+
+#betsGrid .bet-bookie{
+  display: block !important;
+  margin: 0 0 16px 0 !important;
+  color: #e8f2ff !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
+
+#betsGrid .bet-details{
+  display: block !important;
+}
+
+#betsGrid .bet-stats{
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+}
+
+#betsGrid .bet-footer{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-top: 14px !important;
+}
+
+#betsGrid .bet-footer > div:first-child,
+#betsGrid .bet-left{
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: nowrap !important;
+}
+
+#betsGrid .odds-badge{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}
+
+#betsGrid .stat-chip{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}
+
+#betsGrid .bet-btn{
+  margin-left: auto !important;
+  align-self: center !important;
+}
+
+/* stop value chip dropping onto its own line */
+#betsGrid .bet-footer .stat-chip,
+#betsGrid .bet-footer .odds-badge{
+  flex: 0 0 auto !important;
+}
+
+/* make sure no old stacked layout wins */
+#betsGrid .bet-details > .stat-chip,
+#betsGrid .bet-details > .odds-badge{
+  display: none !important;
+}
+/* ===== Fix value bet bottom row layout ===== */
+
+#betsGrid .bet-footer{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+}
+
+#betsGrid .bet-footer-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+
+#betsGrid .bet-stats{
+  display:flex !important;
+  gap:10px !important;
+  flex-direction:row !important;
+}
+
+#betsGrid .stat-chip{
+  display:inline-flex !important;
+}
+
+#betsGrid .odds-badge{
+  display:inline-flex !important;
+}
+.bet-left{
+display:flex;
+align-items:center;
+gap:12px;
+}
+
+.bet-footer{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+/* VALUE CHIP COLOURS */
+
+.stat-chip{
+display:inline-flex;
+align-items:center;
+gap:6px;
+padding:6px 12px;
+border-radius:999px;
+font-weight:600;
+font-size:13px;
+}
+
+/* 10%+ VALUE (GREEN) */
+.stat-chip.high-value{
+background:rgba(34,197,94,.18);
+border:1px solid rgba(34,197,94,.45);
+color:#86efac;
+box-shadow:0 0 10px rgba(34,197,94,.35);
+}
+
+/* 7%–9% VALUE (BLUE) */
+.stat-chip.mid-value{
+background:rgba(59,130,246,.18);
+border:1px solid rgba(59,130,246,.45);
+color:#93c5fd;
+}
+
+/* LOW VALUE (GREY) */
+.stat-chip.low-value{
+background
+
+
+/* ===== Restored value chip colour coding ===== */
+.stat-chip.value-high{
+  background: rgba(34,197,94,0.18) !important;
+  border: 1px solid rgba(34,197,94,0.45) !important;
+  color: #86efac !important;
+  box-shadow: 0 0 10px rgba(34,197,94,0.35) !important;
+}
+.stat-chip.value-medium{
+  background: rgba(59,130,246,0.18) !important;
+  border: 1px solid rgba(59,130,246,0.45) !important;
+  color: #93c5fd !important;
+}
+.stat-chip.value-low{
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  color: #cbd5f5 !important;
+}
+.bets-table .pill.value-high{
+  background: rgba(34,197,94,0.18) !important;
+  border-color: rgba(34,197,94,0.45) !important;
+  color: #86efac !important;
+}
+.bets-table .pill.value-medium{
+  background: rgba(59,130,246,0.18) !important;
+  border-color: rgba(59,130,246,0.45) !important;
+  color: #93c5fd !important;
+}
+.bets-table .pill.value-low{
+  background: rgba(255,255,255,0.06) !important;
+  border-color: rgba(255,255,255,0.14) !important;
+  color: #cbd5f5 !important;
+}
+/* BET CARD READABILITY IMPROVEMENT */
+
+.bet-meta{
+font-size:16px !important;
+font-weight:600;
+color:#d7e6ff !important;
+margin-top:6px;
+}
+
+.bet-meta span{
+display:block;
+margin-top:4px;
+}
+
+.bet-teaser{
+line-height:1.45;
+}
+
+.bet-teaser div{
+font-size:16px !important;
+font-weight:600;
+color:#d7e6ff !important;
+}
+
+
+/* ===== VIP restore button ===== */
+.vip-restore-btn{
   width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
-  padding:18px 18px 14px;
-  background:transparent;
-  color:#e8eefc;
-  border:none;
-  cursor:pointer;
-  text-align:left;
+  margin-top:12px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.05);
+  color:#ffffff;
+  font-weight:700;
+}
+.vip-restore-btn:disabled{
+  opacity:0.7;
+  cursor:default;
 }
 
-#tdtTrackerTable .tdt-month-left{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  gap:4px;
-  min-width:0;
-  flex:1;
-}
 
-#tdtTrackerTable .tdt-month-title{
-  font-weight:900;
-  font-size:20px;
-  line-height:1.05;
-  color:#f8fafc;
+/* ===== 2026-03-17 safe mobile VIP fixes ===== */
+.bet-card--locked{
+  border-color:rgba(255,215,0,0.18);
+  background:linear-gradient(180deg,rgba(17,24,39,0.98),rgba(10,18,32,0.98));
 }
-
-#tdtTrackerTable .tdt-month-sub{
-  font-size:13px;
-  line-height:1.25;
-  color:rgba(226,232,240,0.82);
+.vip-blur, .vip-blur-area{
+  filter:none !important;
+  opacity:1 !important;
 }
-
-#tdtTrackerTable .tdt-month-sub .positive{
-  color:#22c55e;
-  font-weight:900;
+.vip-overlay{
+  background:rgba(3,7,18,0.18) !important;
+  backdrop-filter:none !important;
+  border-color:rgba(255,215,0,0.22) !important;
 }
-
-#tdtTrackerTable .tdt-month-sub .negative{
-  color:#ef4444;
-  font-weight:900;
-}
-
-#tdtTrackerTable .tdt-month-right{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-#tdtTrackerTable .tdt-day-chip{
+.bet-market--locked{
   display:inline-flex;
   align-items:center;
-  justify-content:center;
-  padding:10px 16px;
-  border-radius:999px;
-  font-size:13px;
-  font-weight:900;
-  border:1px solid rgba(255,255,255,0.10);
-  background:rgba(255,255,255,0.04);
-  white-space:nowrap;
+  gap:6px;
+  font-weight:800;
+  color:rgba(255,240,190,0.92);
+}
+.vip-teaser-line{
+  margin-top:6px;
+  font-size:12px;
+  color:rgba(255,240,190,0.88);
+  font-weight:700;
+}
+.vip-teaser-subline{
+  margin-top:2px;
+  font-size:12px;
+  color:rgba(255,255,255,0.72);
+}
+@media (max-width:700px){
+  .vip-promo{padding:14px 14px 16px;}
+  .vip-overlay{font-size:13px;}
 }
 
-#tdtTrackerTable .tdt-day-chip.win{
-  border-color:rgba(34,197,94,0.35);
-  background:rgba(34,197,94,0.10);
-  color:#d9ffe8;
+
+/* Mobile-first tracker idea: remove visible row date, keep month/day grouping, add market + editable odds */
+#trackerTable .hidden-date-col{
+  display:none;
 }
 
-#tdtTrackerTable .tdt-day-chip.loss{
-  border-color:rgba(239,68,68,0.35);
-  background:rgba(239,68,68,0.10);
-  color:#ffe1e1;
-}
-
-#tdtTrackerTable .tdt-day-chip.ratio{
-  border-color:rgba(34,197,94,0.35);
-  background:rgba(34,197,94,0.10);
-  color:#d9ffe8;
-}
-
-#tdtTrackerTable .tdt-day-chevron{
-  font-size:18px;
-  font-weight:900;
-  color:rgba(255,255,255,0.82);
-  margin-left:2px;
-}
-
-#tdtTrackerTable .tdt-day-body{
-  border-top:1px solid rgba(255,255,255,0.06);
-}
-
-#tdtTrackerTable .tdt-table-wrap{
-  overflow-x:auto;
-}
-
-#tdtTrackerTable .tdt-table{
+#trackerTable .myt-table{
   width:100%;
   border-collapse:collapse;
+  table-layout:fixed;
 }
 
-#tdtTrackerTable .tdt-table thead th{
-  background:rgba(2,8,23,0.22);
+#trackerTable .myt-table th,
+#trackerTable .myt-table td{
+  padding:10px 6px;
+  border-bottom:1px solid #334155;
+  vertical-align:middle;
+}
+
+#trackerTable .myt-table th{
+  text-align:left;
   font-size:12px;
-  color:rgba(226,232,240,0.82);
-  padding:14px 14px;
 }
 
-#tdtTrackerTable .tdt-table tbody td{
-  padding:14px 14px;
-  border-top:1px solid rgba(255,255,255,0.06);
+#trackerTable .myt-table th:nth-child(2),
+#trackerTable .myt-table td:nth-child(2){
+  width:34%;
+}
+#trackerTable .myt-table th:nth-child(3),
+#trackerTable .myt-table td:nth-child(3){
+  width:28%;
+}
+#trackerTable .myt-table th:nth-child(4),
+#trackerTable .myt-table td:nth-child(4){
+  width:12%;
+}
+#trackerTable .myt-table th:nth-child(5),
+#trackerTable .myt-table td:nth-child(5){
+  width:12%;
+}
+#trackerTable .myt-table th:nth-child(6),
+#trackerTable .myt-table td:nth-child(6){
+  width:14%;
 }
 
-@media (max-width:600px){
-  #tdtTrackerTable .tdt-month-head{
-    padding:16px 14px 12px;
-    align-items:flex-start;
-  }
-
-  #tdtTrackerTable .tdt-month-title{
-    font-size:17px;
-  }
-
-  #tdtTrackerTable .tdt-month-sub{
-    font-size:12px;
-  }
-
-  #tdtTrackerTable .tdt-month-right{
-    gap:8px;
-    justify-content:flex-start;
-  }
-
-  #tdtTrackerTable .tdt-day-chip{
-    padding:9px 13px;
-    font-size:12px;
-  }
+#trackerTable .myt-match,
+#trackerTable .myt-market{
+  line-height:1.12;
+  overflow-wrap:anywhere;
 }
-/* ===== TDT MONTH HEADER TIGHTER / CLEANER ===== */
-
-#tdtTrackerTable .tdt-month-head{
-  padding:14px 16px 10px;
-}
-
-#tdtTrackerTable .tdt-month-title{
-  font-size:18px;
+#trackerTable .myt-match{
   font-weight:800;
-  line-height:1.1;
 }
-
-#tdtTrackerTable .tdt-month-sub{
-  font-size:12px;
-  margin-top:2px;
-  opacity:0.8;
+#trackerTable .myt-input{
+  width:52px;
+  max-width:100%;
+  box-sizing:border-box;
+  padding:4px 3px;
+  text-align:center;
 }
-
-#tdtTrackerTable .tdt-month-right{
-  gap:8px;
-}
-
-/* smaller pills */
-
-#tdtTrackerTable .tdt-day-chip{
-  padding:7px 12px;
-  font-size:12px;
-  border-radius:999px;
-}
-
-/* slightly tighter rows */
-
-#tdtTrackerTable .tdt-table thead th{
+#trackerTable .result-select{
+  min-width:58px;
+  width:58px;
+  padding:2px 6px;
   font-size:11px;
-  padding:12px 12px;
+  border-radius:8px;
+  text-align:center;
 }
-
-#tdtTrackerTable .tdt-table tbody td{
-  padding:12px 12px;
+#trackerTable tr.month-group td,
+#trackerTable tr.date-group td{
+  font-weight:800;
+  background:rgba(255,255,255,.03);
 }
-
-/* slightly smaller chevron */
-
-#tdtTrackerTable .tdt-day-chevron{
-  font-size:16px;
-}
-
-/* mobile tightening */
 
 @media (max-width:600px){
-
-  #tdtTrackerTable .tdt-month-head{
-    padding:12px 12px 8px;
-  }
-
-  #tdtTrackerTable .tdt-month-title{
-    font-size:16px;
-  }
-
-  #tdtTrackerTable .tdt-day-chip{
-    padding:6px 10px;
+  #trackerTable .myt-table th,
+  #trackerTable .myt-table td{
+    padding:8px 4px;
     font-size:11px;
   }
-
-}
-/* ===== TDT header smaller + neater ===== */
-
-#tdtTrackerTable .tdt-month-head{
-  padding:10px 14px 8px;
-}
-
-#tdtTrackerTable .tdt-month-title{
-  font-size:16px;
-  font-weight:800;
-  line-height:1.05;
-}
-
-#tdtTrackerTable .tdt-month-sub{
-  font-size:11px;
-  margin-top:1px;
-  opacity:0.8;
-}
-
-#tdtTrackerTable .tdt-month-right{
-  gap:6px;
-}
-
-/* smaller pills */
-
-#tdtTrackerTable .tdt-day-chip{
-  padding:5px 10px;
-  font-size:11px;
-  border-radius:999px;
-}
-
-/* slightly smaller arrow */
-
-#tdtTrackerTable .tdt-day-chevron{
-  font-size:14px;
+  #trackerTable .myt-table th:nth-child(2),
+  #trackerTable .myt-table td:nth-child(2){
+    width:36%;
+  }
+  #trackerTable .myt-table th:nth-child(3),
+  #trackerTable .myt-table td:nth-child(3){
+    width:26%;
+  }
+  #trackerTable .myt-table th:nth-child(4),
+  #trackerTable .myt-table td:nth-child(4){
+    width:12%;
+  }
+  #trackerTable .myt-table th:nth-child(5),
+  #trackerTable .myt-table td:nth-child(5){
+    width:11%;
+  }
+  #trackerTable .myt-table th:nth-child(6),
+  #trackerTable .myt-table td:nth-child(6){
+    width:15%;
+  }
+  #trackerTable .myt-table th:nth-child(7),
+  #trackerTable .myt-table td:nth-child(7){
+    display:none;
+  }
+  #trackerTable .myt-input{
+    width:46px;
+    padding:3px 2px;
+    font-size:11px;
+  }
+  #trackerTable .result-select{
+    min-width:54px;
+    width:54px;
+    font-size:10px;
+    padding:2px 4px;
+  }
 }
