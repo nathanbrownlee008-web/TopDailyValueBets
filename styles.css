@@ -3448,59 +3448,20 @@ body.layout-compact .vip-bar{
 }
 
 
-/* Mobile tracker spacing tweak: push stake/odds left and give match more room */
-@media (max-width: 768px){
-
-  /* hide profit on mobile */
-  #trackerTable table th.profit-col,
-  #trackerTable table td.profit-col,
-  #trackerTable table th:last-child,
-  #trackerTable table td:last-child{
-    display:none !important;
-  }
-
-  /* match gets more space */
-  #trackerTable td.match-market-cell{
-    width: 74% !important;
-    vertical-align: top;
-  }
-
-  #trackerTable .tracker-match-name{
-    font-size: 12px;
-    line-height: 1.05;
-    white-space: normal;
-    overflow-wrap: break-word;
-  }
-
-  #trackerTable .tracker-market-sub{
-    font-size: 11px;
-    margin-top: 3px;
-  }
-
-  /* pull stake + odds left */
-  #trackerTable td:nth-child(3),
-  #trackerTable td:nth-child(4){
-    text-align: left !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-
-  #trackerTable td:nth-child(3) input,
-  #trackerTable td:nth-child(4) input{
-    margin-left: -10px !important;
-  }
-
-  #trackerTable td:nth-child(3) input{
-    margin-right: -8px !important;
-  }
-
-  #trackerTable input[type="number"]{
-    width: 40px !important;
-    min-width: 40px !important;
-  }
-
-  #trackerTable td:nth-child(5){
-    width: 14% !important;
-  }
+/* Results table only: slight mobile zoom-out for more space */
+.tracker-zoom {
+  transform: scale(0.92);
+  transform-origin: top center;
+  width: 108%;
+  margin-left: -4%;
 }
 
+#trackerTable table {
+  font-size: 13px;
+}
+
+#trackerTable input,
+#trackerTable select {
+  font-size: 13px;
+  padding: 6px;
+}
