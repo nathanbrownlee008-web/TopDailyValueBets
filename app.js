@@ -2675,3 +2675,137 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
+
+
+/* VIP PREVIEW WORKING OVERRIDE */
+(function(){
+  let vipPreviewLoaded = false;
+  let vipPreviewChartOverride = null;
+
+  function vipPreviewProfit(row){
+    if(row && row.profit != null) return Number(row.profit || 0);
+    const stake = Number(row?.stake || 0);
+    const odds = Number(row?.odds || 0);
+    const result = String(row?.result || 'pending').toLowerCase();
+    if(result === 'won') return stake * (odds - 1);
+    if(result === 'lost') return -stake;
+    return 0;
+  }
+
+  function vipPreviewDay(raw){
+    const d = new Date(raw || '');
+    if(Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
+  }
+
+  async function forceVipPreview(){
+    if(vipPreviewLoaded) return;
+    const statsEl = document.getElementById('vipPromoStats');
+    const canvas = document.getElementById('vipPromoChart');
+    if(!statsEl || !canvas) return;
+    if(typeof vipActive !== 'undefined' && vipActive) return;
+
+    try{
+      statsEl.textContent = 'Loading official TDT proof...';
+
+      const url = `${SUPABASE_URL}/rest/v1/tdt_tracker?select=*&order=created_at.asc&limit=200`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        },
+        cache: 'no-store'
+      });
+
+      if(!res.ok) throw new Error(`REST ${res.status}`);
+
+      const rows = await res.json();
+      const settled = (Array.isArray(rows) ? rows : []).filter(r => String(r.result || 'pending').toLowerCase() !== 'pending');
+
+      if(!settled.length){
+        statsEl.textContent = 'Official proof updates soon';
+        return;
+      }
+
+      let wins = 0, losses = 0, stake = 0, profit = 0;
+      const labels = [];
+      const points = [];
+      let running = 0;
+      let lastDay = '';
+
+      settled.forEach((row)=>{
+        const result = String(row.result || 'pending').toLowerCase();
+        if(result === 'won') wins += 1;
+        if(result === 'lost') losses += 1;
+
+        const stakeVal = Number(row.stake || 0);
+        const rowProfitVal = vipPreviewProfit(row);
+
+        stake += stakeVal;
+        profit += rowProfitVal;
+        running += rowProfitVal;
+
+        const dayLabel = vipPreviewDay(row.bet_date || row.created_at || row.match_date_date);
+        if(dayLabel !== lastDay){
+          labels.push(dayLabel);
+          points.push(running);
+          lastDay = dayLabel;
+        }else if(points.length){
+          points[points.length - 1] = running;
+        }
+      });
+
+      const roi = stake ? ((profit / stake) * 100) : 0;
+      const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
+      statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
+
+      if(typeof Chart !== 'undefined'){
+        if(vipPreviewChartOverride) vipPreviewChartOverride.destroy();
+        vipPreviewChartOverride = new Chart(canvas.getContext('2d'), {
+          type:'line',
+          data:{
+            labels,
+            datasets:[{
+              data: points,
+              tension:0.32,
+              fill:true,
+              borderColor:'#22c55e',
+              backgroundColor:'rgba(34,197,94,0.10)',
+              borderWidth:2,
+              pointRadius:0
+            }]
+          },
+          options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            animation:false,
+            plugins:{ legend:{display:false} },
+            scales:{
+              x:{ ticks:{ maxTicksLimit:6, color:'rgba(203,213,225,0.7)' }, grid:{ color:'rgba(255,255,255,0.04)' } },
+              y:{ ticks:{ color:'rgba(203,213,225,0.7)', callback:(v)=>`£${v}` }, grid:{ color:'rgba(255,255,255,0.05)' } }
+            }
+          }
+        });
+      }
+
+      vipPreviewLoaded = true;
+    }catch(err){
+      console.error('VIP PREVIEW WORKING OVERRIDE FAILED', err);
+      statsEl.textContent = 'Official TDT proof unavailable right now';
+    }
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', ()=>{
+      setTimeout(forceVipPreview, 300);
+      setTimeout(forceVipPreview, 1400);
+    });
+  }else{
+    setTimeout(forceVipPreview, 300);
+    setTimeout(forceVipPreview, 1400);
+  }
+
+  window.addEventListener('focus', ()=>setTimeout(forceVipPreview, 250));
+})();
+/* END VIP PREVIEW WORKING OVERRIDE */
+
