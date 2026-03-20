@@ -78,8 +78,11 @@ async function forceVipRefreshNow(emailFromInput){
   }
 
   try{
+    // Clear any existing auth session first so old sessions cannot fake a valid restore
+    try{ await client.auth.signOut(); }catch(e){}
+
     const signIn = await client.auth.signInWithPassword({ email, password });
-    if(signIn.error){
+    if(signIn.error || !signIn.data?.user || normalizeVipEmail(signIn.data.user.email) !== email){
       throw new Error("Wrong VIP password for that email.");
     }
 
@@ -94,9 +97,12 @@ async function forceVipRefreshNow(emailFromInput){
       return true;
     }
 
+    // Correct auth, but no paid VIP linked
+    try{ await client.auth.signOut(); }catch(e){}
     if(vipErrorEl) vipErrorEl.textContent = "No active VIP subscription linked to this email.";
     return false;
   }catch(err){
+    try{ await client.auth.signOut(); }catch(e){}
     if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not restore VIP.";
     return false;
   }
@@ -582,14 +588,7 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-if(vipRestoreEl) vipRestoreEl.addEventListener('click',async ()=>{
-  if(vipErrorEl) vipErrorEl.textContent = "Checking VIP account...";
-  try{
-    await forceVipRefreshNow();
-  }finally{
-    if(vipRestoreEl) vipRestoreEl.blur();
-  }
-});
+if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
 if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
