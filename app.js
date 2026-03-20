@@ -45,6 +45,7 @@ function openVipModal(){
   if(vipErrorEl) vipErrorEl.textContent="";
   const saved=(localStorage.getItem('vip_email')||"").trim();
   if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
+  if(vipPasswordEl && !vipPasswordEl.value) vipPasswordEl.value="";
   vipModalEl.style.display="flex";
 }
 
@@ -52,6 +53,70 @@ function closeVipModal(){
   if(!vipModalEl) return;
   vipModalEl.style.display="none";
 }
+
+function normalizeVipEmail(email){
+  return String(email || "").trim().toLowerCase();
+}
+
+async function forceVipRefreshNow(emailFromInput){
+  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
+  if(!email || !email.includes("@")) return false;
+  localStorage.setItem('vip_email', email);
+  const active = await checkVIP();
+  if(active){
+    closeVipModal();
+    await loadBets();
+    if(typeof loadTracker === "function") await loadTracker();
+    if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
+    return true;
+  }
+  return false;
+}
+
+async function ensureVipPasswordAccount(email, password){
+  const cleanEmail = normalizeVipEmail(email);
+  const cleanPassword = String(password || "");
+  if(!cleanEmail || !cleanEmail.includes("@")) throw new Error("Enter a valid email.");
+  if(cleanPassword.length < 6) throw new Error("Use at least 6 characters for your VIP password.");
+
+  const signIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+  if(!signIn.error) return true;
+
+  const signUp = await client.auth.signUp({
+    email: cleanEmail,
+    password: cleanPassword,
+    options: { emailRedirectTo: window.location.origin + "/reset-password.html" }
+  });
+  if(!signUp.error) return true;
+
+  const msg = String(signUp.error?.message || "").toLowerCase();
+  if(msg.includes("already") || msg.includes("exists") || msg.includes("registered") || msg.includes("user already")){
+    const secondSignIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+    if(!secondSignIn.error) return true;
+    throw new Error("Wrong VIP password for that email.");
+  }
+
+  throw signUp.error;
+}
+
+async function forgotVipPassword(){
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
+    return;
+  }
+  try{
+    if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/reset-password.html"
+    });
+    if(error) throw error;
+    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent. Check inbox and spam.";
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not send reset email.";
+  }
+}
+
 
 async function checkVIP(){
   const email=(localStorage.getItem('vip_email')||"").trim();
@@ -64,16 +129,27 @@ async function checkVIP(){
     const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
     const j=await r.json();
     vipActive=!!j.active;
-    setVipUI(vipActive,email);
-    return vipActive;
-  }catch(e){
-    vipActive=false;
-    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
-    setVipUI(false,email);
-    return false;
-  }
+
+if(vipActive){
+  setVipUI(true,email);
+}else{
+  clearVipState();
 }
 
+return vipActive;
+
+}catch(e){
+  clearVipState();
+  if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
+  return false;
+}
+}
+function clearVipState(){
+  vipActive = false;
+  localStorage.removeItem('vip_email');
+  setVipUI(false,"");
+  refreshAdminBadgeUI();
+}
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
   const email=(vipEmailEl?.value||"").trim();
@@ -200,10 +276,7 @@ function currentVipEmail(){
 function isAdminSyncEnabled(){
   return currentVipEmail() === ADMIN_SYNC_EMAIL;
 }
-function refreshAdminBadgeUI(){
-  const badges = document.querySelectorAll('[data-admin-badge="1"]');
-  badges.forEach(el=>{ el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none"; });
-}
+
 function makeSyncId(){
   return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 }
@@ -273,6 +346,71 @@ function writeTrackerRows(rows){
 
 function makeLocalTrackerId(){
   return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+
+function normalizeTrackerLocalRow(row){
+  const out = { ...(row || {}) };
+  if(!out.id) out.id = makeLocalTrackerId();
+  if(!out.sync_id && String(out.id || "").startsWith("sync_")) out.sync_id = out.id;
+  if(!out.created_at && out.bet_date){
+    out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
+  }
+  if(!out.created_at){
+    out.created_at = new Date().toISOString();
+  }
+  out.odds = Number(out.odds || 0);
+  out.stake = Number(out.stake || 0);
+  out.result = out.result || "pending";
+  out.match = out.match || "";
+  out.market = out.market || "";
+  return out;
+}
+
+function mergeTrackerRows(localRows, cloudRows){
+  const map = new Map();
+  (localRows || []).map(normalizeTrackerLocalRow).forEach(row=>{
+    map.set(String(row.sync_id || row.id), row);
+  });
+  (cloudRows || []).map(normalizeTrackerLocalRow).forEach(row=>{
+    map.set(String(row.sync_id || row.id), row);
+  });
+  return Array.from(map.values());
+}
+
+async function readTrackerRowsCloudMerged(){
+  const localRows = readTrackerRows();
+  if(!isAdminSyncEnabled()) return localRows;
+
+  try{
+    const { data, error } = await client
+      .from("tdt_tracker")
+      .select("*")
+      .like("sync_id", "sync_%")
+      .order("created_at", { ascending: true });
+
+    if(error) throw error;
+
+    const cloudRows = (Array.isArray(data) ? data : []).map((row)=> normalizeTrackerLocalRow({
+      id: row.sync_id || row.id || makeLocalTrackerId(),
+      sync_id: row.sync_id || row.id || null,
+      match: row.match || "",
+      market: row.market || "",
+      odds: row.odds,
+      stake: row.stake,
+      result: row.result,
+      bet_date: row.bet_date || null,
+      created_at: row.created_at || null,
+      bookie: row.bookie || null,
+      profit: row.profit ?? null
+    }));
+
+    const merged = mergeTrackerRows(localRows, cloudRows);
+    writeTrackerRows(merged);
+    return merged;
+  }catch(e){
+    console.error("Tracker cloud read failed", e);
+    return localRows;
+  }
 }
 
 
@@ -445,7 +583,7 @@ function switchTab(tab){
 async function loadBets(){
   addedKeys.clear();
   try{
-    const localRows = readTrackerRows();
+    const localRows = await readTrackerRowsCloudMerged();
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
@@ -926,7 +1064,7 @@ async function loadVipPromoProof(){
 }
 
 async function loadTracker(){
-const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const rows = (await readTrackerRowsCloudMerged()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -1465,40 +1603,46 @@ function renderDailyChart(history, labels, dayKeys){
   if(dailyChart) dailyChart.destroy();
 
   const safeHistory = Array.isArray(history) ? history : [];
-  const safeLabels = Array.isArray(labels) ? labels : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
-  const ctx = el.getContext("2d");
 
-  const pointRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 3 : 0;
+  const compressedLabels = [];
+  const compressedHistory = [];
+
+  safeHistory.forEach((value, i)=>{
+    const day = safeDayKeys[i];
+    if(!day) return;
+
+    const lastIdx = compressedLabels.length - 1;
+    if(lastIdx >= 0 && compressedLabels[lastIdx] === day){
+      compressedHistory[lastIdx] = value; // keep only end-of-day bankroll
+    }else{
+      compressedLabels.push(day);
+      compressedHistory.push(value);
+    }
   });
-  const pointHoverRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 5 : 0;
+
+  const prettyLabels = compressedLabels.map(day=>{
+    const dt = new Date(`${day}T12:00:00`);
+    if(Number.isNaN(dt.getTime())) return day;
+    return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
   });
-  const pointHitRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 14 : 0;
-  });
+
+  const ctx = el.getContext("2d");
 
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels:safeLabels,
+      labels:prettyLabels,
       datasets:[{
-        data:safeHistory,
+        data:compressedHistory,
         tension:0.28,
         fill:true,
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:pointRadius,
-        pointHoverRadius:pointHoverRadius,
-        pointHitRadius:pointHitRadius,
+        pointRadius:3,
+        pointHoverRadius:5,
+        pointHitRadius:14,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
@@ -1510,7 +1654,7 @@ function renderDailyChart(history, labels, dayKeys){
         legend:{display:false},
         tooltip:{
           callbacks:{
-            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
+            title:(items)=> compressedLabels[items?.[0]?.dataIndex ?? 0] || "",
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
