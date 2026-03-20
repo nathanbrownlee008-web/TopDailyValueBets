@@ -3446,3 +3446,19 @@ body.layout-compact .vip-bar{
     font-size:11px;
   }
 }
+
+
+/* keep hidden tracker date column for grouping only */
+.hidden-date-col{
+  display:none !important;
+}
+
+/* hide Profit column on mobile only, keep on desktop */
+@media (max-width: 768px) {
+  #trackerTable table th.profit-col,
+  #trackerTable table td.profit-col,
+  #trackerTable table th:last-child,
+  #trackerTable table td:last-child {
+    display: none !important;
+  }
+}

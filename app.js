@@ -882,25 +882,13 @@ function _renderFilteredTrackerTable(){
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
 
-  // keep month/day dropdown grouping after every table re-render
-  if(typeof addPersonalTrackerDateGroups === "function"){
-    addPersonalTrackerDateGroups();
-  }
-  if(typeof addPersonalTrackerMonthGroups === "function"){
-    addPersonalTrackerMonthGroups();
-  }
-  if(typeof wirePersonalTrackerDateCollapse === "function"){
-    wirePersonalTrackerDateCollapse();
-  }
-  if(typeof wirePersonalTrackerMonthCollapse === "function"){
-    wirePersonalTrackerMonthCollapse();
-  }
-  if(typeof applyPersonalTrackerMonthCollapseState === "function"){
-    applyPersonalTrackerMonthCollapseState();
-  }
-  if(typeof applyPersonalTrackerCollapseState === "function"){
-    applyPersonalTrackerCollapseState();
-  }
+  // restore month/day dropdown grouping after every redraw
+  if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups();
+  if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups();
+  if(typeof wirePersonalTrackerDateCollapse === "function") wirePersonalTrackerDateCollapse();
+  if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState();
+  if(typeof wirePersonalTrackerMonthCollapse === "function") wirePersonalTrackerMonthCollapse();
+  if(typeof applyPersonalTrackerMonthCollapseState === "function") applyPersonalTrackerMonthCollapseState();
 }
 
 let _filtersWired = false;
@@ -1154,6 +1142,7 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
+<td class="date-col hidden-date-col">${dayKey}</td>
 <td>${row.match}</td>
 <td>${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
@@ -1174,10 +1163,17 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th class='hidden-date-col'>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
+
+if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups();
+if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups();
+if(typeof wirePersonalTrackerDateCollapse === "function") wirePersonalTrackerDateCollapse();
+if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState();
+if(typeof wirePersonalTrackerMonthCollapse === "function") wirePersonalTrackerMonthCollapse();
+if(typeof applyPersonalTrackerMonthCollapseState === "function") applyPersonalTrackerMonthCollapseState();
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
@@ -1994,7 +1990,7 @@ function addPersonalTrackerDateGroups(){
     if(dateText !== lastDate){
       const divider = document.createElement("tr");
       divider.className = "date-group";
-      divider.innerHTML = `<td colspan="5">📅 ${dateText}</td>`;
+      divider.innerHTML = `<td colspan="7">▼ ${dateText}</td>`;
       row.parentNode.insertBefore(divider, row);
       lastDate = dateText;
     }
@@ -2229,7 +2225,7 @@ function addPersonalTrackerMonthGroups(){
     if(month !== lastMonth){
       const divider = document.createElement("tr");
       divider.className = "month-group";
-      divider.innerHTML = `<td colspan="5">▼ ${month}</td>`;
+      divider.innerHTML = `<td colspan="7">▼ ${month}</td>`;
       groupRow.parentNode.insertBefore(divider, groupRow);
       lastMonth = month;
     }
