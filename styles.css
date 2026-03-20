@@ -3446,3 +3446,114 @@ body.layout-compact .vip-bar{
     font-size:11px;
   }
 }
+
+
+
+/* ===== REBUILT TRACKER GROUP DROPDOWNS (month/day above headers) ===== */
+.tracker-grouped-shell{
+  display:block;
+}
+
+.tracker-month-wrap,
+.tracker-day-wrap{
+  margin-bottom:10px;
+}
+
+.tracker-group-toggle{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#162033;
+  color:#e2e8f0;
+  border:1px solid #243247;
+  border-radius:0;
+  padding:12px 14px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.tracker-month-toggle{
+  font-size:18px;
+  border-radius:10px 10px 0 0;
+}
+
+.tracker-day-toggle{
+  font-size:16px;
+  border-top:none;
+  background:#111a2d;
+}
+
+.tracker-group-arrow{
+  width:14px;
+  flex:0 0 14px;
+  text-align:center;
+}
+
+.tracker-group-body{
+  overflow:hidden;
+}
+
+.tracker-group-body.is-collapsed{
+  display:none;
+}
+
+#trackerTable .tracker-results-table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  background:transparent;
+}
+
+#trackerTable .tracker-results-table thead th{
+  text-align:left;
+  padding:10px 6px;
+  border-bottom:1px solid #334155;
+}
+
+#trackerTable .tracker-results-table tbody td{
+  padding:10px 6px;
+  border-bottom:1px solid #334155;
+  vertical-align:middle;
+}
+
+#trackerTable .tracker-results-table input[type="number"]{
+  width:72px;
+}
+
+#trackerTable .tracker-results-table select{
+  min-width:92px;
+  width:92px;
+}
+
+@media (max-width: 768px){
+  #trackerTable .tracker-results-table th,
+  #trackerTable .tracker-results-table td{
+    font-size:12px !important;
+    padding:8px 4px !important;
+  }
+
+  #trackerTable .tracker-results-table input[type="number"]{
+    width:46px !important;
+    min-width:46px !important;
+  }
+
+  #trackerTable .tracker-results-table select{
+    width:78px !important;
+    min-width:78px !important;
+  }
+
+  #trackerTable .tracker-results-table th.profit-col,
+  #trackerTable .tracker-results-table td.profit-col{
+    display:none !important;
+  }
+
+  .tracker-month-toggle{
+    font-size:16px;
+  }
+
+  .tracker-day-toggle{
+    font-size:15px;
+  }
+}
+

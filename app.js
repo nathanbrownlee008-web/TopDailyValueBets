@@ -2617,3 +2617,215 @@ try{
 
 window.restoreVipAccess = restoreVipAccess;
 window.forgotVipPassword = forgotVipPassword;
+
+
+
+/* ===== REBUILT TRACKER GROUP DROPDOWNS (month/day above headers) ===== */
+(function(){
+  function trackerParseDate(raw){
+    if(!raw) return new Date("1970-01-01T12:00:00");
+    const d = new Date(raw);
+    if(!Number.isNaN(d.getTime())) return d;
+    return new Date("1970-01-01T12:00:00");
+  }
+
+  function trackerRawDate(row){
+    return row.match_date_date || row.match_date || row.bet_date || row.created_at;
+  }
+
+  function trackerMonthLabel(row){
+    const d = trackerParseDate(trackerRawDate(row));
+    return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  }
+
+  function trackerDayLabel(row){
+    return fmtDayLabel(trackerRawDate(row));
+  }
+
+  function trackerProfit(row){
+    const stake = Number(row.stake || 0);
+    const odds = Number(row.odds || 0);
+    const res = row.result || "pending";
+    if(res === "won") return row.profit != null ? Number(row.profit) : stake * (odds - 1);
+    if(res === "lost") return row.profit != null ? Number(row.profit) : -stake;
+    return 0;
+  }
+
+  function trackerEsc(s){
+    return String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function trackerStateKey(type){
+    const email = (localStorage.getItem("vip_email") || "guest").trim().toLowerCase();
+    return `tracker_rebuilt_${type}_${email}`;
+  }
+
+  function trackerReadState(type){
+    try{
+      return JSON.parse(localStorage.getItem(trackerStateKey(type)) || "{}");
+    }catch(e){
+      return {};
+    }
+  }
+
+  function trackerWriteState(type, state){
+    localStorage.setItem(trackerStateKey(type), JSON.stringify(state || {}));
+  }
+
+  window.toggleTrackerCollapse = function(btn){
+    const type = btn.dataset.type;
+    const key = decodeURIComponent(btn.dataset.key || "");
+    const body = btn.nextElementSibling;
+    if(!body) return;
+
+    const collapsed = body.classList.toggle("is-collapsed");
+    btn.querySelector(".tracker-group-arrow").textContent = collapsed ? "▶" : "▼";
+
+    const state = trackerReadState(type);
+    state[key] = !collapsed;
+    trackerWriteState(type, state);
+  };
+
+  window.buildTrackerGroupedHTML = function(rows){
+    const list = (rows || []).slice().sort((a,b)=> trackerParseDate(trackerRawDate(b)) - trackerParseDate(trackerRawDate(a)));
+
+    const monthState = trackerReadState("month");
+    const dayState = trackerReadState("day");
+
+    const months = [];
+    const monthMap = new Map();
+
+    list.forEach(row=>{
+      const month = trackerMonthLabel(row);
+      const day = trackerDayLabel(row);
+
+      if(!monthMap.has(month)){
+        monthMap.set(month, { label: month, days: new Map() });
+        months.push(monthMap.get(month));
+      }
+      const monthEntry = monthMap.get(month);
+      if(!monthEntry.days.has(day)){
+        monthEntry.days.set(day, []);
+      }
+      monthEntry.days.get(day).push(row);
+    });
+
+    let html = `<div class="tracker-grouped-shell">`;
+
+    months.forEach((monthEntry, monthIndex)=>{
+      const monthKey = monthEntry.label;
+      const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0;
+
+      html += `
+        <div class="tracker-month-wrap">
+          <button class="tracker-group-toggle tracker-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+            <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
+            <span>${trackerEsc(monthKey)}</span>
+          </button>
+          <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+      `;
+
+      Array.from(monthEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
+        const dayKey = `${monthKey}||${dayLabel}`;
+        const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && dayIndex === 0);
+
+        html += `
+          <div class="tracker-day-wrap">
+            <button class="tracker-group-toggle tracker-day-toggle" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
+              <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
+              <span>${trackerEsc(dayLabel)}</span>
+            </button>
+            <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
+              <table class="tracker-results-table">
+                <thead>
+                  <tr>
+                    <th>Match</th>
+                    <th>Market</th>
+                    <th>Stake</th>
+                    <th>Odds</th>
+                    <th>Result</th>
+                    <th class="profit-col">Profit</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+
+        dayRows.forEach(row=>{
+          const p = trackerProfit(row);
+          const pClass = p > 0 ? "profit-win" : (p < 0 ? "profit-loss" : "");
+          html += `
+            <tr>
+              <td>${trackerEsc(row.match || "")}</td>
+              <td>${trackerEsc(row.market || "—")}</td>
+              <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
+              <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
+              <td>
+                <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                  <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                  <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                  <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                  <option value="delete">🗑 delete</option>
+                </select>
+              </td>
+              <td class="profit-col"><span class="${pClass}">£${p.toFixed(2)}</span></td>
+            </tr>
+          `;
+        });
+
+        html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div></div>`;
+    });
+
+    html += `</div>`;
+    return html;
+  };
+
+  if(typeof _renderFilteredTrackerTable === "function"){
+    _renderFilteredTrackerTable = function(){
+      const tableEl = document.getElementById("trackerTable");
+      const countEl = document.getElementById("betCount");
+      if(!tableEl) return;
+
+      const filtered = _applyTrackerFilters(trackerAllRows);
+      tableEl.innerHTML = buildTrackerGroupedHTML(filtered);
+      if(countEl) countEl.textContent = filtered.length;
+    };
+  }
+
+  if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups = function(){};
+  if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups = function(){};
+  if(typeof wirePersonalTrackerDateCollapse === "function") wirePersonalTrackerDateCollapse = function(){};
+  if(typeof wirePersonalTrackerMonthCollapse === "function") wirePersonalTrackerMonthCollapse = function(){};
+  if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState = function(){};
+  if(typeof applyPersonalTrackerMonthCollapseState === "function") applyPersonalTrackerMonthCollapseState = function(){};
+
+  if(typeof loadTracker === "function"){
+    const __rebuiltLoadTracker = loadTracker;
+    loadTracker = async function(){
+      await __rebuiltLoadTracker();
+      try{
+        const tableEl = document.getElementById("trackerTable");
+        if(tableEl && Array.isArray(trackerAllRows)){
+          tableEl.innerHTML = buildTrackerGroupedHTML(trackerAllRows);
+          const countEl = document.getElementById("betCount");
+          if(countEl) countEl.textContent = trackerAllRows.length;
+        }
+      }catch(e){
+        console.error("Rebuilt tracker grouping failed", e);
+      }
+    };
+  }
+})();
+
