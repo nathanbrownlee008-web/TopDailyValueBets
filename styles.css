@@ -3591,3 +3591,31 @@ color:#d7e6ff !important;
 }
 /* ===== END BET RESULTS PRO TABLE REAL FIX ===== */
 
+.bet-lock-wrap,
+.bet-card,
+.bet-details,
+.bet-footer,
+.bet-left {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.bet-lock-wrap {
+  width: 100%;
+  overflow: hidden;
+}
+
+.bet-card {
+  width: 100%;
+}
+
+.bet-footer {
+  flex-wrap: wrap;
+}
+
+.bet-left {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
