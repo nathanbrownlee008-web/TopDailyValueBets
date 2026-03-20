@@ -3446,22 +3446,3 @@ body.layout-compact .vip-bar{
     font-size:11px;
   }
 }
-
-
-/* Results table only: slight mobile zoom-out for more space */
-.tracker-zoom {
-  transform: scale(0.92);
-  transform-origin: top center;
-  width: 108%;
-  margin-left: -4%;
-}
-
-#trackerTable table {
-  font-size: 13px;
-}
-
-#trackerTable input,
-#trackerTable select {
-  font-size: 13px;
-  padding: 6px;
-}
