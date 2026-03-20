@@ -3446,3 +3446,19 @@ body.layout-compact .vip-bar{
     font-size:11px;
   }
 }
+@media (max-width: 768px){
+  #trackerTable th.profit-col,
+  #trackerTable td.profit-col,
+  #trackerTable th:last-child,
+  #trackerTable td:last-child{
+    display: none !important;
+  }
+
+  #trackerTable td:nth-child(2){
+    width: 24% !important;
+  }
+
+  #trackerTable td:nth-child(1){
+    width: 34% !important;
+  }
+}
