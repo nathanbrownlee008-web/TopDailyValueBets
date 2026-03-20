@@ -3544,3 +3544,10 @@ color:#d7e6ff !important;
 }
 /* END BASIC VIP PREVIEW STABLE */
 
+.vip-promo {
+  overflow: hidden;
+}
+
+.vip-promo canvas {
+  margin-top: 10px;
+}
