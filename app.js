@@ -881,6 +881,26 @@ function _renderFilteredTrackerTable(){
 
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
+
+  // restore My Tracker month + day dropdown grouping after every render
+  if(typeof addPersonalTrackerDateGroups === "function"){
+    addPersonalTrackerDateGroups();
+  }
+  if(typeof addPersonalTrackerMonthGroups === "function"){
+    addPersonalTrackerMonthGroups();
+  }
+  if(typeof wirePersonalTrackerDateCollapse === "function"){
+    wirePersonalTrackerDateCollapse();
+  }
+  if(typeof wirePersonalTrackerMonthCollapse === "function"){
+    wirePersonalTrackerMonthCollapse();
+  }
+  if(typeof applyPersonalTrackerMonthCollapseState === "function"){
+    applyPersonalTrackerMonthCollapseState();
+  }
+  if(typeof applyPersonalTrackerCollapseState === "function"){
+    applyPersonalTrackerCollapseState();
+  }
 }
 
 let _filtersWired = false;
@@ -1640,6 +1660,25 @@ loadTracker = async function(){
   const rows=document.querySelectorAll("#trackerTable table tr").length-1;
   const count=document.getElementById("betCount");
   if(count && rows>=0){count.innerText=rows;}
+
+  if(typeof addPersonalTrackerDateGroups === "function"){
+    addPersonalTrackerDateGroups();
+  }
+  if(typeof addPersonalTrackerMonthGroups === "function"){
+    addPersonalTrackerMonthGroups();
+  }
+  if(typeof wirePersonalTrackerDateCollapse === "function"){
+    wirePersonalTrackerDateCollapse();
+  }
+  if(typeof wirePersonalTrackerMonthCollapse === "function"){
+    wirePersonalTrackerMonthCollapse();
+  }
+  if(typeof applyPersonalTrackerMonthCollapseState === "function"){
+    applyPersonalTrackerMonthCollapseState();
+  }
+  if(typeof applyPersonalTrackerCollapseState === "function"){
+    applyPersonalTrackerCollapseState();
+  }
 };
 
 
