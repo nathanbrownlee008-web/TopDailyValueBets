@@ -4,7 +4,7 @@ const CORE_ASSETS = [
   "/",
   "/index.html",
   "/styles.css",
-  "/app-merged-vip-fix.js",
+  "/app.js",
   "/manifest.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png"
