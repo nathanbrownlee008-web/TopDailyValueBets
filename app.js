@@ -1027,18 +1027,14 @@ function renderVipPromoChart(rows){
         });
 
     running += rowP;
-
     const dayKey = fmtDayLabel(row.match_date_date || row.bet_date || row.created_at);
+
     if(dayKey !== lastDayKey){
       labels.push(dayKey);
       points.push(running);
       lastDayKey = dayKey;
     }else if(points.length){
       points[points.length - 1] = running;
-    }else{
-      labels.push(dayKey || '');
-      points.push(running);
-      lastDayKey = dayKey;
     }
   });
 
@@ -1050,28 +1046,52 @@ function renderVipPromoChart(rows){
       labels,
       datasets:[{
         data: points,
-        tension:0.3,
+        tension:0.32,
         fill:true,
-        backgroundColor:'rgba(34,197,94,0.10)',
+        backgroundColor:'rgba(34,197,94,0.12)',
         borderColor:'#22c55e',
-        borderWidth:2,
+        borderWidth:3,
         pointRadius:(ctx)=>{
           const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0;
           if(len <= 1) return len ? 3 : 0;
-          return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0;
-        }
+          return (ctx.dataIndex === len - 1) ? 4 : 0;
+        },
+        pointHoverRadius:5,
+        pointBackgroundColor:'#22c55e'
       }]
     },
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      plugins:{ legend:{display:false} },
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:(ctx)=> `Profit: £${Number(ctx.raw || 0).toFixed(2)}`
+          }
+        }
+      },
       scales:{
-        x:{ ticks:{ maxTicksLimit:6 } },
-        y:{ ticks:{ callback:(v)=> `£${v}` } }
+        x:{
+          ticks:{ maxTicksLimit:6, color:'rgba(226,232,240,0.72)' },
+          grid:{ color:'rgba(255,255,255,0.04)' }
+        },
+        y:{
+          ticks:{ color:'rgba(226,232,240,0.72)', callback:(v)=> `£${v}` },
+          grid:{ color:'rgba(255,255,255,0.05)' }
+        }
       }
     }
   });
+}
+
+function setVipPromoMetric(id, value, tone){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = value;
+  el.classList.remove('is-green', 'is-red');
+  if(tone === 'green') el.classList.add('is-green');
+  if(tone === 'red') el.classList.add('is-red');
 }
 
 async function loadVipPromoProof(){
@@ -1095,6 +1115,10 @@ async function loadVipPromoProof(){
 
     if(!settled.length){
       if(statsEl) statsEl.textContent = 'No settled TDT proof yet';
+      setVipPromoMetric('vipPromoProfit', '£0.00', null);
+      setVipPromoMetric('vipPromoRoi', '0.0%', null);
+      setVipPromoMetric('vipPromoWinrate', '0.0%', null);
+      setVipPromoMetric('vipPromoRecord', '0-0', null);
       renderVipPromoChart([]);
       return;
     }
@@ -1122,21 +1146,27 @@ async function loadVipPromoProof(){
     });
 
     const roi = stake ? ((profit / stake) * 100) : 0;
+    const winrate = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
+    const profitLabel = `${profit >= 0 ? '+' : '-'}£${Math.abs(profit).toFixed(2)}`;
+
     if(statsEl){
-      const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
       statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
     }
 
-    try{
-      renderVipPromoChart(settled);
-    }catch(chartErr){
-      console.error('VIP promo chart render failed', chartErr);
-      if(statsEl && !statsEl.textContent) statsEl.textContent = 'Official TDT proof loaded';
-    }
+    setVipPromoMetric('vipPromoProfit', profitLabel, profit >= 0 ? 'green' : 'red');
+    setVipPromoMetric('vipPromoRoi', `${roi.toFixed(1)}%`, roi >= 0 ? 'green' : 'red');
+    setVipPromoMetric('vipPromoWinrate', `${winrate.toFixed(1)}%`, winrate >= 50 ? 'green' : null);
+    setVipPromoMetric('vipPromoRecord', `${wins}-${losses}`, null);
+
+    renderVipPromoChart(settled);
 
   }catch(err){
     console.error('VIP proof load failed', err);
     if(statsEl) statsEl.textContent = 'Official TDT proof unavailable right now';
+    setVipPromoMetric('vipPromoProfit', '—', null);
+    setVipPromoMetric('vipPromoRoi', '—', null);
+    setVipPromoMetric('vipPromoWinrate', '—', null);
+    setVipPromoMetric('vipPromoRecord', '—', null);
   }
 }
 

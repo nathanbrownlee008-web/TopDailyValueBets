@@ -3485,109 +3485,101 @@ color:#d7e6ff !important;
 
 
 
-/* ===== BET RESULTS PRO TABLE REAL FIX ===== */
-.tracker-history{
-  margin-top: 22px !important;
+/* ===== VIP PREVIEW ELITE ===== */
+.vip-promo{
+  padding:20px;
+  border-radius:24px;
+}
+.vip-promo__top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+}
+.vip-promo__eyebrow{
+  text-transform:uppercase;
+  letter-spacing:.18em;
+  font-size:12px;
+  opacity:.72;
+  margin-bottom:8px;
+}
+.vip-promo__title{
+  font-size:20px;
+  line-height:1.2;
+  font-weight:900;
+  max-width:520px;
+}
+.vip-promo__stats{
+  margin-top:12px;
+  color:#cbd5e1;
+  line-height:1.45;
+  font-size:14px;
+}
+.vip-promo__btn{
+  flex:0 0 auto;
+}
+.vip-promo__kpis{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-top:16px;
+}
+.vip-kpi{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:12px 14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+.vip-kpi__label{
+  display:block;
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#94a3b8;
+  margin-bottom:6px;
+}
+.vip-kpi__value{
+  display:block;
+  font-size:20px;
+  font-weight:900;
+  color:#f8fafc;
+}
+.vip-kpi__value.is-green{ color:#4ade80; }
+.vip-kpi__value.is-red{ color:#f87171; }
+.vip-promo__chartcard{
+  margin-top:14px;
+  border-radius:20px;
+  padding:10px 12px 4px;
+  background:linear-gradient(180deg, rgba(34,197,94,.08), rgba(15,23,42,.12));
+  border:1px solid rgba(34,197,94,.16);
+  min-height:180px;
+}
+#vipPromoChart{
+  width:100% !important;
+  height:160px !important;
+}
+.vip-promo__actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:14px;
+}
+.vip-promo__status{
+  color:#cbd5e1;
+  font-size:13px;
 }
 
-.tracker-toggle{
-  margin-bottom: 14px !important;
-  padding: 14px 16px !important;
-  border-radius: 18px !important;
-  background: linear-gradient(180deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96)) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.20) !important;
-}
-
-#trackerWrapper{
-  margin-top: 8px !important;
-}
-
-#trackerTable{
-  margin-top: 12px !important;
-}
-
-#trackerTable table{
-  width: 100% !important;
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
-  table-layout: fixed !important;
-}
-
-#trackerTable th{
-  font-size: 12.6px !important;
-  line-height: 1.2 !important;
-  font-weight: 800 !important;
-  padding: 11px 4px !important;
-  color: rgba(236,244,255,0.92) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.10) !important;
-}
-
-#trackerTable td{
-  font-size: 13px !important;
-  line-height: 1.28 !important;
-  padding: 11px 4px !important;
-  color: rgba(240,248,255,0.95) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
-  vertical-align: middle !important;
-}
-
-#trackerTable .date-col{
-  font-size: 12px !important;
-  line-height: 1.15 !important;
-}
-
-#trackerTable input[type="number"],
-#trackerTable select{
-  min-height: 38px !important;
-  border-radius: 10px !important;
-  font-size: 13px !important;
-}
-
-#trackerTable .profit-col,
-#trackerTable .profit-win,
-#trackerTable .profit-loss{
-  font-weight: 800 !important;
-}
-
-@media (max-width: 600px){
-  .tracker-toggle{
-    margin-bottom: 12px !important;
-    padding: 13px 14px !important;
+@media (max-width: 700px){
+  .vip-promo__top{
+    flex-direction:column;
   }
-
-  #trackerWrapper{
-    margin-top: 6px !important;
+  .vip-promo__kpis{
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
-
-  #trackerTable{
-    margin-top: 10px !important;
-  }
-
-  #trackerTable th{
-    font-size: 12.2px !important;
-    padding: 10px 3px !important;
-  }
-
-  #trackerTable td{
-    font-size: 12.6px !important;
-    padding: 10px 3px !important;
-  }
-
-  #trackerTable .date-col{
-    font-size: 11.7px !important;
-  }
-
-  #trackerTable input[type="number"]{
-    width: 58px !important;
-    font-size: 12.5px !important;
-  }
-
-  #trackerTable select{
-    min-width: 78px !important;
-    width: 78px !important;
-    font-size: 12.5px !important;
+  .vip-promo__title{
+    font-size:18px;
   }
 }
-/* ===== END BET RESULTS PRO TABLE REAL FIX ===== */
-
+/* ===== END VIP PREVIEW ELITE ===== */
