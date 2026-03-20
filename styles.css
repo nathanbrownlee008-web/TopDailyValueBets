@@ -3591,3 +3591,73 @@ color:#d7e6ff !important;
 }
 /* ===== END BET RESULTS PRO TABLE REAL FIX ===== */
 
+
+
+/* ===== MOBILE BET CARD OVERFLOW HARD FIX ===== */
+#betsGrid .bet-card,
+#betsGrid .bet-lock-wrap{
+  width:100% !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+
+#betsGrid .bet-card *{
+  box-sizing:border-box !important;
+}
+
+#betsGrid .bet-footer{
+  width:100% !important;
+  max-width:100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:8px !important;
+  overflow:hidden !important;
+}
+
+#betsGrid .bet-footer > div:first-child,
+#betsGrid .bet-left{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  max-width:calc(100% - 110px) !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  flex-wrap:wrap !important;
+  overflow:hidden !important;
+}
+
+#betsGrid .bet-footer .odds-badge,
+#betsGrid .bet-footer .stat-chip{
+  flex:0 1 auto !important;
+  min-width:0 !important;
+}
+
+#betsGrid .bet-btn{
+  flex:0 0 auto !important;
+  min-width:82px !important;
+  max-width:96px !important;
+  margin-left:0 !important;
+  padding:8px 12px !important;
+}
+
+@media (max-width: 600px){
+  #betsGrid .bet-footer{
+    gap:6px !important;
+  }
+
+  #betsGrid .bet-footer > div:first-child,
+  #betsGrid .bet-left{
+    max-width:calc(100% - 96px) !important;
+    gap:6px !important;
+  }
+
+  #betsGrid .bet-btn{
+    min-width:78px !important;
+    max-width:90px !important;
+    font-size:12px !important;
+    padding:7px 10px !important;
+  }
+}
+/* ===== END MOBILE BET CARD OVERFLOW HARD FIX ===== */
