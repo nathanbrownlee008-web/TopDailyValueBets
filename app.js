@@ -1,16 +1,4 @@
 
-function syncTrackerGroupedHeaderVisibility(){
-  const table = document.querySelector("#trackerTable table");
-  if(!table) return;
-  const hasGroups = !!table.querySelector("tr.month-group, tr.date-group");
-  if(hasGroups){
-    table.classList.add("tracker-grouped-view");
-  }else{
-    table.classList.remove("tracker-grouped-view");
-  }
-}
-
-
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -1170,7 +1158,6 @@ let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
-if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
@@ -2163,7 +2150,6 @@ loadTracker = async function(){
   addPersonalTrackerDateGroups();
   wirePersonalTrackerDateCollapse();
   applyPersonalTrackerCollapseState();
-  if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
 };
 // ===== Personal Tracker: month grouping (visual only) =====
 function monthKeyFromDateLabel(dateLabel){
@@ -2319,10 +2305,8 @@ loadTracker = async function(){
   addPersonalTrackerMonthGroups();
   wirePersonalTrackerDateCollapse();
   applyPersonalTrackerCollapseState();
-  if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
   wirePersonalTrackerMonthCollapse();
   applyPersonalTrackerMonthCollapseState();
-  if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
 };
 /* =========================
    PERSONAL TRACKER COLLAPSE FIX
@@ -2413,11 +2397,9 @@ loadTracker = async function(){
 
   if(typeof applyPersonalTrackerMonthCollapseState === "function"){
     applyPersonalTrackerMonthCollapseState();
-  if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
   }
 
   applyPersonalTrackerCollapseState();
-  if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
 
 };
 /* ===== SAFE TDT RESULTS MONTHLY OVERRIDE ===== */
