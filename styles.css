@@ -3446,19 +3446,22 @@ body.layout-compact .vip-bar{
     font-size:11px;
   }
 }
-@media (max-width: 768px){
-  #trackerTable th.profit-col,
-  #trackerTable td.profit-col,
-  #trackerTable th:last-child,
-  #trackerTable td:last-child{
-    display: none !important;
-  }
 
-  #trackerTable td:nth-child(2){
-    width: 24% !important;
-  }
 
-  #trackerTable td:nth-child(1){
-    width: 34% !important;
-  }
+/* Results table only: slight mobile zoom-out for more space */
+.tracker-zoom {
+  transform: scale(0.92);
+  transform-origin: top center;
+  width: 108%;
+  margin-left: -4%;
+}
+
+#trackerTable table {
+  font-size: 13px;
+}
+
+#trackerTable input,
+#trackerTable select {
+  font-size: 13px;
+  padding: 6px;
 }
