@@ -3619,3 +3619,15 @@ color:#d7e6ff !important;
   gap: 8px;
   flex-wrap: wrap;
 }
+.bet-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bet-btn {
+  max-width: 100%;
+  flex-shrink: 0;
+}
