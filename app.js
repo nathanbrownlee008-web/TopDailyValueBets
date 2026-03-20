@@ -122,30 +122,43 @@ async function forgotVipPassword(){
 
 
 async function checkVIP(){
-  const email=(localStorage.getItem('vip_email')||"").trim();
-  if(!email){
-    vipActive=false;
-    setVipUI(false,"");
+  const savedEmail = normalizeVipEmail(localStorage.getItem('vip_email') || '');
+  try{
+    const { data: sessionData, error: sessionError } = await client.auth.getSession();
+    if(sessionError) throw sessionError;
+
+    const session = sessionData?.session || null;
+    const sessionEmail = normalizeVipEmail(session?.user?.email || '');
+
+    if(!session || !sessionEmail){
+      vipActive = false;
+      setVipUI(false, savedEmail || '');
+      return false;
+    }
+
+    if(savedEmail && savedEmail !== sessionEmail){
+      localStorage.setItem('vip_email', sessionEmail);
+    }else if(!savedEmail){
+      localStorage.setItem('vip_email', sessionEmail);
+    }
+
+    const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(sessionEmail)}`);
+    const j = await r.json();
+    vipActive = !!j.active;
+
+    if(vipActive){
+      setVipUI(true, sessionEmail);
+    }else{
+      setVipUI(false, sessionEmail);
+    }
+
+    return vipActive;
+  }catch(e){
+    vipActive = false;
+    setVipUI(false, savedEmail || '');
+    if(vipStatusEl) vipStatusEl.textContent = 'VIP status check failed — sign in again.';
     return false;
   }
-  try{
-    const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
-    const j=await r.json();
-    vipActive=!!j.active;
-
-if(vipActive){
-  setVipUI(true,email);
-}else{
-  clearVipState();
-}
-
-return vipActive;
-
-}catch(e){
-  clearVipState();
-  if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
-  return false;
-}
 }
 function clearVipState(){
   vipActive = false;
@@ -219,17 +232,49 @@ function isValueBetActiveToday(row){
 
 
 async function forceVipRefreshNow(emailFromInput){
-  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
-  if(!email || !email.includes("@")) return false;
-  localStorage.setItem('vip_email', email);
-  const active = await checkVIP();
-  if(active){
-    closeVipModal();
-    await loadBets();
-    refreshAdminBadgeUI();
-    return true;
+  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || '') || (localStorage.getItem('vip_email') || ''));
+  const password = String(vipPasswordEl?.value || '');
+
+  if(!email || !email.includes('@')){
+    if(vipErrorEl) vipErrorEl.textContent = 'Enter your email first.';
+    return false;
   }
-  return false;
+
+  localStorage.setItem('vip_email', email);
+
+  try{
+    const { data: sessionData } = await client.auth.getSession();
+    const sessionEmail = normalizeVipEmail(sessionData?.session?.user?.email || '');
+
+    if(sessionEmail !== email){
+      if(!password){
+        if(vipErrorEl) vipErrorEl.textContent = 'Enter your VIP password.';
+        return false;
+      }
+      const signIn = await client.auth.signInWithPassword({ email, password });
+      if(signIn.error || !signIn.data?.user){
+        if(vipErrorEl) vipErrorEl.textContent = 'Wrong email or password.';
+        return false;
+      }
+    }
+
+    if(vipErrorEl) vipErrorEl.textContent = 'Checking VIP status...';
+    const active = await checkVIP();
+    if(active){
+      if(vipErrorEl) vipErrorEl.textContent = '';
+      closeVipModal();
+      await loadBets();
+      if(typeof loadTracker === 'function') await loadTracker();
+      refreshAdminBadgeUI();
+      return true;
+    }
+
+    if(vipErrorEl) vipErrorEl.textContent = 'This email has no active VIP subscription.';
+    return false;
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent = err?.message || 'Could not restore VIP right now.';
+    return false;
+  }
 }
 
 async function pollVipAfterCheckout(){
@@ -561,6 +606,14 @@ const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
 // On load: check VIP status (if email saved), then render.
+client.auth.onAuthStateChange(async (_event, session)=>{
+  const sessionEmail = normalizeVipEmail(session?.user?.email || '');
+  if(sessionEmail){
+    localStorage.setItem('vip_email', sessionEmail);
+  }
+  await checkVIP();
+});
+
 checkVIP().then(async ()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
@@ -2641,69 +2694,7 @@ try{
 
 
 
-/* ===== HARD RESTORE VIP MESSAGE PATCH ===== */
-(function(){
-  function bindRestoreVipMessage(){
-    const restoreBtn = document.getElementById("vipRestore");
-    const emailInput = document.getElementById("vipEmail");
-    const errorEl = document.getElementById("vipError");
-    if(!restoreBtn || !emailInput || !errorEl) return false;
-    if(restoreBtn.dataset.restoreBound === "1") return true;
-
-    restoreBtn.dataset.restoreBound = "1";
-
-    restoreBtn.addEventListener("click", async function(e){
-      e.preventDefault();
-      e.stopPropagation();
-
-      const email = String(emailInput.value || "").trim().toLowerCase();
-
-      if(!email || !email.includes("@")){
-        errorEl.textContent = "Enter your email first.";
-        return false;
-      }
-
-      errorEl.textContent = "Checking VIP status...";
-
-      try{
-        const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
-        const j = await r.json();
-
-        if(j && j.active){
-          localStorage.setItem("vip_email", email);
-          errorEl.textContent = "";
-          if(typeof checkVIP === "function") await checkVIP();
-          if(typeof closeVipModal === "function") closeVipModal();
-          if(typeof loadBets === "function") await loadBets();
-          if(typeof loadTracker === "function") await loadTracker();
-          if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
-          return true;
-        } else {
-          errorEl.textContent = "This email has no active VIP subscription.";
-          return false;
-        }
-      } catch(err){
-        errorEl.textContent = "Could not check VIP right now.";
-        return false;
-      }
-    }, true);
-
-    return true;
-  }
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", bindRestoreVipMessage);
-  } else {
-    bindRestoreVipMessage();
-  }
-
-  let tries = 0;
-  const iv = setInterval(() => {
-    tries++;
-    if(bindRestoreVipMessage() || tries > 20) clearInterval(iv);
-  }, 500);
-})();
-/* ===== END HARD RESTORE VIP MESSAGE PATCH ===== */
+/* hard restore bypass patch removed */
 
 
 
