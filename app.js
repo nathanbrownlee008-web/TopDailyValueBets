@@ -574,7 +574,8 @@ checkVIP().then(async ()=>{
     const promoEl = document.getElementById('vipPromo');
     if(promoEl) promoEl.style.display = 'none';
   }else{
-    loadVipPromoProof();
+    await loadVipPromoProof();
+    setTimeout(()=>{ if(!vipActive) loadVipPromoProof(); }, 1500);
   }
   updateBetAlertUI();
   registerServiceWorker();
@@ -1009,6 +1010,7 @@ function notifyForNewVisibleBets(rows){
 function renderVipPromoChart(rows){
   const canvas = document.getElementById('vipPromoChart');
   if(!canvas || typeof Chart === 'undefined') return;
+
   const safeRows = Array.isArray(rows) ? rows : [];
   const labels = [];
   const points = [];
@@ -1016,44 +1018,83 @@ function renderVipPromoChart(rows){
   let lastDayKey = '';
 
   safeRows.slice(-200).forEach((row)=>{
-    running += rowProfit({
-      stake: Number(row.stake || 0),
-      odds: Number(row.odds || 0),
-      result: row.result || 'pending'
-    });
+    const rowP = row.profit != null
+      ? Number(row.profit || 0)
+      : rowProfit({
+          stake: Number(row.stake || 0),
+          odds: Number(row.odds || 0),
+          result: row.result || 'pending'
+        });
+
+    running += rowP;
+
     const dayKey = fmtDayLabel(row.match_date_date || row.bet_date || row.created_at);
     if(dayKey !== lastDayKey){
       labels.push(dayKey);
       points.push(running);
       lastDayKey = dayKey;
-    }else{
+    }else if(points.length){
       points[points.length - 1] = running;
+    }else{
+      labels.push(dayKey || '');
+      points.push(running);
+      lastDayKey = dayKey;
     }
   });
 
   if(vipPromoChart) vipPromoChart.destroy();
+
   vipPromoChart = new Chart(canvas.getContext('2d'), {
     type:'line',
-    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:(ctx)=>{ const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0; if(len <= 1) return len ? 3 : 0; return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0; } }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
+    data:{
+      labels,
+      datasets:[{
+        data: points,
+        tension:0.3,
+        fill:true,
+        backgroundColor:'rgba(34,197,94,0.10)',
+        borderColor:'#22c55e',
+        borderWidth:2,
+        pointRadius:(ctx)=>{
+          const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0;
+          if(len <= 1) return len ? 3 : 0;
+          return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0;
+        }
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ ticks:{ maxTicksLimit:6 } },
+        y:{ ticks:{ callback:(v)=> `£${v}` } }
+      }
+    }
   });
 }
 
 async function loadVipPromoProof(){
   const statsEl = document.getElementById('vipPromoStats');
+  const promoEl = document.getElementById('vipPromo');
+
   try{
+    if(statsEl) statsEl.textContent = 'Loading official TDT proof...';
+    if(promoEl) promoEl.style.display = 'flex';
+
     const { data, error } = await client
       .from('tdt_tracker')
       .select('*')
       .order('created_at', { ascending: true })
       .limit(200);
+
     if(error) throw error;
 
     const rows = Array.isArray(data) ? data : [];
-    const settled = rows.filter(r => (r.result || 'pending') !== 'pending');
+    const settled = rows.filter(r => String(r.result || 'pending').toLowerCase() !== 'pending');
 
     if(!settled.length){
-      if(statsEl) statsEl.textContent = 'Official proof updates soon';
+      if(statsEl) statsEl.textContent = 'No settled TDT proof yet';
       renderVipPromoChart([]);
       return;
     }
@@ -1062,16 +1103,22 @@ async function loadVipPromoProof(){
     let losses = 0;
     let stake = 0;
     let profit = 0;
+
     settled.forEach((row)=>{
-      const result = row.result || 'pending';
+      const result = String(row.result || 'pending').toLowerCase();
       if(result === 'won') wins += 1;
       if(result === 'lost') losses += 1;
       stake += Number(row.stake || 0);
-      profit += rowProfit({
-        stake: Number(row.stake || 0),
-        odds: Number(row.odds || 0),
-        result
-      });
+
+      const rowP = row.profit != null
+        ? Number(row.profit || 0)
+        : rowProfit({
+            stake: Number(row.stake || 0),
+            odds: Number(row.odds || 0),
+            result
+          });
+
+      profit += rowP;
     });
 
     const roi = stake ? ((profit / stake) * 100) : 0;
@@ -1079,7 +1126,14 @@ async function loadVipPromoProof(){
       const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
       statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
     }
-    renderVipPromoChart(settled);
+
+    try{
+      renderVipPromoChart(settled);
+    }catch(chartErr){
+      console.error('VIP promo chart render failed', chartErr);
+      if(statsEl && !statsEl.textContent) statsEl.textContent = 'Official TDT proof loaded';
+    }
+
   }catch(err){
     console.error('VIP proof load failed', err);
     if(statsEl) statsEl.textContent = 'Official TDT proof unavailable right now';
