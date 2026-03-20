@@ -57,58 +57,6 @@ function closeVipModal(){
   vipModalEl.style.display="none";
 }
 
-async function restoreVIP(){
-  const email = normalizeVipEmail(vipEmailEl?.value || localStorage.getItem('vip_email') || '');
-  const password = String(vipPasswordEl?.value || '');
-
-  if(vipErrorEl) vipErrorEl.textContent = '';
-  if(!email || !email.includes('@')){
-    if(vipErrorEl) vipErrorEl.textContent = 'Enter your email first.';
-    return false;
-  }
-  if(!password || password.length < 6){
-    if(vipErrorEl) vipErrorEl.textContent = 'Enter your correct VIP password.';
-    return false;
-  }
-
-  try{
-    const { data: signInData, error: signInError } = await client.auth.signInWithPassword({ email, password });
-    if(signInError || !signInData?.user){
-      if(vipErrorEl) vipErrorEl.textContent = 'Invalid email or password.';
-      return false;
-    }
-
-    localStorage.setItem('vip_email', email);
-    const active = await checkVIP();
-    if(!active){
-      if(vipErrorEl) vipErrorEl.textContent = 'No active VIP subscription on this email.';
-      return false;
-    }
-
-    closeVipModal();
-    await loadBets();
-    if(typeof loadTracker === 'function') await loadTracker();
-    if(typeof loadTdtTracker === 'function' && currentTopTab === 'tdt') await loadTdtTracker();
-    if(typeof refreshAdminBadgeUI === 'function') refreshAdminBadgeUI();
-    return true;
-  }catch(err){
-    if(vipErrorEl) vipErrorEl.textContent = err?.message || 'Could not restore VIP right now.';
-    return false;
-  }
-}
-
-async function hydrateVipFromSession(){
-  try{
-    const { data } = await client.auth.getSession();
-    const sessionEmail = data?.session?.user?.email ? normalizeVipEmail(data.session.user.email) : '';
-    if(sessionEmail){
-      localStorage.setItem('vip_email', sessionEmail);
-      return sessionEmail;
-    }
-  }catch(e){}
-  return normalizeVipEmail(localStorage.getItem('vip_email') || '');
-}
-
 function normalizeVipEmail(email){
   return String(email || "").trim().toLowerCase();
 }
@@ -174,22 +122,41 @@ async function forgotVipPassword(){
 
 
 async function checkVIP(){
-  const email = await hydrateVipFromSession();
-  if(!email){
-    vipActive = false;
-    setVipUI(false,"");
-    return false;
-  }
+  const savedEmail = normalizeVipEmail(localStorage.getItem('vip_email') || '');
   try{
-    const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+    const { data: sessionData, error: sessionError } = await client.auth.getSession();
+    if(sessionError) throw sessionError;
+
+    const session = sessionData?.session || null;
+    const sessionEmail = normalizeVipEmail(session?.user?.email || '');
+
+    if(!session || !sessionEmail){
+      vipActive = false;
+      setVipUI(false, savedEmail || '');
+      return false;
+    }
+
+    if(savedEmail && savedEmail !== sessionEmail){
+      localStorage.setItem('vip_email', sessionEmail);
+    }else if(!savedEmail){
+      localStorage.setItem('vip_email', sessionEmail);
+    }
+
+    const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(sessionEmail)}`);
     const j = await r.json();
     vipActive = !!j.active;
-    setVipUI(vipActive, email);
+
+    if(vipActive){
+      setVipUI(true, sessionEmail);
+    }else{
+      setVipUI(false, sessionEmail);
+    }
+
     return vipActive;
   }catch(e){
     vipActive = false;
-    setVipUI(false,email);
-    if(vipStatusEl) vipStatusEl.textContent = "VIP status check failed — tap Restore VIP";
+    setVipUI(false, savedEmail || '');
+    if(vipStatusEl) vipStatusEl.textContent = 'VIP status check failed — sign in again.';
     return false;
   }
 }
@@ -265,17 +232,49 @@ function isValueBetActiveToday(row){
 
 
 async function forceVipRefreshNow(emailFromInput){
-  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
-  if(!email || !email.includes("@")) return false;
-  localStorage.setItem('vip_email', email);
-  const active = await checkVIP();
-  if(active){
-    closeVipModal();
-    await loadBets();
-    refreshAdminBadgeUI();
-    return true;
+  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || '') || (localStorage.getItem('vip_email') || ''));
+  const password = String(vipPasswordEl?.value || '');
+
+  if(!email || !email.includes('@')){
+    if(vipErrorEl) vipErrorEl.textContent = 'Enter your email first.';
+    return false;
   }
-  return false;
+
+  localStorage.setItem('vip_email', email);
+
+  try{
+    const { data: sessionData } = await client.auth.getSession();
+    const sessionEmail = normalizeVipEmail(sessionData?.session?.user?.email || '');
+
+    if(sessionEmail !== email){
+      if(!password){
+        if(vipErrorEl) vipErrorEl.textContent = 'Enter your VIP password.';
+        return false;
+      }
+      const signIn = await client.auth.signInWithPassword({ email, password });
+      if(signIn.error || !signIn.data?.user){
+        if(vipErrorEl) vipErrorEl.textContent = 'Wrong email or password.';
+        return false;
+      }
+    }
+
+    if(vipErrorEl) vipErrorEl.textContent = 'Checking VIP status...';
+    const active = await checkVIP();
+    if(active){
+      if(vipErrorEl) vipErrorEl.textContent = '';
+      closeVipModal();
+      await loadBets();
+      if(typeof loadTracker === 'function') await loadTracker();
+      refreshAdminBadgeUI();
+      return true;
+    }
+
+    if(vipErrorEl) vipErrorEl.textContent = 'This email has no active VIP subscription.';
+    return false;
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent = err?.message || 'Could not restore VIP right now.';
+    return false;
+  }
 }
 
 async function pollVipAfterCheckout(){
@@ -484,38 +483,27 @@ function applyLayout(mode){
   if(btnWide) btnWide.classList.toggle("active", mode === "wide");
 }
 
-function shouldForceCompact(){
-  return window.innerWidth < 950 || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
-}
-
 (function initLayoutMode(){
   const saved = localStorage.getItem("layout_mode");
-  if(shouldForceCompact()){
-    applyLayout("compact");
-  }else if(saved === "wide" || saved === "compact"){
+  if(saved === "wide" || saved === "compact"){
     applyLayout(saved);
   }else{
-    applyLayout("wide");
+    // Default: compact on small screens, wide on desktop
+    applyLayout(window.innerWidth >= 950 ? "wide" : "compact");
   }
   if(btnCompact) btnCompact.addEventListener("click", ()=>applyLayout("compact"));
-  if(btnWide) btnWide.addEventListener("click", ()=>{
-    if(shouldForceCompact()){
-      applyLayout("compact");
-      return;
-    }
-    applyLayout("wide");
-  });
-
-  const syncLayoutToViewport = ()=>{
-    if(shouldForceCompact() && document.body.classList.contains('layout-wide')){
-      applyLayout('compact');
-      if(typeof loadBets === 'function') loadBets();
-    }
-  };
-  window.addEventListener('resize', syncLayoutToViewport);
-  window.addEventListener('orientationchange', syncLayoutToViewport);
-  window.addEventListener('pageshow', syncLayoutToViewport);
+  if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
 })();
+
+let __lastLayoutViewportBucket = window.innerWidth >= 950 ? "desktop" : "mobile";
+window.addEventListener("resize", ()=>{
+  const nextBucket = window.innerWidth >= 950 ? "desktop" : "mobile";
+  if(nextBucket !== __lastLayoutViewportBucket){
+    __lastLayoutViewportBucket = nextBucket;
+    const saved = localStorage.getItem("layout_mode");
+    if(saved === "wide" || saved === "compact") applyLayout(saved);
+  }
+});
 
 // (Install App / PWA install button removed for now)
 
@@ -620,7 +608,7 @@ if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-if(vipRestoreEl) vipRestoreEl.addEventListener('click',restoreVIP);
+if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
 if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
@@ -628,6 +616,37 @@ const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
 // On load: check VIP status (if email saved), then render.
+client.auth.onAuthStateChange(async (_event, session)=>{
+  const sessionEmail = normalizeVipEmail(session?.user?.email || '');
+  if(sessionEmail){
+    localStorage.setItem('vip_email', sessionEmail);
+  }
+  await checkVIP();
+});
+
+
+
+// Keep VIP/UI fresh after browser desktop-mode toggles, tab returns, and reload-like page restores
+let __vipUiRefreshTimer = null;
+async function refreshVipAndCurrentView(){
+  try{
+    await checkVIP();
+    await loadBets();
+    if(currentTopTab === "tracker" && vipActive && typeof loadTracker === "function") await loadTracker();
+    if(currentTopTab === "tdt" && typeof loadTdtTracker === "function") await loadTdtTracker();
+  }catch(e){
+    console.error("refreshVipAndCurrentView failed", e);
+  }
+}
+function scheduleVipAndViewRefresh(delay=120){
+  try{ clearTimeout(__vipUiRefreshTimer); }catch(e){}
+  __vipUiRefreshTimer = setTimeout(()=>{ refreshVipAndCurrentView(); }, delay);
+}
+window.addEventListener('pageshow', ()=>scheduleVipAndViewRefresh(60));
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible') scheduleVipAndViewRefresh(80);
+});
+window.addEventListener('focus', ()=>scheduleVipAndViewRefresh(80));
 checkVIP().then(async ()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
@@ -2708,6 +2727,10 @@ try{
 
 
 
+/* hard restore bypass patch removed */
+
+
+
 /* ===== MARKETS 0% LABEL FIX ===== */
 renderMarketChart = function(labels, winPct, totals){
   const el = document.getElementById("marketChart");
@@ -2848,10 +2871,3 @@ renderMarketChart = function(labels, winPct, totals){
   setTimeout(bindVipButtonsSafe, 300);
 })();
 /* ===== END SAFE VIP BUTTON RESYNC PATCH ===== */
-
-window.addEventListener('pageshow', async ()=>{
-  await checkVIP();
-  await loadBets();
-  if(currentTopTab === 'tracker' && typeof loadTracker === 'function') await loadTracker();
-  if(currentTopTab === 'tdt' && typeof loadTdtTracker === 'function') await loadTdtTracker();
-});
