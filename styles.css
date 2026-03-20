@@ -3469,3 +3469,9 @@ body.layout-compact .vip-bar{
   color: rgba(226,232,240,0.92);
   font-size: 12px;
 }
+.tracker-zoom {
+  transform: scale(0.92);
+  transform-origin: top center;
+  width: 108%;
+  margin-left: -4%;
+}
