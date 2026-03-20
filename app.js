@@ -3198,3 +3198,54 @@ renderMarketChart = function(labels, winPct, totals){
   };
 })();
 /* ===== END TRACKER VISUAL ROLLUP PATCH ===== */
+// ✅ SECURE VIP RESTORE (NO BYPASS)
+async function restoreVIP() {
+  const emailInput = document.getElementById("vip-email");
+  const passwordInput = document.getElementById("vip-password");
+
+  const email = emailInput?.value?.trim();
+  const password = passwordInput?.value;
+
+  if (!email || !password) {
+    alert("Enter email and password");
+    return;
+  }
+
+  // 🔐 SIGN IN (REAL AUTH)
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error || !data?.user) {
+    alert("Invalid email or password");
+    return;
+  }
+
+  const userId = data.user.id;
+
+  // 🔍 CHECK SUBSCRIPTION
+  const { data: sub, error: subError } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .single();
+
+  if (subError || !sub) {
+    alert("No active VIP subscription");
+    return;
+  }
+
+  // ✅ ONLY PLACE VIP UNLOCKS
+  unlockVIP();
+}
+async function checkSession() {
+  const { data } = await supabase.auth.getSession();
+
+  if (!data.session) {
+    lockVIP();
+  }
+}
+
+checkSession();
