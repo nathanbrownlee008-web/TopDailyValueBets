@@ -3661,3 +3661,16 @@ color:#d7e6ff !important;
   }
 }
 /* ===== END MOBILE BET CARD OVERFLOW HARD FIX ===== */
+/* ===== SHRINK CARD FIX (CLEAN & SAFE) ===== */
+
+#betsGrid .bet-card,
+#betsGrid .bet-lock-wrap {
+  width: calc(100% - 12px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* optional: tighten inside slightly */
+#betsGrid .bet-footer {
+  padding-right: 4px !important;
+}
