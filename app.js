@@ -802,6 +802,17 @@ function _applyTrackerFilters(rows){
   });
 }
 
+
+function trackerResultMetaHtml(row){
+  const market = escapeHtml(String(row?.market || ''));
+  const oddsRaw = row?.odds != null && row?.odds !== '' ? String(row.odds) : '';
+  const odds = escapeHtml(oddsRaw);
+  return `<div class="tracker-result-meta" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;align-items:center;">
+    ${market ? `<span class="tracker-result-chip" style="font-size:11px;line-height:1;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.82);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${market}</span>` : ''}
+    ${odds ? `<span class="tracker-result-chip tracker-result-chip--odds" style="font-size:11px;line-height:1;padding:4px 8px;border-radius:999px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.2);color:rgba(255,255,255,.9);">Odds ${odds}</span>` : ''}
+  </div>`;
+}
+
 function _buildTrackerTableHTML(rows){
   let html = `<table class="myt-table">
     <tr>
@@ -823,7 +834,7 @@ function _buildTrackerTableHTML(rows){
     const gameDate = row.match_date_date || row.bet_date || row.created_at;
     html += `<tr>
       <td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-      <td class="myt-match">${row.match || ""}</td>
+      <td class="myt-match">${row.match || ""}${trackerResultMetaHtml(row)}</td>
       <td class="myt-market">${row.market || ""}</td>
       <td><input class="myt-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td><input class="myt-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>
@@ -1122,7 +1133,7 @@ history.push(bankroll);
 
 tableRows.push(`<tr>
 <td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-<td class="myt-match">${row.match}</td>
+<td class="myt-match">${row.match}${trackerResultMetaHtml(row)}</td>
 <td class="myt-market">${row.market || ""}</td>
 <td><input class="myt-input" type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input class="myt-input" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
