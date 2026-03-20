@@ -831,33 +831,31 @@ function _applyTrackerFilters(rows){
 }
 
 function _buildTrackerTableHTML(rows){
-  let html = `<table class="myt-table">
+  let html = `<table>
     <tr>
-      <th class="date-col hidden-date-col">Date</th>
+      <th>Date</th>
       <th>Match</th>
       <th>Stake</th>
-      <th>Odds</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
     </tr>`;
   (rows || []).forEach(row=>{
     const stakeVal = row.stake ?? 0;
-    const oddsVal = row.odds ?? 0;
     const res = row.result || "pending";
     let profit = 0;
-    if(res === "won") profit = (row.profit != null ? row.profit : Number(row.stake||0) * (Number(row.odds||0) - 1));
-    if(res === "lost") profit = (row.profit != null ? row.profit : -Number(row.stake||0));
+    if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
+    if(res === "lost") profit = (row.profit != null ? row.profit : -row.stake);
     if(res === "pending") profit = 0;
 
-    const gameDate = row.match_date_date || row.bet_date || row.created_at;
+    const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
+    const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
+
+    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
+
     html += `<tr>
-      <td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-      <td class="match-market-cell">
-        <div class="tracker-match-name">${row.match || ""}</div>
-        <div class="tracker-market-sub">${row.market || "—"}</div>
-      </td>
-      <td><input class="myt-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
-      <td><input class="myt-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>
+      <td class="date-col">${dateLabel}</td>
+      <td>${row.match || ""}</td>
+      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
           <option value="pending" ${res==="pending"?"selected":""}>pending</option>
@@ -865,7 +863,7 @@ function _buildTrackerTableHTML(rows){
           <option value="lost" ${res==="lost"?"selected":""}>lost</option>
         </select>
       </td>
-      <td class="profit-col"><span class="${profit>0?'profit-win':profit<0?'profit-loss':''}">£${profit.toFixed(2)}</span></td>
+      <td class="profit-col ${profitClass}">${profitText}</td>
     </tr>`;
   });
   html += `</table>`;
@@ -887,9 +885,9 @@ function _renderFilteredTrackerTable(){
   if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups();
   if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups();
   if(typeof wirePersonalTrackerDateCollapse === "function") wirePersonalTrackerDateCollapse();
-  if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState();
   if(typeof wirePersonalTrackerMonthCollapse === "function") wirePersonalTrackerMonthCollapse();
   if(typeof applyPersonalTrackerMonthCollapseState === "function") applyPersonalTrackerMonthCollapseState();
+  if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState();
 }
 
 let _filtersWired = false;
@@ -1144,10 +1142,8 @@ history.push(bankroll);
 
 tableRows.push(`<tr>
 <td class="date-col hidden-date-col">${dayKey}</td>
-<td class="match-market-cell">
-  <div class="tracker-match-name">${row.match}</div>
-  <div class="tracker-market-sub">${row.market || "—"}</div>
-</td>
+<td>${row.match}</td>
+<td>${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -1166,7 +1162,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th class='hidden-date-col'>Date</th><th>Match</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th class='hidden-date-col'>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -1992,7 +1988,7 @@ function addPersonalTrackerDateGroups(){
     if(dateText !== lastDate){
       const divider = document.createElement("tr");
       divider.className = "date-group";
-      divider.innerHTML = `<td colspan="6">▼ ${dateText}</td>`;
+      divider.innerHTML = `<td colspan="7">▼ ${dateText}</td>`;
       row.parentNode.insertBefore(divider, row);
       lastDate = dateText;
     }
@@ -2227,7 +2223,7 @@ function addPersonalTrackerMonthGroups(){
     if(month !== lastMonth){
       const divider = document.createElement("tr");
       divider.className = "month-group";
-      divider.innerHTML = `<td colspan="6">▼ ${month}</td>`;
+      divider.innerHTML = `<td colspan="7">▼ ${month}</td>`;
       groupRow.parentNode.insertBefore(divider, groupRow);
       lastMonth = month;
     }
