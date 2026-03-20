@@ -3448,30 +3448,68 @@ body.layout-compact .vip-bar{
 }
 
 
-/* My Tracker grouped month/day rows */
-#trackerTable tr.month-group td,
-#trackerTable tr.date-group td{
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  font-weight: 800;
-  cursor: pointer;
+/* Results table: use full-width match name with market underneath */
+#trackerTable td.match-market-cell{
+  width:46%;
+  font-weight:800;
+  line-height:1.08;
+  overflow-wrap:anywhere;
 }
 
-#trackerTable tr.month-group td{
-  padding: 14px 10px;
-  background: rgba(255,255,255,0.05);
-  color: #f8fafc;
-  font-size: 14px;
+#trackerTable .tracker-match-name{
+  font-weight:800;
+  line-height:1.08;
+  overflow-wrap:anywhere;
 }
 
-#trackerTable tr.date-group td{
-  padding: 10px 10px;
-  background: rgba(255,255,255,0.03);
-  color: rgba(226,232,240,0.92);
-  font-size: 12px;
+#trackerTable .tracker-market-sub{
+  margin-top:4px;
+  font-size:0.92em;
+  font-weight:600;
+  color:#cbd5e1;
+  line-height:1.08;
+  overflow-wrap:anywhere;
 }
-.tracker-zoom {
-  transform: scale(0.92);
-  transform-origin: top center;
-  width: 108%;
-  margin-left: -4%;
+
+#trackerTable td:nth-child(2){
+  width:14%;
+}
+
+#trackerTable td:nth-child(3){
+  width:13%;
+}
+
+#trackerTable td:nth-child(4){
+  width:15%;
+}
+
+#trackerTable td:nth-child(5){
+  width:12%;
+}
+
+@media (max-width: 600px){
+  #trackerTable td.match-market-cell{
+    width:44%;
+  }
+
+  #trackerTable .tracker-market-sub{
+    margin-top:3px;
+    font-size:0.88em;
+  }
+
+  #trackerTable td:nth-child(2){
+    width:14%;
+  }
+
+  #trackerTable td:nth-child(3){
+    width:12%;
+  }
+
+  #trackerTable td:nth-child(4){
+    width:16%;
+  }
+
+  #trackerTable td:nth-child(5){
+    width:12%;
+  }
 }
