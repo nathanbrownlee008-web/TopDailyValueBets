@@ -84,16 +84,20 @@
 </div>
 
 <div id="vipPromo" class="vip-promo card">
-  <div class="vip-preview-stack">
-    <div class="vip-preview-stack__eyebrow">VIP PREVIEW</div>
-    <div class="vip-preview-stack__title">Instant bets, full markets, tracker access</div>
-    <div id="vipPromoStats" class="vip-preview-stack__stats">Loading official TDT proof...</div>
-    <div class="vip-preview-stack__chart">
-      <canvas id="vipPromoChart"></canvas>
+  <div class="vip-promo__top">
+    <div>
+      <div class="vip-promo__eyebrow">VIP preview</div>
+      <div class="vip-promo__title">Instant bets, full markets, tracker access</div>
+      <div id="vipPromoStats" class="vip-promo__stats">Loading official TDT proof...</div>
     </div>
-    <div class="vip-preview-stack__footer">
-      <button id="vipPromoBtn" class="vip-preview-stack__btn" type="button">Unlock VIP</button>
-    </div>
+    <button id="vipPromoBtn" class="vip-promo__btn" type="button">Unlock VIP</button>
+  </div>
+  <div class="vip-promo__chartwrap">
+    <canvas id="vipPromoChart"></canvas>
+  </div>
+  <div class="vip-promo__actions">
+    <button id="notifyToggleBtn" class="vip-promo__ghost" type="button">Turn on new bet alerts</button>
+    <span id="notifyStatus" class="vip-promo__status">Alerts off</span>
   </div>
 </div>
 </section>
