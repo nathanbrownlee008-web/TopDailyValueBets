@@ -3448,63 +3448,59 @@ body.layout-compact .vip-bar{
 }
 
 
-/* Keep hidden tracker date column for grouping logic only */
-.hidden-date-col{
-  display:none !important;
-}
+/* Mobile tracker spacing tweak: push stake/odds left and give match more room */
+@media (max-width: 768px){
 
-/* Full-width team names with market underneath */
-#trackerTable td.match-market-cell{
-  width: 46%;
-  vertical-align: top;
-}
-
-#trackerTable .tracker-match-name{
-  display:block;
-  font-weight:800;
-  line-height:1.08;
-  overflow-wrap:anywhere;
-}
-
-#trackerTable .tracker-market-sub{
-  display:block;
-  margin-top:4px;
-  font-size:0.92em;
-  font-weight:600;
-  color:#cbd5e1;
-  line-height:1.08;
-  overflow-wrap:anywhere;
-}
-
-/* Desktop/tablet widths */
-#trackerTable td:nth-child(3){ width: 14%; } /* stake */
-#trackerTable td:nth-child(4){ width: 14%; } /* odds */
-#trackerTable td:nth-child(5){ width: 16%; } /* result */
-#trackerTable td:nth-child(6){ width: 10%; } /* profit */
-
-/* Mobile: hide profit only, keep desktop profit visible */
-@media (max-width: 768px) {
+  /* hide profit on mobile */
   #trackerTable table th.profit-col,
   #trackerTable table td.profit-col,
   #trackerTable table th:last-child,
-  #trackerTable table td:last-child {
-    display: none !important;
+  #trackerTable table td:last-child{
+    display:none !important;
   }
 
+  /* match gets more space */
   #trackerTable td.match-market-cell{
-    width: 58%;
+    width: 74% !important;
+    vertical-align: top;
   }
 
   #trackerTable .tracker-match-name{
-    line-height:1.04;
+    font-size: 12px;
+    line-height: 1.05;
+    white-space: normal;
+    overflow-wrap: break-word;
   }
 
   #trackerTable .tracker-market-sub{
-    font-size:0.88em;
-    margin-top:3px;
+    font-size: 11px;
+    margin-top: 3px;
   }
 
-  #trackerTable td:nth-child(3){ width: 12%; }
-  #trackerTable td:nth-child(4){ width: 12%; }
-  #trackerTable td:nth-child(5){ width: 18%; }
+  /* pull stake + odds left */
+  #trackerTable td:nth-child(3),
+  #trackerTable td:nth-child(4){
+    text-align: left !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  #trackerTable td:nth-child(3) input,
+  #trackerTable td:nth-child(4) input{
+    margin-left: -10px !important;
+  }
+
+  #trackerTable td:nth-child(3) input{
+    margin-right: -8px !important;
+  }
+
+  #trackerTable input[type="number"]{
+    width: 40px !important;
+    min-width: 40px !important;
+  }
+
+  #trackerTable td:nth-child(5){
+    width: 14% !important;
+  }
 }
+
