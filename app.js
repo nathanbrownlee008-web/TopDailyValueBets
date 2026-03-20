@@ -562,17 +562,20 @@ if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlert
 
 // On load: check VIP status (if email saved), then render.
 checkVIP().then(async ()=>{
+  // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
   if(!vipActive && shouldTryVipFinalize()){
     await pollVipAfterCheckout();
   }
   refreshAdminBadgeUI();
+  // re-render bets so blur/limits apply
   await loadBets();
   if(vipActive){
     const promoEl = document.getElementById('vipPromo');
     if(promoEl) promoEl.style.display = 'none';
   }else{
     await loadVipPromoProof();
+    setTimeout(()=>{ if(!vipActive) loadVipPromoProof(); }, 1200);
   }
   updateBetAlertUI();
   registerServiceWorker();
@@ -1039,101 +1042,51 @@ function renderVipPromoChart(rows){
 
 async function loadVipPromoProof(){
   const statsEl = document.getElementById('vipPromoStats');
-  const canvas = document.getElementById('vipPromoChart');
-  if(!statsEl || !canvas) return;
-
   try{
-    statsEl.textContent = 'Loading official TDT proof...';
+    if(statsEl) statsEl.textContent = 'Loading official TDT proof...';
+    const { data, error } = await client
+      .from('tdt_tracker')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(200);
+    if(error) throw error;
 
-    const url = `${SUPABASE_URL}/rest/v1/tdt_tracker?select=*&order=created_at.asc&limit=200`;
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`
-      },
-      cache: 'no-store'
-    });
-
-    if(!res.ok) throw new Error(`REST ${res.status}`);
-
-    const rows = await res.json();
-    const settled = (Array.isArray(rows) ? rows : []).filter(r => String(r.result || 'pending').toLowerCase() !== 'pending');
+    const rows = Array.isArray(data) ? data : [];
+    const settled = rows.filter(r => (r.result || 'pending') !== 'pending');
 
     if(!settled.length){
-      statsEl.textContent = 'Official proof updates soon';
-      if(vipPromoChart) vipPromoChart.destroy();
+      if(statsEl) statsEl.textContent = 'Official proof updates soon';
+      renderVipPromoChart([]);
       return;
     }
 
-    let wins = 0, losses = 0, stake = 0, profit = 0;
-    const labels = [];
-    const points = [];
-    let running = 0;
-    let lastDay = '';
-
+    let wins = 0;
+    let losses = 0;
+    let stake = 0;
+    let profit = 0;
     settled.forEach((row)=>{
-      const result = String(row.result || 'pending').toLowerCase();
+      const result = row.result || 'pending';
       if(result === 'won') wins += 1;
       if(result === 'lost') losses += 1;
-
-      const stakeVal = Number(row.stake || 0);
-      const oddsVal = Number(row.odds || 0);
-      const rowProfitVal = row.profit != null
+      stake += Number(row.stake || 0);
+      profit += row.profit != null
         ? Number(row.profit || 0)
-        : (result === 'won' ? stakeVal * (oddsVal - 1) : result === 'lost' ? -stakeVal : 0);
-
-      stake += stakeVal;
-      profit += rowProfitVal;
-      running += rowProfitVal;
-
-      const d = new Date(row.bet_date || row.created_at || row.match_date_date);
-      const dayLabel = Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
-
-      if(dayLabel !== lastDay){
-        labels.push(dayLabel);
-        points.push(running);
-        lastDay = dayLabel;
-      }else if(points.length){
-        points[points.length - 1] = running;
-      }
+        : rowProfit({
+            stake: Number(row.stake || 0),
+            odds: Number(row.odds || 0),
+            result
+          });
     });
 
     const roi = stake ? ((profit / stake) * 100) : 0;
-    const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
-    statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
-
-    if(typeof Chart === 'undefined') return;
-    if(vipPromoChart) vipPromoChart.destroy();
-
-    vipPromoChart = new Chart(canvas.getContext('2d'), {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          data: points,
-          tension: 0.32,
-          fill: true,
-          borderColor: '#22c55e',
-          backgroundColor: 'rgba(34,197,94,0.10)',
-          borderWidth: 2,
-          pointRadius: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { ticks: { maxTicksLimit: 6, color: 'rgba(203,213,225,0.7)' }, grid: { color: 'rgba(255,255,255,0.04)' } },
-          y: { ticks: { color: 'rgba(203,213,225,0.7)', callback: (v)=>`£${v}` }, grid: { color: 'rgba(255,255,255,0.05)' } }
-        }
-      }
-    });
+    if(statsEl){
+      const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
+      statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
+    }
+    renderVipPromoChart(settled);
   }catch(err){
     console.error('VIP proof load failed', err);
-    statsEl.textContent = 'Official TDT proof unavailable right now';
-    if(vipPromoChart) vipPromoChart.destroy();
+    if(statsEl) statsEl.textContent = 'Official TDT proof unavailable right now';
   }
 }
 
