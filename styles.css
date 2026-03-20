@@ -3611,7 +3611,7 @@ body.layout-compact .vip-bar{
   #trackerTable td:nth-child(3),
   #trackerTable td:nth-child(4){
     text-align: left;
-    padding-left: 4px;
+    padding-left: 10px;
   }
 
   /* Move inputs left inside cells */
