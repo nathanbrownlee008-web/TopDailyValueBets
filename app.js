@@ -121,42 +121,43 @@ async function forgotVipPassword(){
 }
 
 
-async function checkVIP(){
-  const savedEmail = normalizeVipEmail(localStorage.getItem('vip_email') || '');
+async function hydrateVipEmailFromSession(){
   try{
-    const { data: sessionData, error: sessionError } = await client.auth.getSession();
-    if(sessionError) throw sessionError;
-
-    const session = sessionData?.session || null;
-    const sessionEmail = normalizeVipEmail(session?.user?.email || '');
-
-    if(!session || !sessionEmail){
-      vipActive = false;
-      setVipUI(false, savedEmail || '');
-      return false;
-    }
-
-    if(savedEmail && savedEmail !== sessionEmail){
+    const { data } = await client.auth.getSession();
+    const sessionEmail = normalizeVipEmail(data?.session?.user?.email || '');
+    if(sessionEmail){
       localStorage.setItem('vip_email', sessionEmail);
-    }else if(!savedEmail){
-      localStorage.setItem('vip_email', sessionEmail);
+      return sessionEmail;
     }
+  }catch(e){}
+  return normalizeVipEmail(localStorage.getItem('vip_email') || '');
+}
 
-    const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(sessionEmail)}`);
-    const j = await r.json();
-    vipActive = !!j.active;
+async function checkVIP(){
+  const email = await hydrateVipEmailFromSession();
+  if(!email){
+    vipActive=false;
+    setVipUI(false,"");
+    return false;
+  }
+  try{
+    const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+    const j=await r.json();
+    vipActive=!!j.active;
 
     if(vipActive){
-      setVipUI(true, sessionEmail);
+      setVipUI(true,email);
     }else{
-      setVipUI(false, sessionEmail);
+      vipActive = false;
+      setVipUI(false,email);
     }
 
     return vipActive;
+
   }catch(e){
     vipActive = false;
-    setVipUI(false, savedEmail || '');
-    if(vipStatusEl) vipStatusEl.textContent = 'VIP status check failed — sign in again.';
+    setVipUI(false,email);
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed — tap Restore VIP";
     return false;
   }
 }
@@ -475,24 +476,78 @@ async function readTrackerRowsCloudMerged(){
 }
 
 
-function applyLayout(mode){
+const LAYOUT_STORAGE_KEY = "layout_mode";
+const PHONE_FORCE_COMPACT_MAX = 900;
+
+function isPhoneLikeDevice(){
+  try{
+    const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const touch = navigator.maxTouchPoints > 0;
+    const smallestScreenSide = Math.min(window.screen?.width || window.innerWidth, window.screen?.height || window.innerHeight);
+    return (coarse || touch) && smallestScreenSide <= PHONE_FORCE_COMPACT_MAX;
+  }catch(e){
+    return window.innerWidth <= 700;
+  }
+}
+
+function shouldForceCompactLayout(){
+  return isPhoneLikeDevice();
+}
+
+function getResolvedLayoutMode(preferredMode){
+  if(shouldForceCompactLayout()) return "compact";
+  if(preferredMode === "wide" || preferredMode === "compact") return preferredMode;
+  return window.innerWidth >= 950 ? "wide" : "compact";
+}
+
+function applyLayout(mode, options={}){
+  const resolvedMode = getResolvedLayoutMode(mode);
   document.body.classList.remove("layout-compact","layout-wide");
-  document.body.classList.add(mode === "wide" ? "layout-wide" : "layout-compact");
-  localStorage.setItem("layout_mode", mode);
-  if(btnCompact) btnCompact.classList.toggle("active", mode !== "wide");
-  if(btnWide) btnWide.classList.toggle("active", mode === "wide");
+  document.body.classList.add(resolvedMode === "wide" ? "layout-wide" : "layout-compact");
+
+  if(options.persist !== false){
+    localStorage.setItem(LAYOUT_STORAGE_KEY, resolvedMode);
+  }
+
+  if(btnCompact) btnCompact.classList.toggle("active", resolvedMode !== "wide");
+  if(btnWide) btnWide.classList.toggle("active", resolvedMode === "wide");
+  if(btnWide) btnWide.disabled = shouldForceCompactLayout();
+}
+
+function refreshResponsiveLayout(){
+  const saved = localStorage.getItem(LAYOUT_STORAGE_KEY);
+  applyLayout(saved, { persist: !shouldForceCompactLayout() });
 }
 
 (function initLayoutMode(){
-  const saved = localStorage.getItem("layout_mode");
-  if(saved === "wide" || saved === "compact"){
-    applyLayout(saved);
-  }else{
-    // Default: compact on small screens, wide on desktop
-    applyLayout(window.innerWidth >= 950 ? "wide" : "compact");
-  }
+  refreshResponsiveLayout();
   if(btnCompact) btnCompact.addEventListener("click", ()=>applyLayout("compact"));
-  if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
+  if(btnWide) btnWide.addEventListener("click", ()=>{
+    if(shouldForceCompactLayout()){
+      applyLayout("compact");
+      return;
+    }
+    applyLayout("wide");
+  });
+
+  let resizeTimer = null;
+  const handleViewportChange = ()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(async ()=>{
+      const beforeWide = document.body.classList.contains('layout-wide');
+      refreshResponsiveLayout();
+      const afterWide = document.body.classList.contains('layout-wide');
+      if(beforeWide !== afterWide || shouldForceCompactLayout()){
+        if(typeof loadBets === 'function') await loadBets();
+        if(currentTopTab === 'tracker' && typeof loadTracker === 'function') await loadTracker();
+        if(currentTopTab === 'tdt' && typeof loadTdtTracker === 'function') await loadTdtTracker();
+      }
+    }, 160);
+  };
+
+  window.addEventListener('resize', handleViewportChange);
+  window.addEventListener('orientationchange', handleViewportChange);
+  window.addEventListener('pageshow', handleViewportChange);
 })();
 
 // (Install App / PWA install button removed for now)
@@ -605,23 +660,39 @@ if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click',(e)=>{ e.preventDefault
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
-// On load: check VIP status (if email saved), then render.
+// On load: keep VIP + layout stable across mobile/desktop-mode refreshes.
 client.auth.onAuthStateChange(async (_event, session)=>{
   const sessionEmail = normalizeVipEmail(session?.user?.email || '');
   if(sessionEmail){
     localStorage.setItem('vip_email', sessionEmail);
   }
   await checkVIP();
+  if(typeof loadBets === 'function') await loadBets();
+  if(currentTopTab === 'tracker' && typeof loadTracker === 'function') await loadTracker();
+  if(currentTopTab === 'tdt' && typeof loadTdtTracker === 'function') await loadTdtTracker();
+});
+
+window.addEventListener('pageshow', async ()=>{
+  await hydrateVipEmailFromSession();
+  await checkVIP();
+  if(typeof loadBets === 'function') await loadBets();
+  if(currentTopTab === 'tracker' && typeof loadTracker === 'function') await loadTracker();
+  if(currentTopTab === 'tdt' && typeof loadTdtTracker === 'function') await loadTdtTracker();
+});
+
+document.addEventListener('visibilitychange', async ()=>{
+  if(document.visibilityState !== 'visible') return;
+  await hydrateVipEmailFromSession();
+  await checkVIP();
 });
 
 checkVIP().then(async ()=>{
-  // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
   if(!vipActive && shouldTryVipFinalize()){
     await pollVipAfterCheckout();
   }
   refreshAdminBadgeUI();
-  // re-render bets so blur/limits apply
+  refreshResponsiveLayout();
   await loadBets();
   if(vipActive){
     const promoEl = document.getElementById('vipPromo');
