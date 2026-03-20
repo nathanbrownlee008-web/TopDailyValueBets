@@ -830,7 +830,11 @@ function _applyTrackerFilters(rows){
   });
 }
 
-let html = `<table><tr><th class="hidden-date-col">Date</th><th>Match</th>
+function _buildTrackerTableHTML(rows){
+  let html = `<table>
+    <tr>
+      <th>Date</th>
+      <th>Match</th>
       <th>Stake</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
@@ -849,8 +853,8 @@ let html = `<table><tr><th class="hidden-date-col">Date</th><th>Match</th>
     const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
 
     html += `<tr>
-<td class="date-col hidden-date-col">${fmtDayLabel(row.created_at)}</td>
-<td>${row.match}</td>
+      <td class="date-col">${dateLabel}</td>
+      <td>${row.match || ""}</td>
       <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
