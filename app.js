@@ -2870,13 +2870,6 @@ renderMarketChart = function(labels, winPct, totals){
     }
   }
 
-  const originalCheckVIP = checkVIP;
-  checkVIP = async function(){
-    const active = await originalCheckVIP();
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = active ? 'none' : 'flex';
-    return active;
-  };
 
   bindVipButtonsSafe();
   setTimeout(bindVipButtonsSafe, 300);
