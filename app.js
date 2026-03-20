@@ -14,7 +14,6 @@ function setVipUI(active, email){
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
-  const promoEl = document.getElementById('vipPromo');
 
   if(active){
     if(titleEl) titleEl.textContent = 'VIP Access';
@@ -22,12 +21,11 @@ function setVipUI(active, email){
     if(btnEl){
       if(btnTextEl) btnTextEl.textContent = 'VIP Access Active';
       else btnEl.textContent = 'VIP Access Active';
-      btnEl.disabled = false;
-      btnEl.style.pointerEvents = "auto";
-      btnEl.style.cursor = "pointer";
+      btnEl.disabled = true;
+      btnEl.style.pointerEvents = "none";
+      btnEl.style.cursor = "default";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
-    if(promoEl) promoEl.style.display = 'none';
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
@@ -39,7 +37,6 @@ function setVipUI(active, email){
       btnEl.style.cursor = "pointer";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
-    if(promoEl) promoEl.style.display = 'flex';
   }
 }
 
@@ -48,7 +45,6 @@ function openVipModal(){
   if(vipErrorEl) vipErrorEl.textContent="";
   const saved=(localStorage.getItem('vip_email')||"").trim();
   if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
-  if(vipPasswordEl && !vipPasswordEl.value) vipPasswordEl.value="";
   vipModalEl.style.display="flex";
 }
 
@@ -57,134 +53,38 @@ function closeVipModal(){
   vipModalEl.style.display="none";
 }
 
-function normalizeVipEmail(email){
-  return String(email || "").trim().toLowerCase();
-}
-
-async function forceVipRefreshNow(emailFromInput){
-  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
-  if(!email || !email.includes("@")) return false;
-  localStorage.setItem('vip_email', email);
-  const active = await checkVIP();
-  if(active){
-    closeVipModal();
-    await loadBets();
-    if(typeof loadTracker === "function") await loadTracker();
-    if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
-    return true;
-  }
-  return false;
-}
-
-async function ensureVipPasswordAccount(email, password){
-  const cleanEmail = normalizeVipEmail(email);
-  const cleanPassword = String(password || "");
-  if(!cleanEmail || !cleanEmail.includes("@")) throw new Error("Enter a valid email.");
-  if(cleanPassword.length < 6) throw new Error("Use at least 6 characters for your VIP password.");
-
-  const signIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
-  if(!signIn.error) return true;
-
-  const signUp = await client.auth.signUp({
-    email: cleanEmail,
-    password: cleanPassword,
-    options: { emailRedirectTo: window.location.origin + "/reset-password.html" }
-  });
-  if(!signUp.error) return true;
-
-  const msg = String(signUp.error?.message || "").toLowerCase();
-  if(msg.includes("already") || msg.includes("exists") || msg.includes("registered") || msg.includes("user already")){
-    const secondSignIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
-    if(!secondSignIn.error) return true;
-    throw new Error("Wrong VIP password for that email.");
-  }
-
-  throw signUp.error;
-}
-
-async function forgotVipPassword(){
-  const email = normalizeVipEmail(vipEmailEl?.value || "");
-  if(!email || !email.includes("@")){
-    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
-    return;
-  }
-  try{
-    if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
-    const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + "/reset-password.html"
-    });
-    if(error) throw error;
-    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent. Check inbox and spam.";
-  }catch(err){
-    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not send reset email.";
-  }
-}
-
-
 async function checkVIP(){
-  const savedEmail = normalizeVipEmail(localStorage.getItem('vip_email') || '');
+  const email=(localStorage.getItem('vip_email')||"").trim();
+  if(!email){
+    vipActive=false;
+    setVipUI(false,"");
+    return false;
+  }
   try{
-    const { data: sessionData, error: sessionError } = await client.auth.getSession();
-    if(sessionError) throw sessionError;
-
-    const session = sessionData?.session || null;
-    const sessionEmail = normalizeVipEmail(session?.user?.email || '');
-
-    if(!session || !sessionEmail){
-      vipActive = false;
-      setVipUI(false, savedEmail || '');
-      return false;
-    }
-
-    if(savedEmail && savedEmail !== sessionEmail){
-      localStorage.setItem('vip_email', sessionEmail);
-    }else if(!savedEmail){
-      localStorage.setItem('vip_email', sessionEmail);
-    }
-
-    const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(sessionEmail)}`);
-    const j = await r.json();
-    vipActive = !!j.active;
-
-    if(vipActive){
-      setVipUI(true, sessionEmail);
-    }else{
-      setVipUI(false, sessionEmail);
-    }
-
+    const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+    const j=await r.json();
+    vipActive=!!j.active;
+    setVipUI(vipActive,email);
     return vipActive;
   }catch(e){
-    vipActive = false;
-    setVipUI(false, savedEmail || '');
-    if(vipStatusEl) vipStatusEl.textContent = 'VIP status check failed — sign in again.';
+    vipActive=false;
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
+    setVipUI(false,email);
     return false;
   }
 }
-function clearVipState(){
-  vipActive = false;
-  localStorage.removeItem('vip_email');
-  setVipUI(false,"");
-  refreshAdminBadgeUI();
-}
+
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
   const email=(vipEmailEl?.value||"").trim();
-  const password=(vipPasswordEl?.value||"").trim();
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  if(!password || password.length < 6){
-    if(vipErrorEl) vipErrorEl.textContent="Enter your VIP password (at least 6 characters).";
-    return;
-  }
+  localStorage.setItem('vip_email',email);
   try{
-    await ensureVipPasswordAccount(email, password);
-    localStorage.setItem('vip_email',email);
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
-    if(vipRestoreEl) vipRestoreEl.disabled=true;
-    if(vipForgotEl) vipForgotEl.disabled=true;
     const r=await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -197,8 +97,6 @@ async function startCheckout(plan){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
-    if(vipRestoreEl) vipRestoreEl.disabled=false;
-    if(vipForgotEl) vipForgotEl.disabled=false;
   }
 }
 
@@ -232,49 +130,17 @@ function isValueBetActiveToday(row){
 
 
 async function forceVipRefreshNow(emailFromInput){
-  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || '') || (localStorage.getItem('vip_email') || ''));
-  const password = String(vipPasswordEl?.value || '');
-
-  if(!email || !email.includes('@')){
-    if(vipErrorEl) vipErrorEl.textContent = 'Enter your email first.';
-    return false;
-  }
-
+  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
+  if(!email || !email.includes("@")) return false;
   localStorage.setItem('vip_email', email);
-
-  try{
-    const { data: sessionData } = await client.auth.getSession();
-    const sessionEmail = normalizeVipEmail(sessionData?.session?.user?.email || '');
-
-    if(sessionEmail !== email){
-      if(!password){
-        if(vipErrorEl) vipErrorEl.textContent = 'Enter your VIP password.';
-        return false;
-      }
-      const signIn = await client.auth.signInWithPassword({ email, password });
-      if(signIn.error || !signIn.data?.user){
-        if(vipErrorEl) vipErrorEl.textContent = 'Wrong email or password.';
-        return false;
-      }
-    }
-
-    if(vipErrorEl) vipErrorEl.textContent = 'Checking VIP status...';
-    const active = await checkVIP();
-    if(active){
-      if(vipErrorEl) vipErrorEl.textContent = '';
-      closeVipModal();
-      await loadBets();
-      if(typeof loadTracker === 'function') await loadTracker();
-      refreshAdminBadgeUI();
-      return true;
-    }
-
-    if(vipErrorEl) vipErrorEl.textContent = 'This email has no active VIP subscription.';
-    return false;
-  }catch(err){
-    if(vipErrorEl) vipErrorEl.textContent = err?.message || 'Could not restore VIP right now.';
-    return false;
+  const active = await checkVIP();
+  if(active){
+    closeVipModal();
+    await loadBets();
+    refreshAdminBadgeUI();
+    return true;
   }
+  return false;
 }
 
 async function pollVipAfterCheckout(){
@@ -319,9 +185,6 @@ const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
-const vipPasswordEl = document.getElementById("vipPassword");
-const vipRestoreEl = document.getElementById("vipRestore");
-const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
 
 
@@ -337,7 +200,10 @@ function currentVipEmail(){
 function isAdminSyncEnabled(){
   return currentVipEmail() === ADMIN_SYNC_EMAIL;
 }
-
+function refreshAdminBadgeUI(){
+  const badges = document.querySelectorAll('[data-admin-badge="1"]');
+  badges.forEach(el=>{ el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none"; });
+}
 function makeSyncId(){
   return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 }
@@ -409,71 +275,6 @@ function makeLocalTrackerId(){
   return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 }
 
-function normalizeTrackerLocalRow(row){
-  const out = { ...(row || {}) };
-  if(!out.id) out.id = makeLocalTrackerId();
-  if(!out.sync_id && String(out.id || "").startsWith("sync_")) out.sync_id = out.id;
-  if(!out.created_at && out.bet_date){
-    out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
-  }
-  if(!out.created_at){
-    out.created_at = new Date().toISOString();
-  }
-  out.odds = Number(out.odds || 0);
-  out.stake = Number(out.stake || 0);
-  out.result = out.result || "pending";
-  out.match = out.match || "";
-  out.market = out.market || "";
-  return out;
-}
-
-function mergeTrackerRows(localRows, cloudRows){
-  const map = new Map();
-  (localRows || []).map(normalizeTrackerLocalRow).forEach(row=>{
-    map.set(String(row.sync_id || row.id), row);
-  });
-  (cloudRows || []).map(normalizeTrackerLocalRow).forEach(row=>{
-    map.set(String(row.sync_id || row.id), row);
-  });
-  return Array.from(map.values());
-}
-
-async function readTrackerRowsCloudMerged(){
-  const localRows = readTrackerRows();
-  if(!isAdminSyncEnabled()) return localRows;
-
-  try{
-    const { data, error } = await client
-      .from("tdt_tracker")
-      .select("*")
-      .like("sync_id", "sync_%")
-      .order("created_at", { ascending: true });
-
-    if(error) throw error;
-
-    const cloudRows = (Array.isArray(data) ? data : []).map((row)=> normalizeTrackerLocalRow({
-      id: row.sync_id || row.id || makeLocalTrackerId(),
-      sync_id: row.sync_id || row.id || null,
-      match: row.match || "",
-      market: row.market || "",
-      odds: row.odds,
-      stake: row.stake,
-      result: row.result,
-      bet_date: row.bet_date || null,
-      created_at: row.created_at || null,
-      bookie: row.bookie || null,
-      profit: row.profit ?? null
-    }));
-
-    const merged = mergeTrackerRows(localRows, cloudRows);
-    writeTrackerRows(merged);
-    return merged;
-  }catch(e){
-    console.error("Tracker cloud read failed", e);
-    return localRows;
-  }
-}
-
 
 function applyLayout(mode){
   document.body.classList.remove("layout-compact","layout-wide");
@@ -494,16 +295,6 @@ function applyLayout(mode){
   if(btnCompact) btnCompact.addEventListener("click", ()=>applyLayout("compact"));
   if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
 })();
-
-let __lastLayoutViewportBucket = window.innerWidth >= 950 ? "desktop" : "mobile";
-window.addEventListener("resize", ()=>{
-  const nextBucket = window.innerWidth >= 950 ? "desktop" : "mobile";
-  if(nextBucket !== __lastLayoutViewportBucket){
-    __lastLayoutViewportBucket = nextBucket;
-    const saved = localStorage.getItem("layout_mode");
-    if(saved === "wide" || saved === "compact") applyLayout(saved);
-  }
-});
 
 // (Install App / PWA install button removed for now)
 
@@ -603,50 +394,17 @@ tabTracker.onclick=()=>{
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 
 // VIP events
-if(vipButtonEl) vipButtonEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
+if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
 if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
-if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
-if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
+if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
 // On load: check VIP status (if email saved), then render.
-client.auth.onAuthStateChange(async (_event, session)=>{
-  const sessionEmail = normalizeVipEmail(session?.user?.email || '');
-  if(sessionEmail){
-    localStorage.setItem('vip_email', sessionEmail);
-  }
-  await checkVIP();
-});
-
-
-
-// Keep VIP/UI fresh after browser desktop-mode toggles, tab returns, and reload-like page restores
-let __vipUiRefreshTimer = null;
-async function refreshVipAndCurrentView(){
-  try{
-    await checkVIP();
-    await loadBets();
-    if(currentTopTab === "tracker" && vipActive && typeof loadTracker === "function") await loadTracker();
-    if(currentTopTab === "tdt" && typeof loadTdtTracker === "function") await loadTdtTracker();
-  }catch(e){
-    console.error("refreshVipAndCurrentView failed", e);
-  }
-}
-function scheduleVipAndViewRefresh(delay=120){
-  try{ clearTimeout(__vipUiRefreshTimer); }catch(e){}
-  __vipUiRefreshTimer = setTimeout(()=>{ refreshVipAndCurrentView(); }, delay);
-}
-window.addEventListener('pageshow', ()=>scheduleVipAndViewRefresh(60));
-document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState === 'visible') scheduleVipAndViewRefresh(80);
-});
-window.addEventListener('focus', ()=>scheduleVipAndViewRefresh(80));
 checkVIP().then(async ()=>{
   // ensure tabs reflect VIP lock
   setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
@@ -655,13 +413,8 @@ checkVIP().then(async ()=>{
   }
   refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
-  await loadBets();
-  if(vipActive){
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = 'none';
-  }else{
-    loadVipPromoProof();
-  }
+  loadBets();
+  loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
 });
@@ -692,7 +445,7 @@ function switchTab(tab){
 async function loadBets(){
   addedKeys.clear();
   try{
-    const localRows = await readTrackerRowsCloudMerged();
+    const localRows = readTrackerRows();
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
@@ -1173,7 +926,7 @@ async function loadVipPromoProof(){
 }
 
 async function loadTracker(){
-const rows = (await readTrackerRowsCloudMerged()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const rows = readTrackerRows().slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -1264,18 +1017,12 @@ if(countElem) countElem.textContent = String(rows.length);
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
-const monthWinsMap = {};
-const monthLossesMap = {};
-const monthBetsMap = {};
 
 rows.forEach(r=>{
   const d = new Date(r.created_at);
   const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
-  monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
-  monthBetsMap[key] = (monthBetsMap[key]||0) + 1;
-  if(r.result === "won") monthWinsMap[key] = (monthWinsMap[key]||0) + 1;
-  if(r.result === "lost") monthLossesMap[key] = (monthLossesMap[key]||0) + 1;
+  monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
 });
 
 const monthKeys = Object.keys(monthMap).sort();
@@ -1291,25 +1038,15 @@ const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
-const monthlyBets = monthKeys.map(k=> monthBetsMap[k] || 0);
-const monthlyWinRate = monthKeys.map(k=>{
-  const wins = monthWinsMap[k] || 0;
-  const losses = monthLossesMap[k] || 0;
-  return (wins + losses) ? (wins / (wins + losses)) * 100 : 0;
-});
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Total Bets</th><th>Win Rate</th><th>Profit</th><th>ROI</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
-    const b = monthlyBets[i];
-    const w = monthlyWinRate[i];
     breakdownHTML += `<tr>
       <td>${monthLabels[i]}</td>
-      <td>${b}</td>
-      <td>${w.toFixed(1)}%</td>
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
     </tr>`;
@@ -1728,68 +1465,40 @@ function renderDailyChart(history, labels, dayKeys){
   if(dailyChart) dailyChart.destroy();
 
   const safeHistory = Array.isArray(history) ? history : [];
+  const safeLabels = Array.isArray(labels) ? labels : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
-
-  const daily = [];
-  safeHistory.forEach((value, i)=>{
-    const key = safeDayKeys[i];
-    if(!key) return;
-    const last = daily[daily.length - 1];
-    if(last && last.key === key){
-      last.value = Number(value || 0);
-    }else{
-      daily.push({ key, value: Number(value || 0) });
-    }
-  });
-
-  function parseDay(rawKey){
-    const raw = String(rawKey || "").trim();
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(!m) return null;
-    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0, 0);
-  }
-  function shortLabel(rawKey){
-    const dt = parseDay(rawKey);
-    return dt ? dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : String(rawKey || "");
-  }
-  function fullLabel(rawKey){
-    const dt = parseDay(rawKey);
-    return dt ? dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : String(rawKey || "");
-  }
-
-  const total = daily.length;
-  let interval = 1;
-  if(total < 10) interval = 1;
-  else if(total < 20) interval = 2;
-  else if(total < 36) interval = 3;
-  else if(total < 55) interval = 4;
-  else interval = 5;
-
-  const displayLabels = daily.map((item, i)=>{
-    if(i === 0 || i === total - 1) return shortLabel(item.key);
-    const dt = parseDay(item.key);
-    const prev = i > 0 ? parseDay(daily[i - 1].key) : null;
-    if(dt && prev && (dt.getMonth() !== prev.getMonth() || dt.getFullYear() !== prev.getFullYear())){
-      return dt.toLocaleDateString("en-GB", { month: "short" });
-    }
-    return i % interval === 0 ? shortLabel(item.key) : "";
-  });
-
   const ctx = el.getContext("2d");
+
+  const pointRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 3 : 0;
+  });
+  const pointHoverRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 5 : 0;
+  });
+  const pointHitRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 14 : 0;
+  });
+
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels:displayLabels,
+      labels:safeLabels,
       datasets:[{
-        data:daily.map(x => x.value),
+        data:safeHistory,
         tension:0.28,
         fill:true,
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:3,
-        pointHoverRadius:5,
-        pointHitRadius:14,
+        pointRadius:pointRadius,
+        pointHoverRadius:pointHoverRadius,
+        pointHitRadius:pointHitRadius,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
@@ -1801,21 +1510,21 @@ function renderDailyChart(history, labels, dayKeys){
         legend:{display:false},
         tooltip:{
           callbacks:{
-            title:(items)=>{
-              const i = items?.[0]?.dataIndex ?? 0;
-              return fullLabel(daily[i]?.key || "");
-            },
+            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
       },
       scales:{
         x:{
-          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:0, minRotation:0, padding:6},
+          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
-          ticks:{color:"rgba(226,232,240,0.78)", callback:(v)=>`£${Number(v).toFixed(0)}`},
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
+          },
           grid:{color:"rgba(255,255,255,0.05)"}
         }
       }
@@ -1885,26 +1594,22 @@ function renderMarketChart(labels, winPct, totals){
   if(!el) return;
   if(marketChart) marketChart.destroy();
 
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safePct = Array.isArray(winPct) ? winPct.map(v => Number(v || 0)) : [];
-  const safeTotals = Array.isArray(totals) ? totals : [];
-
   const ctx = el.getContext("2d");
   marketChart = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: safeLabels,
+      labels,
       datasets: [{
-        data: safePct,
+        data: winPct,
         borderWidth: 0,
         borderRadius: 10,
         barThickness: 18,
-        backgroundColor: safePct.map(v=>{
-          if(v >= 55) return "rgba(34,197,94,0.85)";
-          if(v >= 40) return "rgba(245,158,11,0.85)";
-          return "rgba(239,68,68,0.85)";
+        backgroundColor: winPct.map(v=>{
+          if(v >= 55) return "rgba(34,197,94,0.85)";   // green
+          if(v >= 40) return "rgba(245,158,11,0.85)";  // amber
+          return "rgba(239,68,68,0.85)";               // red
         }),
-        borderColor: safePct.map(v=>{
+        borderColor: winPct.map(v=>{
           if(v >= 55) return "#22c55e";
           if(v >= 40) return "#f59e0b";
           return "#ef4444";
@@ -1915,7 +1620,6 @@ function renderMarketChart(labels, winPct, totals){
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { left: 8, right: 14 } },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1923,41 +1627,41 @@ function renderMarketChart(labels, winPct, totals){
             label: (ctx)=>{
               const i = ctx.dataIndex;
               const pct = Number(ctx.raw || 0).toFixed(0) + "%";
-              const t = safeTotals[i] ? safeTotals[i] : { bets: 0, wins: 0, losses: 0 };
+              const t = (totals && totals[i]) ? totals[i] : { bets: 0, wins: 0, losses: 0 };
               return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
             }
           }
         }
       },
       scales: {
-        x: { min: 0, max: 100, ticks: { display: false }, grid: { display: false, drawBorder: false } },
-        y: { ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } }, grid: { display: false, drawBorder: false } }
+        x: {
+          min: 0,
+          max: 100,
+          ticks: { display: false },
+          grid: { display: false, drawBorder: false }
+        },
+        y: {
+          ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
+          grid: { display: false, drawBorder: false }
+        }
       },
       animation: { duration: 250 }
     },
     plugins: [{
-      id: "pctLabelsSafe",
+      id: "pctLabels",
       afterDatasetsDraw(chart){
-        const {ctx, chartArea, scales} = chart;
+        const {ctx} = chart;
         const meta = chart.getDatasetMeta(0);
-        const xScale = scales.x;
         ctx.save();
         ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillStyle = "rgba(229,231,235,0.95)";
         meta.data.forEach((bar, i)=>{
-          const v = Number(safePct[i] || 0);
-          const txt = `${Math.round(v)}%`;
-          if(v >= 14){
-            ctx.fillStyle = "#ffffff";
-            ctx.textAlign = "right";
-            ctx.textBaseline = "middle";
-            ctx.fillText(txt, bar.x - 12, bar.y + 4);
-            return;
-          }
-          const safeX = Math.max(xScale.getPixelForValue(0) + 10, chartArea.left + 10);
-          ctx.fillStyle = v > 0 ? "rgba(229,231,235,0.92)" : "rgba(248,113,113,0.95)";
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.fillText(txt, safeX, bar.y + 4);
+          const val = winPct[i] ?? 0;
+          const text = Math.round(val) + "%";
+          const x = bar.x - 10; // inside bar near end
+          const y = bar.y + 4;
+          ctx.textAlign = "right";
+          ctx.fillText(text, x, y);
         });
         ctx.restore();
       }
@@ -2724,150 +2428,3 @@ try{
     loadTdtTracker();
   }
 }catch(e){}
-
-
-
-/* hard restore bypass patch removed */
-
-
-
-/* ===== MARKETS 0% LABEL FIX ===== */
-renderMarketChart = function(labels, winPct, totals){
-  const el = document.getElementById("marketChart");
-  if(!el) return;
-  if(typeof marketChart !== "undefined" && marketChart) marketChart.destroy();
-
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safePct = Array.isArray(winPct) ? winPct.map(v => Number(v || 0)) : [];
-  const safeTotals = Array.isArray(totals) ? totals : [];
-
-  const ctx = el.getContext("2d");
-  marketChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: safeLabels,
-      datasets: [{
-        data: safePct,
-        borderWidth: 0,
-        borderRadius: 10,
-        barThickness: 18,
-        backgroundColor: safePct.map(v=>{
-          if(v >= 55) return "rgba(34,197,94,0.85)";
-          if(v >= 40) return "rgba(245,158,11,0.85)";
-          return "rgba(239,68,68,0.85)";
-        }),
-        borderColor: safePct.map(v=>{
-          if(v >= 55) return "#22c55e";
-          if(v >= 40) return "#f59e0b";
-          return "#ef4444";
-        })
-      }]
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: {
-        padding: { left: 6, right: 10 }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx)=>{
-              const i = ctx.dataIndex;
-              const pct = Number(ctx.raw || 0).toFixed(0) + "%";
-              const t = safeTotals[i] ? safeTotals[i] : { bets: 0, wins: 0, losses: 0 };
-              return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          min: 0,
-          max: 100,
-          ticks: { display: false },
-          grid: { display: false, drawBorder: false }
-        },
-        y: {
-          ticks: {
-            color: "rgba(229,231,235,0.85)",
-            font: { weight: 800 }
-          },
-          grid: { display: false, drawBorder: false }
-        }
-      },
-      animation: { duration: 250 }
-    },
-    plugins: [{
-      id: "pctLabelsSafe",
-      afterDatasetsDraw(chart){
-        const {ctx, chartArea, scales} = chart;
-        const meta = chart.getDatasetMeta(0);
-        const xScale = scales.x;
-
-        ctx.save();
-        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-
-        meta.data.forEach((bar, i)=>{
-          const v = Number(safePct[i] || 0);
-          const txt = `${Math.round(v)}%`;
-
-          if(v >= 14){
-            ctx.fillStyle = "#ffffff";
-            ctx.textAlign = "right";
-            ctx.textBaseline = "middle";
-            ctx.fillText(txt, bar.x - 12, bar.y);
-            return;
-          }
-
-          const startX = xScale.getPixelForValue(Math.max(v, 0));
-          const safeX = Math.max(startX + 8, chartArea.left + 12);
-
-          ctx.fillStyle = v > 0 ? "rgba(229,231,235,0.92)" : "rgba(248,113,113,0.95)";
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.fillText(txt, safeX, bar.y);
-        });
-
-        ctx.restore();
-      }
-    }]
-  });
-};
-/* ===== END MARKETS 0% LABEL FIX ===== */
-
-
-
-/* ===== SAFE VIP BUTTON RESYNC PATCH ===== */
-(function(){
-  function bindVipButtonsSafe(){
-    const topBtn = document.getElementById('vipButton');
-    const promoBtn = document.getElementById('vipPromoBtn');
-    if(topBtn){
-      topBtn.onclick = function(e){
-        e.preventDefault();
-        openVipModal();
-      };
-    }
-    if(promoBtn){
-      promoBtn.onclick = function(e){
-        e.preventDefault();
-        openVipModal();
-      };
-    }
-  }
-
-  const originalCheckVIP = checkVIP;
-  checkVIP = async function(){
-    const active = await originalCheckVIP();
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = active ? 'none' : 'flex';
-    return active;
-  };
-
-  bindVipButtonsSafe();
-  setTimeout(bindVipButtonsSafe, 300);
-})();
-/* ===== END SAFE VIP BUTTON RESYNC PATCH ===== */
