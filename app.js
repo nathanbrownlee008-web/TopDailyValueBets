@@ -79,10 +79,10 @@ async function ensureVipPasswordAccount(email, password){
   if(!cleanEmail || !cleanEmail.includes("@")) throw new Error("Enter a valid email.");
   if(cleanPassword.length < 6) throw new Error("Use at least 6 characters for your VIP password.");
 
-  const signIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+  const signIn = if(!client){console.log('NO CLIENT');return;} await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
   if(!signIn.error) return true;
 
-  const signUp = await client.auth.signUp({
+  const signUp = if(!client){console.log('NO CLIENT');return;} await client.auth.signUp({
     email: cleanEmail,
     password: cleanPassword,
     options: { emailRedirectTo: window.location.origin + "/reset-password.html" }
@@ -91,7 +91,7 @@ async function ensureVipPasswordAccount(email, password){
 
   const msg = String(signUp.error?.message || "").toLowerCase();
   if(msg.includes("already") || msg.includes("exists") || msg.includes("registered") || msg.includes("user already")){
-    const secondSignIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+    const secondSignIn = if(!client){console.log('NO CLIENT');return;} await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
     if(!secondSignIn.error) return true;
     throw new Error("Wrong VIP password for that email.");
   }
@@ -107,7 +107,7 @@ async function forgotVipPassword(){
   }
   try{
     if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
-    const { error } = await client.auth.resetPasswordForEmail(email, {
+    const { error } = if(!client){console.log('NO CLIENT');return;} await client.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin + "/reset-password.html"
     });
     if(error) throw error;
@@ -310,19 +310,19 @@ async function upsertTdtMirror(row){
     created_at: row.created_at || new Date().toISOString(),
     bookie: row.bookie || null
   };
-  const { data: existing, error: checkErr } = await client.from("tdt_tracker").select("id").eq("sync_id", row.sync_id).limit(1);
+  const { data: existing, error: checkErr } = if(!client){console.log('NO CLIENT');return;} await client.from("tdt_tracker").select("id").eq("sync_id", row.sync_id).limit(1);
   if(checkErr) throw checkErr;
   if(existing && existing.length){
-    const { error } = await client.from("tdt_tracker").update(payload).eq("sync_id", row.sync_id);
+    const { error } = if(!client){console.log('NO CLIENT');return;} await client.from("tdt_tracker").update(payload).eq("sync_id", row.sync_id);
     if(error) throw error;
   }else{
-    const { error } = await client.from("tdt_tracker").insert([payload]);
+    const { error } = if(!client){console.log('NO CLIENT');return;} await client.from("tdt_tracker").insert([payload]);
     if(error) throw error;
   }
 }
 async function deleteTdtMirror(syncId){
   if(!isAdminSyncEnabled() || !syncId) return;
-  const { error } = await client.from("tdt_tracker").delete().eq("sync_id", syncId);
+  const { error } = if(!client){console.log('NO CLIENT');return;} await client.from("tdt_tracker").delete().eq("sync_id", syncId);
   if(error) throw error;
 }
 
@@ -395,7 +395,7 @@ async function readTrackerRowsCloudMerged(){
   if(!isAdminSyncEnabled()) return localRows;
 
   try{
-    const { data, error } = await client
+    const { data, error } = if(!client){console.log('NO CLIENT');return;} await client
       .from("tdt_tracker")
       .select("*")
       .like("sync_id", "sync_%")
@@ -565,14 +565,9 @@ checkVIP().then(async ()=>{
     await pollVipAfterCheckout();
   }
   refreshAdminBadgeUI();
-  await loadBets();
-  if(vipActive){
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = 'none';
-  }else{
-    await loadVipPromoProof();
-    setTimeout(()=>{ if(!vipActive) loadVipPromoProof(); }, 1200);
-  }
+  // re-render bets so blur/limits apply
+  loadBets();
+  loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
 });
@@ -607,7 +602,7 @@ async function loadBets(){
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
-  const {data} = await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
+  const {data} = if(!client){console.log('NO CLIENT');return;} await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
   betsGrid.innerHTML="";
   const betsTable=document.getElementById('betsTable');
   const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
@@ -1006,7 +1001,6 @@ function notifyForNewVisibleBets(rows){
 function renderVipPromoChart(rows){
   const canvas = document.getElementById('vipPromoChart');
   if(!canvas || typeof Chart === 'undefined') return;
-
   const safeRows = Array.isArray(rows) ? rows : [];
   const labels = [];
   const points = [];
@@ -1014,70 +1008,41 @@ function renderVipPromoChart(rows){
   let lastDayKey = '';
 
   safeRows.slice(-200).forEach((row)=>{
-    const result = String(row.result || 'pending').toLowerCase();
-    const rowProfitValue = row.profit != null
-      ? Number(row.profit || 0)
-      : rowProfit({
-          stake: Number(row.stake || 0),
-          odds: Number(row.odds || 0),
-          result
-        });
-
-    running += rowProfitValue;
-
+    running += rowProfit({
+      stake: Number(row.stake || 0),
+      odds: Number(row.odds || 0),
+      result: row.result || 'pending'
+    });
     const dayKey = fmtDayLabel(row.match_date_date || row.bet_date || row.created_at);
     if(dayKey !== lastDayKey){
       labels.push(dayKey);
       points.push(running);
       lastDayKey = dayKey;
-    }else if(points.length){
+    }else{
       points[points.length - 1] = running;
     }
   });
 
   if(vipPromoChart) vipPromoChart.destroy();
-
   vipPromoChart = new Chart(canvas.getContext('2d'), {
     type:'line',
-    data:{
-      labels,
-      datasets:[{
-        data: points,
-        tension:0.3,
-        fill:true,
-        backgroundColor:'rgba(34,197,94,0.10)',
-        borderColor:'#22c55e',
-        borderWidth:2,
-        pointRadius:0
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{ legend:{display:false} },
-      scales:{
-        x:{ ticks:{ maxTicksLimit:6 } },
-        y:{ ticks:{ callback:(v)=> `£${v}` } }
-      }
-    }
+    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:(ctx)=>{ const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0; if(len <= 1) return len ? 3 : 0; return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0; } }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
   });
 }
 
 async function loadVipPromoProof(){
   const statsEl = document.getElementById('vipPromoStats');
   try{
-    if(statsEl) statsEl.textContent = 'Loading official TDT proof...';
-
-    const { data, error } = await client
+    const { data, error } = if(!client){console.log('NO CLIENT');return;} await client
       .from('tdt_tracker')
       .select('*')
       .order('created_at', { ascending: true })
       .limit(200);
-
     if(error) throw error;
 
     const rows = Array.isArray(data) ? data : [];
-    const settled = rows.filter(r => String(r.result || 'pending').toLowerCase() !== 'pending');
+    const settled = rows.filter(r => (r.result || 'pending') !== 'pending');
 
     if(!settled.length){
       if(statsEl) statsEl.textContent = 'Official proof updates soon';
@@ -1089,31 +1054,23 @@ async function loadVipPromoProof(){
     let losses = 0;
     let stake = 0;
     let profit = 0;
-
     settled.forEach((row)=>{
-      const result = String(row.result || 'pending').toLowerCase();
+      const result = row.result || 'pending';
       if(result === 'won') wins += 1;
       if(result === 'lost') losses += 1;
       stake += Number(row.stake || 0);
-
-      const rowProfitValue = row.profit != null
-        ? Number(row.profit || 0)
-        : rowProfit({
-            stake: Number(row.stake || 0),
-            odds: Number(row.odds || 0),
-            result
-          });
-
-      profit += rowProfitValue;
+      profit += rowProfit({
+        stake: Number(row.stake || 0),
+        odds: Number(row.odds || 0),
+        result
+      });
     });
 
     const roi = stake ? ((profit / stake) * 100) : 0;
-    const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
-
     if(statsEl){
+      const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
       statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
     }
-
     renderVipPromoChart(settled);
   }catch(err){
     console.error('VIP proof load failed', err);
@@ -1443,7 +1400,7 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
 async function loadTdtTracker(){
   const tableEl = document.getElementById("tdtTrackerTable");
   try{
-    const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
+    const {data, error} = if(!client){console.log('NO CLIENT');return;} await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
@@ -2441,7 +2398,7 @@ window.loadTdtTracker = async function(){
   const tableEl = document.getElementById("tdtTrackerTable");
 
   try{
-    const { data, error } = await client
+    const { data, error } = if(!client){console.log('NO CLIENT');return;} await client
       .from("tdt_tracker")
       .select("*")
       .order("created_at", { ascending: true });
@@ -2698,111 +2655,13 @@ try{
 /* ===== END HARD RESTORE VIP MESSAGE PATCH ===== */
 
 
-
-/* ===== MARKETS 0% LABEL FIX ===== */
-renderMarketChart = function(labels, winPct, totals){
-  const el = document.getElementById("marketChart");
-  if(!el) return;
-  if(typeof marketChart !== "undefined" && marketChart) marketChart.destroy();
-
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safePct = Array.isArray(winPct) ? winPct.map(v => Number(v || 0)) : [];
-  const safeTotals = Array.isArray(totals) ? totals : [];
-
-  const ctx = el.getContext("2d");
-  marketChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: safeLabels,
-      datasets: [{
-        data: safePct,
-        borderWidth: 0,
-        borderRadius: 10,
-        barThickness: 18,
-        backgroundColor: safePct.map(v=>{
-          if(v >= 55) return "rgba(34,197,94,0.85)";
-          if(v >= 40) return "rgba(245,158,11,0.85)";
-          return "rgba(239,68,68,0.85)";
-        }),
-        borderColor: safePct.map(v=>{
-          if(v >= 55) return "#22c55e";
-          if(v >= 40) return "#f59e0b";
-          return "#ef4444";
-        })
-      }]
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: {
-        padding: { left: 6, right: 10 }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx)=>{
-              const i = ctx.dataIndex;
-              const pct = Number(ctx.raw || 0).toFixed(0) + "%";
-              const t = safeTotals[i] ? safeTotals[i] : { bets: 0, wins: 0, losses: 0 };
-              return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          min: 0,
-          max: 100,
-          ticks: { display: false },
-          grid: { display: false, drawBorder: false }
-        },
-        y: {
-          ticks: {
-            color: "rgba(229,231,235,0.85)",
-            font: { weight: 800 }
-          },
-          grid: { display: false, drawBorder: false }
-        }
-      },
-      animation: { duration: 250 }
-    },
-    plugins: [{
-      id: "pctLabelsSafe",
-      afterDatasetsDraw(chart){
-        const {ctx, chartArea, scales} = chart;
-        const meta = chart.getDatasetMeta(0);
-        const xScale = scales.x;
-
-        ctx.save();
-        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-
-        meta.data.forEach((bar, i)=>{
-          const v = Number(safePct[i] || 0);
-          const txt = `${Math.round(v)}%`;
-
-          if(v >= 14){
-            ctx.fillStyle = "#ffffff";
-            ctx.textAlign = "right";
-            ctx.textBaseline = "middle";
-            ctx.fillText(txt, bar.x - 12, bar.y);
-            return;
-          }
-
-          const startX = xScale.getPixelForValue(Math.max(v, 0));
-          const safeX = Math.max(startX + 8, chartArea.left + 12);
-
-          ctx.fillStyle = v > 0 ? "rgba(229,231,235,0.92)" : "rgba(248,113,113,0.95)";
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.fillText(txt, safeX, bar.y);
-        });
-
-        ctx.restore();
-      }
-    }]
-  });
-};
-/* ===== END MARKETS 0% LABEL FIX ===== */
-
+// FORCE VIP LOAD (FINAL FIX)
+setInterval(()=>{
+  try{
+    if(typeof loadVipPromoProof==="function"){
+      loadVipPromoProof();
+    }
+  }catch(e){
+    console.log("VIP retry error", e);
+  }
+},3000);
