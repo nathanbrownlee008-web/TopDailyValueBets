@@ -3448,38 +3448,66 @@ body.layout-compact .vip-bar{
 }
 
 
-
-/* unified tracker table layout */
+/* Keep hidden tracker date column for grouping logic only */
 .hidden-date-col{
   display:none !important;
 }
 
+/* Full-width team names with market underneath */
 #trackerTable td.match-market-cell{
-  vertical-align:top;
+  width: 46%;
+  vertical-align: top;
 }
 
 #trackerTable .tracker-match-name{
   display:block;
   font-weight:800;
-  line-height:1.06;
-  white-space:normal;
-  word-break:normal;
-  overflow-wrap:break-word;
+  line-height:1.08;
+  overflow-wrap:anywhere;
 }
 
 #trackerTable .tracker-market-sub{
   display:block;
   margin-top:4px;
-  font-size:0.9em;
+  font-size:0.92em;
   font-weight:600;
   color:#cbd5e1;
   line-height:1.08;
-  white-space:normal;
-  word-break:normal;
-  overflow-wrap:break-word;
+  overflow-wrap:anywhere;
 }
 
-/* mobile layout: grouped table stays grouped, just tighter */
+/* Desktop/tablet widths */
+#trackerTable td:nth-child(3){ width: 14%; } /* stake */
+#trackerTable td:nth-child(4){ width: 14%; } /* odds */
+#trackerTable td:nth-child(5){ width: 16%; } /* result */
+#trackerTable td:nth-child(6){ width: 10%; } /* profit */
+
+/* Mobile: hide profit only, keep desktop profit visible */
+@media (max-width: 768px) {
+  #trackerTable table th.profit-col,
+  #trackerTable table td.profit-col,
+  #trackerTable table th:last-child,
+  #trackerTable table td:last-child {
+    display: none !important;
+  }
+
+  #trackerTable td.match-market-cell{
+    width: 58%;
+  }
+
+  #trackerTable .tracker-match-name{
+    line-height:1.04;
+  }
+
+  #trackerTable .tracker-market-sub{
+    font-size:0.88em;
+    margin-top:3px;
+  }
+
+  #trackerTable td:nth-child(3){ width: 12%; }
+  #trackerTable td:nth-child(4){ width: 12%; }
+  #trackerTable td:nth-child(5){ width: 18%; }
+}
 @media (max-width: 768px){
   #trackerTable table th.profit-col,
   #trackerTable table td.profit-col,
@@ -3488,65 +3516,92 @@ body.layout-compact .vip-bar{
     display:none !important;
   }
 
-  #trackerTable th,
-  #trackerTable td{
-    font-size:12px !important;
-    padding:6px 2px !important;
-  }
-
   #trackerTable td.match-market-cell{
-    width:74% !important;
-    vertical-align:top;
+    width: 70%;
+    vertical-align: top;
   }
 
   #trackerTable .tracker-match-name{
-    font-size:12px !important;
-    line-height:1.05 !important;
+    font-size: 12px;
+    line-height: 1.05;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
   }
 
   #trackerTable .tracker-market-sub{
-    font-size:11px !important;
-    margin-top:3px !important;
-    line-height:1.05 !important;
+    font-size: 11px;
+    line-height: 1.05;
+    margin-top: 3px;
   }
 
-  /* shift stake + odds left a bit more */
-  #trackerTable td:nth-child(3),
+  #trackerTable th:nth-child(3),
+  #trackerTable td:nth-child(3){
+    width: 9%;
+  }
+
+  #trackerTable th:nth-child(4),
   #trackerTable td:nth-child(4){
-    text-align:left !important;
-    padding-left:0 !important;
-    padding-right:0 !important;
+    width: 9%;
   }
 
-  #trackerTable td:nth-child(3) input,
-  #trackerTable td:nth-child(4) input{
-    margin-left:-10px !important;
-  }
-
-  #trackerTable td:nth-child(3) input{
-    margin-right:-8px !important;
+  #trackerTable th:nth-child(5),
+  #trackerTable td:nth-child(5){
+    width: 12%;
   }
 
   #trackerTable input[type="number"]{
-    width:40px !important;
-    min-width:40px !important;
-    font-size:11px !important;
-    padding:3px 2px !important;
+    width: 44px;
+    min-width: 44px;
+    padding: 3px 2px;
+    font-size: 11px;
+    text-align: center;
   }
 
   #trackerTable select{
-    min-width:72px !important;
-    width:72px !important;
-    font-size:11px !important;
-    padding:3px 2px !important;
+    width: 72px;
+    min-width: 72px;
+    font-size: 11px;
+    padding: 3px 2px;
+  }
+}
+@media (max-width: 768px){
+
+  /* Give MATCH more space */
+  #trackerTable td.match-market-cell{
+    width: 72%;
   }
 
+  /* Pull Stake + Odds closer together */
+  #trackerTable td:nth-child(3){
+    width: 8%;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  #trackerTable td:nth-child(4){
+    width: 8%;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  /* Result stays usable */
   #trackerTable td:nth-child(5){
-    width:14% !important;
+    width: 12%;
   }
 
-  #trackerTable .date-group td,
-  #trackerTable .month-group td{
-    display:table-cell !important;
+  /* tighten inputs so they don’t stretch columns */
+  #trackerTable input[type="number"]{
+    width: 42px;
+    min-width: 42px;
+  }
+
+  /* keep them visually closer */
+  #trackerTable td:nth-child(3) input{
+    margin-right: -4px;
+  }
+
+  #trackerTable td:nth-child(4) input{
+    margin-left: -4px;
   }
 }

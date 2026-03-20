@@ -850,15 +850,14 @@ function _buildTrackerTableHTML(rows){
     if(res === "pending") profit = 0;
 
     const gameDate = row.match_date_date || row.bet_date || row.created_at;
-
     html += `<tr>
       <td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
       <td class="match-market-cell">
         <div class="tracker-match-name">${row.match || ""}</div>
         <div class="tracker-market-sub">${row.market || "—"}</div>
       </td>
-      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
-      <td><input class="odds-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>
+      <td><input class="myt-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
+      <td><input class="myt-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
           <option value="pending" ${res==="pending"?"selected":""}>pending</option>
@@ -866,7 +865,7 @@ function _buildTrackerTableHTML(rows){
           <option value="lost" ${res==="lost"?"selected":""}>lost</option>
         </select>
       </td>
-      <td class="profit-col ${profit >= 0 ? "profit-win" : "profit-loss"}">£${profit.toFixed(2)}</td>
+      <td class="profit-col"><span class="${profit>0?'profit-win':profit<0?'profit-loss':''}">£${profit.toFixed(2)}</span></td>
     </tr>`;
   });
   html += `</table>`;
@@ -882,7 +881,8 @@ function _renderFilteredTrackerTable(){
   tableEl.innerHTML = _buildTrackerTableHTML(filtered);
   if(countEl) countEl.textContent = filtered.length;
 
-  if(typeof bindTrackerTableInputs === "function") bindTrackerTableInputs();
+  // re-bind inline input/select listeners for edited rows
+  bindTrackerTableInputs();
 
   if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups();
   if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups();
@@ -1166,16 +1166,16 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table class='myt-table'><tr><th class='date-col hidden-date-col'>Date</th><th>Match</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th class='hidden-date-col'>Date</th><th>Match</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
 if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups();
 if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups();
 if(typeof wirePersonalTrackerDateCollapse === "function") wirePersonalTrackerDateCollapse();
-if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState();
 if(typeof wirePersonalTrackerMonthCollapse === "function") wirePersonalTrackerMonthCollapse();
 if(typeof applyPersonalTrackerMonthCollapseState === "function") applyPersonalTrackerMonthCollapseState();
+if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState();
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
