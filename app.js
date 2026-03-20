@@ -160,6 +160,15 @@ async function checkVIP(){
     setVipUI(false,"");
     return false;
   }
+	const { data: userData } = await client.auth.getUser();
+const authedEmail = (userData?.user?.email || "").toLowerCase();
+
+// BLOCK FAKE ACCESS
+if(!authedEmail || authedEmail !== email.toLowerCase()){
+  vipActive = false;
+  setVipUI(false, email);
+  return false;
+}
   try{
     const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
     const j=await r.json();
