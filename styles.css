@@ -3448,20 +3448,24 @@ body.layout-compact .vip-bar{
 }
 
 
-/* Results table only: slight mobile zoom-out for more space */
-.tracker-zoom {
-  transform: scale(0.92);
-  transform-origin: top center;
-  width: 108%;
-  margin-left: -4%;
+/* Safe mobile-only tracker tweak: hide Profit column and give Match more room.
+   Does NOT touch month/day dropdown logic. */
+@media (max-width: 768px){
+  #trackerTable th.profit-col,
+  #trackerTable td.profit-col,
+  #trackerTable th:last-child,
+  #trackerTable td:last-child{
+    display:none !important;
+  }
+
+  /* Wider match column on mobile */
+  #trackerTable td.match-market-cell{
+    width:58% !important;
+  }
+
+  /* Fallback for older table layouts */
+  #trackerTable td:first-child{
+    width:58% !important;
+  }
 }
 
-#trackerTable table {
-  font-size: 13px;
-}
-
-#trackerTable input,
-#trackerTable select {
-  font-size: 13px;
-  padding: 6px;
-}
