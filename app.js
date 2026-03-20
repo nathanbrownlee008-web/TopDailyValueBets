@@ -7,6 +7,11 @@ const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 // VIP
 // =========================
 
+function normalizeVipEmail(email){
+  return String(email || "").trim().toLowerCase();
+}
+
+
 function setVipUI(active, email){
   vipActive = !!active;
 
@@ -14,7 +19,6 @@ function setVipUI(active, email){
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
-  const promoEl = document.getElementById('vipPromo');
 
   if(active){
     if(titleEl) titleEl.textContent = 'VIP Access';
@@ -22,12 +26,11 @@ function setVipUI(active, email){
     if(btnEl){
       if(btnTextEl) btnTextEl.textContent = 'VIP Access Active';
       else btnEl.textContent = 'VIP Access Active';
-      btnEl.disabled = false;
-      btnEl.style.pointerEvents = "auto";
-      btnEl.style.cursor = "pointer";
+      btnEl.disabled = true;
+      btnEl.style.pointerEvents = "none";
+      btnEl.style.cursor = "default";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
-    if(promoEl) promoEl.style.display = 'none';
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
@@ -39,7 +42,6 @@ function setVipUI(active, email){
       btnEl.style.cursor = "pointer";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
-    if(promoEl) promoEl.style.display = 'flex';
   }
 }
 
@@ -57,25 +59,6 @@ function closeVipModal(){
   vipModalEl.style.display="none";
 }
 
-function normalizeVipEmail(email){
-  return String(email || "").trim().toLowerCase();
-}
-
-async function forceVipRefreshNow(emailFromInput){
-  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
-  if(!email || !email.includes("@")) return false;
-  localStorage.setItem('vip_email', email);
-  const active = await checkVIP();
-  if(active){
-    closeVipModal();
-    await loadBets();
-    if(typeof loadTracker === "function") await loadTracker();
-    if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
-    return true;
-  }
-  return false;
-}
-
 async function ensureVipPasswordAccount(email, password){
   const cleanEmail = normalizeVipEmail(email);
   const cleanPassword = String(password || "");
@@ -88,7 +71,7 @@ async function ensureVipPasswordAccount(email, password){
   const signUp = await client.auth.signUp({
     email: cleanEmail,
     password: cleanPassword,
-    options: { emailRedirectTo: window.location.origin + "/reset-password.html" }
+    options: { emailRedirectTo: window.location.origin }
   });
   if(!signUp.error) return true;
 
@@ -114,9 +97,40 @@ async function forgotVipPassword(){
       redirectTo: window.location.origin + "/reset-password.html"
     });
     if(error) throw error;
-    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent. Check inbox and spam.";
+    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent.";
   }catch(err){
     if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not send reset email.";
+  }
+}
+
+async function restoreVipAccess(){
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
+
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
+    return;
+  }
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your VIP password.";
+    return;
+  }
+
+  localStorage.setItem("vip_email", email);
+
+  try{
+    if(vipErrorEl) vipErrorEl.textContent = "";
+    if(vipRestoreEl) vipRestoreEl.disabled = true;
+
+    await ensureVipPasswordAccount(email, password);
+    const active = await forceVipRefreshNow(email);
+
+    if(active) return;
+    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
+  }catch(e){
+    if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
+  }finally{
+    if(vipRestoreEl) vipRestoreEl.disabled = false;
   }
 }
 
@@ -132,46 +146,36 @@ async function checkVIP(){
     const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
     const j=await r.json();
     vipActive=!!j.active;
-
-if(vipActive){
-  setVipUI(true,email);
-}else{
-  clearVipState();
+    setVipUI(vipActive,email);
+    return vipActive;
+  }catch(e){
+    vipActive=false;
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
+    setVipUI(false,email);
+    return false;
+  }
 }
 
-return vipActive;
-
-}catch(e){
-  clearVipState();
-  if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
-  return false;
-}
-}
-function clearVipState(){
-  vipActive = false;
-  localStorage.removeItem('vip_email');
-  setVipUI(false,"");
-  refreshAdminBadgeUI();
-}
 async function startCheckout(plan){
   if(vipErrorEl) vipErrorEl.textContent="";
-  const email=(vipEmailEl?.value||"").trim();
-  const password=(vipPasswordEl?.value||"").trim();
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
+
   if(!email || !email.includes("@")){
     if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
     return;
   }
-  if(!password || password.length < 6){
-    if(vipErrorEl) vipErrorEl.textContent="Enter your VIP password (at least 6 characters).";
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent="Create a VIP password with at least 6 characters.";
     return;
   }
+
+  localStorage.setItem('vip_email', email);
   try{
     await ensureVipPasswordAccount(email, password);
-    localStorage.setItem('vip_email',email);
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
     if(vipRestoreEl) vipRestoreEl.disabled=true;
-    if(vipForgotEl) vipForgotEl.disabled=true;
     const r=await fetch('/api/create-checkout-session',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -185,7 +189,6 @@ async function startCheckout(plan){
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
     if(vipRestoreEl) vipRestoreEl.disabled=false;
-    if(vipForgotEl) vipForgotEl.disabled=false;
   }
 }
 
@@ -272,9 +275,9 @@ const vipStatusEl = document.getElementById("vipStatus");
 const vipModalEl = document.getElementById("vipModal");
 const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
+const vipPasswordEl = document.getElementById("vipPassword");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
-const vipPasswordEl = document.getElementById("vipPassword");
 const vipRestoreEl = document.getElementById("vipRestore");
 const vipForgotEl = document.getElementById("vipForgot");
 const vipErrorEl = document.getElementById("vipError");
@@ -292,7 +295,10 @@ function currentVipEmail(){
 function isAdminSyncEnabled(){
   return currentVipEmail() === ADMIN_SYNC_EMAIL;
 }
-
+function refreshAdminBadgeUI(){
+  const badges = document.querySelectorAll('[data-admin-badge="1"]');
+  badges.forEach(el=>{ el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none"; });
+}
 function makeSyncId(){
   return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 }
@@ -335,98 +341,117 @@ function trackerStorageKey(){
   return `tdt_tracker_${email}`;
 }
 
-function readTrackerRows(){
+function readTrackerRowsLocal(){
   try{
     const raw = localStorage.getItem(trackerStorageKey());
     const rows = raw ? JSON.parse(raw) : [];
     const safeRows = Array.isArray(rows) ? rows : [];
-    return safeRows.map((row)=>{
-      const out = { ...(row || {}) };
-      if(!out.id) out.id = makeLocalTrackerId();
-      if(!out.created_at && out.bet_date){
-        out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
-      }
-      if(!out.created_at){
-        out.created_at = new Date().toISOString();
-      }
-      return out;
-    });
+    return safeRows.map(normalizeTrackerRow);
   }catch(e){
     return [];
   }
 }
 
-function writeTrackerRows(rows){
+function writeTrackerRowsLocal(rows){
   localStorage.setItem(trackerStorageKey(), JSON.stringify(rows || []));
 }
 
-function makeLocalTrackerId(){
-  return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-}
-
-function normalizeTrackerLocalRow(row){
+function normalizeTrackerRow(row){
   const out = { ...(row || {}) };
   if(!out.id) out.id = makeLocalTrackerId();
-  if(!out.sync_id && String(out.id || "").startsWith("sync_")) out.sync_id = out.id;
   if(!out.created_at && out.bet_date){
     out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
   }
   if(!out.created_at){
     out.created_at = new Date().toISOString();
   }
-  out.odds = Number(out.odds || 0);
-  out.stake = Number(out.stake || 0);
-  out.result = out.result || "pending";
-  out.match = out.match || "";
-  out.market = out.market || "";
+  if(out.stake == null) out.stake = 10;
+  if(!out.result) out.result = "pending";
   return out;
 }
 
-function mergeTrackerRows(localRows, cloudRows){
-  const map = new Map();
-  (localRows || []).map(normalizeTrackerLocalRow).forEach(row=>{
-    map.set(String(row.sync_id || row.id), row);
-  });
-  (cloudRows || []).map(normalizeTrackerLocalRow).forEach(row=>{
-    map.set(String(row.sync_id || row.id), row);
-  });
-  return Array.from(map.values());
+function makeLocalTrackerId(){
+  return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 }
 
-async function readTrackerRowsCloudMerged(){
-  const localRows = readTrackerRows();
-  if(!isAdminSyncEnabled()) return localRows;
+async function currentAuthUserId(){
+  try{
+    const { data, error } = await client.auth.getUser();
+    if(error) return null;
+    return data?.user?.id || null;
+  }catch(e){
+    return null;
+  }
+}
+
+async function readTrackerRows(){
+  const localRows = readTrackerRowsLocal();
+
+  const userId = await currentAuthUserId();
+  if(!userId) return localRows;
 
   try{
     const { data, error } = await client
-      .from("tdt_tracker")
+      .from("personal_tracker")
       .select("*")
-      .like("sync_id", "sync_%")
+      .eq("user_id", userId)
       .order("created_at", { ascending: true });
 
     if(error) throw error;
 
-    const cloudRows = (Array.isArray(data) ? data : []).map((row)=> normalizeTrackerLocalRow({
-      id: row.sync_id || row.id || makeLocalTrackerId(),
-      sync_id: row.sync_id || row.id || null,
-      match: row.match || "",
-      market: row.market || "",
-      odds: row.odds,
-      stake: row.stake,
-      result: row.result,
-      bet_date: row.bet_date || null,
-      created_at: row.created_at || null,
-      bookie: row.bookie || null,
-      profit: row.profit ?? null
-    }));
+    const cloudRows = (data || []).map(normalizeTrackerRow);
+    if(cloudRows.length){
+      writeTrackerRowsLocal(cloudRows);
+      return cloudRows;
+    }
 
-    const merged = mergeTrackerRows(localRows, cloudRows);
-    writeTrackerRows(merged);
-    return merged;
+    // first-time cloud seed from local backup
+    if(localRows.length){
+      const seedRows = localRows.map(r => ({ ...normalizeTrackerRow(r), user_id: userId }));
+      const { error: seedError } = await client.from("personal_tracker").upsert(seedRows, { onConflict: "id" });
+      if(seedError) throw seedError;
+      writeTrackerRowsLocal(localRows);
+      return localRows;
+    }
+
+    return [];
   }catch(e){
-    console.error("Tracker cloud read failed", e);
+    console.error("readTrackerRows cloud fallback", e);
     return localRows;
   }
+}
+
+async function upsertTrackerRow(row){
+  const safeRow = normalizeTrackerRow(row);
+  const userId = await currentAuthUserId();
+
+  // Always keep browser backup too
+  const localRows = readTrackerRowsLocal();
+  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
+  writeTrackerRowsLocal(nextLocal);
+
+  if(!userId) return safeRow;
+
+  const payload = { ...safeRow, user_id: userId };
+  const { error } = await client.from("personal_tracker").upsert([payload], { onConflict: "id" });
+  if(error) throw error;
+  return safeRow;
+}
+
+async function deleteTrackerRowById(id){
+  const localRows = readTrackerRowsLocal().filter(r => String(r.id) !== String(id));
+  writeTrackerRowsLocal(localRows);
+
+  const userId = await currentAuthUserId();
+  if(!userId) return;
+
+  const { error } = await client
+    .from("personal_tracker")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id);
+
+  if(error) throw error;
 }
 
 
@@ -548,15 +573,15 @@ tabTracker.onclick=()=>{
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 
 // VIP events
-if(vipButtonEl) vipButtonEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
+if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
 if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
-if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
-if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
+if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
+if(vipForgotEl) vipForgotEl.addEventListener('click', forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
-if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
+if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
@@ -568,14 +593,10 @@ checkVIP().then(async ()=>{
     await pollVipAfterCheckout();
   }
   refreshAdminBadgeUI();
+  try{ await readTrackerRows(); }catch(e){}
   // re-render bets so blur/limits apply
-  await loadBets();
-  if(vipActive){
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = 'none';
-  }else{
-    loadVipPromoProof();
-  }
+  loadBets();
+  loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
 });
@@ -606,7 +627,7 @@ function switchTab(tab){
 async function loadBets(){
   addedKeys.clear();
   try{
-    const localRows = await readTrackerRowsCloudMerged();
+    const localRows = await readTrackerRows();
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
@@ -704,7 +725,6 @@ async function addToTracker(btn, row){
     btn.textContent = 'Adding…';
   }
 
-  const rows = readTrackerRows();
   const newRow = {
     id: makeLocalTrackerId(),
     sync_id: isAdminSyncEnabled() ? makeSyncId() : null,
@@ -717,8 +737,19 @@ async function addToTracker(btn, row){
     bet_date: row.bet_date || null,
     bookie: row.bookie || null
   };
-  rows.push(newRow);
-  writeTrackerRows(rows);
+
+  try{
+    await upsertTrackerRow(newRow);
+  }catch(e){
+    console.error(e);
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = 'Add';
+    }
+    alert('Could not save tracker bet right now.');
+    return;
+  }
+
   if(isAdminSyncEnabled()){
     try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
   }
@@ -800,30 +831,31 @@ function _applyTrackerFilters(rows){
 }
 
 function _buildTrackerTableHTML(rows){
-  let html = `<table class="myt-table">
+  let html = `<table>
     <tr>
-      <th class="date-col hidden-date-col">Date</th>
+      <th>Date</th>
       <th>Match</th>
-      <th>Market</th>
       <th>Stake</th>
-      <th>Odds</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
     </tr>`;
   (rows || []).forEach(row=>{
     const stakeVal = row.stake ?? 0;
-    const oddsVal = row.odds ?? 0;
     const res = row.result || "pending";
     let profit = 0;
-    if(res === "won") profit = (row.profit != null ? row.profit : Number(row.stake||0) * (Number(row.odds||0) - 1));
-    if(res === "lost") profit = (row.profit != null ? row.profit : -Number(row.stake||0));
-    const gameDate = row.match_date_date || row.bet_date || row.created_at;
+    if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
+    if(res === "lost") profit = (row.profit != null ? row.profit : -row.stake);
+    if(res === "pending") profit = 0;
+
+    const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
+    const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
+
+    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
+
     html += `<tr>
-      <td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-      <td class="myt-match">${row.match || ""}</td>
-      <td class="myt-market">${row.market || ""}</td>
-      <td><input class="myt-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
-      <td><input class="myt-input" type="number" step="0.01" value="${oddsVal}" data-id="${row.id}" data-field="odds"></td>
+      <td class="date-col">${dateLabel}</td>
+      <td>${row.match || ""}</td>
+      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
           <option value="pending" ${res==="pending"?"selected":""}>pending</option>
@@ -831,7 +863,7 @@ function _buildTrackerTableHTML(rows){
           <option value="lost" ${res==="lost"?"selected":""}>lost</option>
         </select>
       </td>
-      <td class="profit-col"><span class="${profit>0?'profit-win':profit<0?'profit-loss':''}">£${profit.toFixed(2)}</span></td>
+      <td class="profit-col ${profitClass}">${profitText}</td>
     </tr>`;
   });
   html += `</table>`;
@@ -849,22 +881,6 @@ function _renderFilteredTrackerTable(){
 
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
-}
-
-
-function bindTrackerTableInputs(){
-  const tableEl = document.getElementById("trackerTable");
-  if(!tableEl) return;
-
-  tableEl.querySelectorAll('input[data-field="stake"]').forEach(el=>{
-    el.addEventListener('change', ()=> updateStake(el.dataset.id, el.value));
-  });
-  tableEl.querySelectorAll('input[data-field="odds"]').forEach(el=>{
-    el.addEventListener('change', ()=> updateOdds(el.dataset.id, el.value));
-  });
-  tableEl.querySelectorAll('select[data-field="result"]').forEach(el=>{
-    el.addEventListener('change', ()=> updateResult(el.dataset.id, el.value));
-  });
 }
 
 let _filtersWired = false;
@@ -1087,7 +1103,7 @@ async function loadVipPromoProof(){
 }
 
 async function loadTracker(){
-const rows = (await readTrackerRowsCloudMerged()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -1118,11 +1134,10 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td class="date-col hidden-date-col">${fmtDayLabel(gameDate)}</td>
-<td class="myt-match">${row.match}</td>
-<td class="myt-market">${row.market || ""}</td>
-<td><input class="myt-input" type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
-<td><input class="myt-input" type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
+<td>${row.match}</td>
+<td>${row.market || "—"}</td>
+<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
 <select 
 class="result-select result-${row.result}" 
@@ -1139,7 +1154,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table class='myt-table'><tr><th class='date-col hidden-date-col'>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -1178,18 +1193,12 @@ if(countElem) countElem.textContent = String(rows.length);
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
-const monthWinsMap = {};
-const monthLossesMap = {};
-const monthBetsMap = {};
 
 rows.forEach(r=>{
   const d = new Date(r.created_at);
   const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
-  monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
-  monthBetsMap[key] = (monthBetsMap[key]||0) + 1;
-  if(r.result === "won") monthWinsMap[key] = (monthWinsMap[key]||0) + 1;
-  if(r.result === "lost") monthLossesMap[key] = (monthLossesMap[key]||0) + 1;
+  monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
 });
 
 const monthKeys = Object.keys(monthMap).sort();
@@ -1205,25 +1214,15 @@ const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
-const monthlyBets = monthKeys.map(k=> monthBetsMap[k] || 0);
-const monthlyWinRate = monthKeys.map(k=>{
-  const wins = monthWinsMap[k] || 0;
-  const losses = monthLossesMap[k] || 0;
-  return (wins + losses) ? (wins / (wins + losses)) * 100 : 0;
-});
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Total Bets</th><th>Win Rate</th><th>Profit</th><th>ROI</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
-    const b = monthlyBets[i];
-    const w = monthlyWinRate[i];
     breakdownHTML += `<tr>
       <td>${monthLabels[i]}</td>
-      <td>${b}</td>
-      <td>${w.toFixed(1)}%</td>
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
     </tr>`;
@@ -1284,18 +1283,26 @@ if(monthKeys.length){
 
 
 async function updateOdds(id,val){
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
-  writeTrackerRows(updated);
+  const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+  }
+  if(row && isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+  }
   loadTracker();
 }
 
 async function updateStake(id,val){
 
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
-  writeTrackerRows(updated);
   const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+  }
   if(row && isAdminSyncEnabled()){
     try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
   }
@@ -1303,19 +1310,21 @@ async function updateStake(id,val){
 }
 
 async function updateResult(id,val){
-  const rows = readTrackerRows();
+  const rows = await readTrackerRows();
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
     const row = rows.find(r => String(r.id)===String(id));
-    writeTrackerRows(rows.filter(r => String(r.id)!==String(id)));
+    try{ await deleteTrackerRowById(id); }catch(e){ console.error(e); }
     if(row && isAdminSyncEnabled() && row.sync_id){
       try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
     }
     loadBets();
   }else{
     const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
-    writeTrackerRows(updated);
     const row = updated.find(r => String(r.id)===String(id));
+    if(row){
+      try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+    }
     if(row && isAdminSyncEnabled()){
       try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
     }
@@ -1642,68 +1651,40 @@ function renderDailyChart(history, labels, dayKeys){
   if(dailyChart) dailyChart.destroy();
 
   const safeHistory = Array.isArray(history) ? history : [];
+  const safeLabels = Array.isArray(labels) ? labels : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
-
-  const daily = [];
-  safeHistory.forEach((value, i)=>{
-    const key = safeDayKeys[i];
-    if(!key) return;
-    const last = daily[daily.length - 1];
-    if(last && last.key === key){
-      last.value = Number(value || 0);
-    }else{
-      daily.push({ key, value: Number(value || 0) });
-    }
-  });
-
-  function parseDay(rawKey){
-    const raw = String(rawKey || "").trim();
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(!m) return null;
-    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0, 0);
-  }
-  function shortLabel(rawKey){
-    const dt = parseDay(rawKey);
-    return dt ? dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : String(rawKey || "");
-  }
-  function fullLabel(rawKey){
-    const dt = parseDay(rawKey);
-    return dt ? dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : String(rawKey || "");
-  }
-
-  const total = daily.length;
-  let interval = 1;
-  if(total < 10) interval = 1;
-  else if(total < 20) interval = 2;
-  else if(total < 36) interval = 3;
-  else if(total < 55) interval = 4;
-  else interval = 5;
-
-  const displayLabels = daily.map((item, i)=>{
-    if(i === 0 || i === total - 1) return shortLabel(item.key);
-    const dt = parseDay(item.key);
-    const prev = i > 0 ? parseDay(daily[i - 1].key) : null;
-    if(dt && prev && (dt.getMonth() !== prev.getMonth() || dt.getFullYear() !== prev.getFullYear())){
-      return dt.toLocaleDateString("en-GB", { month: "short" });
-    }
-    return i % interval === 0 ? shortLabel(item.key) : "";
-  });
-
   const ctx = el.getContext("2d");
+
+  const pointRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 3 : 0;
+  });
+  const pointHoverRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 5 : 0;
+  });
+  const pointHitRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 14 : 0;
+  });
+
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels:displayLabels,
+      labels:safeLabels,
       datasets:[{
-        data:daily.map(x => x.value),
+        data:safeHistory,
         tension:0.28,
         fill:true,
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:3,
-        pointHoverRadius:5,
-        pointHitRadius:14,
+        pointRadius:pointRadius,
+        pointHoverRadius:pointHoverRadius,
+        pointHitRadius:pointHitRadius,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
@@ -1715,21 +1696,21 @@ function renderDailyChart(history, labels, dayKeys){
         legend:{display:false},
         tooltip:{
           callbacks:{
-            title:(items)=>{
-              const i = items?.[0]?.dataIndex ?? 0;
-              return fullLabel(daily[i]?.key || "");
-            },
+            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
       },
       scales:{
         x:{
-          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:0, minRotation:0, padding:6},
+          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
-          ticks:{color:"rgba(226,232,240,0.78)", callback:(v)=>`£${Number(v).toFixed(0)}`},
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
+          },
           grid:{color:"rgba(255,255,255,0.05)"}
         }
       }
@@ -1799,26 +1780,22 @@ function renderMarketChart(labels, winPct, totals){
   if(!el) return;
   if(marketChart) marketChart.destroy();
 
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safePct = Array.isArray(winPct) ? winPct.map(v => Number(v || 0)) : [];
-  const safeTotals = Array.isArray(totals) ? totals : [];
-
   const ctx = el.getContext("2d");
   marketChart = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: safeLabels,
+      labels,
       datasets: [{
-        data: safePct,
+        data: winPct,
         borderWidth: 0,
         borderRadius: 10,
         barThickness: 18,
-        backgroundColor: safePct.map(v=>{
-          if(v >= 55) return "rgba(34,197,94,0.85)";
-          if(v >= 40) return "rgba(245,158,11,0.85)";
-          return "rgba(239,68,68,0.85)";
+        backgroundColor: winPct.map(v=>{
+          if(v >= 55) return "rgba(34,197,94,0.85)";   // green
+          if(v >= 40) return "rgba(245,158,11,0.85)";  // amber
+          return "rgba(239,68,68,0.85)";               // red
         }),
-        borderColor: safePct.map(v=>{
+        borderColor: winPct.map(v=>{
           if(v >= 55) return "#22c55e";
           if(v >= 40) return "#f59e0b";
           return "#ef4444";
@@ -1829,7 +1806,6 @@ function renderMarketChart(labels, winPct, totals){
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { left: 8, right: 14 } },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1837,41 +1813,41 @@ function renderMarketChart(labels, winPct, totals){
             label: (ctx)=>{
               const i = ctx.dataIndex;
               const pct = Number(ctx.raw || 0).toFixed(0) + "%";
-              const t = safeTotals[i] ? safeTotals[i] : { bets: 0, wins: 0, losses: 0 };
+              const t = (totals && totals[i]) ? totals[i] : { bets: 0, wins: 0, losses: 0 };
               return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
             }
           }
         }
       },
       scales: {
-        x: { min: 0, max: 100, ticks: { display: false }, grid: { display: false, drawBorder: false } },
-        y: { ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } }, grid: { display: false, drawBorder: false } }
+        x: {
+          min: 0,
+          max: 100,
+          ticks: { display: false },
+          grid: { display: false, drawBorder: false }
+        },
+        y: {
+          ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
+          grid: { display: false, drawBorder: false }
+        }
       },
       animation: { duration: 250 }
     },
     plugins: [{
-      id: "pctLabelsSafe",
+      id: "pctLabels",
       afterDatasetsDraw(chart){
-        const {ctx, chartArea, scales} = chart;
+        const {ctx} = chart;
         const meta = chart.getDatasetMeta(0);
-        const xScale = scales.x;
         ctx.save();
         ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillStyle = "rgba(229,231,235,0.95)";
         meta.data.forEach((bar, i)=>{
-          const v = Number(safePct[i] || 0);
-          const txt = `${Math.round(v)}%`;
-          if(v >= 14){
-            ctx.fillStyle = "#ffffff";
-            ctx.textAlign = "right";
-            ctx.textBaseline = "middle";
-            ctx.fillText(txt, bar.x - 12, bar.y + 4);
-            return;
-          }
-          const safeX = Math.max(xScale.getPixelForValue(0) + 10, chartArea.left + 10);
-          ctx.fillStyle = v > 0 ? "rgba(229,231,235,0.92)" : "rgba(248,113,113,0.95)";
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.fillText(txt, safeX, bar.y + 4);
+          const val = winPct[i] ?? 0;
+          const text = Math.round(val) + "%";
+          const x = bar.x - 10; // inside bar near end
+          const y = bar.y + 4;
+          ctx.textAlign = "right";
+          ctx.fillText(text, x, y);
         });
         ctx.restore();
       }
@@ -1998,7 +1974,7 @@ function addPersonalTrackerDateGroups(){
     if(dateText !== lastDate){
       const divider = document.createElement("tr");
       divider.className = "date-group";
-      divider.innerHTML = `<td colspan="7">▼ ${dateText}</td>`;
+      divider.innerHTML = `<td colspan="5">📅 ${dateText}</td>`;
       row.parentNode.insertBefore(divider, row);
       lastDate = dateText;
     }
@@ -2233,7 +2209,7 @@ function addPersonalTrackerMonthGroups(){
     if(month !== lastMonth){
       const divider = document.createElement("tr");
       divider.className = "month-group";
-      divider.innerHTML = `<td colspan="7">▼ ${month}</td>`;
+      divider.innerHTML = `<td colspan="5">▼ ${month}</td>`;
       groupRow.parentNode.insertBefore(divider, groupRow);
       lastMonth = month;
     }
@@ -2639,211 +2615,5 @@ try{
   }
 }catch(e){}
 
-
-
-/* ===== HARD RESTORE VIP MESSAGE PATCH ===== */
-(function(){
-  function bindRestoreVipMessage(){
-    const restoreBtn = document.getElementById("vipRestore");
-    const emailInput = document.getElementById("vipEmail");
-    const errorEl = document.getElementById("vipError");
-    if(!restoreBtn || !emailInput || !errorEl) return false;
-    if(restoreBtn.dataset.restoreBound === "1") return true;
-
-    restoreBtn.dataset.restoreBound = "1";
-
-    restoreBtn.addEventListener("click", async function(e){
-      e.preventDefault();
-      e.stopPropagation();
-
-      const email = String(emailInput.value || "").trim().toLowerCase();
-
-      if(!email || !email.includes("@")){
-        errorEl.textContent = "Enter your email first.";
-        return false;
-      }
-
-      errorEl.textContent = "Checking VIP status...";
-
-      try{
-        const r = await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
-        const j = await r.json();
-
-        if(j && j.active){
-          localStorage.setItem("vip_email", email);
-          errorEl.textContent = "";
-          if(typeof checkVIP === "function") await checkVIP();
-          if(typeof closeVipModal === "function") closeVipModal();
-          if(typeof loadBets === "function") await loadBets();
-          if(typeof loadTracker === "function") await loadTracker();
-          if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
-          return true;
-        } else {
-          errorEl.textContent = "This email has no active VIP subscription.";
-          return false;
-        }
-      } catch(err){
-        errorEl.textContent = "Could not check VIP right now.";
-        return false;
-      }
-    }, true);
-
-    return true;
-  }
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", bindRestoreVipMessage);
-  } else {
-    bindRestoreVipMessage();
-  }
-
-  let tries = 0;
-  const iv = setInterval(() => {
-    tries++;
-    if(bindRestoreVipMessage() || tries > 20) clearInterval(iv);
-  }, 500);
-})();
-/* ===== END HARD RESTORE VIP MESSAGE PATCH ===== */
-
-
-
-/* ===== MARKETS 0% LABEL FIX ===== */
-renderMarketChart = function(labels, winPct, totals){
-  const el = document.getElementById("marketChart");
-  if(!el) return;
-  if(typeof marketChart !== "undefined" && marketChart) marketChart.destroy();
-
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safePct = Array.isArray(winPct) ? winPct.map(v => Number(v || 0)) : [];
-  const safeTotals = Array.isArray(totals) ? totals : [];
-
-  const ctx = el.getContext("2d");
-  marketChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: safeLabels,
-      datasets: [{
-        data: safePct,
-        borderWidth: 0,
-        borderRadius: 10,
-        barThickness: 18,
-        backgroundColor: safePct.map(v=>{
-          if(v >= 55) return "rgba(34,197,94,0.85)";
-          if(v >= 40) return "rgba(245,158,11,0.85)";
-          return "rgba(239,68,68,0.85)";
-        }),
-        borderColor: safePct.map(v=>{
-          if(v >= 55) return "#22c55e";
-          if(v >= 40) return "#f59e0b";
-          return "#ef4444";
-        })
-      }]
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: {
-        padding: { left: 6, right: 10 }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx)=>{
-              const i = ctx.dataIndex;
-              const pct = Number(ctx.raw || 0).toFixed(0) + "%";
-              const t = safeTotals[i] ? safeTotals[i] : { bets: 0, wins: 0, losses: 0 };
-              return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          min: 0,
-          max: 100,
-          ticks: { display: false },
-          grid: { display: false, drawBorder: false }
-        },
-        y: {
-          ticks: {
-            color: "rgba(229,231,235,0.85)",
-            font: { weight: 800 }
-          },
-          grid: { display: false, drawBorder: false }
-        }
-      },
-      animation: { duration: 250 }
-    },
-    plugins: [{
-      id: "pctLabelsSafe",
-      afterDatasetsDraw(chart){
-        const {ctx, chartArea, scales} = chart;
-        const meta = chart.getDatasetMeta(0);
-        const xScale = scales.x;
-
-        ctx.save();
-        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-
-        meta.data.forEach((bar, i)=>{
-          const v = Number(safePct[i] || 0);
-          const txt = `${Math.round(v)}%`;
-
-          if(v >= 14){
-            ctx.fillStyle = "#ffffff";
-            ctx.textAlign = "right";
-            ctx.textBaseline = "middle";
-            ctx.fillText(txt, bar.x - 12, bar.y);
-            return;
-          }
-
-          const startX = xScale.getPixelForValue(Math.max(v, 0));
-          const safeX = Math.max(startX + 8, chartArea.left + 12);
-
-          ctx.fillStyle = v > 0 ? "rgba(229,231,235,0.92)" : "rgba(248,113,113,0.95)";
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.fillText(txt, safeX, bar.y);
-        });
-
-        ctx.restore();
-      }
-    }]
-  });
-};
-/* ===== END MARKETS 0% LABEL FIX ===== */
-
-
-
-/* ===== SAFE VIP BUTTON RESYNC PATCH ===== */
-(function(){
-  function bindVipButtonsSafe(){
-    const topBtn = document.getElementById('vipButton');
-    const promoBtn = document.getElementById('vipPromoBtn');
-    if(topBtn){
-      topBtn.onclick = function(e){
-        e.preventDefault();
-        openVipModal();
-      };
-    }
-    if(promoBtn){
-      promoBtn.onclick = function(e){
-        e.preventDefault();
-        openVipModal();
-      };
-    }
-  }
-
-  const originalCheckVIP = checkVIP;
-  checkVIP = async function(){
-    const active = await originalCheckVIP();
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = active ? 'none' : 'flex';
-    return active;
-  };
-
-  bindVipButtonsSafe();
-  setTimeout(bindVipButtonsSafe, 300);
-})();
-/* ===== END SAFE VIP BUTTON RESYNC PATCH ===== */
+window.restoreVipAccess = restoreVipAccess;
+window.forgotVipPassword = forgotVipPassword;
