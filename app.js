@@ -1,4 +1,16 @@
 
+function forceTrackerGrouping(){
+  try{
+    if(typeof addPersonalTrackerDateGroups==="function") addPersonalTrackerDateGroups();
+    if(typeof addPersonalTrackerMonthGroups==="function") addPersonalTrackerMonthGroups();
+    if(typeof wirePersonalTrackerDateCollapse==="function") wirePersonalTrackerDateCollapse();
+    if(typeof wirePersonalTrackerMonthCollapse==="function") wirePersonalTrackerMonthCollapse();
+    if(typeof applyPersonalTrackerMonthCollapseState==="function") applyPersonalTrackerMonthCollapseState();
+    if(typeof applyPersonalTrackerCollapseState==="function") applyPersonalTrackerCollapseState();
+  }catch(e){}
+}
+
+
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -882,25 +894,7 @@ function _renderFilteredTrackerTable(){
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
 
-  // restore My Tracker month + day dropdown grouping after every render
-  if(typeof addPersonalTrackerDateGroups === "function"){
-    addPersonalTrackerDateGroups();
-  }
-  if(typeof addPersonalTrackerMonthGroups === "function"){
-    addPersonalTrackerMonthGroups();
-  }
-  if(typeof wirePersonalTrackerDateCollapse === "function"){
-    wirePersonalTrackerDateCollapse();
-  }
-  if(typeof wirePersonalTrackerMonthCollapse === "function"){
-    wirePersonalTrackerMonthCollapse();
-  }
-  if(typeof applyPersonalTrackerMonthCollapseState === "function"){
-    applyPersonalTrackerMonthCollapseState();
-  }
-  if(typeof applyPersonalTrackerCollapseState === "function"){
-    applyPersonalTrackerCollapseState();
-  }
+forceTrackerGrouping();
 }
 
 let _filtersWired = false;
@@ -1660,25 +1654,6 @@ loadTracker = async function(){
   const rows=document.querySelectorAll("#trackerTable table tr").length-1;
   const count=document.getElementById("betCount");
   if(count && rows>=0){count.innerText=rows;}
-
-  if(typeof addPersonalTrackerDateGroups === "function"){
-    addPersonalTrackerDateGroups();
-  }
-  if(typeof addPersonalTrackerMonthGroups === "function"){
-    addPersonalTrackerMonthGroups();
-  }
-  if(typeof wirePersonalTrackerDateCollapse === "function"){
-    wirePersonalTrackerDateCollapse();
-  }
-  if(typeof wirePersonalTrackerMonthCollapse === "function"){
-    wirePersonalTrackerMonthCollapse();
-  }
-  if(typeof applyPersonalTrackerMonthCollapseState === "function"){
-    applyPersonalTrackerMonthCollapseState();
-  }
-  if(typeof applyPersonalTrackerCollapseState === "function"){
-    applyPersonalTrackerCollapseState();
-  }
 };
 
 
@@ -2656,3 +2631,5 @@ try{
 
 window.restoreVipAccess = restoreVipAccess;
 window.forgotVipPassword = forgotVipPassword;
+
+document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(forceTrackerGrouping,500); });
