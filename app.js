@@ -1134,8 +1134,11 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td>${row.match}</td>
-<td>${row.market || "—"}</td>
+<td class="match-market-cell">
+  <div class="tracker-match-name">${row.match}</div>
+  <div class="tracker-market-sub">${row.market || "—"}</div>
+</td>
+<td class="tracker-market-col">${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
