@@ -574,7 +574,7 @@ checkVIP().then(async ()=>{
     const promoEl = document.getElementById('vipPromo');
     if(promoEl) promoEl.style.display = 'none';
   }else{
-    await loadVipPromoProof();
+    loadVipPromoProof();
   }
   updateBetAlertUI();
   registerServiceWorker();
@@ -1016,13 +1016,11 @@ function renderVipPromoChart(rows){
   let lastDayKey = '';
 
   safeRows.slice(-200).forEach((row)=>{
-    running += row.profit != null
-      ? Number(row.profit || 0)
-      : rowProfit({
-          stake: Number(row.stake || 0),
-          odds: Number(row.odds || 0),
-          result: row.result || 'pending'
-        });
+    running += rowProfit({
+      stake: Number(row.stake || 0),
+      odds: Number(row.odds || 0),
+      result: row.result || 'pending'
+    });
     const dayKey = fmtDayLabel(row.match_date_date || row.bet_date || row.created_at);
     if(dayKey !== lastDayKey){
       labels.push(dayKey);
@@ -1037,7 +1035,7 @@ function renderVipPromoChart(rows){
   vipPromoChart = new Chart(canvas.getContext('2d'), {
     type:'line',
     data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:(ctx)=>{ const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0; if(len <= 1) return len ? 3 : 0; return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0; } }] },
-    options:{ responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
   });
 }
 
@@ -1069,13 +1067,11 @@ async function loadVipPromoProof(){
       if(result === 'won') wins += 1;
       if(result === 'lost') losses += 1;
       stake += Number(row.stake || 0);
-      profit += row.profit != null
-        ? Number(row.profit || 0)
-        : rowProfit({
-            stake: Number(row.stake || 0),
-            odds: Number(row.odds || 0),
-            result
-          });
+      profit += rowProfit({
+        stake: Number(row.stake || 0),
+        odds: Number(row.odds || 0),
+        result
+      });
     });
 
     const roi = stake ? ((profit / stake) * 100) : 0;
