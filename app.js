@@ -14,7 +14,6 @@ function setVipUI(active, email){
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
-  const promoEl = document.getElementById('vipPromo');
 
   if(active){
     if(titleEl) titleEl.textContent = 'VIP Access';
@@ -22,12 +21,11 @@ function setVipUI(active, email){
     if(btnEl){
       if(btnTextEl) btnTextEl.textContent = 'VIP Access Active';
       else btnEl.textContent = 'VIP Access Active';
-      btnEl.disabled = false;
-      btnEl.style.pointerEvents = "auto";
-      btnEl.style.cursor = "pointer";
+      btnEl.disabled = true;
+      btnEl.style.pointerEvents = "none";
+      btnEl.style.cursor = "default";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
-    if(promoEl) promoEl.style.display = 'none';
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
@@ -39,7 +37,6 @@ function setVipUI(active, email){
       btnEl.style.cursor = "pointer";
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
-    if(promoEl) promoEl.style.display = 'flex';
   }
 }
 
@@ -135,7 +132,12 @@ async function checkVIP(){
 
     if(vipActive){
       setVipUI(true,email);
+      // Force everything that reads vipActive to re-render from the same source of truth
+      if(typeof loadBets === "function") await loadBets();
+      if(typeof loadTracker === "function") await loadTracker();
+      if(typeof refreshAdminBadgeUI === "function") refreshAdminBadgeUI();
     }else{
+      // Keep saved email so Restore VIP still works after refresh
       vipActive = false;
       setVipUI(false,email);
     }
@@ -143,7 +145,7 @@ async function checkVIP(){
     return vipActive;
 
   }catch(e){
-    // Keep the saved email so Restore VIP still works after refreshes/network issues
+    // Do not wipe saved VIP email on refresh/network hiccups
     vipActive = false;
     setVipUI(false,email);
     if(vipStatusEl) vipStatusEl.textContent="VIP status check failed — tap Restore VIP";
@@ -551,7 +553,7 @@ tabTracker.onclick=()=>{
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 
 // VIP events
-if(vipButtonEl) vipButtonEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
+if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
 if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
@@ -559,7 +561,7 @@ if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly')
 if(vipRestoreEl) vipRestoreEl.addEventListener('click',()=>forceVipRefreshNow());
 if(vipForgotEl) vipForgotEl.addEventListener('click',forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
-if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click',(e)=>{ e.preventDefault(); openVipModal(); });
+if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
@@ -572,13 +574,8 @@ checkVIP().then(async ()=>{
   }
   refreshAdminBadgeUI();
   // re-render bets so blur/limits apply
-  await loadBets();
-  if(vipActive){
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = 'none';
-  }else{
-    loadVipPromoProof();
-  }
+  loadBets();
+  loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
 });
@@ -1181,18 +1178,12 @@ if(countElem) countElem.textContent = String(rows.length);
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
-const monthWinsMap = {};
-const monthLossesMap = {};
-const monthBetsMap = {};
 
 rows.forEach(r=>{
   const d = new Date(r.created_at);
   const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
-  monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
-  monthBetsMap[key] = (monthBetsMap[key]||0) + 1;
-  if(r.result === "won") monthWinsMap[key] = (monthWinsMap[key]||0) + 1;
-  if(r.result === "lost") monthLossesMap[key] = (monthLossesMap[key]||0) + 1;
+  monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
 });
 
 const monthKeys = Object.keys(monthMap).sort();
@@ -1208,25 +1199,15 @@ const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
-const monthlyBets = monthKeys.map(k=> monthBetsMap[k] || 0);
-const monthlyWinRate = monthKeys.map(k=>{
-  const wins = monthWinsMap[k] || 0;
-  const losses = monthLossesMap[k] || 0;
-  return (wins + losses) ? (wins / (wins + losses)) * 100 : 0;
-});
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Total Bets</th><th>Win Rate</th><th>Profit</th><th>ROI</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
-    const b = monthlyBets[i];
-    const w = monthlyWinRate[i];
     breakdownHTML += `<tr>
       <td>${monthLabels[i]}</td>
-      <td>${b}</td>
-      <td>${w.toFixed(1)}%</td>
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
     </tr>`;
@@ -1647,58 +1628,36 @@ function renderDailyChart(history, labels, dayKeys){
   const safeHistory = Array.isArray(history) ? history : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
 
-  const daily = [];
+  const compressedLabels = [];
+  const compressedHistory = [];
+
   safeHistory.forEach((value, i)=>{
-    const key = safeDayKeys[i];
-    if(!key) return;
-    const last = daily[daily.length - 1];
-    if(last && last.key === key){
-      last.value = Number(value || 0);
+    const day = safeDayKeys[i];
+    if(!day) return;
+
+    const lastIdx = compressedLabels.length - 1;
+    if(lastIdx >= 0 && compressedLabels[lastIdx] === day){
+      compressedHistory[lastIdx] = value; // keep only end-of-day bankroll
     }else{
-      daily.push({ key, value: Number(value || 0) });
+      compressedLabels.push(day);
+      compressedHistory.push(value);
     }
   });
 
-  function parseDay(rawKey){
-    const raw = String(rawKey || "").trim();
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(!m) return null;
-    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0, 0);
-  }
-  function shortLabel(rawKey){
-    const dt = parseDay(rawKey);
-    return dt ? dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : String(rawKey || "");
-  }
-  function fullLabel(rawKey){
-    const dt = parseDay(rawKey);
-    return dt ? dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : String(rawKey || "");
-  }
-
-  const total = daily.length;
-  let interval = 1;
-  if(total < 10) interval = 1;
-  else if(total < 20) interval = 2;
-  else if(total < 36) interval = 3;
-  else if(total < 55) interval = 4;
-  else interval = 5;
-
-  const displayLabels = daily.map((item, i)=>{
-    if(i === 0 || i === total - 1) return shortLabel(item.key);
-    const dt = parseDay(item.key);
-    const prev = i > 0 ? parseDay(daily[i - 1].key) : null;
-    if(dt && prev && (dt.getMonth() !== prev.getMonth() || dt.getFullYear() !== prev.getFullYear())){
-      return dt.toLocaleDateString("en-GB", { month: "short" });
-    }
-    return i % interval === 0 ? shortLabel(item.key) : "";
+  const prettyLabels = compressedLabels.map(day=>{
+    const dt = new Date(`${day}T12:00:00`);
+    if(Number.isNaN(dt.getTime())) return day;
+    return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
   });
 
   const ctx = el.getContext("2d");
+
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels:displayLabels,
+      labels:prettyLabels,
       datasets:[{
-        data:daily.map(x => x.value),
+        data:compressedHistory,
         tension:0.28,
         fill:true,
         borderWidth:3,
@@ -1718,21 +1677,21 @@ function renderDailyChart(history, labels, dayKeys){
         legend:{display:false},
         tooltip:{
           callbacks:{
-            title:(items)=>{
-              const i = items?.[0]?.dataIndex ?? 0;
-              return fullLabel(daily[i]?.key || "");
-            },
+            title:(items)=> compressedLabels[items?.[0]?.dataIndex ?? 0] || "",
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
       },
       scales:{
         x:{
-          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:0, minRotation:0, padding:6},
+          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
-          ticks:{color:"rgba(226,232,240,0.78)", callback:(v)=>`£${Number(v).toFixed(0)}`},
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
+          },
           grid:{color:"rgba(255,255,255,0.05)"}
         }
       }
@@ -1802,26 +1761,22 @@ function renderMarketChart(labels, winPct, totals){
   if(!el) return;
   if(marketChart) marketChart.destroy();
 
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safePct = Array.isArray(winPct) ? winPct.map(v => Number(v || 0)) : [];
-  const safeTotals = Array.isArray(totals) ? totals : [];
-
   const ctx = el.getContext("2d");
   marketChart = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: safeLabels,
+      labels,
       datasets: [{
-        data: safePct,
+        data: winPct,
         borderWidth: 0,
         borderRadius: 10,
         barThickness: 18,
-        backgroundColor: safePct.map(v=>{
-          if(v >= 55) return "rgba(34,197,94,0.85)";
-          if(v >= 40) return "rgba(245,158,11,0.85)";
-          return "rgba(239,68,68,0.85)";
+        backgroundColor: winPct.map(v=>{
+          if(v >= 55) return "rgba(34,197,94,0.85)";   // green
+          if(v >= 40) return "rgba(245,158,11,0.85)";  // amber
+          return "rgba(239,68,68,0.85)";               // red
         }),
-        borderColor: safePct.map(v=>{
+        borderColor: winPct.map(v=>{
           if(v >= 55) return "#22c55e";
           if(v >= 40) return "#f59e0b";
           return "#ef4444";
@@ -1832,7 +1787,6 @@ function renderMarketChart(labels, winPct, totals){
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { left: 8, right: 14 } },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1840,41 +1794,41 @@ function renderMarketChart(labels, winPct, totals){
             label: (ctx)=>{
               const i = ctx.dataIndex;
               const pct = Number(ctx.raw || 0).toFixed(0) + "%";
-              const t = safeTotals[i] ? safeTotals[i] : { bets: 0, wins: 0, losses: 0 };
+              const t = (totals && totals[i]) ? totals[i] : { bets: 0, wins: 0, losses: 0 };
               return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
             }
           }
         }
       },
       scales: {
-        x: { min: 0, max: 100, ticks: { display: false }, grid: { display: false, drawBorder: false } },
-        y: { ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } }, grid: { display: false, drawBorder: false } }
+        x: {
+          min: 0,
+          max: 100,
+          ticks: { display: false },
+          grid: { display: false, drawBorder: false }
+        },
+        y: {
+          ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
+          grid: { display: false, drawBorder: false }
+        }
       },
       animation: { duration: 250 }
     },
     plugins: [{
-      id: "pctLabelsSafe",
+      id: "pctLabels",
       afterDatasetsDraw(chart){
-        const {ctx, chartArea, scales} = chart;
+        const {ctx} = chart;
         const meta = chart.getDatasetMeta(0);
-        const xScale = scales.x;
         ctx.save();
         ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillStyle = "rgba(229,231,235,0.95)";
         meta.data.forEach((bar, i)=>{
-          const v = Number(safePct[i] || 0);
-          const txt = `${Math.round(v)}%`;
-          if(v >= 14){
-            ctx.fillStyle = "#ffffff";
-            ctx.textAlign = "right";
-            ctx.textBaseline = "middle";
-            ctx.fillText(txt, bar.x - 12, bar.y + 4);
-            return;
-          }
-          const safeX = Math.max(xScale.getPixelForValue(0) + 10, chartArea.left + 10);
-          ctx.fillStyle = v > 0 ? "rgba(229,231,235,0.92)" : "rgba(248,113,113,0.95)";
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.fillText(txt, safeX, bar.y + 4);
+          const val = winPct[i] ?? 0;
+          const text = Math.round(val) + "%";
+          const x = bar.x - 10; // inside bar near end
+          const y = bar.y + 4;
+          ctx.textAlign = "right";
+          ctx.fillText(text, x, y);
         });
         ctx.restore();
       }
@@ -2707,146 +2661,3 @@ try{
   }, 500);
 })();
 /* ===== END HARD RESTORE VIP MESSAGE PATCH ===== */
-
-
-
-/* ===== MARKETS 0% LABEL FIX ===== */
-renderMarketChart = function(labels, winPct, totals){
-  const el = document.getElementById("marketChart");
-  if(!el) return;
-  if(typeof marketChart !== "undefined" && marketChart) marketChart.destroy();
-
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safePct = Array.isArray(winPct) ? winPct.map(v => Number(v || 0)) : [];
-  const safeTotals = Array.isArray(totals) ? totals : [];
-
-  const ctx = el.getContext("2d");
-  marketChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: safeLabels,
-      datasets: [{
-        data: safePct,
-        borderWidth: 0,
-        borderRadius: 10,
-        barThickness: 18,
-        backgroundColor: safePct.map(v=>{
-          if(v >= 55) return "rgba(34,197,94,0.85)";
-          if(v >= 40) return "rgba(245,158,11,0.85)";
-          return "rgba(239,68,68,0.85)";
-        }),
-        borderColor: safePct.map(v=>{
-          if(v >= 55) return "#22c55e";
-          if(v >= 40) return "#f59e0b";
-          return "#ef4444";
-        })
-      }]
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: {
-        padding: { left: 6, right: 10 }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx)=>{
-              const i = ctx.dataIndex;
-              const pct = Number(ctx.raw || 0).toFixed(0) + "%";
-              const t = safeTotals[i] ? safeTotals[i] : { bets: 0, wins: 0, losses: 0 };
-              return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          min: 0,
-          max: 100,
-          ticks: { display: false },
-          grid: { display: false, drawBorder: false }
-        },
-        y: {
-          ticks: {
-            color: "rgba(229,231,235,0.85)",
-            font: { weight: 800 }
-          },
-          grid: { display: false, drawBorder: false }
-        }
-      },
-      animation: { duration: 250 }
-    },
-    plugins: [{
-      id: "pctLabelsSafe",
-      afterDatasetsDraw(chart){
-        const {ctx, chartArea, scales} = chart;
-        const meta = chart.getDatasetMeta(0);
-        const xScale = scales.x;
-
-        ctx.save();
-        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-
-        meta.data.forEach((bar, i)=>{
-          const v = Number(safePct[i] || 0);
-          const txt = `${Math.round(v)}%`;
-
-          if(v >= 14){
-            ctx.fillStyle = "#ffffff";
-            ctx.textAlign = "right";
-            ctx.textBaseline = "middle";
-            ctx.fillText(txt, bar.x - 12, bar.y);
-            return;
-          }
-
-          const startX = xScale.getPixelForValue(Math.max(v, 0));
-          const safeX = Math.max(startX + 8, chartArea.left + 12);
-
-          ctx.fillStyle = v > 0 ? "rgba(229,231,235,0.92)" : "rgba(248,113,113,0.95)";
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.fillText(txt, safeX, bar.y);
-        });
-
-        ctx.restore();
-      }
-    }]
-  });
-};
-/* ===== END MARKETS 0% LABEL FIX ===== */
-
-
-
-/* ===== SAFE VIP BUTTON RESYNC PATCH ===== */
-(function(){
-  function bindVipButtonsSafe(){
-    const topBtn = document.getElementById('vipButton');
-    const promoBtn = document.getElementById('vipPromoBtn');
-    if(topBtn){
-      topBtn.onclick = function(e){
-        e.preventDefault();
-        openVipModal();
-      };
-    }
-    if(promoBtn){
-      promoBtn.onclick = function(e){
-        e.preventDefault();
-        openVipModal();
-      };
-    }
-  }
-
-  const originalCheckVIP = checkVIP;
-  checkVIP = async function(){
-    const active = await originalCheckVIP();
-    const promoEl = document.getElementById('vipPromo');
-    if(promoEl) promoEl.style.display = active ? 'none' : 'flex';
-    return active;
-  };
-
-  bindVipButtonsSafe();
-  setTimeout(bindVipButtonsSafe, 300);
-})();
-/* ===== END SAFE VIP BUTTON RESYNC PATCH ===== */
