@@ -3605,3 +3605,24 @@ body.layout-compact .vip-bar{
     margin-left: -4px;
   }
 }
+@media (max-width: 768px){
+
+  /* Pull Stake + Odds content to the LEFT */
+  #trackerTable td:nth-child(3),
+  #trackerTable td:nth-child(4){
+    text-align: left;
+    padding-left: 4px;
+  }
+
+  /* Move inputs left inside cells */
+  #trackerTable td:nth-child(3) input,
+  #trackerTable td:nth-child(4) input{
+    margin-left: -6px;
+  }
+
+  /* Slight tighten so they sit closer together */
+  #trackerTable td:nth-child(3) input{
+    margin-right: -6px;
+  }
+
+}
