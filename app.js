@@ -2931,3 +2931,33 @@ renderMarketChart = function(labels, winPct, totals){
   setTimeout(bindVipButtonsSafe, 300);
 })();
 /* ===== END SAFE VIP BUTTON RESYNC PATCH ===== */
+
+
+
+/* ===== SAFE VIP PROMO RETRY PATCH ===== */
+(function(){
+  async function rerunVipPromoProofSafe(){
+    try{
+      if(typeof vipActive !== "undefined" && vipActive) return;
+      if(typeof loadVipPromoProof === "function"){
+        await loadVipPromoProof();
+      }
+    }catch(e){
+      console.error("VIP promo retry failed", e);
+    }
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", ()=>{
+      setTimeout(rerunVipPromoProofSafe, 600);
+      setTimeout(rerunVipPromoProofSafe, 2200);
+    });
+  }else{
+    setTimeout(rerunVipPromoProofSafe, 600);
+    setTimeout(rerunVipPromoProofSafe, 2200);
+  }
+
+  window.addEventListener("focus", ()=>setTimeout(rerunVipPromoProofSafe, 250));
+})();
+/* ===== END SAFE VIP PROMO RETRY PATCH ===== */
+
