@@ -3473,3 +3473,60 @@ body.layout-compact .vip-bar{
   }
 }
 
+/* your existing CSS above */
+
+/* --- MOBILE TRACKER SPACING FIX --- */
+@media (max-width: 768px){
+  #trackerTable tr.month-group,
+  #trackerTable tr.date-group{
+    display: table-row !important;
+  }
+
+  #trackerTable tr.month-group td,
+  #trackerTable tr.date-group td{
+    display: table-cell !important;
+  }
+
+  #trackerTable th.profit-col,
+  #trackerTable td.profit-col,
+  #trackerTable th:last-child,
+  #trackerTable td:last-child{
+    display:none !important;
+  }
+
+  #trackerTable th,
+  #trackerTable td{
+    padding: 8px 4px !important;
+    font-size: 12px !important;
+  }
+
+  #trackerTable td:nth-child(2){
+    width: 28% !important;
+  }
+
+  #trackerTable td:nth-child(3){
+    width: 22% !important;
+  }
+
+  #trackerTable td:nth-child(4){
+    width: 12% !important;
+  }
+
+  #trackerTable td:nth-child(5){
+    width: 12% !important;
+  }
+
+  #trackerTable td:nth-child(6){
+    width: 18% !important;
+  }
+
+  #trackerTable input[type="number"]{
+    width: 48px !important;
+    min-width: 48px !important;
+  }
+
+  #trackerTable select{
+    width: 78px !important;
+    min-width: 78px !important;
+  }
+}
