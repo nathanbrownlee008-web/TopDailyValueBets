@@ -3567,62 +3567,37 @@ body.layout-compact .vip-bar{
 }
 @media (max-width: 768px){
 
-  /* Give MATCH more space */
+  /* MATCH gets max space */
   #trackerTable td.match-market-cell{
-    width: 72%;
+    width: 74%;
   }
 
-  /* Pull Stake + Odds closer together */
-  #trackerTable td:nth-child(3){
-    width: 8%;
-    padding-left: 2px;
-    padding-right: 2px;
-  }
-
-  #trackerTable td:nth-child(4){
-    width: 8%;
-    padding-left: 2px;
-    padding-right: 2px;
-  }
-
-  /* Result stays usable */
-  #trackerTable td:nth-child(5){
-    width: 12%;
-  }
-
-  /* tighten inputs so they don’t stretch columns */
-  #trackerTable input[type="number"]{
-    width: 42px;
-    min-width: 42px;
-  }
-
-  /* keep them visually closer */
-  #trackerTable td:nth-child(3) input{
-    margin-right: -4px;
-  }
-
-  #trackerTable td:nth-child(4) input{
-    margin-left: -4px;
-  }
-}
-@media (max-width: 768px){
-
-  /* Pull Stake + Odds content to the LEFT */
+  /* FORCE stake & odds cells to hug left */
   #trackerTable td:nth-child(3),
   #trackerTable td:nth-child(4){
-    text-align: left;
-    padding-left: 10px;
+    text-align: left !important;
+    padding-left: 0px !important;
   }
 
-  /* Move inputs left inside cells */
+  /* Yank inputs hard left */
   #trackerTable td:nth-child(3) input,
   #trackerTable td:nth-child(4) input{
-    margin-left: -6px;
+    margin-left: -10px;
   }
 
-  /* Slight tighten so they sit closer together */
+  /* Bring them closer together */
   #trackerTable td:nth-child(3) input{
-    margin-right: -6px;
+    margin-right: -8px;
+  }
+
+  #trackerTable td:nth-child(4) input{
+    margin-left: -10px;
+  }
+
+  /* tighten sizes */
+  #trackerTable input[type="number"]{
+    width: 40px;
+    min-width: 40px;
   }
 
 }
