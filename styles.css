@@ -3482,3 +3482,50 @@ color:#d7e6ff !important;
     padding:2px 4px;
   }
 }
+/* ===== FINAL VALUE BET CARD EDGE FIX ===== */
+#betsGrid .bet-footer,
+.bet-footer{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:8px !important;
+  flex-wrap:nowrap !important;
+  overflow:hidden !important;
+}
+
+#betsGrid .bet-left,
+#betsGrid .bet-footer > div:first-child,
+.bet-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  flex-wrap:wrap !important;
+  min-width:0 !important;
+  flex:1 1 auto !important;
+}
+
+#betsGrid .odds-badge,
+#betsGrid .stat-chip,
+.odds-badge,
+.stat-chip{
+  flex:0 0 auto !important;
+}
+
+#betsGrid .bet-btn,
+.bet-btn{
+  margin-left:8px !important;
+  flex:0 0 auto !important;
+  min-width:74px !important;
+  max-width:74px !important;
+  padding:6px 8px !important;
+  font-size:12px !important;
+}
+
+#betsGrid .bet-card,
+#betsGrid .bet-lock-wrap,
+.bet-card{
+  max-width:100% !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+/* ===== END FINAL VALUE BET CARD EDGE FIX ===== */
