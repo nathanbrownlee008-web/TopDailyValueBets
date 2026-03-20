@@ -3631,3 +3631,39 @@ color:#d7e6ff !important;
   max-width: 100%;
   flex-shrink: 0;
 }
+/* ===== HARD FIX: stop card overflow ===== */
+
+.bet-card {
+  width: 100%;
+  overflow: hidden;
+}
+
+.bet-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  flex-wrap: nowrap; /* STOPS jumping */
+}
+
+.bet-left {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.bet-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+/* mobile tighten */
+@media (max-width: 600px) {
+  .bet-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
