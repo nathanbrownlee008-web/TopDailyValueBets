@@ -574,8 +574,7 @@ checkVIP().then(async ()=>{
     const promoEl = document.getElementById('vipPromo');
     if(promoEl) promoEl.style.display = 'none';
   }else{
-    await loadVipPromoProof();
-    setTimeout(()=>{ if(!vipActive) loadVipPromoProof(); }, 1500);
+    loadVipPromoProof();
   }
   updateBetAlertUI();
   registerServiceWorker();
@@ -1010,7 +1009,6 @@ function notifyForNewVisibleBets(rows){
 function renderVipPromoChart(rows){
   const canvas = document.getElementById('vipPromoChart');
   if(!canvas || typeof Chart === 'undefined') return;
-
   const safeRows = Array.isArray(rows) ? rows : [];
   const labels = [];
   const points = [];
@@ -1018,107 +1016,44 @@ function renderVipPromoChart(rows){
   let lastDayKey = '';
 
   safeRows.slice(-200).forEach((row)=>{
-    const rowP = row.profit != null
-      ? Number(row.profit || 0)
-      : rowProfit({
-          stake: Number(row.stake || 0),
-          odds: Number(row.odds || 0),
-          result: row.result || 'pending'
-        });
-
-    running += rowP;
+    running += rowProfit({
+      stake: Number(row.stake || 0),
+      odds: Number(row.odds || 0),
+      result: row.result || 'pending'
+    });
     const dayKey = fmtDayLabel(row.match_date_date || row.bet_date || row.created_at);
-
     if(dayKey !== lastDayKey){
       labels.push(dayKey);
       points.push(running);
       lastDayKey = dayKey;
-    }else if(points.length){
+    }else{
       points[points.length - 1] = running;
     }
   });
 
   if(vipPromoChart) vipPromoChart.destroy();
-
   vipPromoChart = new Chart(canvas.getContext('2d'), {
     type:'line',
-    data:{
-      labels,
-      datasets:[{
-        data: points,
-        tension:0.32,
-        fill:true,
-        backgroundColor:'rgba(34,197,94,0.12)',
-        borderColor:'#22c55e',
-        borderWidth:3,
-        pointRadius:(ctx)=>{
-          const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0;
-          if(len <= 1) return len ? 3 : 0;
-          return (ctx.dataIndex === len - 1) ? 4 : 0;
-        },
-        pointHoverRadius:5,
-        pointBackgroundColor:'#22c55e'
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            label:(ctx)=> `Profit: £${Number(ctx.raw || 0).toFixed(2)}`
-          }
-        }
-      },
-      scales:{
-        x:{
-          ticks:{ maxTicksLimit:6, color:'rgba(226,232,240,0.72)' },
-          grid:{ color:'rgba(255,255,255,0.04)' }
-        },
-        y:{
-          ticks:{ color:'rgba(226,232,240,0.72)', callback:(v)=> `£${v}` },
-          grid:{ color:'rgba(255,255,255,0.05)' }
-        }
-      }
-    }
+    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:(ctx)=>{ const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0; if(len <= 1) return len ? 3 : 0; return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0; } }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
   });
-}
-
-function setVipPromoMetric(id, value, tone){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.textContent = value;
-  el.classList.remove('is-green', 'is-red');
-  if(tone === 'green') el.classList.add('is-green');
-  if(tone === 'red') el.classList.add('is-red');
 }
 
 async function loadVipPromoProof(){
   const statsEl = document.getElementById('vipPromoStats');
-  const promoEl = document.getElementById('vipPromo');
-
   try{
-    if(statsEl) statsEl.textContent = 'Loading official TDT proof...';
-    if(promoEl) promoEl.style.display = 'flex';
-
     const { data, error } = await client
       .from('tdt_tracker')
       .select('*')
       .order('created_at', { ascending: true })
       .limit(200);
-
     if(error) throw error;
 
     const rows = Array.isArray(data) ? data : [];
-    const settled = rows.filter(r => String(r.result || 'pending').toLowerCase() !== 'pending');
+    const settled = rows.filter(r => (r.result || 'pending') !== 'pending');
 
     if(!settled.length){
-      if(statsEl) statsEl.textContent = 'No settled TDT proof yet';
-      setVipPromoMetric('vipPromoProfit', '£0.00', null);
-      setVipPromoMetric('vipPromoRoi', '0.0%', null);
-      setVipPromoMetric('vipPromoWinrate', '0.0%', null);
-      setVipPromoMetric('vipPromoRecord', '0-0', null);
+      if(statsEl) statsEl.textContent = 'Official proof updates soon';
       renderVipPromoChart([]);
       return;
     }
@@ -1127,46 +1062,27 @@ async function loadVipPromoProof(){
     let losses = 0;
     let stake = 0;
     let profit = 0;
-
     settled.forEach((row)=>{
-      const result = String(row.result || 'pending').toLowerCase();
+      const result = row.result || 'pending';
       if(result === 'won') wins += 1;
       if(result === 'lost') losses += 1;
       stake += Number(row.stake || 0);
-
-      const rowP = row.profit != null
-        ? Number(row.profit || 0)
-        : rowProfit({
-            stake: Number(row.stake || 0),
-            odds: Number(row.odds || 0),
-            result
-          });
-
-      profit += rowP;
+      profit += rowProfit({
+        stake: Number(row.stake || 0),
+        odds: Number(row.odds || 0),
+        result
+      });
     });
 
     const roi = stake ? ((profit / stake) * 100) : 0;
-    const winrate = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
-    const profitLabel = `${profit >= 0 ? '+' : '-'}£${Math.abs(profit).toFixed(2)}`;
-
     if(statsEl){
+      const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
       statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
     }
-
-    setVipPromoMetric('vipPromoProfit', profitLabel, profit >= 0 ? 'green' : 'red');
-    setVipPromoMetric('vipPromoRoi', `${roi.toFixed(1)}%`, roi >= 0 ? 'green' : 'red');
-    setVipPromoMetric('vipPromoWinrate', `${winrate.toFixed(1)}%`, winrate >= 50 ? 'green' : null);
-    setVipPromoMetric('vipPromoRecord', `${wins}-${losses}`, null);
-
     renderVipPromoChart(settled);
-
   }catch(err){
     console.error('VIP proof load failed', err);
     if(statsEl) statsEl.textContent = 'Official TDT proof unavailable right now';
-    setVipPromoMetric('vipPromoProfit', '—', null);
-    setVipPromoMetric('vipPromoRoi', '—', null);
-    setVipPromoMetric('vipPromoWinrate', '—', null);
-    setVipPromoMetric('vipPromoRecord', '—', null);
   }
 }
 
@@ -2934,30 +2850,37 @@ renderMarketChart = function(labels, winPct, totals){
 
 
 
-/* ===== SAFE VIP PROMO RETRY PATCH ===== */
-(function(){
-  async function rerunVipPromoProofSafe(){
-    try{
-      if(typeof vipActive !== "undefined" && vipActive) return;
-      if(typeof loadVipPromoProof === "function"){
-        await loadVipPromoProof();
-      }
-    }catch(e){
-      console.error("VIP promo retry failed", e);
+// VIP PREMIUM ADDONS
+function updateVipExtras(wins, losses, profit){
+  const badge = document.getElementById('vipBadge');
+  if(!badge) return;
+
+  const total = wins+losses;
+  const streak = wins > losses ? "🔥 Hot streak" : (losses > wins ? "⚠️ Cold streak" : "Even");
+
+  badge.textContent = `Last ${total} bets • ${streak}`;
+
+  const profitEl = document.getElementById('vipPromoProfit');
+  if(profitEl){
+    profitEl.classList.remove('vip-green','vip-red');
+    profitEl.classList.add(profit >= 0 ? 'vip-green' : 'vip-red');
+  }
+}
+
+// patch into existing load function
+const oldLoadVip = loadVipPromoProof;
+loadVipPromoProof = async function(){
+  await oldLoadVip();
+  try{
+    const stats = document.getElementById('vipPromoStats')?.textContent || "";
+    const match = stats.match(/(\d+)-(\d+)/);
+    const profitMatch = stats.match(/£([0-9\.]+)/);
+
+    if(match){
+      const wins = parseInt(match[1]);
+      const losses = parseInt(match[2]);
+      const profit = profitMatch ? parseFloat(profitMatch[1]) : 0;
+      updateVipExtras(wins, losses, profit);
     }
-  }
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", ()=>{
-      setTimeout(rerunVipPromoProofSafe, 600);
-      setTimeout(rerunVipPromoProofSafe, 2200);
-    });
-  }else{
-    setTimeout(rerunVipPromoProofSafe, 600);
-    setTimeout(rerunVipPromoProofSafe, 2200);
-  }
-
-  window.addEventListener("focus", ()=>setTimeout(rerunVipPromoProofSafe, 250));
-})();
-/* ===== END SAFE VIP PROMO RETRY PATCH ===== */
-
+  }catch(e){}
+};
