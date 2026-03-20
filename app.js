@@ -1,4 +1,16 @@
 
+function syncTrackerGroupedHeaderVisibility(){
+  const table = document.querySelector("#trackerTable table");
+  if(!table) return;
+  const hasGroups = !!table.querySelector("tr.month-group, tr.date-group");
+  if(hasGroups){
+    table.classList.add("tracker-grouped-view");
+  }else{
+    table.classList.remove("tracker-grouped-view");
+  }
+}
+
+
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -881,13 +893,6 @@ function _renderFilteredTrackerTable(){
 
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
-
-  if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups();
-  if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups();
-  if(typeof wirePersonalTrackerDateCollapse === "function") wirePersonalTrackerDateCollapse();
-  if(typeof wirePersonalTrackerMonthCollapse === "function") wirePersonalTrackerMonthCollapse();
-  if(typeof applyPersonalTrackerMonthCollapseState === "function") applyPersonalTrackerMonthCollapseState();
-  if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState();
 }
 
 let _filtersWired = false;
@@ -1141,7 +1146,6 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td class="date-col hidden-date-col">${dayKey}</td>
 <td>${row.match}</td>
 <td>${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
@@ -1162,16 +1166,11 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th class='hidden-date-col'>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
-if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups();
-if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups();
-if(typeof wirePersonalTrackerDateCollapse === "function") wirePersonalTrackerDateCollapse();
-if(typeof wirePersonalTrackerMonthCollapse === "function") wirePersonalTrackerMonthCollapse();
-if(typeof applyPersonalTrackerMonthCollapseState === "function") applyPersonalTrackerMonthCollapseState();
-if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState();
+if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
@@ -1988,7 +1987,7 @@ function addPersonalTrackerDateGroups(){
     if(dateText !== lastDate){
       const divider = document.createElement("tr");
       divider.className = "date-group";
-      divider.innerHTML = `<td colspan="7">▼ ${dateText}</td>`;
+      divider.innerHTML = `<td colspan="5">📅 ${dateText}</td>`;
       row.parentNode.insertBefore(divider, row);
       lastDate = dateText;
     }
@@ -2164,6 +2163,7 @@ loadTracker = async function(){
   addPersonalTrackerDateGroups();
   wirePersonalTrackerDateCollapse();
   applyPersonalTrackerCollapseState();
+  if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
 };
 // ===== Personal Tracker: month grouping (visual only) =====
 function monthKeyFromDateLabel(dateLabel){
@@ -2223,7 +2223,7 @@ function addPersonalTrackerMonthGroups(){
     if(month !== lastMonth){
       const divider = document.createElement("tr");
       divider.className = "month-group";
-      divider.innerHTML = `<td colspan="7">▼ ${month}</td>`;
+      divider.innerHTML = `<td colspan="5">▼ ${month}</td>`;
       groupRow.parentNode.insertBefore(divider, groupRow);
       lastMonth = month;
     }
@@ -2319,8 +2319,10 @@ loadTracker = async function(){
   addPersonalTrackerMonthGroups();
   wirePersonalTrackerDateCollapse();
   applyPersonalTrackerCollapseState();
+  if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
   wirePersonalTrackerMonthCollapse();
   applyPersonalTrackerMonthCollapseState();
+  if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
 };
 /* =========================
    PERSONAL TRACKER COLLAPSE FIX
@@ -2411,9 +2413,11 @@ loadTracker = async function(){
 
   if(typeof applyPersonalTrackerMonthCollapseState === "function"){
     applyPersonalTrackerMonthCollapseState();
+  if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
   }
 
   applyPersonalTrackerCollapseState();
+  if(typeof syncTrackerGroupedHeaderVisibility === "function") syncTrackerGroupedHeaderVisibility();
 
 };
 /* ===== SAFE TDT RESULTS MONTHLY OVERRIDE ===== */
