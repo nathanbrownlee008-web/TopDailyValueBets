@@ -3482,12 +3482,4 @@ body.layout-compact .vip-bar{
     display: none !important;
   }
 }
-/* Slight zoom out ONLY for results table */
-@media (max-width: 768px) {
-  .tracker-zoom {
-    transform: scale(0.94);
-    transform-origin: top center;
-    width: 104%;
-    margin-left: -2%;
-  }
-}
+
