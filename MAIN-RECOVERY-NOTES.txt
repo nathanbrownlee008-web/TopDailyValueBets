@@ -1,9 +1,0 @@
-MAIN RECOVERY (WITH API FOLDER)
-
-Structure:
-- Root app files
-- /api folder:
-    - create-checkout-session.js
-    - verify-subscription.js
-
-This is your locked recovery structure.
