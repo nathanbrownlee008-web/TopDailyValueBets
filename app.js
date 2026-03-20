@@ -133,19 +133,22 @@ async function checkVIP(){
     const j=await r.json();
     vipActive=!!j.active;
 
-if(vipActive){
-  setVipUI(true,email);
-}else{
-  clearVipState();
-}
+    if(vipActive){
+      setVipUI(true,email);
+    }else{
+      vipActive = false;
+      setVipUI(false,email);
+    }
 
-return vipActive;
+    return vipActive;
 
-}catch(e){
-  clearVipState();
-  if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
-  return false;
-}
+  }catch(e){
+    // Keep the saved email so Restore VIP still works after refreshes/network issues
+    vipActive = false;
+    setVipUI(false,email);
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed — tap Restore VIP";
+    return false;
+  }
 }
 function clearVipState(){
   vipActive = false;
