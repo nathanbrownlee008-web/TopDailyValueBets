@@ -3568,8 +3568,8 @@ body.layout-compact .vip-bar{
   /* 🔹 Month / date bars tighter */
   .month-header,
   .day-header{
-    padding:8px 10px;
-    font-size:13px;
+    padding:4px 6px;
+    font-size:8px;
   }
 
   /* 🔹 Table layout fix */
@@ -3585,7 +3585,7 @@ body.layout-compact .vip-bar{
 
   /* 🔹 Match column full width */
   #trackerTable td:first-child{
-    width:60%;
+    width:80%;
     font-size:13px;
     line-height:1.3;
   }
