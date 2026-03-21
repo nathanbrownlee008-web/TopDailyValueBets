@@ -639,32 +639,6 @@ function switchTab(tab){
 }
 
 
-
-function getBookieLogo(bookie = "") {
-  const b = String(bookie || "").toLowerCase().trim();
-
-  if (b.includes("bet365")) return "bookies/bet365.png";
-  if (b.includes("sky")) return "bookies/skybet.png";
-  if (b.includes("william")) return "bookies/williamhill.png";
-  if (b.includes("paddy")) return "bookies/paddypower.png";
-  if (b.includes("golden")) return "bookies/goldenbet.png";
-  if (b.includes("betuk")) return "bookies/betuk.png";
-  if (b.includes("ladbrokes")) return "bookies/ladbrokes.png";
-  if (b.includes("coral")) return "bookies/coral.png";
-  if (b.includes("betfair exchange")) return "bookies/betfairexchange.png";
-  if (b.includes("betfair")) return "bookies/betfair.png";
-  return "";
-}
-
-function renderBookieValueBet(bookie = "") {
-  const clean = escapeHtml(bookie || "");
-  const logo = getBookieLogo(bookie || "");
-  const darkLogo = /betfair|betuk/i.test(String(bookie || ""));
-  return logo
-    ? `<div class="bet-bookie-row"><img class="bet-bookie-logo ${darkLogo ? "bet-bookie-logo--dark" : ""}" src="${logo}" alt="${clean}" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<span class=&quot;bet-bookie-text&quot;>${clean}</span>');"></div>`
-    : `<div class="bet-bookie-row"><span class="bet-bookie-text">${clean}</span></div>`;
-}
-
 async function loadBets(){
   addedKeys.clear();
   try{
@@ -713,7 +687,7 @@ async function loadBets(){
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market"><span class="bet-market-icon">${marketIconForText(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
       </div>
-      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? renderBookieValueBet(row.bookie) : ''}`}
+      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
     <div class="bet-details">
       <div class="bet-footer">
