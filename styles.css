@@ -4098,7 +4098,7 @@ input,
 .bet-footer .value-pill{
   margin-left:auto !important;
   margin-right:auto !important;
-  transform: translateX(20px); /* adjust if needed */
+  transform: translateX(60px); /* adjust if needed */
 }
 
 .bet-footer .bet-btn{
