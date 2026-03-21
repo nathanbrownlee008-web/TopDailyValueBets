@@ -4025,3 +4025,16 @@ input,
     font-size:15px !important;
   }
 }
+/* FORCE BRIGHT MARKET TEXT (VALUE BETS ONLY) */
+
+.bet-market-text {
+  color: #ffffff !important;      /* pure white */
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* ALSO fix parent containers dimming it */
+.bet-market,
+.bet-market-inline {
+  opacity: 1 !important;
+}
