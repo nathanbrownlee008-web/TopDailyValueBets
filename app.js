@@ -2904,33 +2904,23 @@ window.forgotVipPassword = forgotVipPassword;
     const p = __trProfit(row);
     const pClass = p > 0 ? "profit-win" : (p < 0 ? "profit-loss" : "");
     return `
-      <div class="tracker-hybrid-row">
-        <div class="tracker-hybrid-left">
-          <div class="tracker-mini-date">${__trEsc(__trDateLabel(row))}</div>
-          <div class="tracker-hybrid-match">${__trEsc(row.match || "")}</div>
-          <div class="tracker-hybrid-market">${__trEsc(row.market || "—")}</div>
-        </div>
-        <div class="tracker-hybrid-right">
-          <div class="tracker-hybrid-stat">
-            <span class="tracker-stat-label">Stake</span>
-            <input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${__trEsc(row.id)}',this.value)">
-          </div>
-          <div class="tracker-hybrid-stat">
-            <span class="tracker-stat-label">Odds</span>
-            <input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${__trEsc(row.id)}',this.value)">
-          </div>
-          <div class="tracker-hybrid-stat tracker-hybrid-result-wrap">
-            <span class="tracker-stat-label">Result</span>
-            <select class="result-select result-${__trEsc(row.result || 'pending')}" onchange="updateResult('${__trEsc(row.id)}',this.value)">
-              <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-              <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-              <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-              <option value="delete">🗑 delete</option>
-            </select>
-          </div>
-          <div class="tracker-hybrid-profit ${pClass}">${p >= 0 ? "+" : "-"}£${Math.abs(p).toFixed(2)}</div>
-        </div>
-      </div>
+      <tr>
+        <td class="tracker-clean-match">
+          <div class="tracker-clean-matchline">${__trEsc(row.match || "")}</div>
+          <div class="tracker-clean-marketline">${__trEsc(row.market || "—")}</div>
+        </td>
+        <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${__trEsc(row.id)}',this.value)"></td>
+        <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${__trEsc(row.id)}',this.value)"></td>
+        <td>
+          <select class="result-select result-${__trEsc(row.result || 'pending')}" onchange="updateResult('${__trEsc(row.id)}',this.value)">
+            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+            <option value="delete">🗑 delete</option>
+          </select>
+        </td>
+        <td class="profit-col"><span class="${pClass}">${p >= 0 ? "+" : "-"}£${Math.abs(p).toFixed(2)}</span></td>
+      </tr>
     `;
   }
 
@@ -2947,7 +2937,7 @@ window.forgotVipPassword = forgotVipPassword;
       if(!monthMap.get(month).days.has(day)) monthMap.get(month).days.set(day, []);
       monthMap.get(month).days.get(day).push(row);
     });
-    let html = `<div class="tracker-layout-badge">Option 4 — Hybrid Rows</div><div class="tracker-grouped-shell tracker-opt4-shell">`;
+    let html = `<div class="tracker-layout-badge">Option 5 — Clean Table</div><div class="tracker-grouped-shell tracker-opt5-shell">`;
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
       const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex===0;
@@ -2964,9 +2954,10 @@ window.forgotVipPassword = forgotVipPassword;
             <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span><span>${__trEsc(dayLabel)}</span>
           </button>
           <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
-            <div class="tracker-bet-list">
-              ${dayRows.map(__renderBet).join("")}
-            </div>
+            <table class="tracker-results-table tracker-results-table-opt5">
+              <thead><tr><th>Match</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr></thead>
+              <tbody>${dayRows.map(__renderBet).join("")}</tbody>
+            </table>
           </div>
         </div>`;
       });
