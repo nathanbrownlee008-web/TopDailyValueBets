@@ -3926,3 +3926,7 @@ select.result {
   justify-content: center;
   text-align: center;
 }
+select.result {
+  text-align: center;
+  text-align-last: center; /* important for dropdown */
+}
