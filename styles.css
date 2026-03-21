@@ -432,7 +432,7 @@ th{text-align:left}
 }
 
 .bet-title{
-  font-size:20px;
+  font-size:14px;
   margin:0;
   font-weight:800;
   letter-spacing:0.1px;
@@ -550,7 +550,7 @@ th{text-align:left}
   }
 
   .bet-title{
-    font-size: 20px;
+    font-size: 15px;
   }
 
   .bet-meta{
@@ -4117,8 +4117,5 @@ input,
 
 /* keep enough room on the left so the centered value chip doesn't force wrapping */
 .bet-card .bet-left{
-  padding-right: 130px !important;
-}
-.bet-title{
-  font-size: 16px !important;
+  padding-right: 140px !important;
 }
