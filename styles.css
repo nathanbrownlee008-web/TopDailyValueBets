@@ -3656,123 +3656,29 @@ body.layout-compact .vip-bar{
 
 
 
-/* ===== FINAL OPTION 7 CARD LAYOUT ===== */
-.tracker-opt7-shell .tracker-bet-list{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:14px;
-}
-.tracker-grid-card{
-  background:#0c1d45;
-  border:1px solid rgba(86,120,184,.35);
-  border-radius:18px;
-  padding:14px 16px;
-  box-shadow:0 8px 22px rgba(0,0,0,.18);
-}
-.tracker-grid-top{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:10px;
-}
-.tracker-grid-match{
-  flex:1;
-  min-width:0;
-  margin:0;
-  font-size:15px;
-  line-height:1.12;
-  font-weight:800;
-  color:#f3f6fd;
-}
-.tracker-grid-result{ flex:0 0 auto; }
-.tracker-grid-result .result-select{
-  min-width:96px;
-  height:36px;
-  border-radius:12px;
-  padding:4px 10px;
-  font-size:12px;
-}
-.tracker-grid-meta.tracker-grid-meta--final{
-  display:grid;
-  grid-template-columns:1.45fr .78fr .78fr;
-  gap:10px;
-  align-items:end;
-}
-.tracker-grid-meta--final > div{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  min-width:0;
-}
-.tracker-grid-meta--final > div:first-child{ align-items:stretch; }
-.tracker-grid-meta--final span{
-  font-size:10px;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:#9fb0d7;
-  font-weight:800;
-  margin-bottom:6px;
-}
-.tracker-grid-market-inline{
-  height:36px;
-  display:flex;
-  align-items:center;
-  padding:0 12px;
-  border-radius:12px;
-  background:#1e2d4b;
-  border:1px solid #394a6a;
-  color:#e6ecf8;
-  font-size:12px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.tracker-grid-card input{
-  width:100%;
-  max-width:none;
-  height:36px;
-  min-height:36px;
-  padding:4px 8px;
-  font-size:12px;
-  border-radius:12px;
-  text-align:center;
-  box-sizing:border-box;
-}
+/* ===== REAL OPTION 7 CARDS ===== */
+.tracker-opt7-shell .tracker-bet-list{display:grid;grid-template-columns:1fr;gap:14px;padding-top:10px;}
+.tracker-opt7-shell .tracker-results-table{display:none;}
+.tracker-grid-card{background:linear-gradient(145deg,#102041,#13284a);border:1px solid rgba(120,160,230,.18);border-radius:22px;padding:18px 18px 16px;box-shadow:0 8px 24px rgba(0,0,0,.18);}
+.tracker-grid-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;}
+.tracker-grid-match{font-size:17px;font-weight:800;line-height:1.1;color:#eef4ff;flex:1;min-width:0;}
+.tracker-grid-top-result .result-select{min-width:108px;height:40px;padding:6px 12px;border-radius:14px;font-size:13px;}
+.tracker-grid-meta--single-row{display:grid;grid-template-columns:1.5fr .8fr .8fr;gap:12px;align-items:end;}
+.tracker-grid-meta--single-row > div{display:flex;flex-direction:column;gap:6px;min-width:0;}
+.tracker-grid-meta--single-row span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#98a8c8;font-weight:800;text-align:center;}
+.tracker-grid-market-slot span{text-align:center;}
+.tracker-grid-market-inline{height:40px;display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:#f0f5ff;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tracker-grid-card input{width:100%;height:40px;padding:6px 10px;border-radius:14px;border:1px solid #3a4b67;background:#22324d;color:#fff;text-align:center;font-size:13px;box-sizing:border-box;}
+.tracker-grid-card .profit-col,.tracker-grid-profit,.tracker-grid-date,.tracker-grid-header,.tracker-grid-market{display:none !important;}
 @media (max-width:700px){
-  .tracker-opt7-shell .tracker-bet-list{ gap:12px; }
-  .tracker-grid-card{
-    padding:12px 14px;
-    border-radius:16px;
-  }
-  .tracker-grid-top{
-    margin-bottom:8px;
-    gap:8px;
-  }
-  .tracker-grid-match{
-    font-size:14px;
-  }
-  .tracker-grid-result .result-select{
-    min-width:88px;
-    height:34px;
-    font-size:11px;
-    border-radius:10px;
-    padding:3px 8px;
-  }
-  .tracker-grid-meta.tracker-grid-meta--final{
-    grid-template-columns:1.35fr .72fr .72fr;
-    gap:8px;
-  }
-  .tracker-grid-meta--final span{
-    font-size:9px;
-    margin-bottom:4px;
-  }
-  .tracker-grid-market-inline,
-  .tracker-grid-card input{
-    height:34px;
-    min-height:34px;
-    font-size:11px;
-    border-radius:10px;
-  }
-  .tracker-grid-market-inline{ padding:0 10px; }
+  .tracker-opt7-shell .tracker-bet-list{gap:12px;padding-top:8px;}
+  .tracker-grid-card{padding:14px 14px 13px;border-radius:20px;}
+  .tracker-grid-top{margin-bottom:10px;gap:10px;}
+  .tracker-grid-match{font-size:14px;line-height:1.08;}
+  .tracker-grid-top-result .result-select{min-width:92px;height:36px;padding:4px 10px;border-radius:12px;font-size:12px;}
+  .tracker-grid-meta--single-row{grid-template-columns:1.45fr .78fr .78fr;gap:9px;}
+  .tracker-grid-meta--single-row > div{gap:5px;}
+  .tracker-grid-meta--single-row span{font-size:10px;}
+  .tracker-grid-market-inline,.tracker-grid-card input{height:36px;border-radius:12px;font-size:12px;}
+  .tracker-grid-market-inline{padding:0 10px;font-weight:700;}
 }
