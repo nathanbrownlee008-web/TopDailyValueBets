@@ -4038,3 +4038,22 @@ input,
 .bet-market-inline {
   opacity: 1 !important;
 }
+/* FORCE FULL BRIGHT VALUE BETS MARKET */
+
+.bet-market,
+.bet-market-inline {
+  opacity: 1 !important;
+}
+
+.bet-market-text {
+  color: #ffffff !important;     /* pure white */
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: 0 0 6px rgba(255,255,255,0.35) !important; /* stronger glow */
+}
+
+/* also override ANY dim parent */
+.value-bet-card,
+.value-bet-card * {
+  opacity: 1 !important;
+}
