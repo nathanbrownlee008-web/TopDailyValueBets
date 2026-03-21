@@ -4130,14 +4130,14 @@ input,
   display:flex;
   align-items:center;
   justify-content:flex-start;
-  min-height:34px;
+  min-height:50px;
   margin-top:8px;
 }
 
 .bet-bookie-logo{
-  height:34px;
+  height:50px;
   width:auto;
-  max-width:160px;
+  max-width:180px;
   object-fit:contain;
   display:block;
 }
