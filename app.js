@@ -1134,8 +1134,11 @@ dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
 tableRows.push(`<tr>
-<td>${row.match}</td>
-<td>${row.market || "—"}</td>
+<td class="match-market-cell">
+  <div class="tracker-match-name">${row.match}</div>
+  <div class="tracker-market-sub">${row.market || "—"}</div>
+</td>
+<td class="tracker-market-col">${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -2617,3 +2620,216 @@ try{
 
 window.restoreVipAccess = restoreVipAccess;
 window.forgotVipPassword = forgotVipPassword;
+
+
+
+/* ===== REBUILT TRACKER GROUP DROPDOWNS (month/day above headers) ===== */
+(function(){
+  function trackerParseDate(raw){
+    if(!raw) return new Date("1970-01-01T12:00:00");
+    const d = new Date(raw);
+    if(!Number.isNaN(d.getTime())) return d;
+    return new Date("1970-01-01T12:00:00");
+  }
+
+  function trackerRawDate(row){
+    return row.match_date_date || row.match_date || row.bet_date || row.created_at;
+  }
+
+  function trackerMonthLabel(row){
+    const d = trackerParseDate(trackerRawDate(row));
+    return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  }
+
+  function trackerDayLabel(row){
+    return fmtDayLabel(trackerRawDate(row));
+  }
+
+  function trackerProfit(row){
+    const stake = Number(row.stake || 0);
+    const odds = Number(row.odds || 0);
+    const res = row.result || "pending";
+    if(res === "won") return row.profit != null ? Number(row.profit) : stake * (odds - 1);
+    if(res === "lost") return row.profit != null ? Number(row.profit) : -stake;
+    return 0;
+  }
+
+  function trackerEsc(s){
+    return String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function trackerStateKey(type){
+    const email = (localStorage.getItem("vip_email") || "guest").trim().toLowerCase();
+    return `tracker_rebuilt_${type}_${email}`;
+  }
+
+  function trackerReadState(type){
+    try{
+      return JSON.parse(localStorage.getItem(trackerStateKey(type)) || "{}");
+    }catch(e){
+      return {};
+    }
+  }
+
+  function trackerWriteState(type, state){
+    localStorage.setItem(trackerStateKey(type), JSON.stringify(state || {}));
+  }
+
+  window.toggleTrackerCollapse = function(btn){
+    const type = btn.dataset.type;
+    const key = decodeURIComponent(btn.dataset.key || "");
+    const body = btn.nextElementSibling;
+    if(!body) return;
+
+    const collapsed = body.classList.toggle("is-collapsed");
+    btn.querySelector(".tracker-group-arrow").textContent = collapsed ? "▶" : "▼";
+
+    const state = trackerReadState(type);
+    state[key] = !collapsed;
+    trackerWriteState(type, state);
+  };
+
+  window.buildTrackerGroupedHTML = function(rows){
+    const list = (rows || []).slice().sort((a,b)=> trackerParseDate(trackerRawDate(b)) - trackerParseDate(trackerRawDate(a)));
+
+    const monthState = trackerReadState("month");
+    const months = [];
+    const monthMap = new Map();
+
+    list.forEach(row=>{
+      const month = trackerMonthLabel(row);
+      if(!monthMap.has(month)){
+        monthMap.set(month, { label: month, rows: [], stats:{bets:0,wins:0,losses:0,pending:0,profit:0} });
+        months.push(monthMap.get(month));
+      }
+      const bucket = monthMap.get(month);
+      const result = String(row.result || 'pending').toLowerCase();
+      const p = trackerProfit(row);
+      bucket.rows.push(row);
+      bucket.stats.bets += 1;
+      if(result === 'won') bucket.stats.wins += 1;
+      else if(result === 'lost') bucket.stats.losses += 1;
+      else bucket.stats.pending += 1;
+      bucket.stats.profit += p;
+    });
+
+    let html = `<div class="tracker-v2-shell">`;
+
+    months.forEach((monthEntry, monthIndex)=>{
+      const monthKey = monthEntry.label;
+      const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0;
+      const st = monthEntry.stats;
+      const monthProfit = `${st.profit >= 0 ? '+' : '-'}£${Math.abs(st.profit).toFixed(2)}`;
+      html += `
+        <div class="tracker-v2-month">
+          <button class="tracker-v2-month-head" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+            <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
+            <span class="tracker-v2-month-main">
+              <span class="tracker-v2-month-title">${trackerEsc(monthKey)}</span>
+              <span class="tracker-v2-month-sub">${st.bets} bets • ${st.wins}W ${st.losses}L${st.pending ? ` ${st.pending}P` : ''}</span>
+            </span>
+            <span class="tracker-v2-month-profit ${st.profit > 0 ? 'is-win' : st.profit < 0 ? 'is-loss' : ''}">${monthProfit}</span>
+          </button>
+          <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+            <div class="tracker-v2-list">
+      `;
+
+      monthEntry.rows.forEach(row=>{
+        const rawResult = String(row.result || 'pending').toLowerCase();
+        const resultLabel = rawResult === 'won' ? 'WON' : rawResult === 'lost' ? 'LOST' : 'PENDING';
+        const resultClass = rawResult === 'won' ? 'is-win' : rawResult === 'lost' ? 'is-loss' : 'is-pending';
+        const p = trackerProfit(row);
+        const pClass = p > 0 ? 'profit-win' : (p < 0 ? 'profit-loss' : '');
+        const dateLabel = trackerDayLabel(row);
+        html += `
+          <div class="tracker-v2-row ${resultClass}">
+            <div class="tracker-v2-row-top">
+              <span class="tracker-v2-chip tracker-v2-date">${trackerEsc(dateLabel)}</span>
+              <span class="tracker-v2-chip tracker-v2-result ${resultClass}">${resultLabel}</span>
+            </div>
+            <div class="tracker-v2-row-main">
+              <div class="tracker-v2-left">
+                <div class="tracker-v2-match">${trackerEsc(row.match || '')}</div>
+                <div class="tracker-v2-market">${trackerEsc(row.market || '—')}</div>
+              </div>
+              <div class="tracker-v2-right">
+                <label class="tracker-v2-stat">
+                  <span class="tracker-v2-stat-label">Stake</span>
+                  <input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)">
+                </label>
+                <label class="tracker-v2-stat">
+                  <span class="tracker-v2-stat-label">Odds</span>
+                  <input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)">
+                </label>
+                <label class="tracker-v2-stat tracker-v2-result-select-wrap">
+                  <span class="tracker-v2-stat-label">Result</span>
+                  <select class="result-select result-${trackerEsc(rawResult)}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                    <option value="pending" ${(rawResult==="pending"?"selected":"")}>pending</option>
+                    <option value="won" ${(rawResult==="won"?"selected":"")}>won</option>
+                    <option value="lost" ${(rawResult==="lost"?"selected":"")}>lost</option>
+                    <option value="delete">🗑 delete</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div class="tracker-v2-row-bottom">
+              <span class="tracker-v2-pl-label">Profit</span>
+              <span class="tracker-v2-pl ${pClass}">£${p.toFixed(2)}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+    return html;
+  };
+
+  if(typeof _renderFilteredTrackerTable === "function"){
+    _renderFilteredTrackerTable = function(){
+      const tableEl = document.getElementById("trackerTable");
+      const countEl = document.getElementById("betCount");
+      if(!tableEl) return;
+
+      const filtered = _applyTrackerFilters(trackerAllRows);
+      tableEl.innerHTML = buildTrackerGroupedHTML(filtered);
+      if(countEl) countEl.textContent = filtered.length;
+    };
+  }
+
+  if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups = function(){};
+  if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups = function(){};
+  if(typeof wirePersonalTrackerDateCollapse === "function") wirePersonalTrackerDateCollapse = function(){};
+  if(typeof wirePersonalTrackerMonthCollapse === "function") wirePersonalTrackerMonthCollapse = function(){};
+  if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState = function(){};
+  if(typeof applyPersonalTrackerMonthCollapseState === "function") applyPersonalTrackerMonthCollapseState = function(){};
+
+  if(typeof loadTracker === "function"){
+    const __rebuiltLoadTracker = loadTracker;
+    loadTracker = async function(){
+      await __rebuiltLoadTracker();
+      try{
+        const tableEl = document.getElementById("trackerTable");
+        if(tableEl && Array.isArray(trackerAllRows)){
+          tableEl.innerHTML = buildTrackerGroupedHTML(trackerAllRows);
+          const countEl = document.getElementById("betCount");
+          if(countEl) countEl.textContent = trackerAllRows.length;
+        }
+      }catch(e){
+        console.error("Rebuilt tracker grouping failed", e);
+      }
+    };
+  }
+})();
+
