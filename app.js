@@ -493,21 +493,6 @@ const FREE_VISIBLE_COUNT = 3;
 const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
-
-function marketIconForText(market){
-  const m = String(market || "").toLowerCase();
-  if(m.includes("corner")) return "🚩";
-  if(m.includes("card")) return "🟨";
-  if(m.includes("btts") || m.includes("both teams to score")) return "🥅";
-  if(m.includes("goal")) return "⚽";
-  if(m.includes("shot")) return "🎯";
-  if(m.includes("assist")) return "🅰️";
-  if(m.includes("foul")) return "🚫";
-  if(m.includes("offside")) return "🚨";
-  if(m.includes("win") || m.includes("draw") || m.includes("double chance")) return "🏁";
-  return "📌";
-}
-
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
@@ -685,7 +670,7 @@ async function loadBets(){
       <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market"><span class="bet-market-icon">${marketIconForText(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
@@ -706,7 +691,7 @@ async function loadBets(){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
         <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<span class="bet-market-inline"><span class="bet-market-icon">${marketIconForText(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market||'')}</span></span>`}</td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
         <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
