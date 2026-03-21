@@ -2748,8 +2748,6 @@ window.forgotVipPassword = forgotVipPassword;
         `;
 
         dayRows.forEach(row=>{
-          const p = trackerProfit(row);
-          const pClass = p > 0 ? "profit-win" : (p < 0 ? "profit-loss" : "");
           html += `
             <div class="tracker-grid-card">
               <div class="tracker-grid-top">
@@ -2788,7 +2786,10 @@ window.forgotVipPassword = forgotVipPassword;
         `;
       });
 
-      html += `</div></div>`;
+      html += `
+          </div>
+        </div>
+      `;
     });
 
     html += `</div>`;
