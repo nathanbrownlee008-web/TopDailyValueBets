@@ -3984,3 +3984,44 @@ input,
   overflow:hidden;
   text-overflow:ellipsis;
 }
+
+
+
+/* ===== VALUE BETS ICON POLISH ONLY ===== */
+.bet-market,
+.bet-market-inline{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  min-width:0 !important;
+}
+
+.bet-market-icon{
+  flex:0 0 auto !important;
+  font-size:17px !important;
+  line-height:1 !important;
+  opacity:1 !important;
+  filter:none !important;
+  text-shadow:0 0 4px rgba(255,255,255,0.25) !important;
+  transform:translateY(1px) !important;
+}
+
+.bet-market-text{
+  min-width:0 !important;
+  font-size:15px !important;
+  font-weight:600 !important;
+  color:#e6edf5 !important;
+  letter-spacing:0.2px !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+@media (max-width:600px){
+  .bet-market-icon{
+    font-size:16px !important;
+  }
+  .bet-market-text{
+    font-size:15px !important;
+  }
+}
