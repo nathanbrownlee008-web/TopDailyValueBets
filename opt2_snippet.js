@@ -1,0 +1,2 @@
+// Paste inside your render function
+function buildOption2Row(bet){return `<div class="bet-row"><div class="bet-left"><div class="match">${bet.match}</div><div class="market">${bet.market}</div></div><div class="bet-right"><div class="stat"><span class="stat-label">Stake</span><input type="number" value="${bet.stake}" /></div><div class="stat"><span class="stat-label">Odds</span><input type="number" value="${bet.odds}" /></div><div class="stat"><span class="stat-label">Result</span>${renderResultDropdown(bet)}</div></div></div>`;}
