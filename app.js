@@ -2654,6 +2654,22 @@ window.forgotVipPassword = forgotVipPassword;
     return 0;
   }
 
+
+  function trackerMarketIcon(market){
+    const m = String(market || "").toLowerCase();
+
+    if(m.includes("corner")) return "🚩";
+    if(m.includes("card")) return "🟨";
+    if(m.includes("btts") || m.includes("both teams to score")) return "🥅";
+    if(m.includes("goal")) return "⚽";
+    if(m.includes("shot")) return "🎯";
+    if(m.includes("assist")) return "🅰️";
+    if(m.includes("foul")) return "🚫";
+    if(m.includes("offside")) return "🚨";
+    if(m.includes("win") || m.includes("draw") || m.includes("double chance")) return "🏁";
+    return "📌";
+  }
+
   function trackerEsc(s){
     return String(s ?? "")
       .replace(/&/g, "&amp;")
@@ -2766,7 +2782,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-meta tracker-grid-meta--single-row">
                 <div class="tracker-grid-market-slot">
                   <span>Market</span>
-                  <div class="tracker-grid-market-inline">${trackerEsc(row.market || "—")}</div>
+                  <div class="tracker-grid-market-inline"><span class="tracker-market-icon">${trackerMarketIcon(row.market)}</span><span class="tracker-market-text">${trackerEsc(row.market || "—")}</span></div>
                 </div>
                 <div>
                   <span>Stake</span>

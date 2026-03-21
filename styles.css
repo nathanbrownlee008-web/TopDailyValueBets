@@ -3939,3 +3939,33 @@ input,
   font-weight: 650;             /* thicker text */
   text-align: center;           /* keeps it clean */
 }
+
+
+
+/* ===== MARKET ICONS ===== */
+.tracker-grid-market-inline{
+  gap: 8px;
+}
+
+.tracker-market-icon{
+  flex: 0 0 auto;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.tracker-market-text{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width:700px){
+  .tracker-grid-market-inline{
+    gap: 6px;
+  }
+
+  .tracker-market-icon{
+    font-size: 14px;
+  }
+}
