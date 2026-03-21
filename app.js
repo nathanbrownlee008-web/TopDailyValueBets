@@ -2831,3 +2831,16 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
+
+
+// Forced test badge for Option 3
+document.addEventListener('DOMContentLoaded',()=>{
+  const el = document.querySelector('.tracker-history .tracker-toggle');
+  if(el){
+    const count = document.getElementById('betCount');
+    const arrow = document.getElementById('trackerArrow');
+    if(count && arrow){
+      el.innerHTML = `📈 Bet Results — Option 3 Test (<span id="betCount">${count.textContent||'0'}</span>) <span id="trackerArrow">${arrow.textContent||'▼'}</span>`;
+    }
+  }
+});
