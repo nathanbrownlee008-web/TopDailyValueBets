@@ -3934,7 +3934,10 @@ html {
 input,
 .stake-box,
 .odds-box {
-  font-size: 16px !important;   /* bigger text */
-  font-weight: 600;             /* thicker text */
-  text-align: center;           /* keeps it clean */
+  color: #ffffff; /* brighter text */
+}
+  font-size: 12px !important;
+  font-weight: 500;
+  text-align: center;
+  letter-spacing: 0.5px; /* makes numbers cleaner */
 }
