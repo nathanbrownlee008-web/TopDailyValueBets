@@ -4079,3 +4079,25 @@ input,
     font-size: 14px !important;
   }
 }
+/* VALUE BETS: center the VALUE pill between odds and add */
+
+.value-card .bottom-row {
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
+  align-items: center !important;
+}
+
+/* ODDS stays left */
+.value-card .odds-pill {
+  justify-self: start !important;
+}
+
+/* VALUE goes dead center */
+.value-card .value-pill {
+  justify-self: center !important;
+}
+
+/* ADD stays right */
+.value-card .add-btn {
+  justify-self: end !important;
+}
