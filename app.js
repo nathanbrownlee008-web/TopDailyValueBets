@@ -1,31 +1,4 @@
 
-function buildOption2Row(bet){
-return `
-<div class="bet-row">
-  <div class="bet-left">
-    <div class="match">${bet.match}</div>
-    <div class="market">${bet.market || ''}</div>
-  </div>
-  <div class="bet-right">
-    <div class="stat">
-      <span class="stat-label">Stake</span>
-      <input type="number" value="${bet.stake || ''}">
-    </div>
-    <div class="stat">
-      <span class="stat-label">Odds</span>
-      <input type="number" value="${bet.odds || ''}">
-    </div>
-    <div class="stat">
-      <span class="stat-label">Result</span>
-      ${renderResultDropdown ? renderResultDropdown(bet) : '<span>'+ (bet.result||'') +'</span>'}
-    </div>
-  </div>
-</div>
-`;
-}
-
-
-
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -224,7 +197,7 @@ function toLocalYMD(d=new Date()){
   const yr=d.getFullYear();
   const mo=pad2(d.getMonth()+1);
   const da=pad2(d.getDate());
-  return buildOption2Row(bet);
+  return `${yr}-${mo}-${da}`;
 }
 function normalizeDateOnly(value){
   if(!value) return null;
@@ -2739,77 +2712,86 @@ window.forgotVipPassword = forgotVipPassword;
         months.push(monthMap.get(month));
       }
       const monthEntry = monthMap.get(month);
-      if(!monthEntry.days.has(day)){
-        monthEntry.days.set(day, []);
-      }
+      if(!monthEntry.days.has(day)) monthEntry.days.set(day, []);
       monthEntry.days.get(day).push(row);
     });
 
-    let html = `<div class="tracker-grouped-shell">`;
+    let html = `<div class="tracker-grouped-shell tracker-option2-shell">`;
 
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
+      const monthRows = Array.from(monthEntry.days.values()).flat();
+      const monthProfit = monthRows.reduce((sum, row)=> sum + trackerProfit(row), 0);
       const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0;
 
       html += `
-        <div class="tracker-month-wrap">
+        <div class="tracker-month-wrap tracker-month-card">
           <button class="tracker-group-toggle tracker-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
             <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
-            <span>${trackerEsc(monthKey)}</span>
+            <span class="tracker-group-title">${trackerEsc(monthKey)}</span>
+            <span class="tracker-group-meta">${monthRows.length} bets</span>
+            <span class="tracker-group-profit ${monthProfit > 0 ? "is-win" : monthProfit < 0 ? "is-loss" : ""}">£${monthProfit.toFixed(2)}</span>
           </button>
           <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
       `;
 
       Array.from(monthEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
         const dayKey = `${monthKey}||${dayLabel}`;
+        const dayProfit = dayRows.reduce((sum, row)=> sum + trackerProfit(row), 0);
+        const won = dayRows.filter(r => r.result === 'won').length;
+        const lost = dayRows.filter(r => r.result === 'lost').length;
+        const pending = dayRows.filter(r => !r.result || r.result === 'pending').length;
         const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && dayIndex === 0);
 
         html += `
-          <div class="tracker-day-wrap">
+          <div class="tracker-day-wrap tracker-day-card">
             <button class="tracker-group-toggle tracker-day-toggle" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
               <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
-              <span>${trackerEsc(dayLabel)}</span>
+              <span class="tracker-group-title">${trackerEsc(dayLabel)}</span>
+              <span class="tracker-group-meta">${dayRows.length} bets • ${won}W ${lost}L${pending ? ` ${pending}P` : ''}</span>
+              <span class="tracker-group-profit ${dayProfit > 0 ? "is-win" : dayProfit < 0 ? "is-loss" : ""}">£${dayProfit.toFixed(2)}</span>
             </button>
             <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
-              <table class="tracker-results-table">
-                <thead>
-                  <tr>
-                    <th>Match</th>
-                    <th>Market</th>
-                    <th>Stake</th>
-                    <th>Odds</th>
-                    <th>Result</th>
-                    <th class="profit-col">Profit</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <div class="tracker-results-slim-wrap">
+                <div class="tracker-slim-head">
+                  <div>Match / Market</div>
+                  <div>Stake</div>
+                  <div>Odds</div>
+                  <div>Res</div>
+                  <div>P/L</div>
+                </div>
+                <div class="tracker-slim-body">
         `;
 
         dayRows.forEach(row=>{
           const p = trackerProfit(row);
           const pClass = p > 0 ? "profit-win" : (p < 0 ? "profit-loss" : "");
+          const r = row.result || 'pending';
+          const rShort = r === 'won' ? 'W' : r === 'lost' ? 'L' : 'P';
           html += `
-            <tr>
-              <td>${trackerEsc(row.match || "")}</td>
-              <td>${trackerEsc(row.market || "—")}</td>
-              <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
-              <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
-              <td>
-                <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                  <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                  <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                  <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                  <option value="delete">🗑 delete</option>
+            <div class="tracker-slim-row">
+              <div class="tracker-slim-main">
+                <div class="tracker-slim-match">${trackerEsc(row.match || "")}</div>
+                <div class="tracker-slim-market">${trackerEsc(row.market || "—")}</div>
+              </div>
+              <div class="tracker-slim-stake"><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></div>
+              <div class="tracker-slim-odds"><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></div>
+              <div class="tracker-slim-result">
+                <select class="result-select result-${trackerEsc(r)}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                  <option value="pending" ${(r==="pending"?"selected":"")}>P</option>
+                  <option value="won" ${(r==="won"?"selected":"")}>W</option>
+                  <option value="lost" ${(r==="lost"?"selected":"")}>L</option>
+                  <option value="delete">🗑</option>
                 </select>
-              </td>
-              <td class="profit-col"><span class="${pClass}">£${p.toFixed(2)}</span></td>
-            </tr>
+              </div>
+              <div class="tracker-slim-profit"><span class="${pClass}">£${p.toFixed(2)}</span></div>
+            </div>
           `;
         });
 
         html += `
-                </tbody>
-              </table>
+                </div>
+              </div>
             </div>
           </div>
         `;
@@ -2821,7 +2803,6 @@ window.forgotVipPassword = forgotVipPassword;
     html += `</div>`;
     return html;
   };
-
   if(typeof _renderFilteredTrackerTable === "function"){
     _renderFilteredTrackerTable = function(){
       const tableEl = document.getElementById("trackerTable");
