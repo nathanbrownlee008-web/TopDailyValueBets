@@ -3656,100 +3656,18 @@ body.layout-compact .vip-bar{
 
 
 
-
-/* ===== RESULT TEXT CENTER ONLY + SUBTLE OVERALL ZOOM OUT ===== */
-
-/* keep pill size, just center the text properly */
-.tracker-grid-top-result{
+/* FIX: center result text only */
+.result-select{
+  text-align:center !important;
+  text-align-last:center !important;
   display:flex !important;
   align-items:center !important;
-  justify-content:flex-end !important;
+  justify-content:center !important;
 }
 
-.tracker-grid-top-result .result-select,
-.tracker-grid-card .result-select{
-  text-align: center !important;
-  text-align-last: center !important;
-  padding-left: 14px !important;
-  padding-right: 28px !important; /* keeps room for arrow */
-  background-position: right 10px center !important;
-}
+/* DO NOT shrink pill */
 
-/* subtle zoom-out by slightly reducing card internals, not changing layout */
-.tracker-opt7-shell .tracker-bet-list{
-  gap: 12px !important;
-}
-
+/* ensure grid cards stay active */
 .tracker-grid-card{
-  padding: 15px 15px 13px !important;
-  border-radius: 17px !important;
-}
-
-.tracker-grid-top{
-  margin-bottom: 10px !important;
-}
-
-.tracker-grid-match{
-  font-size: 15px !important;
-  line-height: 1.06 !important;
-}
-
-.tracker-grid-meta--single-row{
-  gap: 9px !important;
-}
-
-.tracker-grid-meta--single-row span{
-  font-size: 10px !important;
-  margin: 0 0 6px 0 !important;
-}
-
-.tracker-grid-market-inline,
-.tracker-grid-card input{
-  height: 36px !important;
-  min-height: 36px !important;
-  font-size: 13px !important;
-}
-
-.tracker-grid-market-inline{
-  padding: 0 12px !important;
-}
-
-@media (max-width:700px){
-  .tracker-opt7-shell .tracker-bet-list{
-    gap: 10px !important;
-  }
-
-  .tracker-grid-card{
-    padding: 13px 13px 12px !important;
-    border-radius: 16px !important;
-  }
-
-  .tracker-grid-top{
-    margin-bottom: 9px !important;
-  }
-
-  .tracker-grid-match{
-    font-size: 14px !important;
-  }
-
-  .tracker-grid-meta--single-row{
-    gap: 8px !important;
-  }
-
-  .tracker-grid-meta--single-row span{
-    font-size: 9px !important;
-    margin: 0 0 5px 0 !important;
-  }
-
-  .tracker-grid-market-inline,
-  .tracker-grid-card input{
-    height: 34px !important;
-    min-height: 34px !important;
-    font-size: 12px !important;
-  }
-
-  .tracker-grid-top-result .result-select,
-  .tracker-grid-card .result-select{
-    font-size: 12px !important;
-  }
+  display:block !important;
 }

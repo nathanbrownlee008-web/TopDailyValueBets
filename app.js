@@ -2744,49 +2744,45 @@ window.forgotVipPassword = forgotVipPassword;
               <span>${trackerEsc(dayLabel)}</span>
             </button>
             <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
-              <div class="tracker-results-list">
+              <table class="tracker-results-table">
+                <thead>
+                  <tr>
+                    <th>Match</th>
+                    <th>Market</th>
+                    <th>Stake</th>
+                    <th>Odds</th>
+                    <th>Result</th>
+                    <th class="profit-col">Profit</th>
+                  </tr>
+                </thead>
+                <tbody>
         `;
 
         dayRows.forEach(row=>{
           const p = trackerProfit(row);
           const pClass = p > 0 ? "profit-win" : (p < 0 ? "profit-loss" : "");
           html += `
-            <div class="tracker-bet-card">
-              <div class="tracker-bet-main">
-                <div class="tracker-bet-text">
-                  <div class="tracker-bet-match">${trackerEsc(row.match || "")}</div>
-                  <div class="tracker-bet-market">${trackerEsc(row.market || "—")}</div>
-                </div>
-                <div class="tracker-bet-controls">
-                  <div class="tracker-stat">
-                    <span class="tracker-stat-label">Stake</span>
-                    <input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)">
-                  </div>
-                  <div class="tracker-stat">
-                    <span class="tracker-stat-label">Odds</span>
-                    <input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)">
-                  </div>
-                  <div class="tracker-stat">
-                    <span class="tracker-stat-label">Result</span>
-                    <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                      <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                      <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                      <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                      <option value="delete">🗑 delete</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div class="tracker-bet-profit ${pClass}">
-                <span class="tracker-bet-profit-label">P/L</span>
-                <span class="tracker-bet-profit-value">£${p.toFixed(2)}</span>
-              </div>
-            </div>
+            <tr>
+              <td>${trackerEsc(row.match || "")}</td>
+              <td>${trackerEsc(row.market || "—")}</td>
+              <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
+              <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
+              <td>
+                <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                  <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                  <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                  <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                  <option value="delete">🗑 delete</option>
+                </select>
+              </td>
+              <td class="profit-col"><span class="${pClass}">£${p.toFixed(2)}</span></td>
+            </tr>
           `;
         });
 
         html += `
-              </div>
+                </tbody>
+              </table>
             </div>
           </div>
         `;
