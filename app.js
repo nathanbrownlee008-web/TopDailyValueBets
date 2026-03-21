@@ -2712,86 +2712,77 @@ window.forgotVipPassword = forgotVipPassword;
         months.push(monthMap.get(month));
       }
       const monthEntry = monthMap.get(month);
-      if(!monthEntry.days.has(day)) monthEntry.days.set(day, []);
+      if(!monthEntry.days.has(day)){
+        monthEntry.days.set(day, []);
+      }
       monthEntry.days.get(day).push(row);
     });
 
-    let html = `<div class="tracker-grouped-shell tracker-option2-shell">`;
+    let html = `<div class="tracker-grouped-shell">`;
 
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
-      const monthRows = Array.from(monthEntry.days.values()).flat();
-      const monthProfit = monthRows.reduce((sum, row)=> sum + trackerProfit(row), 0);
       const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0;
 
       html += `
-        <div class="tracker-month-wrap tracker-month-card">
+        <div class="tracker-month-wrap">
           <button class="tracker-group-toggle tracker-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
             <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
-            <span class="tracker-group-title">${trackerEsc(monthKey)}</span>
-            <span class="tracker-group-meta">${monthRows.length} bets</span>
-            <span class="tracker-group-profit ${monthProfit > 0 ? "is-win" : monthProfit < 0 ? "is-loss" : ""}">£${monthProfit.toFixed(2)}</span>
+            <span>${trackerEsc(monthKey)}</span>
           </button>
           <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
       `;
 
       Array.from(monthEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
         const dayKey = `${monthKey}||${dayLabel}`;
-        const dayProfit = dayRows.reduce((sum, row)=> sum + trackerProfit(row), 0);
-        const won = dayRows.filter(r => r.result === 'won').length;
-        const lost = dayRows.filter(r => r.result === 'lost').length;
-        const pending = dayRows.filter(r => !r.result || r.result === 'pending').length;
         const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && dayIndex === 0);
 
         html += `
-          <div class="tracker-day-wrap tracker-day-card">
+          <div class="tracker-day-wrap">
             <button class="tracker-group-toggle tracker-day-toggle" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
               <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
-              <span class="tracker-group-title">${trackerEsc(dayLabel)}</span>
-              <span class="tracker-group-meta">${dayRows.length} bets • ${won}W ${lost}L${pending ? ` ${pending}P` : ''}</span>
-              <span class="tracker-group-profit ${dayProfit > 0 ? "is-win" : dayProfit < 0 ? "is-loss" : ""}">£${dayProfit.toFixed(2)}</span>
+              <span>${trackerEsc(dayLabel)}</span>
             </button>
             <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
-              <div class="tracker-results-slim-wrap">
-                <div class="tracker-slim-head">
-                  <div>Match / Market</div>
-                  <div>Stake</div>
-                  <div>Odds</div>
-                  <div>Res</div>
-                  <div>P/L</div>
-                </div>
-                <div class="tracker-slim-body">
+              <table class="tracker-results-table">
+                <thead>
+                  <tr>
+                    <th>Match</th>
+                    <th>Market</th>
+                    <th>Stake</th>
+                    <th>Odds</th>
+                    <th>Result</th>
+                    <th class="profit-col">Profit</th>
+                  </tr>
+                </thead>
+                <tbody>
         `;
 
         dayRows.forEach(row=>{
           const p = trackerProfit(row);
           const pClass = p > 0 ? "profit-win" : (p < 0 ? "profit-loss" : "");
-          const r = row.result || 'pending';
-          const rShort = r === 'won' ? 'W' : r === 'lost' ? 'L' : 'P';
           html += `
-            <div class="tracker-slim-row">
-              <div class="tracker-slim-main">
-                <div class="tracker-slim-match">${trackerEsc(row.match || "")}</div>
-                <div class="tracker-slim-market">${trackerEsc(row.market || "—")}</div>
-              </div>
-              <div class="tracker-slim-stake"><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></div>
-              <div class="tracker-slim-odds"><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></div>
-              <div class="tracker-slim-result">
-                <select class="result-select result-${trackerEsc(r)}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                  <option value="pending" ${(r==="pending"?"selected":"")}>P</option>
-                  <option value="won" ${(r==="won"?"selected":"")}>W</option>
-                  <option value="lost" ${(r==="lost"?"selected":"")}>L</option>
-                  <option value="delete">🗑</option>
+            <tr>
+              <td>${trackerEsc(row.match || "")}</td>
+              <td>${trackerEsc(row.market || "—")}</td>
+              <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
+              <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
+              <td>
+                <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                  <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                  <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                  <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                  <option value="delete">🗑 delete</option>
                 </select>
-              </div>
-              <div class="tracker-slim-profit"><span class="${pClass}">£${p.toFixed(2)}</span></div>
-            </div>
+              </td>
+              <td class="profit-col"><span class="${pClass}">£${p.toFixed(2)}</span></td>
+            </tr>
           `;
         });
 
         html += `
-                </div>
-              </div>
+                </tbody>
+              </table>
             </div>
           </div>
         `;
@@ -2803,6 +2794,7 @@ window.forgotVipPassword = forgotVipPassword;
     html += `</div>`;
     return html;
   };
+
   if(typeof _renderFilteredTrackerTable === "function"){
     _renderFilteredTrackerTable = function(){
       const tableEl = document.getElementById("trackerTable");
@@ -2840,3 +2832,351 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
+
+
+/* ===== FORCE BET RESULTS HYBRID LAYOUT PATCH ===== */
+(function(){
+  function brFmtMoney(v){
+    const n = Number(v || 0);
+    const sign = n > 0 ? "+" : "";
+    return sign + "£" + n.toFixed(2);
+  }
+  function brResultClass(res){
+    const r = String(res || "pending").toLowerCase();
+    return r === "won" ? "won" : r === "lost" ? "lost" : "pending";
+  }
+  function brDateChip(row){
+    return trackerDayLabel ? trackerDayLabel(row) : "";
+  }
+  function brGroupRows(rows){
+    const list = (rows || []).slice().sort((a,b)=> trackerParseDate(trackerRawDate(b)) - trackerParseDate(trackerRawDate(a)));
+    const monthState = trackerReadState("month");
+    const dayState = trackerReadState("day");
+    const months = [];
+    const monthMap = new Map();
+    list.forEach(row=>{
+      const month = trackerMonthLabel(row);
+      const day = trackerDayLabel(row);
+      if(!monthMap.has(month)){
+        monthMap.set(month, { label: month, days: new Map() });
+        months.push(monthMap.get(month));
+      }
+      const monthEntry = monthMap.get(month);
+      if(!monthEntry.days.has(day)) monthEntry.days.set(day, []);
+      monthEntry.days.get(day).push(row);
+    });
+    return { months, monthState, dayState };
+  }
+
+  function brRowControls(row, p){
+    const rid = trackerEsc(row.id);
+    const res = brResultClass(row.result);
+    return `
+      <div class="br-controls">
+        <label class="br-field">
+          <span>Stake</span>
+          <input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${rid}',this.value)">
+        </label>
+        <label class="br-field">
+          <span>Odds</span>
+          <input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${rid}',this.value)">
+        </label>
+        <label class="br-field br-field-result">
+          <span>Result</span>
+          <select class="result-select result-${res}" onchange="updateResult('${rid}',this.value)">
+            <option value="pending" ${res==="pending"?"selected":""}>pending</option>
+            <option value="won" ${res==="won"?"selected":""}>won</option>
+            <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+            <option value="delete">🗑 delete</option>
+          </select>
+        </label>
+        <div class="br-profit ${p>0?"profit-win":p<0?"profit-loss":""}">
+          <span>P/L</span>
+          <strong>${brFmtMoney(p)}</strong>
+        </div>
+      </div>
+    `;
+  }
+
+  function buildOption4(rows){
+    const { months, monthState, dayState } = brGroupRows(rows);
+    let html = `<div class="tracker-grouped-shell br-shell br-option4"><div class="br-test-title">Bet Results — Option 4 Test</div>`;
+    months.forEach((monthEntry, monthIndex)=>{
+      const monthKey = monthEntry.label;
+      const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0;
+      html += `
+        <div class="tracker-month-wrap br-month-wrap">
+          <button class="tracker-group-toggle tracker-month-toggle br-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+            <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
+            <span>${trackerEsc(monthKey)}</span>
+          </button>
+          <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+      `;
+      Array.from(monthEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
+        const dayKey = `${monthKey}||${dayLabel}`;
+        const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && dayIndex === 0);
+        html += `
+          <div class="tracker-day-wrap br-day-wrap">
+            <button class="tracker-group-toggle tracker-day-toggle br-day-toggle" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
+              <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
+              <span>${trackerEsc(dayLabel)}</span>
+              <span class="br-day-count">${dayRows.length} bets</span>
+            </button>
+            <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
+              <div class="br-list">
+        `;
+        dayRows.forEach(row=>{
+          const p = trackerProfit(row);
+          const res = brResultClass(row.result);
+          html += `
+            <div class="br-hybrid-row ${res}">
+              <div class="br-left">
+                <div class="br-topline">
+                  <span class="br-chip br-date">${trackerEsc(brDateChip(row))}</span>
+                  <span class="br-chip br-result ${res}">${trackerEsc(res)}</span>
+                </div>
+                <div class="br-match">${trackerEsc(row.match || "")}</div>
+                <div class="br-market">${trackerEsc(row.market || "—")}</div>
+              </div>
+              <div class="br-right">
+                ${brRowControls(row, p)}
+              </div>
+            </div>
+          `;
+        });
+        html += `</div></div></div>`;
+      });
+      html += `</div></div>`;
+    });
+    html += `</div>`;
+    return html;
+  }
+
+  function buildOption5(rows){
+    const { months, monthState, dayState } = brGroupRows(rows);
+    let html = `<div class="tracker-grouped-shell br-shell br-option5"><div class="br-test-title">Bet Results — Option 5 Test</div>`;
+    months.forEach((monthEntry, monthIndex)=>{
+      const monthKey = monthEntry.label;
+      const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0;
+      html += `
+        <div class="tracker-month-wrap br-month-wrap">
+          <button class="tracker-group-toggle tracker-month-toggle br-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+            <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
+            <span>${trackerEsc(monthKey)}</span>
+          </button>
+          <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+      `;
+      Array.from(monthEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
+        const dayKey = `${monthKey}||${dayLabel}`;
+        const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && dayIndex === 0);
+        html += `
+          <div class="tracker-day-wrap br-day-wrap">
+            <button class="tracker-group-toggle tracker-day-toggle br-day-toggle" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
+              <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
+              <span>${trackerEsc(dayLabel)}</span>
+              <span class="br-day-count">${dayRows.length} bets</span>
+            </button>
+            <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
+              <div class="br-table-wrap">
+                <table class="br-clean-table">
+                  <thead>
+                    <tr>
+                      <th>Match / Market</th>
+                      <th>Stake</th>
+                      <th>Odds</th>
+                      <th>Result</th>
+                      <th>P/L</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+        `;
+        dayRows.forEach(row=>{
+          const p = trackerProfit(row);
+          const res = brResultClass(row.result);
+          const rid = trackerEsc(row.id);
+          html += `
+            <tr class="${res}">
+              <td class="br-mm">
+                <div class="br-mm-top">${trackerEsc(row.match || "")}</div>
+                <div class="br-mm-sub">${trackerEsc(row.market || "—")}</div>
+              </td>
+              <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${rid}',this.value)"></td>
+              <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${rid}',this.value)"></td>
+              <td>
+                <select class="result-select result-${res}" onchange="updateResult('${rid}',this.value)">
+                  <option value="pending" ${res==="pending"?"selected":""}>pending</option>
+                  <option value="won" ${res==="won"?"selected":""}>won</option>
+                  <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+                  <option value="delete">🗑 delete</option>
+                </select>
+              </td>
+              <td class="profit-col"><span class="${p>0?"profit-win":p<0?"profit-loss":""}">${brFmtMoney(p)}</span></td>
+            </tr>
+          `;
+        });
+        html += `</tbody></table></div></div></div>`;
+      });
+      html += `</div></div>`;
+    });
+    html += `</div>`;
+    return html;
+  }
+
+  function buildOption6(rows){
+    const { months, monthState, dayState } = brGroupRows(rows);
+    let html = `<div class="tracker-grouped-shell br-shell br-option6"><div class="br-test-title">Bet Results — Option 6 Test</div>`;
+    months.forEach((monthEntry, monthIndex)=>{
+      const monthKey = monthEntry.label;
+      const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0;
+      html += `
+        <div class="tracker-month-wrap br-month-wrap">
+          <button class="tracker-group-toggle tracker-month-toggle br-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+            <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
+            <span>${trackerEsc(monthKey)}</span>
+          </button>
+          <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+      `;
+      Array.from(monthEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
+        const dayKey = `${monthKey}||${dayLabel}`;
+        const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && dayIndex === 0);
+        html += `
+          <div class="tracker-day-wrap br-day-wrap">
+            <button class="tracker-group-toggle tracker-day-toggle br-day-toggle" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
+              <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
+              <span>${trackerEsc(dayLabel)}</span>
+              <span class="br-day-count">${dayRows.length} bets</span>
+            </button>
+            <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
+              <div class="br-list br-two-line-list">
+        `;
+        dayRows.forEach(row=>{
+          const p = trackerProfit(row);
+          const res = brResultClass(row.result);
+          const rid = trackerEsc(row.id);
+          html += `
+            <div class="br-two-line-row ${res}">
+              <div class="br-line-one">
+                <span class="br-match">${trackerEsc(row.match || "")}</span>
+                <span class="br-mini-chip ${res}">${trackerEsc(res)}</span>
+              </div>
+              <div class="br-line-two">
+                <span class="br-subitem">${trackerEsc(row.market || "—")}</span>
+                <label><span>Stake</span><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${rid}',this.value)"></label>
+                <label><span>Odds</span><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${rid}',this.value)"></label>
+                <label><span>Result</span>
+                  <select class="result-select result-${res}" onchange="updateResult('${rid}',this.value)">
+                    <option value="pending" ${res==="pending"?"selected":""}>pending</option>
+                    <option value="won" ${res==="won"?"selected":""}>won</option>
+                    <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+                    <option value="delete">🗑 delete</option>
+                  </select>
+                </label>
+                <span class="br-inline-profit ${p>0?"profit-win":p<0?"profit-loss":""}">${brFmtMoney(p)}</span>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div></div></div>`;
+      });
+      html += `</div></div>`;
+    });
+    html += `</div>`;
+    return html;
+  }
+
+  function buildOption7(rows){
+    const { months, monthState, dayState } = brGroupRows(rows);
+    let html = `<div class="tracker-grouped-shell br-shell br-option7"><div class="br-test-title">Bet Results — Option 7 Test</div>`;
+    months.forEach((monthEntry, monthIndex)=>{
+      const monthKey = monthEntry.label;
+      const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0;
+      html += `
+        <div class="tracker-month-wrap br-month-wrap">
+          <button class="tracker-group-toggle tracker-month-toggle br-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+            <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
+            <span>${trackerEsc(monthKey)}</span>
+          </button>
+          <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+      `;
+      Array.from(monthEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
+        const dayKey = `${monthKey}||${dayLabel}`;
+        const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && dayIndex === 0);
+        html += `
+          <div class="tracker-day-wrap br-day-wrap">
+            <button class="tracker-group-toggle tracker-day-toggle br-day-toggle" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
+              <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
+              <span>${trackerEsc(dayLabel)}</span>
+              <span class="br-day-count">${dayRows.length} bets</span>
+            </button>
+            <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
+              <div class="br-grid-head">
+                <span>Match</span><span>Market</span><span>Stake</span><span>Odds</span><span>Result</span><span>P/L</span>
+              </div>
+              <div class="br-grid-list">
+        `;
+        dayRows.forEach(row=>{
+          const p = trackerProfit(row);
+          const res = brResultClass(row.result);
+          const rid = trackerEsc(row.id);
+          html += `
+            <div class="br-grid-row ${res}">
+              <div class="br-grid-cell br-grid-match">${trackerEsc(row.match || "")}</div>
+              <div class="br-grid-cell br-grid-market">${trackerEsc(row.market || "—")}</div>
+              <div class="br-grid-cell"><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${rid}',this.value)"></div>
+              <div class="br-grid-cell"><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${rid}',this.value)"></div>
+              <div class="br-grid-cell">
+                <select class="result-select result-${res}" onchange="updateResult('${rid}',this.value)">
+                  <option value="pending" ${res==="pending"?"selected":""}>pending</option>
+                  <option value="won" ${res==="won"?"selected":""}>won</option>
+                  <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+                  <option value="delete">🗑 delete</option>
+                </select>
+              </div>
+              <div class="br-grid-cell br-grid-profit ${p>0?"profit-win":p<0?"profit-loss":""}">${brFmtMoney(p)}</div>
+            </div>
+          `;
+        });
+        html += `</div></div></div>`;
+      });
+      html += `</div></div>`;
+    });
+    html += `</div>`;
+    return html;
+  }
+
+  const chosen = 4;
+  buildTrackerGroupedHTML = function(rows){
+    if(chosen === 4) return buildOption4(rows);
+    if(chosen === 5) return buildOption5(rows);
+    if(chosen === 6) return buildOption6(rows);
+    return buildOption7(rows);
+  };
+
+  if(typeof _renderFilteredTrackerTable === "function"){
+    _renderFilteredTrackerTable = function(){
+      const tableEl = document.getElementById("trackerTable");
+      const countEl = document.getElementById("betCount");
+      if(!tableEl) return;
+      const filtered = _applyTrackerFilters(trackerAllRows);
+      tableEl.innerHTML = buildTrackerGroupedHTML(filtered);
+      if(countEl) countEl.textContent = filtered.length;
+    };
+  }
+
+  if(typeof loadTracker === "function"){
+    const __brLoadTracker_4 = loadTracker;
+    loadTracker = async function(){
+      await __brLoadTracker_4();
+      try{
+        const tableEl = document.getElementById("trackerTable");
+        if(tableEl && Array.isArray(trackerAllRows)){
+          tableEl.innerHTML = buildTrackerGroupedHTML(trackerAllRows);
+          const countEl = document.getElementById("betCount");
+          if(countEl) countEl.textContent = trackerAllRows.length;
+        }
+      }catch(e){
+        console.error("Bet Results hybrid patch failed", e);
+      }
+    };
+  }
+})();
