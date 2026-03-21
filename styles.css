@@ -3923,3 +3923,29 @@ body.layout-compact .vip-bar{
   }
 
 }
+/* ===== TRUE TOP ALIGN FIX ===== */
+
+.tracker-grid-card{
+  position: relative;
+  padding-top: 32px; /* creates space for top row */
+}
+
+/* RESULT → TOP RIGHT */
+.tracker-grid-top-result,
+.tracker-grid-result{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* MATCH → TRUE TOP LEFT */
+.tracker-grid-match{
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* remove header spacing completely */
+.tracker-grid-header{
+  display: none;
+}
