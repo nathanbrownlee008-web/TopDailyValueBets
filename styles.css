@@ -3735,3 +3735,83 @@ body.layout-compact .vip-bar{
     border: 1px solid #334155 !important;
   }
 }
+
+
+
+/* ===== OPTION 7 FINAL POLISH: GREY TINT + TRUE LABEL ALIGN ===== */
+.tracker-grid-card{
+  background: linear-gradient(145deg, #101a28, #132033) !important;
+}
+
+.tracker-grid-meta--single-row{
+  display:grid !important;
+  grid-template-columns: 1.6fr .72fr .72fr !important;
+  gap: 12px !important;
+  align-items:start !important;
+}
+
+.tracker-grid-meta--single-row > div{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  justify-content:flex-start !important;
+  min-width:0 !important;
+}
+
+.tracker-grid-meta--single-row span{
+  display:block !important;
+  width:100% !important;
+  text-align:center !important;
+  line-height:1 !important;
+  min-height:12px !important;
+  margin:0 0 8px 0 !important;
+  color: rgba(203, 213, 225, 0.78) !important;
+}
+
+.tracker-grid-market-inline,
+.tracker-grid-card input{
+  height: 40px !important;
+  min-height: 40px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, #263246, #1f2a3b) !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  color: #eef4ff !important;
+}
+
+.tracker-grid-market-inline{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-weight:800 !important;
+  text-align:center !important;
+  padding:0 12px !important;
+}
+
+.tracker-grid-card input{
+  text-align:center !important;
+  padding:0 8px !important;
+}
+
+@media (max-width:700px){
+  .tracker-grid-meta--single-row{
+    grid-template-columns: 1.55fr .7fr .7fr !important;
+    gap: 10px !important;
+  }
+
+  .tracker-grid-meta--single-row span{
+    min-height:11px !important;
+    margin:0 0 7px 0 !important;
+    font-size:10px !important;
+  }
+
+  .tracker-grid-market-inline,
+  .tracker-grid-card input{
+    height: 38px !important;
+    min-height: 38px !important;
+    border-radius: 13px !important;
+    background: linear-gradient(180deg, #273447, #202c3d) !important;
+  }
+}
