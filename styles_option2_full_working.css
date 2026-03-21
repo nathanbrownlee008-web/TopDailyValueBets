@@ -3657,146 +3657,192 @@ body.layout-compact .vip-bar{
 
 
 
-/* ===== Bet results card rows ===== */
+/* ===== Bet Results Option 2 full rebuild ===== */
+#trackerTable .tracker-results-table{display:none !important;}
+
 #trackerTable .tracker-results-list{
   display:flex;
   flex-direction:column;
   gap:0;
+  background:transparent;
 }
 
-#trackerTable .tracker-bet-card{
+#trackerTable .tracker-bet-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:14px 8px;
   border-bottom:1px solid #334155;
-  padding:14px 10px;
 }
 
 #trackerTable .tracker-bet-main{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  gap:14px;
-  align-items:start;
-}
-
-#trackerTable .tracker-bet-text{
   min-width:0;
+  flex:1 1 auto;
+  padding-right:8px;
 }
 
 #trackerTable .tracker-bet-match{
   font-size:16px;
   font-weight:800;
-  line-height:1.15;
-  color:#e5edf7;
-  margin-bottom:8px;
-  word-break:break-word;
+  line-height:1.12;
+  color:#e5edf9;
+  margin-bottom:6px;
 }
 
 #trackerTable .tracker-bet-market{
   font-size:13px;
-  line-height:1.2;
-  color:#b7c5d8;
-  word-break:break-word;
+  line-height:1.15;
+  color:#a9b8ce;
+  font-weight:700;
 }
 
-#trackerTable .tracker-bet-controls{
-  display:flex;
-  align-items:flex-start;
-  gap:12px;
+#trackerTable .tracker-bet-stats{
+  flex:0 0 auto;
+  display:grid;
+  grid-template-columns: 68px 68px 94px 72px;
+  gap:10px;
+  align-items:end;
 }
 
 #trackerTable .tracker-stat{
   display:flex;
   flex-direction:column;
-  align-items:center;
-  gap:6px;
+  gap:4px;
+  min-width:0;
 }
 
 #trackerTable .tracker-stat-label{
   font-size:11px;
   line-height:1;
-  color:#8ea0b8;
-  font-weight:700;
-}
-
-#trackerTable .tracker-bet-controls input[type="number"]{
-  width:74px;
-  min-width:74px;
+  color:#7f93b2;
+  font-weight:800;
+  letter-spacing:.02em;
   text-align:center;
 }
 
-#trackerTable .tracker-bet-controls select{
-  min-width:112px;
-  width:112px;
-}
-
-#trackerTable .tracker-bet-profit{
-  margin-top:10px;
-  padding:10px 14px;
-  border-radius:14px;
+#trackerTable .tracker-stat-input{
+  position:relative;
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  border:1px solid rgba(255,255,255,0.08);
-  background:rgba(255,255,255,0.03);
 }
 
-#trackerTable .tracker-bet-profit.profit-win{
-  background:rgba(34,197,94,0.12);
-  border-color:rgba(34,197,94,0.35);
-}
-
-#trackerTable .tracker-bet-profit.profit-loss{
-  background:rgba(239,68,68,0.12);
-  border-color:rgba(239,68,68,0.35);
-}
-
-#trackerTable .tracker-bet-profit-label{
-  font-size:12px;
+#trackerTable .tracker-stat-input input[type="number"]{
+  width:100%;
+  min-width:0;
+  height:42px;
+  border-radius:12px;
+  border:1px solid #334155;
+  background:#1e293b;
+  color:#f8fafc;
+  text-align:center;
   font-weight:800;
-  color:#8ea0b8;
+  padding:0 8px;
 }
 
-#trackerTable .tracker-bet-profit-value{
-  font-size:16px;
+#trackerTable .tracker-stat-input--money input[type="number"]{
+  padding-left:18px;
+}
+
+#trackerTable .tracker-stat-prefix{
+  position:absolute;
+  left:10px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#94a3b8;
+  font-size:13px;
+  font-weight:800;
+  pointer-events:none;
+}
+
+#trackerTable .tracker-stat--result .result-select{
+  width:100%;
+  min-width:0;
+  height:42px;
+  border-radius:12px;
+  padding:0 10px;
+  font-weight:800;
+  background:#182233;
+}
+
+#trackerTable .tracker-profit-pill{
+  height:42px;
+  border-radius:12px;
+  border:1px solid #334155;
+  background:#172131;
+  color:#e2e8f0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
   font-weight:900;
+  white-space:nowrap;
+}
+
+#trackerTable .tracker-profit-pill.profit-win{
+  color:#22c55e;
+  border-color:rgba(34,197,94,.35);
+  background:rgba(34,197,94,.12);
+}
+
+#trackerTable .tracker-profit-pill.profit-loss{
+  color:#ef4444;
+  border-color:rgba(239,68,68,.35);
+  background:rgba(239,68,68,.12);
 }
 
 @media (max-width: 768px){
-  #trackerTable .tracker-bet-card{
-    padding:14px 10px;
+  #trackerTable .tracker-bet-row{
+    align-items:flex-start;
+    gap:12px;
+    padding:12px 6px;
   }
 
   #trackerTable .tracker-bet-main{
-    grid-template-columns:minmax(0,1fr) auto;
-    gap:10px;
+    flex:1 1 auto;
+    max-width:calc(100% - 252px);
   }
 
   #trackerTable .tracker-bet-match{
-    font-size:15px;
+    font-size:13px;
   }
 
   #trackerTable .tracker-bet-market{
-    font-size:15px;
-    color:#d0d9e8;
+    font-size:11px;
   }
 
-  #trackerTable .tracker-bet-controls{
-    gap:10px;
+  #trackerTable .tracker-bet-stats{
+    grid-template-columns: 56px 56px 82px;
+    grid-template-areas:
+      "stake odds result"
+      "pl pl pl";
+    gap:8px;
   }
+
+  #trackerTable .tracker-stat--stake{grid-area:stake;}
+  #trackerTable .tracker-stat--odds{grid-area:odds;}
+  #trackerTable .tracker-stat--result{grid-area:result;}
+  #trackerTable .tracker-stat--profit{grid-area:pl;}
 
   #trackerTable .tracker-stat-label{
     font-size:10px;
   }
 
-  #trackerTable .tracker-bet-controls input[type="number"]{
-    width:64px;
-    min-width:64px;
+  #trackerTable .tracker-stat-input input[type="number"],
+  #trackerTable .tracker-stat--result .result-select,
+  #trackerTable .tracker-profit-pill{
+    height:38px;
+    font-size:12px;
   }
 
-  #trackerTable .tracker-bet-controls select{
-    width:96px;
-    min-width:96px;
+  #trackerTable .tracker-profit-pill{
+    width:100%;
+    justify-content:flex-end;
+    padding-right:10px;
   }
 
-  #trackerTable .tracker-bet-profit{
-    display:none;
+  #trackerTable .tracker-stat-prefix{
+    left:8px;
+    font-size:12px;
   }
 }
