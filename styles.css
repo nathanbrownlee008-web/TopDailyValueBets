@@ -3808,3 +3808,6 @@ body.layout-compact .vip-bar{
     border-radius:9px;
   }
 }
+.tracker-grid-date {
+  display: none !important;
+}
