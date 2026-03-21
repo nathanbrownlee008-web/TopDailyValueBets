@@ -3878,3 +3878,48 @@ body.layout-compact .vip-bar{
   }
 
 }
+/* ===== TIGHTEN CARD SPACING ===== */
+
+/* pull match closer to top */
+.tracker-grid-match{
+  margin-top:0;
+  margin-bottom:4px;
+  line-height:1.05;
+}
+
+/* reduce space under header */
+.tracker-grid-header{
+  margin-bottom:4px;
+}
+
+/* tighten market/stake/odds section */
+.tracker-grid-meta{
+  margin-top:6px;
+}
+
+/* reduce label spacing */
+.tracker-grid-meta span{
+  margin-bottom:2px;
+}
+
+/* slightly reduce overall card padding */
+.tracker-grid-card{
+  padding:10px 10px;
+}
+
+/* MOBILE EXTRA TIGHT */
+@media (max-width:700px){
+
+  .tracker-grid-card{
+    padding:9px 9px;
+  }
+
+  .tracker-grid-match{
+    margin-bottom:3px;
+  }
+
+  .tracker-grid-meta{
+    margin-top:5px;
+  }
+
+}
