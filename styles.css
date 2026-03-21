@@ -3931,13 +3931,11 @@ html {
   margin-top: 8px; /* extra breathing room before months */
 }
 /* Make stake & odds text bigger + thicker */
+/* Make stake & odds text bigger + thicker */
 input,
 .stake-box,
 .odds-box {
-  color: #ffffff; /* brighter text */
-}
-  font-size: 14px !important;
-  font-weight: 550;
-  text-align: center;
-  letter-spacing: 0.5px; /* makes numbers cleaner */
+  font-size: 12px !important;   /* bigger text */
+  font-weight: 580;             /* thicker text */
+  text-align: center;           /* keeps it clean */
 }
