@@ -3917,3 +3917,12 @@ body,
 html {
   overflow-x: hidden;
 }
+/* Center text inside result pill */
+.result-pill,
+.result,
+select.result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
