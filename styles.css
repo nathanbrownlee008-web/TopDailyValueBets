@@ -4117,8 +4117,8 @@ input,
 
 /* keep enough room on the left so the centered value chip doesn't force wrapping */
 .bet-card .bet-left{
-  padding-right: 140px !important;
+  padding-right: 130px !important;
 }
 .bet-title{
-  font-size: 18px !important;
+  font-size: 16px !important;
 }
