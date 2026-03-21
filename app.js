@@ -2781,7 +2781,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-meta tracker-grid-meta--single-row">
                 <div class="tracker-grid-market-slot">
                   <span>Market</span>
-                  <div class="tracker-grid-market-inline">${`<span class="tracker-market-icon">${trackerMarketIcon(row.market)}</span><span class="tracker-market-text">${trackerEsc(row.market || "—")}</span>`}</div>
+                  <div class="tracker-grid-market-inline">${trackerMarketIcon(row.market)} ${trackerEsc(row.market || "—")}</div>
                 </div>
                 <div>
                   <span>Stake</span>
