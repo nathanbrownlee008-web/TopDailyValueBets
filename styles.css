@@ -4127,12 +4127,13 @@ input,
 
 /* VALUE BETS ONLY: bookmaker logos */
 .bet-bookie-row{
+  .bet-bookie-row{
   display:flex;
   align-items:center;
-  justify-content:flex-start;
-  min-height:50px;
-  margin-top:8px;
-}
+  justify-content:center; /* center it */
+  min-height:34px;
+  margin:8px 0 6px 0; /* tighter spacing */
+  }
 
 .bet-bookie-logo{
   height:50px;
@@ -4140,6 +4141,7 @@ input,
   max-width:180px;
   object-fit:contain;
   display:block;
+  margin:0 auto;
 }
 
 .bet-bookie-logo--dark{
