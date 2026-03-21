@@ -3815,3 +3815,81 @@ body.layout-compact .vip-bar{
     background: linear-gradient(180deg, #273447, #202c3d) !important;
   }
 }
+
+
+/* ===== OPTION 7 TRUE COLUMN ALIGN FIX ===== */
+.tracker-grid-meta--single-row{
+  display:grid !important;
+  grid-template-columns: 2fr 1fr 1fr !important;
+  gap:10px !important;
+  align-items:start !important;
+}
+
+.tracker-grid-meta--single-row > div{
+  display:grid !important;
+  grid-template-rows: auto 40px !important;
+  align-items:start !important;
+  min-width:0 !important;
+}
+
+.tracker-grid-meta--single-row span{
+  display:block !important;
+  text-align:center !important;
+  font-size:10px !important;
+  line-height:1 !important;
+  min-height:10px !important;
+  margin:0 0 6px 0 !important;
+  color: rgba(203, 213, 225, 0.78) !important;
+}
+
+.tracker-grid-market-inline,
+.tracker-grid-card input{
+  width:100% !important;
+  height:40px !important;
+  min-height:40px !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:14px !important;
+  background: linear-gradient(180deg, #2a3547, #1f2937) !important;
+  border: 1px solid rgba(148,163,184,0.25) !important;
+  color:#eef4ff !important;
+}
+
+.tracker-grid-market-inline{
+  padding:0 12px !important;
+  font-weight:800 !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+.tracker-grid-card input{
+  text-align:center !important;
+  padding:0 8px !important;
+}
+
+@media (max-width:700px){
+  .tracker-grid-meta--single-row{
+    grid-template-columns: 2fr 1fr 1fr !important;
+    gap:9px !important;
+  }
+
+  .tracker-grid-meta--single-row > div{
+    grid-template-rows: auto 38px !important;
+  }
+
+  .tracker-grid-meta--single-row span{
+    font-size:10px !important;
+    margin:0 0 5px 0 !important;
+  }
+
+  .tracker-grid-market-inline,
+  .tracker-grid-card input{
+    height:38px !important;
+    min-height:38px !important;
+    border-radius:13px !important;
+  }
+}
