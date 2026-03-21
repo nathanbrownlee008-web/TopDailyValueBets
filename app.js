@@ -2698,102 +2698,104 @@ window.forgotVipPassword = forgotVipPassword;
     const list = (rows || []).slice().sort((a,b)=> trackerParseDate(trackerRawDate(b)) - trackerParseDate(trackerRawDate(a)));
 
     const monthState = trackerReadState("month");
-    const dayState = trackerReadState("day");
-
     const months = [];
     const monthMap = new Map();
 
     list.forEach(row=>{
       const month = trackerMonthLabel(row);
-      const day = trackerDayLabel(row);
-
       if(!monthMap.has(month)){
-        monthMap.set(month, { label: month, days: new Map() });
+        monthMap.set(month, { label: month, rows: [], stats:{bets:0,wins:0,losses:0,pending:0,profit:0} });
         months.push(monthMap.get(month));
       }
-      const monthEntry = monthMap.get(month);
-      if(!monthEntry.days.has(day)) monthEntry.days.set(day, []);
-      monthEntry.days.get(day).push(row);
+      const bucket = monthMap.get(month);
+      const result = String(row.result || 'pending').toLowerCase();
+      const p = trackerProfit(row);
+      bucket.rows.push(row);
+      bucket.stats.bets += 1;
+      if(result === 'won') bucket.stats.wins += 1;
+      else if(result === 'lost') bucket.stats.losses += 1;
+      else bucket.stats.pending += 1;
+      bucket.stats.profit += p;
     });
 
-    let html = `<div class="tracker-grouped-shell tracker-option3-shell">`;
+    let html = `<div class="tracker-v2-shell">`;
 
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
-      const monthRows = Array.from(monthEntry.days.values()).flat();
-      const monthProfit = monthRows.reduce((sum, row)=> sum + trackerProfit(row), 0);
       const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0;
-
+      const st = monthEntry.stats;
+      const monthProfit = `${st.profit >= 0 ? '+' : '-'}£${Math.abs(st.profit).toFixed(2)}`;
       html += `
-        <div class="tracker-month-wrap tracker-month-card premium">
-          <button class="tracker-group-toggle tracker-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+        <div class="tracker-v2-month">
+          <button class="tracker-v2-month-head" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
             <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
-            <span class="tracker-group-title">${trackerEsc(monthKey)}</span>
-            <span class="tracker-group-meta">${monthRows.length} bets</span>
-            <span class="tracker-group-profit ${monthProfit > 0 ? "is-win" : monthProfit < 0 ? "is-loss" : ""}">£${monthProfit.toFixed(2)}</span>
+            <span class="tracker-v2-month-main">
+              <span class="tracker-v2-month-title">${trackerEsc(monthKey)}</span>
+              <span class="tracker-v2-month-sub">${st.bets} bets • ${st.wins}W ${st.losses}L${st.pending ? ` ${st.pending}P` : ''}</span>
+            </span>
+            <span class="tracker-v2-month-profit ${st.profit > 0 ? 'is-win' : st.profit < 0 ? 'is-loss' : ''}">${monthProfit}</span>
           </button>
           <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+            <div class="tracker-v2-list">
       `;
 
-      Array.from(monthEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
-        const dayKey = `${monthKey}||${dayLabel}`;
-        const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && dayIndex === 0);
+      monthEntry.rows.forEach(row=>{
+        const rawResult = String(row.result || 'pending').toLowerCase();
+        const resultLabel = rawResult === 'won' ? 'WON' : rawResult === 'lost' ? 'LOST' : 'PENDING';
+        const resultClass = rawResult === 'won' ? 'is-win' : rawResult === 'lost' ? 'is-loss' : 'is-pending';
+        const p = trackerProfit(row);
+        const pClass = p > 0 ? 'profit-win' : (p < 0 ? 'profit-loss' : '');
+        const dateLabel = trackerDayLabel(row);
         html += `
-          <div class="tracker-day-wrap tracker-day-card premium">
-            <button class="tracker-group-toggle tracker-day-toggle" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
-              <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
-              <span class="tracker-group-title">${trackerEsc(dayLabel)}</span>
-              <span class="tracker-group-meta">${dayRows.length} bets</span>
-            </button>
-            <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
-              <div class="tracker-card-grid">
-        `;
-
-        dayRows.forEach(row=>{
-          const p = trackerProfit(row);
-          const pClass = p > 0 ? "profit-win" : (p < 0 ? "profit-loss" : "");
-          const r = row.result || 'pending';
-          html += `
-            <article class="tracker-bet-card result-${trackerEsc(r)}">
-              <div class="tracker-bet-topline">
-                <span class="tracker-chip tracker-date-chip">${trackerEsc(trackerDisplayDate(row))}</span>
-                <span class="tracker-chip tracker-result-chip result-${trackerEsc(r)}">${trackerEsc(r)}</span>
+          <div class="tracker-v2-row ${resultClass}">
+            <div class="tracker-v2-row-top">
+              <span class="tracker-v2-chip tracker-v2-date">${trackerEsc(dateLabel)}</span>
+              <span class="tracker-v2-chip tracker-v2-result ${resultClass}">${resultLabel}</span>
+            </div>
+            <div class="tracker-v2-row-main">
+              <div class="tracker-v2-left">
+                <div class="tracker-v2-match">${trackerEsc(row.match || '')}</div>
+                <div class="tracker-v2-market">${trackerEsc(row.market || '—')}</div>
               </div>
-              <div class="tracker-bet-match">${trackerEsc(row.match || "")}</div>
-              <div class="tracker-bet-market">${trackerEsc(row.market || "—")}</div>
-              <div class="tracker-bet-stats">
-                <label><span>Stake</span><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></label>
-                <label><span>Odds</span><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></label>
-                <label><span>Result</span>
-                  <select class="result-select result-${trackerEsc(r)}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                    <option value="pending" ${(r==="pending"?"selected":"")}>pending</option>
-                    <option value="won" ${(r==="won"?"selected":"")}>won</option>
-                    <option value="lost" ${(r==="lost"?"selected":"")}>lost</option>
+              <div class="tracker-v2-right">
+                <label class="tracker-v2-stat">
+                  <span class="tracker-v2-stat-label">Stake</span>
+                  <input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)">
+                </label>
+                <label class="tracker-v2-stat">
+                  <span class="tracker-v2-stat-label">Odds</span>
+                  <input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)">
+                </label>
+                <label class="tracker-v2-stat tracker-v2-result-select-wrap">
+                  <span class="tracker-v2-stat-label">Result</span>
+                  <select class="result-select result-${trackerEsc(rawResult)}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                    <option value="pending" ${(rawResult==="pending"?"selected":"")}>pending</option>
+                    <option value="won" ${(rawResult==="won"?"selected":"")}>won</option>
+                    <option value="lost" ${(rawResult==="lost"?"selected":"")}>lost</option>
                     <option value="delete">🗑 delete</option>
                   </select>
                 </label>
               </div>
-              <div class="tracker-bet-profit-row">
-                <span class="tracker-bet-profit-label">Profit</span>
-                <span class="tracker-bet-profit ${pClass}">£${p.toFixed(2)}</span>
-              </div>
-            </article>
-          `;
-        });
-
-        html += `
-              </div>
+            </div>
+            <div class="tracker-v2-row-bottom">
+              <span class="tracker-v2-pl-label">Profit</span>
+              <span class="tracker-v2-pl ${pClass}">£${p.toFixed(2)}</span>
             </div>
           </div>
         `;
       });
 
-      html += `</div></div>`;
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
     });
 
     html += `</div>`;
     return html;
   };
+
   if(typeof _renderFilteredTrackerTable === "function"){
     _renderFilteredTrackerTable = function(){
       const tableEl = document.getElementById("trackerTable");
@@ -2831,16 +2833,3 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
-
-
-// Forced test badge for Option 3
-document.addEventListener('DOMContentLoaded',()=>{
-  const el = document.querySelector('.tracker-history .tracker-toggle');
-  if(el){
-    const count = document.getElementById('betCount');
-    const arrow = document.getElementById('trackerArrow');
-    if(count && arrow){
-      el.innerHTML = `📈 Bet Results — Option 3 Test (<span id="betCount">${count.textContent||'0'}</span>) <span id="trackerArrow">${arrow.textContent||'▼'}</span>`;
-    }
-  }
-});
