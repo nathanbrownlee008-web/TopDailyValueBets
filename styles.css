@@ -3811,3 +3811,70 @@ body.layout-compact .vip-bar{
 .tracker-grid-date {
   display: none !important;
 }
+/* ===== FINAL ALIGN FIX ===== */
+
+/* 1. HEADER = RESULT TOP RIGHT */
+.tracker-grid-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:6px;
+}
+
+/* make result sit top right */
+.tracker-grid-top-result,
+.tracker-grid-result{
+  margin-left:auto;
+}
+
+/* 2. MATCH TIGHTER */
+.tracker-grid-match{
+  margin-top:2px;
+  margin-bottom:6px;
+}
+
+/* 3. CLEAN ROW ALIGN */
+.tracker-grid-meta{
+  display:grid;
+  grid-template-columns: 1.4fr 0.8fr 0.8fr;
+  gap:6px;
+  align-items:end;
+}
+
+/* tighten spacing between stake + odds */
+.tracker-grid-meta > div{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* smaller labels */
+.tracker-grid-meta span{
+  font-size:10px;
+  margin-bottom:3px;
+}
+
+/* inputs tighter */
+.tracker-grid-card input,
+.tracker-grid-card select{
+  height:32px;
+  font-size:11px;
+  padding:3px 6px;
+  border-radius:9px;
+}
+
+/* 4. MOBILE PERFECT ALIGN */
+@media (max-width:700px){
+
+  .tracker-grid-meta{
+    grid-template-columns: 1.3fr 0.7fr 0.7fr;
+    gap:5px;
+  }
+
+  .tracker-grid-card input,
+  .tracker-grid-card select{
+    height:30px;
+    font-size:11px;
+  }
+
+}
