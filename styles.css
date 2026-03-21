@@ -3930,3 +3930,11 @@ html {
 #trackerWrapper{
   margin-top: 8px; /* extra breathing room before months */
 }
+/* Make stake & odds text bigger + thicker */
+input,
+.stake-box,
+.odds-box {
+  font-size: 16px !important;   /* bigger text */
+  font-weight: 600;             /* thicker text */
+  text-align: center;           /* keeps it clean */
+}
