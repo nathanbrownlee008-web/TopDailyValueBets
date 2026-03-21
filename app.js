@@ -493,25 +493,6 @@ const FREE_VISIBLE_COUNT = 3;
 const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
-
-function marketIconForText(market){
-  const m = String(market || "").toLowerCase();
-  if(m.includes("corner")) return "🚩";
-  if(m.includes("card")) return "🟨";
-  if(m.includes("btts") || m.includes("both teams to score")) return "🥅";
-  if(m.includes("goal")) return "⚽";
-  if(m.includes("shot")) return "🎯";
-  if(m.includes("assist")) return "🅰️";
-  if(m.includes("foul")) return "🚫";
-  if(m.includes("offside")) return "🚨";
-  if(m.includes("win") || m.includes("draw") || m.includes("double chance")) return "🏁";
-  return "📌";
-}
-
-function marketIconLabel(market){
-  return `${marketIconForText(market)} ${String(market || "—")}`;
-}
-
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
@@ -642,6 +623,21 @@ function switchTab(tab){
   }
 }
 
+
+
+function marketIconForText(market){
+  const m = String(market || "").toLowerCase();
+  if(m.includes("corner")) return "🚩";
+  if(m.includes("card")) return "🟨";
+  if(m.includes("btts") || m.includes("both teams to score")) return "🥅";
+  if(m.includes("goal")) return "⚽";
+  if(m.includes("shot")) return "🎯";
+  if(m.includes("assist")) return "🅰️";
+  if(m.includes("foul")) return "🚫";
+  if(m.includes("offside")) return "🚨";
+  if(m.includes("win") || m.includes("draw") || m.includes("double chance")) return "🏁";
+  return "📌";
+}
 
 async function loadBets(){
   addedKeys.clear();
@@ -2785,7 +2781,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-meta tracker-grid-meta--single-row">
                 <div class="tracker-grid-market-slot">
                   <span>Market</span>
-                  <div class="tracker-grid-market-inline">${trackerEsc(row.market || "—")}</div>
+                  <div class="tracker-grid-market-inline">${marketIconForText(row.market)} ${trackerEsc(row.market || "—")}</div>
                 </div>
                 <div>
                   <span>Stake</span>
