@@ -4101,3 +4101,7 @@ input,
 .value-card .add-btn {
   justify-self: end !important;
 }
+/* Nudge VALUE pill to the RIGHT */
+.value-pill {
+  transform: translateX(8px);
+}
