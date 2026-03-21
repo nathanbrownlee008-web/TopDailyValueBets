@@ -3936,8 +3936,8 @@ input,
 .odds-box {
   color: #ffffff; /* brighter text */
 }
-  font-size: 12px !important;
-  font-weight: 500;
+  font-size: 14px !important;
+  font-weight: 550;
   text-align: center;
   letter-spacing: 0.5px; /* makes numbers cleaner */
 }
