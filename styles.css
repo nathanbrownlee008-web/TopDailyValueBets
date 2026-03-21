@@ -3930,3 +3930,21 @@ select.result {
   text-align: center;
   text-align-last: center; /* important for dropdown */
 }
+/* FULL fix for result pill centering */
+select.result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  text-align-last: center;
+
+  padding-left: 0;
+  padding-right: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-position: right 10px center; /* keep arrow aligned */
+}
