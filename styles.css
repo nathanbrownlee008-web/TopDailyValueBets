@@ -4122,3 +4122,15 @@ input,
 .bet-title{
   font-size: 16px !important;
 }
+/* ===== BOOKIE TEXT SIZE BOOST ===== */
+
+.bet-meta {
+  font-size: 16px !important;
+}
+
+.bet-meta span,
+.bet-meta div {
+  font-size: 14px !important;
+  color: #ffffff !important;
+  opacity: 0.95 !important;
+}
