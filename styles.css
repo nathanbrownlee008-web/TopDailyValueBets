@@ -3949,3 +3949,31 @@ body.layout-compact .vip-bar{
 .tracker-grid-header{
   display: none;
 }
+/* ===== FIX RESULT TOP RIGHT (DON’T HIDE IT) ===== */
+
+.tracker-grid-card{
+  position: relative;
+  padding-top: 28px;
+}
+
+/* keep header but make it invisible layout-wise */
+.tracker-grid-header{
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* RESULT back top right */
+.tracker-grid-top-result,
+.tracker-grid-result{
+  position: absolute;
+  top: 8px;
+  right: 10px;
+}
+
+/* MATCH stays top left */
+.tracker-grid-match{
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
