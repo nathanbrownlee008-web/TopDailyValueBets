@@ -3897,8 +3897,20 @@ body.layout-compact .vip-bar{
 body {
   transform: scale(0.95);
   transform-origin: top center;
-  width: 80%;
+  width: 100%;
 }
+body {
+  overflow-x: hidden;
+}
+/* ONLY zoom Bet Results section */
+#bet-results,
+.tracker-opt7-shell {
+  transform: scale(0.95);
+  transform-origin: top center;
+  width: 85%;
+}
+
+/* prevent sideways scroll */
 body {
   overflow-x: hidden;
 }
