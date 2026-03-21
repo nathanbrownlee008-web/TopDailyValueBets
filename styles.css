@@ -3682,3 +3682,56 @@ body.layout-compact .vip-bar{
   .tracker-grid-market-inline,.tracker-grid-card input{height:36px;border-radius:12px;font-size:12px;}
   .tracker-grid-market-inline{padding:0 10px;font-weight:700;}
 }
+
+
+
+/* ===== OPTION 7 FINAL TUNE: ALIGN + LESS BLUE ===== */
+.tracker-grid-card{
+  background: linear-gradient(145deg, #0d1828, #122033) !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.20) !important;
+}
+
+.tracker-grid-meta--single-row{
+  align-items: start !important;
+}
+
+.tracker-grid-meta--single-row > div{
+  justify-content: flex-start !important;
+}
+
+.tracker-grid-meta--single-row span{
+  margin-bottom: 6px !important;
+}
+
+.tracker-grid-market-inline,
+.tracker-grid-card input{
+  height: 40px !important;
+  min-height: 40px !important;
+  box-sizing: border-box !important;
+  background: #1b2738 !important;
+  border: 1px solid #334155 !important;
+  color: #eef4ff !important;
+}
+
+.tracker-grid-market-inline{
+  font-weight: 800 !important;
+}
+
+@media (max-width:700px){
+  .tracker-grid-card{
+    background: linear-gradient(145deg, #0d1828, #122033) !important;
+  }
+
+  .tracker-grid-meta--single-row span{
+    margin-bottom: 5px !important;
+  }
+
+  .tracker-grid-market-inline,
+  .tracker-grid-card input{
+    height: 36px !important;
+    min-height: 36px !important;
+    background: #1b2738 !important;
+    border: 1px solid #334155 !important;
+  }
+}
