@@ -2657,7 +2657,6 @@ window.forgotVipPassword = forgotVipPassword;
 
   function trackerMarketIcon(market){
     const m = String(market || "").toLowerCase();
-
     if(m.includes("corner")) return "🚩";
     if(m.includes("card")) return "🟨";
     if(m.includes("btts") || m.includes("both teams to score")) return "🥅";
@@ -2782,7 +2781,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-meta tracker-grid-meta--single-row">
                 <div class="tracker-grid-market-slot">
                   <span>Market</span>
-                  <div class="tracker-grid-market-inline"><span class="tracker-market-icon">${trackerMarketIcon(row.market)}</span><span class="tracker-market-text">${trackerEsc(row.market || "—")}</span></div>
+                  <div class="tracker-grid-market-inline">${`<span class="tracker-market-icon">${trackerMarketIcon(row.market)}</span><span class="tracker-market-text">${trackerEsc(row.market || "—")}</span>`}</div>
                 </div>
                 <div>
                   <span>Stake</span>

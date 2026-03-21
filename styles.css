@@ -3893,79 +3893,37 @@ body.layout-compact .vip-bar{
     border-radius:13px !important;
   }
 }
-/* ONLY zoom Bet Results section */
-#bet-results,
-.tracker-opt7-shell {
-  transform: scale(0.95);
-  transform-origin: top center;
-  width: 95%;
-}
-
-/* prevent sideways scroll */
-body {
-  overflow-x: hidden;
-}
-/* Only shrink the results area, without sideways scroll */
-.tracker-opt7-shell {
-  transform: scale(0.96);
-  transform-origin: top center;
-  width: calc(100% / 0.96);
-  margin-left: calc((100% - (100% / 0.96)) / 2);
-}
-
-body,
-html {
-  overflow-x: hidden;
-}
-/* ===== SPACE BETWEEN BET RESULTS HEADER & FIRST DROPDOWN ===== */
-
-.tracker-history{
-  margin-top: 20px;
-}
-
-.tracker-toggle{
-  margin-bottom: 14px; /* space under "Bet Results" header */
-}
-
-#trackerWrapper{
-  margin-top: 8px; /* extra breathing room before months */
-}
-/* Make stake & odds text bigger + thicker */
-/* Make stake & odds text bigger + thicker */
-input,
-.stake-box,
-.odds-box {
-  font-size: 12px !important;   /* bigger text */
-  font-weight: 650;             /* thicker text */
-  text-align: center;           /* keeps it clean */
-}
 
 
 
-/* ===== MARKET ICONS ===== */
+/* ===== MARKET ICON + TEXT ===== */
 .tracker-grid-market-inline{
-  gap: 8px;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
 }
 
 .tracker-market-icon{
-  flex: 0 0 auto;
-  font-size: 15px;
-  line-height: 1;
+  flex:0 0 auto !important;
+  font-size:15px !important;
+  line-height:1 !important;
 }
 
 .tracker-market-text{
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display:inline-block !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
 }
 
 @media (max-width:700px){
   .tracker-grid-market-inline{
-    gap: 6px;
+    gap:6px !important;
   }
-
   .tracker-market-icon{
-    font-size: 14px;
+    font-size:14px !important;
   }
 }
