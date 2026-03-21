@@ -2907,21 +2907,21 @@ window.forgotVipPassword = forgotVipPassword;
       <div class="tracker-grid-card">
         <div class="tracker-grid-header">
           <span class="tracker-grid-date">${__trEsc(__trDateLabel(row))}</span>
-          <span class="tracker-grid-profit ${pClass}">${p >= 0 ? "+" : "-"}£${Math.abs(p).toFixed(2)}</span>
-        </div>
-        <div class="tracker-grid-match">${__trEsc(row.match || "")}</div>
-        <div class="tracker-grid-market">${__trEsc(row.market || "—")}</div>
-        <div class="tracker-grid-meta">
-          <div><span>Stake</span><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${__trEsc(row.id)}',this.value)"></div>
-          <div><span>Odds</span><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${__trEsc(row.id)}',this.value)"></div>
-          <div class="tracker-grid-result"><span>Result</span>
-            <select class="result-select result-${__trEsc(row.result || 'pending')}" onchange="updateResult('${__trEsc(row.id)}',this.value)">
+          <div class="tracker-grid-top-result">
+            <select class="result-select tracker-grid-top-select result-${__trEsc(row.result || 'pending')}" onchange="updateResult('${__trEsc(row.id)}',this.value)">
               <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
               <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
               <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
               <option value="delete">🗑 delete</option>
             </select>
           </div>
+          <span class="tracker-grid-profit ${pClass}">${p >= 0 ? "+" : "-"}£${Math.abs(p).toFixed(2)}</span>
+        </div>
+        <div class="tracker-grid-match">${__trEsc(row.match || "")}</div>
+        <div class="tracker-grid-meta tracker-grid-meta--single-row">
+          <div class="tracker-grid-market-slot"><span>Market</span><div class="tracker-grid-market-inline">${__trEsc(row.market || "—")}</div></div>
+          <div><span>Stake</span><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${__trEsc(row.id)}',this.value)"></div>
+          <div><span>Odds</span><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${__trEsc(row.id)}',this.value)"></div>
         </div>
       </div>
     `;

@@ -3677,118 +3677,134 @@ body.layout-compact .vip-bar{
 
 
 
-/* ===== OPTION 7 SMALLER CARDS FIX ===== */
-.tracker-opt7-shell .tracker-bet-list{
-  gap: 10px;
-}
-
+/* ===== OPTION 7 RESULT TOP-RIGHT / MARKET IN BOTTOM ROW ===== */
 .tracker-grid-card{
-  padding: 11px;
-  border-radius: 16px;
+  padding: 12px;
 }
 
 .tracker-grid-header{
-  margin-bottom: 6px;
-}
-
-.tracker-grid-date{
-  padding: 3px 9px;
-  font-size: 11px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:start;
+  gap:8px;
+  margin-bottom:8px;
 }
 
 .tracker-grid-profit{
-  font-size: 12px;
+  justify-self:end;
+}
+
+.tracker-grid-top-result{
+  display:none;
+  justify-self:end;
+}
+
+.tracker-grid-top-select{
+  min-width:92px;
+  height:34px;
+  padding:4px 8px;
+  border-radius:10px;
+  font-size:12px;
 }
 
 .tracker-grid-match{
-  font-size: 16px;
-  line-height: 1.08;
+  font-size:17px;
+  line-height:1.08;
 }
 
 .tracker-grid-market{
-  margin-top: 4px;
-  font-size: 12px;
-  line-height: 1.12;
+  display:none;
 }
 
-.tracker-grid-meta{
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  gap: 8px;
-  margin-top: 10px;
+.tracker-grid-meta.tracker-grid-meta--single-row{
+  grid-template-columns:1.4fr .8fr .8fr;
+  gap:8px;
+  margin-top:10px;
+  align-items:end;
+}
+
+.tracker-grid-market-slot{
+  min-width:0;
+}
+
+.tracker-grid-market-inline{
+  height:34px;
+  display:flex;
+  align-items:center;
+  padding:0 10px;
+  border-radius:10px;
+  background:#1e293b;
+  border:1px solid #334155;
+  color:#d7e3f7;
+  font-size:12px;
+  line-height:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .tracker-grid-meta > div{
-  gap: 4px;
+  gap:4px;
 }
 
 .tracker-grid-meta span{
-  font-size: 10px;
-  margin-bottom: 0;
+  font-size:10px;
 }
 
 .tracker-grid-card input,
 .tracker-grid-card select{
-  width: 100%;
-  height: 34px;
-  min-height: 34px;
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 10px;
-  box-sizing: border-box;
-}
-
-.tracker-grid-card input{
-  text-align: center;
+  height:34px;
+  min-height:34px;
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:10px;
+  box-sizing:border-box;
 }
 
 @media (max-width:700px){
-  .tracker-opt7-shell .tracker-bet-list{
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .tracker-grid-card{
-    padding: 10px;
-    border-radius: 15px;
-  }
-
-  .tracker-grid-date{
-    padding: 3px 8px;
-    font-size: 10px;
+  .tracker-grid-header{
+    grid-template-columns:auto 1fr;
+    align-items:center;
   }
 
   .tracker-grid-profit{
-    font-size: 11px;
+    display:none !important;
+  }
+
+  .tracker-grid-top-result{
+    display:flex;
   }
 
   .tracker-grid-match{
-    font-size: 14px;
+    font-size:15px;
   }
 
-  .tracker-grid-market{
-    font-size: 11px;
+  .tracker-grid-meta.tracker-grid-meta--single-row{
+    grid-template-columns:1.25fr .78fr .78fr;
+    gap:7px;
+    margin-top:8px;
   }
 
-  .tracker-grid-meta{
-    grid-template-columns: .9fr .9fr 1.15fr !important;
-    gap: 7px;
-    margin-top: 8px;
-  }
-
-  .tracker-grid-result{
-    grid-column: auto !important;
-  }
-
-  .tracker-grid-meta span{
-    font-size: 9px;
+  .tracker-grid-market-inline{
+    height:32px;
+    font-size:11px;
+    padding:0 8px;
   }
 
   .tracker-grid-card input,
   .tracker-grid-card select{
-    height: 32px;
-    min-height: 32px;
-    padding: 3px 7px;
-    font-size: 11px;
-    border-radius: 9px;
+    height:32px;
+    min-height:32px;
+    font-size:11px;
+    padding:3px 7px;
+    border-radius:9px;
+  }
+
+  .tracker-grid-top-select{
+    min-width:84px;
+    height:32px;
+    font-size:11px;
+    padding:3px 7px;
+    border-radius:9px;
   }
 }
