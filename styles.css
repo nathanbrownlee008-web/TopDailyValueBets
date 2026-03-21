@@ -3936,6 +3936,6 @@ input,
 .stake-box,
 .odds-box {
   font-size: 12px !important;   /* bigger text */
-  font-weight: 600;             /* thicker text */
+  font-weight: 650;             /* thicker text */
   text-align: center;           /* keeps it clean */
 }
