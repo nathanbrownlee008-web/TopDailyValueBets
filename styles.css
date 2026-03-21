@@ -3899,3 +3899,6 @@ body {
   transform-origin: top center;
   width: 105%;
 }
+body {
+  overflow-x: hidden;
+}
