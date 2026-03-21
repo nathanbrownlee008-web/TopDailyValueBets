@@ -3656,138 +3656,299 @@ body.layout-compact .vip-bar{
 
 
 
+/* ===== REAL OPTION 7 CARDS ===== */
+.tracker-opt7-shell .tracker-bet-list{display:grid;grid-template-columns:1fr;gap:14px;padding-top:10px;}
+.tracker-opt7-shell .tracker-results-table{display:none;}
+.tracker-grid-card{background:linear-gradient(145deg,#102041,#13284a);border:1px solid rgba(120,160,230,.18);border-radius:22px;padding:18px 18px 16px;box-shadow:0 8px 24px rgba(0,0,0,.18);}
+.tracker-grid-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;}
+.tracker-grid-match{font-size:17px;font-weight:800;line-height:1.1;color:#eef4ff;flex:1;min-width:0;}
+.tracker-grid-top-result .result-select{min-width:108px;height:40px;padding:6px 12px;border-radius:14px;font-size:13px;}
+.tracker-grid-meta--single-row{display:grid;grid-template-columns:1.5fr .8fr .8fr;gap:12px;align-items:end;}
+.tracker-grid-meta--single-row > div{display:flex;flex-direction:column;gap:6px;min-width:0;}
+.tracker-grid-meta--single-row span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#98a8c8;font-weight:800;text-align:center;}
+.tracker-grid-market-slot span{text-align:center;}
+.tracker-grid-market-inline{height:40px;display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:#f0f5ff;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tracker-grid-card input{width:100%;height:40px;padding:6px 10px;border-radius:14px;border:1px solid #3a4b67;background:#22324d;color:#fff;text-align:center;font-size:13px;box-sizing:border-box;}
+.tracker-grid-card .profit-col,.tracker-grid-profit,.tracker-grid-date,.tracker-grid-header,.tracker-grid-market{display:none !important;}
+@media (max-width:700px){
+  .tracker-opt7-shell .tracker-bet-list{gap:12px;padding-top:8px;}
+  .tracker-grid-card{padding:14px 14px 13px;border-radius:20px;}
+  .tracker-grid-top{margin-bottom:10px;gap:10px;}
+  .tracker-grid-match{font-size:14px;line-height:1.08;}
+  .tracker-grid-top-result .result-select{min-width:92px;height:36px;padding:4px 10px;border-radius:12px;font-size:12px;}
+  .tracker-grid-meta--single-row{grid-template-columns:1.45fr .78fr .78fr;gap:9px;}
+  .tracker-grid-meta--single-row > div{gap:5px;}
+  .tracker-grid-meta--single-row span{font-size:10px;}
+  .tracker-grid-market-inline,.tracker-grid-card input{height:36px;border-radius:12px;font-size:12px;}
+  .tracker-grid-market-inline{padding:0 10px;font-weight:700;}
+}
 
-/* ===== FINAL TRACKER ICON + LAYOUT FIX ===== */
+
+
+/* ===== OPTION 7 FINAL TUNE: ALIGN + LESS BLUE ===== */
 .tracker-grid-card{
-  padding: 16px 16px 14px !important;
-}
-
-.tracker-grid-top{
-  display: flex !important;
-  align-items: flex-start !important;
-  justify-content: space-between !important;
-  gap: 10px !important;
-  margin-bottom: 12px !important;
-}
-
-.tracker-grid-match{
-  font-size: 16px !important;
-  line-height: 1.08 !important;
-  font-weight: 800 !important;
-  margin: 0 !important;
-}
-
-.tracker-grid-top-result{
-  display: flex !important;
-  align-items: flex-start !important;
-  justify-content: flex-end !important;
-}
-
-.tracker-grid-top-result .result-select{
-  min-width: 92px !important;
-  height: 36px !important;
-  padding: 4px 10px !important;
-  border-radius: 12px !important;
-  font-size: 12px !important;
+  background: linear-gradient(145deg, #0d1828, #122033) !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.20) !important;
 }
 
 .tracker-grid-meta--single-row{
-  display: grid !important;
-  grid-template-columns: 1.45fr .78fr .78fr !important;
-  gap: 9px !important;
-  align-items: end !important;
+  align-items: start !important;
 }
 
 .tracker-grid-meta--single-row > div{
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 5px !important;
-  min-width: 0 !important;
+  justify-content: flex-start !important;
 }
 
 .tracker-grid-meta--single-row span{
-  font-size: 10px !important;
-  letter-spacing: .08em !important;
-  text-transform: uppercase !important;
-  color: #98a8c8 !important;
-  font-weight: 800 !important;
-  text-align: center !important;
+  margin-bottom: 6px !important;
 }
 
 .tracker-grid-market-inline,
 .tracker-grid-card input{
-  height: 36px !important;
-  min-height: 36px !important;
-  border-radius: 12px !important;
-  font-size: 12px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  box-sizing: border-box !important;
+  background: #1b2738 !important;
+  border: 1px solid #334155 !important;
+  color: #eef4ff !important;
 }
 
 .tracker-grid-market-inline{
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 8px !important;
-  padding: 0 12px !important;
-  font-weight: 700 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-.tracker-market-icon{
-  flex: 0 0 auto !important;
-  font-size: 15px !important;
-  line-height: 1 !important;
-  opacity: 1 !important;
-  filter: none !important;
-}
-
-.tracker-market-text{
-  min-width: 0 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
+  font-weight: 800 !important;
 }
 
 @media (max-width:700px){
   .tracker-grid-card{
-    padding: 16px 16px 14px !important;
+    background: linear-gradient(145deg, #0d1828, #122033) !important;
   }
-  .tracker-grid-top{
-    margin-bottom: 12px !important;
-    gap: 10px !important;
-  }
-  .tracker-grid-match{
-    font-size: 16px !important;
-  }
-  .tracker-grid-top-result .result-select{
-    min-width: 92px !important;
-    height: 36px !important;
-    padding: 4px 10px !important;
-    border-radius: 12px !important;
-    font-size: 12px !important;
-  }
-  .tracker-grid-meta--single-row{
-    grid-template-columns: 1.45fr .78fr .78fr !important;
-    gap: 9px !important;
-  }
-  .tracker-grid-meta--single-row > div{
-    gap: 5px !important;
-  }
+
   .tracker-grid-meta--single-row span{
-    font-size: 10px !important;
+    margin-bottom: 5px !important;
   }
+
   .tracker-grid-market-inline,
   .tracker-grid-card input{
     height: 36px !important;
     min-height: 36px !important;
-    border-radius: 12px !important;
-    font-size: 12px !important;
+    background: #1b2738 !important;
+    border: 1px solid #334155 !important;
   }
-  .tracker-grid-market-inline{
-    padding: 0 10px !important;
+}
+
+
+
+/* ===== OPTION 7 FINAL POLISH: GREY TINT + TRUE LABEL ALIGN ===== */
+.tracker-grid-card{
+  background: linear-gradient(145deg, #101a28, #132033) !important;
+}
+
+.tracker-grid-meta--single-row{
+  display:grid !important;
+  grid-template-columns: 1.6fr .72fr .72fr !important;
+  gap: 12px !important;
+  align-items:start !important;
+}
+
+.tracker-grid-meta--single-row > div{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  justify-content:flex-start !important;
+  min-width:0 !important;
+}
+
+.tracker-grid-meta--single-row span{
+  display:block !important;
+  width:100% !important;
+  text-align:center !important;
+  line-height:1 !important;
+  min-height:12px !important;
+  margin:0 0 8px 0 !important;
+  color: rgba(203, 213, 225, 0.78) !important;
+}
+
+.tracker-grid-market-inline,
+.tracker-grid-card input{
+  height: 40px !important;
+  min-height: 40px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, #263246, #1f2a3b) !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  color: #eef4ff !important;
+}
+
+.tracker-grid-market-inline{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-weight:800 !important;
+  text-align:center !important;
+  padding:0 12px !important;
+}
+
+.tracker-grid-card input{
+  text-align:center !important;
+  padding:0 8px !important;
+}
+
+@media (max-width:700px){
+  .tracker-grid-meta--single-row{
+    grid-template-columns: 1.55fr .7fr .7fr !important;
+    gap: 10px !important;
   }
-  .tracker-market-icon{
-    font-size: 14px !important;
+
+  .tracker-grid-meta--single-row span{
+    min-height:11px !important;
+    margin:0 0 7px 0 !important;
+    font-size:10px !important;
   }
+
+  .tracker-grid-market-inline,
+  .tracker-grid-card input{
+    height: 38px !important;
+    min-height: 38px !important;
+    border-radius: 13px !important;
+    background: linear-gradient(180deg, #273447, #202c3d) !important;
+  }
+}
+
+
+/* ===== OPTION 7 TRUE COLUMN ALIGN FIX ===== */
+.tracker-grid-meta--single-row{
+  display:grid !important;
+  grid-template-columns: 2fr 1fr 1fr !important;
+  gap:10px !important;
+  align-items:start !important;
+}
+
+.tracker-grid-meta--single-row > div{
+  display:grid !important;
+  grid-template-rows: auto 40px !important;
+  align-items:start !important;
+  min-width:0 !important;
+}
+
+.tracker-grid-meta--single-row span{
+  display:block !important;
+  text-align:center !important;
+  font-size:10px !important;
+  line-height:1 !important;
+  min-height:10px !important;
+  margin:0 0 6px 0 !important;
+  color: rgba(203, 213, 225, 0.78) !important;
+}
+
+.tracker-grid-market-inline,
+.tracker-grid-card input{
+  width:100% !important;
+  height:40px !important;
+  min-height:40px !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:14px !important;
+  background: linear-gradient(180deg, #2a3547, #1f2937) !important;
+  border: 1px solid rgba(148,163,184,0.25) !important;
+  color:#eef4ff !important;
+}
+
+.tracker-grid-market-inline{
+  padding:0 12px !important;
+  font-weight:800 !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+.tracker-grid-card input{
+  text-align:center !important;
+  padding:0 8px !important;
+}
+
+@media (max-width:700px){
+  .tracker-grid-meta--single-row{
+    grid-template-columns: 2fr 1fr 1fr !important;
+    gap:9px !important;
+  }
+
+  .tracker-grid-meta--single-row > div{
+    grid-template-rows: auto 38px !important;
+  }
+
+  .tracker-grid-meta--single-row span{
+    font-size:10px !important;
+    margin:0 0 5px 0 !important;
+  }
+
+  .tracker-grid-market-inline,
+  .tracker-grid-card input{
+    height:38px !important;
+    min-height:38px !important;
+    border-radius:13px !important;
+  }
+}
+/* ONLY zoom Bet Results section */
+#bet-results,
+.tracker-opt7-shell {
+  transform: scale(0.95);
+  transform-origin: top center;
+  width: 95%;
+}
+
+/* prevent sideways scroll */
+body {
+  overflow-x: hidden;
+}
+/* Only shrink the results area, without sideways scroll */
+.tracker-opt7-shell {
+  transform: scale(0.96);
+  transform-origin: top center;
+  width: calc(100% / 0.96);
+  margin-left: calc((100% - (100% / 0.96)) / 2);
+}
+
+body,
+html {
+  overflow-x: hidden;
+}
+/* ===== SPACE BETWEEN BET RESULTS HEADER & FIRST DROPDOWN ===== */
+
+.tracker-history{
+  margin-top: 20px;
+}
+
+.tracker-toggle{
+  margin-bottom: 14px; /* space under "Bet Results" header */
+}
+
+#trackerWrapper{
+  margin-top: 8px; /* extra breathing room before months */
+}
+/* Make stake & odds text bigger + thicker */
+/* Make stake & odds text bigger + thicker */
+input,
+.stake-box,
+.odds-box {
+  font-size: 12px !important;   /* bigger text */
+  font-weight: 650;             /* thicker text */
+  text-align: center;           /* keeps it clean */
+}
+
+
+
+/* ===== MARKET ICON + TEXT REAL FIX ===== */
+.tracker-grid-market-inline{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
 }
