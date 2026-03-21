@@ -3942,70 +3942,43 @@ input,
 
 
 
-/* ===== MARKET ICON + TEXT REAL FIX ===== */
-.tracker-grid-market-inline{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:8px !important;
-  white-space:nowrap !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
+/* ===== VALUE BETS FIX (BRIGHT TEXT + ICONS BACK) ===== */
+
+/* force no dim */
+.value-card, .value-card * {
+  opacity:1 !important;
 }
 
-
-
-/* ===== VALUE BETS FINAL WHITE TEXT + SUBTLE EDGE GLOW ===== */
-.bet-market,
-.bet-market-inline{
+/* market row */
+.bet-market, .bet-market-inline {
   display:inline-flex !important;
   align-items:center !important;
-  gap:8px !important;
-  min-width:0 !important;
-  opacity:1 !important;
+  gap:10px !important;
 }
 
-.bet-market-icon{
-  flex:0 0 auto !important;
-  font-size:17px !important;
-  line-height:1 !important;
+/* ICON */
+.bet-market-icon {
+  font-size:18px !important;
   opacity:1 !important;
   filter:none !important;
-  transform:translateY(1px) !important;
-  text-shadow:0 0 2px rgba(255,255,255,0.16) !important;
 }
 
-.bet-market-text{
-  min-width:0 !important;
+/* TEXT */
+.bet-market-text {
   color:#ffffff !important;
-  font-size:15px !important;
+  font-size:16px !important;
   font-weight:700 !important;
-  letter-spacing:0.2px !important;
-  white-space:nowrap !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
   opacity:1 !important;
-  filter:none !important;
+  letter-spacing:0.2px;
 
-  /* subtle white edge glow, not blurry */
   text-shadow:
-    0 0 1px rgba(255,255,255,0.35),
-    0 0 3px rgba(255,255,255,0.14) !important;
+    0 0 2px rgba(255,255,255,0.35),
+    0 0 4px rgba(255,255,255,0.15);
 }
 
-/* force any parent dimming off on value bets market row only */
-.bet-card .bet-market,
-.bet-card .bet-market-inline,
-.bet-card .bet-market-text,
-.bet-card .bet-market-icon{
+/* fallback if classes missing (your case likely) */
+.value-card span,
+.value-card p {
+  color:#ffffff !important;
   opacity:1 !important;
-}
-
-@media (max-width:600px){
-  .bet-market-icon{
-    font-size:16px !important;
-  }
-  .bet-market-text{
-    font-size:15px !important;
-  }
 }

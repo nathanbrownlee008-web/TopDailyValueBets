@@ -1,4 +1,31 @@
 
+function buildOption2Row(bet){
+return `
+<div class="bet-row">
+  <div class="bet-left">
+    <div class="match">${bet.match}</div>
+    <div class="market">${bet.market || ''}</div>
+  </div>
+  <div class="bet-right">
+    <div class="stat">
+      <span class="stat-label">Stake</span>
+      <input type="number" value="${bet.stake || ''}">
+    </div>
+    <div class="stat">
+      <span class="stat-label">Odds</span>
+      <input type="number" value="${bet.odds || ''}">
+    </div>
+    <div class="stat">
+      <span class="stat-label">Result</span>
+      ${renderResultDropdown ? renderResultDropdown(bet) : '<span>'+ (bet.result||'') +'</span>'}
+    </div>
+  </div>
+</div>
+`;
+}
+
+
+
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -197,7 +224,7 @@ function toLocalYMD(d=new Date()){
   const yr=d.getFullYear();
   const mo=pad2(d.getMonth()+1);
   const da=pad2(d.getDate());
-  return `${yr}-${mo}-${da}`;
+  return buildOption2Row(bet);
 }
 function normalizeDateOnly(value){
   if(!value) return null;
@@ -2718,7 +2745,7 @@ window.forgotVipPassword = forgotVipPassword;
       monthEntry.days.get(day).push(row);
     });
 
-    let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
+    let html = `<div class="tracker-grouped-shell">`;
 
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
@@ -2744,45 +2771,45 @@ window.forgotVipPassword = forgotVipPassword;
               <span>${trackerEsc(dayLabel)}</span>
             </button>
             <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
-              <div class="tracker-bet-list">
+              <table class="tracker-results-table">
+                <thead>
+                  <tr>
+                    <th>Match</th>
+                    <th>Market</th>
+                    <th>Stake</th>
+                    <th>Odds</th>
+                    <th>Result</th>
+                    <th class="profit-col">Profit</th>
+                  </tr>
+                </thead>
+                <tbody>
         `;
 
         dayRows.forEach(row=>{
           const p = trackerProfit(row);
           const pClass = p > 0 ? "profit-win" : (p < 0 ? "profit-loss" : "");
           html += `
-            <div class="tracker-grid-card">
-              <div class="tracker-grid-top">
-                <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
-                <div class="tracker-grid-top-result">
-                  <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                    <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                    <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                    <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                    <option value="delete">🗑 delete</option>
-                  </select>
-                </div>
-              </div>
-              <div class="tracker-grid-meta tracker-grid-meta--single-row">
-                <div class="tracker-grid-market-slot">
-                  <span>Market</span>
-                  <div class="tracker-grid-market-inline">${trackerEsc(row.market || "—")}</div>
-                </div>
-                <div>
-                  <span>Stake</span>
-                  <input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)">
-                </div>
-                <div>
-                  <span>Odds</span>
-                  <input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)">
-                </div>
-              </div>
-            </div>
+            <tr>
+              <td>${trackerEsc(row.match || "")}</td>
+              <td>${trackerEsc(row.market || "—")}</td>
+              <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
+              <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
+              <td>
+                <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                  <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                  <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                  <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                  <option value="delete">🗑 delete</option>
+                </select>
+              </td>
+              <td class="profit-col"><span class="${pClass}">£${p.toFixed(2)}</span></td>
+            </tr>
           `;
         });
 
         html += `
-              </div>
+                </tbody>
+              </table>
             </div>
           </div>
         `;
