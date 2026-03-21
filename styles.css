@@ -3674,3 +3674,86 @@ body.layout-compact .vip-bar{
   .tracker-grid-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
   .tracker-grid-result{grid-column:1 / -1}
 }
+/* ===== OPTION 7 – COMPACT CLEAN CARDS ===== */
+
+.bet-result-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+
+/* LEFT SIDE (MATCH + MARKET) */
+.bet-result-left{
+  flex:1;
+  min-width:0;
+}
+
+.bet-result-match{
+  font-size:14px;
+  font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.bet-result-market{
+  font-size:12px;
+  opacity:0.7;
+  margin-top:2px;
+}
+
+/* RIGHT SIDE (STAKE / ODDS / RESULT) */
+.bet-result-right{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* SMALLER BOXES */
+.bet-input{
+  width:48px;
+  height:32px;
+  font-size:13px;
+  padding:4px;
+  border-radius:8px;
+  text-align:center;
+}
+
+/* RESULT BUTTON SMALLER */
+.result-select{
+  height:32px;
+  font-size:12px;
+  padding:4px 6px;
+  border-radius:8px;
+}
+
+/* MOBILE TIGHTER */
+@media (max-width:600px){
+
+  .bet-result-row{
+    padding:6px 0;
+  }
+
+  .bet-result-match{
+    font-size:13px;
+  }
+
+  .bet-result-market{
+    font-size:11px;
+  }
+
+  .bet-input{
+    width:44px;
+    height:30px;
+    font-size:12px;
+  }
+
+  .result-select{
+    height:30px;
+    font-size:11px;
+  }
+
+}
