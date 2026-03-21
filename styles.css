@@ -3917,3 +3917,16 @@ body,
 html {
   overflow-x: hidden;
 }
+/* ===== SPACE BETWEEN BET RESULTS HEADER & FIRST DROPDOWN ===== */
+
+.tracker-history{
+  margin-top: 20px;
+}
+
+.tracker-toggle{
+  margin-bottom: 14px; /* space under "Bet Results" header */
+}
+
+#trackerWrapper{
+  margin-top: 8px; /* extra breathing room before months */
+}
