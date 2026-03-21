@@ -2834,7 +2834,7 @@ window.forgotVipPassword = forgotVipPassword;
 
 
 
-/* ===== FORCE BET RESULTS CLEAN_TABLE LAYOUT PATCH ===== */
+/* ===== FORCE BET RESULTS TWO_LINE LAYOUT PATCH ===== */
 (function(){
   function brFmtMoney(v){
     const n = Number(v || 0);
@@ -3144,7 +3144,7 @@ window.forgotVipPassword = forgotVipPassword;
     return html;
   }
 
-  const chosen = 5;
+  const chosen = 6;
   buildTrackerGroupedHTML = function(rows){
     if(chosen === 4) return buildOption4(rows);
     if(chosen === 5) return buildOption5(rows);
@@ -3164,9 +3164,9 @@ window.forgotVipPassword = forgotVipPassword;
   }
 
   if(typeof loadTracker === "function"){
-    const __brLoadTracker_5 = loadTracker;
+    const __brLoadTracker_6 = loadTracker;
     loadTracker = async function(){
-      await __brLoadTracker_5();
+      await __brLoadTracker_6();
       try{
         const tableEl = document.getElementById("trackerTable");
         if(tableEl && Array.isArray(trackerAllRows)){
@@ -3175,7 +3175,7 @@ window.forgotVipPassword = forgotVipPassword;
           if(countEl) countEl.textContent = trackerAllRows.length;
         }
       }catch(e){
-        console.error("Bet Results clean_table patch failed", e);
+        console.error("Bet Results two_line patch failed", e);
       }
     };
   }
