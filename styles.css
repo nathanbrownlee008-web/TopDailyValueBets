@@ -3948,3 +3948,25 @@ select.result {
 
   background-position: right 10px center; /* keep arrow aligned */
 }
+/* Perfect center for result pill */
+select.result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  text-align-last: center;
+
+  padding: 0 28px 0 0; /* space for arrow on right */
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-position: right 8px center;
+}
+
+/* Force text dead centre */
+select.result option {
+  text-align: center;
+}
