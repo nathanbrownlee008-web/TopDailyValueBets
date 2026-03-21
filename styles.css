@@ -3897,7 +3897,7 @@ body.layout-compact .vip-bar{
 body {
   transform: scale(0.95);
   transform-origin: top center;
-  width: 95%;
+  width: 80%;
 }
 body {
   overflow-x: hidden;
