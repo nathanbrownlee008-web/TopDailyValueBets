@@ -3893,3 +3893,9 @@ body.layout-compact .vip-bar{
     border-radius:13px !important;
   }
 }
+/* GLOBAL ZOOM OUT (safe) */
+body {
+  transform: scale(0.95);
+  transform-origin: top center;
+  width: 105%;
+}
