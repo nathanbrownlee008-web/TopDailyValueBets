@@ -3914,3 +3914,15 @@ body {
 body {
   overflow-x: hidden;
 }
+/* Only shrink the results area, without sideways scroll */
+.tracker-opt7-shell {
+  transform: scale(0.95);
+  transform-origin: top center;
+  width: calc(100% / 0.95);
+  margin-left: calc((100% - (100% / 0.95)) / 2);
+}
+
+body,
+html {
+  overflow-x: hidden;
+}
