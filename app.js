@@ -2904,23 +2904,23 @@ window.forgotVipPassword = forgotVipPassword;
     const p = __trProfit(row);
     const pClass = p > 0 ? "profit-win" : (p < 0 ? "profit-loss" : "");
     return `
-      <tr>
-        <td class="tracker-clean-match">
-          <div class="tracker-clean-matchline">${__trEsc(row.match || "")}</div>
-          <div class="tracker-clean-marketline">${__trEsc(row.market || "—")}</div>
-        </td>
-        <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${__trEsc(row.id)}',this.value)"></td>
-        <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${__trEsc(row.id)}',this.value)"></td>
-        <td>
+      <div class="tracker-two-row">
+        <div class="tracker-two-top">
+          <div class="tracker-two-match">${__trEsc(row.match || "")}</div>
+          <div class="tracker-two-profit ${pClass}">${p >= 0 ? "+" : "-"}£${Math.abs(p).toFixed(2)}</div>
+        </div>
+        <div class="tracker-two-bottom">
+          <span class="tracker-two-market">${__trEsc(row.market || "—")}</span>
+          <input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${__trEsc(row.id)}',this.value)">
+          <input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${__trEsc(row.id)}',this.value)">
           <select class="result-select result-${__trEsc(row.result || 'pending')}" onchange="updateResult('${__trEsc(row.id)}',this.value)">
             <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
             <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
             <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
             <option value="delete">🗑 delete</option>
           </select>
-        </td>
-        <td class="profit-col"><span class="${pClass}">${p >= 0 ? "+" : "-"}£${Math.abs(p).toFixed(2)}</span></td>
-      </tr>
+        </div>
+      </div>
     `;
   }
 
@@ -2937,7 +2937,7 @@ window.forgotVipPassword = forgotVipPassword;
       if(!monthMap.get(month).days.has(day)) monthMap.get(month).days.set(day, []);
       monthMap.get(month).days.get(day).push(row);
     });
-    let html = `<div class="tracker-layout-badge">Option 5 — Clean Table</div><div class="tracker-grouped-shell tracker-opt5-shell">`;
+    let html = `<div class="tracker-layout-badge">Option 6 — Two-Line Rows</div><div class="tracker-grouped-shell tracker-opt6-shell">`;
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
       const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex===0;
@@ -2954,10 +2954,9 @@ window.forgotVipPassword = forgotVipPassword;
             <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span><span>${__trEsc(dayLabel)}</span>
           </button>
           <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
-            <table class="tracker-results-table tracker-results-table-opt5">
-              <thead><tr><th>Match</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr></thead>
-              <tbody>${dayRows.map(__renderBet).join("")}</tbody>
-            </table>
+            <div class="tracker-bet-list">
+              ${dayRows.map(__renderBet).join("")}
+            </div>
           </div>
         </div>`;
       });

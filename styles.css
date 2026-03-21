@@ -3657,26 +3657,21 @@ body.layout-compact .vip-bar{
 
 
 
-/* ===== REAL OPTION 5 CLEAN TABLE ===== */
+/* ===== REAL OPTION 6 TWO LINE ===== */
 .tracker-layout-badge{margin:8px 0 14px;padding:8px 12px;border-radius:999px;background:#13233d;color:#b8c6db;font-weight:700;font-size:12px;letter-spacing:.02em;display:inline-flex}
-.tracker-results-table-opt5{width:100%;border-collapse:collapse;table-layout:fixed}
-.tracker-results-table-opt5 th,.tracker-results-table-opt5 td{padding:12px 8px;border-bottom:1px solid rgba(91,117,165,.22);vertical-align:middle}
-.tracker-results-table-opt5 th{font-size:14px;color:#c7d4e8;text-align:left}
-.tracker-results-table-opt5 .tracker-clean-matchline{font-weight:800;font-size:16px;line-height:1.08;color:#edf3ff}
-.tracker-results-table-opt5 .tracker-clean-marketline{margin-top:4px;font-size:13px;color:#a8b6cc;line-height:1.15}
-.tracker-results-table-opt5 td input,.tracker-results-table-opt5 td select{width:100%}
-.tracker-results-table-opt5 td:nth-child(1),.tracker-results-table-opt5 th:nth-child(1){width:40%}
-.tracker-results-table-opt5 td:nth-child(2),.tracker-results-table-opt5 th:nth-child(2){width:12%}
-.tracker-results-table-opt5 td:nth-child(3),.tracker-results-table-opt5 th:nth-child(3){width:12%}
-.tracker-results-table-opt5 td:nth-child(4),.tracker-results-table-opt5 th:nth-child(4){width:18%}
-.tracker-results-table-opt5 td:nth-child(5),.tracker-results-table-opt5 th:nth-child(5){width:18%;text-align:right}
+.tracker-opt6-shell .tracker-bet-list{display:grid;gap:10px}
+.tracker-two-row{padding:12px 14px;border:1px solid rgba(91,117,165,.26);border-radius:16px;background:rgba(14,26,50,.74)}
+.tracker-two-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.tracker-two-match{font-weight:800;font-size:18px;line-height:1.08;color:#edf3ff;max-width:70%}
+.tracker-two-profit{font-weight:800;white-space:nowrap}
+.tracker-two-bottom{display:grid;grid-template-columns:minmax(0,1.4fr) 72px 72px 130px;gap:8px;align-items:center;margin-top:10px}
+.tracker-two-market{font-size:14px;color:#a8b6cc;line-height:1.15}
+.tracker-two-row input,.tracker-two-row select{width:100%}
 @media (max-width:700px){
-  .tracker-results-table-opt5 th,.tracker-results-table-opt5 td{padding:10px 6px}
-  .tracker-results-table-opt5 .tracker-clean-matchline{font-size:14px}
-  .tracker-results-table-opt5 .tracker-clean-marketline{font-size:11px}
-  .tracker-results-table-opt5 td:nth-child(1),.tracker-results-table-opt5 th:nth-child(1){width:42%}
-  .tracker-results-table-opt5 td:nth-child(2),.tracker-results-table-opt5 th:nth-child(2){width:12%}
-  .tracker-results-table-opt5 td:nth-child(3),.tracker-results-table-opt5 th:nth-child(3){width:12%}
-  .tracker-results-table-opt5 td:nth-child(4),.tracker-results-table-opt5 th:nth-child(4){width:18%}
-  .tracker-results-table-opt5 td:nth-child(5),.tracker-results-table-opt5 th:nth-child(5){width:16%}
+  .tracker-two-match{font-size:16px;max-width:64%}
+  .tracker-two-bottom{grid-template-columns:1fr 70px 70px;grid-template-areas:"market market market" "stake odds result"}
+  .tracker-two-market{grid-area:market}
+  .tracker-two-bottom input:nth-of-type(1){grid-area:stake}
+  .tracker-two-bottom input:nth-of-type(2){grid-area:odds}
+  .tracker-two-bottom select{grid-area:result}
 }
