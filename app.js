@@ -493,21 +493,6 @@ const FREE_VISIBLE_COUNT = 3;
 const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
-
-function marketIconForText(market){
-  const m = String(market || "").toLowerCase();
-  if(m.includes("corner")) return "🚩";
-  if(m.includes("card")) return "🟨";
-  if(m.includes("btts") || m.includes("both teams to score")) return "🥅";
-  if(m.includes("goal")) return "⚽";
-  if(m.includes("shot")) return "🎯";
-  if(m.includes("assist")) return "🅰️";
-  if(m.includes("foul")) return "🚫";
-  if(m.includes("offside")) return "🚨";
-  if(m.includes("win") || m.includes("draw") || m.includes("double chance")) return "🏁";
-  return "📌";
-}
-
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
@@ -685,7 +670,7 @@ async function loadBets(){
       <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market"><span class="bet-market-icon">${marketIconForText(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
@@ -706,7 +691,7 @@ async function loadBets(){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
         <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<span class="bet-market-inline"><span class="bet-market-icon">${marketIconForText(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market||'')}</span></span>`}</td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
         <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
@@ -1663,74 +1648,88 @@ loadTracker = async function(){
 
 
 
-function renderDailyChart(history){
-  if(!history || !history.length) return;
+function renderDailyChart(history, labels, dayKeys){
+  const el = document.getElementById("chart");
+  if(!el) return;
+  if(dailyChart) dailyChart.destroy();
 
-  const sorted = [...history].sort(
-    (a,b)=> new Date(a.bet_date || a.created_at) - new Date(b.bet_date || b.created_at)
-  );
+  const safeHistory = Array.isArray(history) ? history : [];
+  const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
+  const ctx = el.getContext("2d");
 
-  let bankroll = 0;
-
-  const labels = [];
-  const data = [];
-
-  sorted.forEach(r=>{
-    const profit =
-      r.result === "won" ? r.stake * (r.odds - 1) :
-      r.result === "lost" ? -r.stake : 0;
-
-    bankroll += profit;
-
-    labels.push(r.bet_date || r.created_at);
-    data.push(bankroll);
+  const monthOnlyLabels = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    if(!curr) return "";
+    const prev = i > 0 ? safeDayKeys[i - 1] : "";
+    const currDate = new Date(`${curr}T12:00:00`);
+    const prevDate = prev ? new Date(`${prev}T12:00:00`) : null;
+    if(Number.isNaN(currDate.getTime())) return "";
+    const isNewMonth = !prevDate || Number.isNaN(prevDate.getTime()) ||
+      currDate.getMonth() !== prevDate.getMonth() ||
+      currDate.getFullYear() !== prevDate.getFullYear();
+    return isNewMonth ? currDate.toLocaleDateString('en-GB',{month:'short'}) : "";
   });
 
-  if(window.chart) window.chart.destroy();
+  const pointRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    if(!curr) return 0;
+    const prev = i > 0 ? safeDayKeys[i - 1] : "";
+    const currDate = new Date(`${curr}T12:00:00`);
+    const prevDate = prev ? new Date(`${prev}T12:00:00`) : null;
+    if(Number.isNaN(currDate.getTime())) return 0;
+    const isNewMonth = !prevDate || Number.isNaN(prevDate.getTime()) ||
+      currDate.getMonth() !== prevDate.getMonth() ||
+      currDate.getFullYear() !== prevDate.getFullYear();
+    return isNewMonth ? 4 : 0;
+  });
 
-  const ctx = document.getElementById("chart");
-  if(!ctx) return;
+  const pointHoverRadius = safeHistory.map((_, i)=> pointRadius[i] ? 6 : 3);
+  const pointHitRadius = safeHistory.map(() => 14);
 
-  window.chart = new Chart(ctx,{
-    type:'line',
+  dailyChart = new Chart(ctx,{
+    type:"line",
     data:{
-      labels,
+      labels:monthOnlyLabels,
       datasets:[{
-        data,
-        borderColor: "#22c55e",
-        backgroundColor: "rgba(34,197,94,0.15)",
+        data:safeHistory,
+        tension:0.28,
         fill:true,
-        tension:0.4,
-        pointRadius: (ctx)=>{
-          const label = ctx.chart.data.labels[ctx.dataIndex];
-          const date = new Date(label);
-          return date.getDate() === 1 ? 4 : 0;
-        }
+        borderWidth:3,
+        borderColor:"rgba(34,197,94,0.95)",
+        backgroundColor:"rgba(34,197,94,0.14)",
+        pointRadius:pointRadius,
+        pointHoverRadius:pointHoverRadius,
+        pointHitRadius:pointHitRadius,
+        pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
+      interaction:{mode:"nearest", intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
+            label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
+          }
+        }
+      },
       scales:{
         x:{
           ticks:{
-            autoSkip:true,
-            maxTicksLimit:6,
-            callback:function(value){
-              const label = this.getLabelForValue(value);
-              const date = new Date(label);
-              if(date.getDate() === 1){
-                return date.toLocaleDateString('en-GB',{month:'short'});
-              }
-              return '';
-            }
+            color:"rgba(226,232,240,0.78)",
+            autoSkip:false,
+            maxRotation:0,
+            minRotation:0
           },
           grid:{display:false}
         },
         y:{
           ticks:{
-            callback:(v)=>"£"+Math.round(v)
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
           },
           grid:{color:"rgba(255,255,255,0.05)"}
         }
@@ -1738,7 +1737,6 @@ function renderDailyChart(history){
     }
   });
 }
-
 
 function renderMonthlyChart(profits, roi, labels){
   const el = document.getElementById("monthlyChart");
@@ -2672,21 +2670,6 @@ window.forgotVipPassword = forgotVipPassword;
     return 0;
   }
 
-
-  function trackerMarketIcon(market){
-    const m = String(market || "").toLowerCase();
-    if(m.includes("corner")) return "🚩";
-    if(m.includes("card")) return "🟨";
-    if(m.includes("btts") || m.includes("both teams to score")) return "🥅";
-    if(m.includes("goal")) return "⚽";
-    if(m.includes("shot")) return "🎯";
-    if(m.includes("assist")) return "🅰️";
-    if(m.includes("foul")) return "🚫";
-    if(m.includes("offside")) return "🚨";
-    if(m.includes("win") || m.includes("draw") || m.includes("double chance")) return "🏁";
-    return "📌";
-  }
-
   function trackerEsc(s){
     return String(s ?? "")
       .replace(/&/g, "&amp;")
@@ -2799,7 +2782,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-meta tracker-grid-meta--single-row">
                 <div class="tracker-grid-market-slot">
                   <span>Market</span>
-                  <div class="tracker-grid-market-inline">${trackerMarketIcon(row.market)} ${trackerEsc(row.market || "—")}</div>
+                  <div class="tracker-grid-market-inline">${trackerEsc(row.market || "—")}</div>
                 </div>
                 <div>
                   <span>Stake</span>
