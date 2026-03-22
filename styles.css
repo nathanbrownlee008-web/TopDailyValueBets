@@ -3941,39 +3941,29 @@ input,
 }
 
 
-/* OPTION 2: inline bookie logo in odds row (Value Bets only) */
-#betsGrid .bet-footer--option2{
+/* OPTION 3: centered bookie logo between market and footer (Value Bets only) */
+#betsGrid .bet-bookie-row--center{
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
-#betsGrid .bet-left--option2{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:nowrap;
-  min-width:0;
-}
-#betsGrid .bet-bookie-row--inline{
-  display:flex;
-  align-items:center;
-  margin:0;
+  justify-content:center;
+  min-height:34px;
+  margin:8px 0 6px;
 }
 #betsGrid .bet-bookie-logo{
-  height:24px !important;
+  height:30px !important;
   width:auto !important;
-  max-width:92px !important;
+  max-width:140px !important;
   object-fit:contain;
   display:block;
+  margin:0 auto;
 }
 #betsGrid .bet-bookie-logo--dark{
   background:rgba(255,255,255,0.92);
-  padding:4px 8px;
+  padding:5px 10px;
   border-radius:10px;
 }
 #betsGrid .bet-bookie-text{
-  font-size:13px;
+  font-size:14px;
   font-weight:700;
   color:#fff;
   opacity:0.95;

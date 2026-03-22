@@ -700,7 +700,7 @@ async function loadBets(){
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
       </div>
-      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
+      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? renderBookieLogo(row.bookie, 'bet-bookie-row--center') : ''}`}
     </div>
     <div class="bet-details">
       <div class="bet-footer">
