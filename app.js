@@ -685,9 +685,9 @@ async function loadBets(){
       <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market"><span class="bet-market-icon">${marketIconForText(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market bet-market--inline"><span class="bet-market-icon">${marketIconForText(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span><span class="bet-bookie-inline">${escapeHtml(row.bookie || '')}</span></span>`}
       </div>
-      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
+      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
     <div class="bet-details">
       <div class="bet-footer">
