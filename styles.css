@@ -4215,3 +4215,16 @@ input,
 .bet-footer > *{
   min-width:0 !important;
 }
+/* GLOBAL CARD SCALE FIX (MOBILE) */
+@media (max-width: 600px){
+  
+  .bet-card{
+    transform: scale(0.94);
+    transform-origin: top center;
+  }
+
+  .bets-grid{
+    gap: 6px !important;
+  }
+
+}
