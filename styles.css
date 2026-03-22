@@ -4288,3 +4288,23 @@ input,
 .tracker-grid-market-inline{
   gap: 10px !important;
 }
+/* 🔥 FORCE MARKET TEXT BRIGHT + BIG */
+.tracker-grid-market-inline{
+  opacity: 1 !important;
+}
+
+.tracker-grid-market-inline-text{
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: 0 0 8px rgba(255,255,255,0.35) !important;
+}
+
+/* also make the whole pill brighter */
+.tracker-grid-market-slot,
+.tracker-grid-market-inline{
+  background: rgba(255,255,255,0.08) !important;
+  border-color: rgba(255,255,255,0.18) !important;
+}
