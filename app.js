@@ -687,11 +687,10 @@ async function loadBets(){
       <div class="bet-meta">
         ${locked ? `
   <div class="bet-market-inline">
-    <span class="bet-market-icon">${icon}</span>
-    <span class="bet-market-text">${market}</span>
-    <span class="bet-bookie-text">${bookie}</span>
-  </div>
-` : ''}
+  <span class="bet-market-icon">${icon}</span>
+  <span class="bet-market-text">${market}</span>
+  <span class="bet-bookie-text">${bookie}</span>
+</div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
     <div class="bet-details">
