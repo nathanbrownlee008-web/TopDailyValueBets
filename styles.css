@@ -4259,4 +4259,58 @@ input,
   font-weight:700;
 }
 
-.market{display:flex;gap:6px;align-items:center;justify-content:center;}
+
+
+/* ===== TRACKER MARKET TEXT FINAL FIX ===== */
+.tracker-grid-market-slot{
+  min-width: 0 !important;
+}
+
+.tracker-grid-market-inline{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 12px !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+}
+
+.tracker-market-emoji{
+  flex: 0 0 auto !important;
+  display: inline-block !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+
+.tracker-market-label{
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  display: inline-block !important;
+  color: #f0f5ff !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-align: left !important;
+}
+
+@media (max-width: 600px){
+  .tracker-grid-meta--single-row{
+    grid-template-columns: 1.7fr .75fr .75fr !important;
+  }
+
+  .tracker-grid-market-inline{
+    justify-content: flex-start !important;
+  }
+
+  .tracker-market-label{
+    font-size: 12px !important;
+  }
+}
