@@ -4240,3 +4240,33 @@ input,
 .tracker-market-col{
   white-space: nowrap;
 }
+/* ===== AUTO ICONS FOR BET RESULTS ===== */
+
+.tracker-market-sub::before,
+.tracker-market-col::before {
+  margin-right: 6px;
+}
+
+/* Goals */
+.tracker-market-sub:has(:contains("Goal")),
+.tracker-market-col:contains("Goal")::before {
+  content: "⚽";
+}
+
+/* Corners */
+.tracker-market-sub:contains("Corner")::before,
+.tracker-market-col:contains("Corner")::before {
+  content: "🚩";
+}
+
+/* Cards */
+.tracker-market-sub:contains("Card")::before,
+.tracker-market-col:contains("Card")::before {
+  content: "🟨";
+}
+
+/* BTTS */
+.tracker-market-sub:contains("BTTS")::before,
+.tracker-market-col:contains("BTTS")::before {
+  content: "🥅";
+}
