@@ -670,7 +670,7 @@ async function loadBets(){
       <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<div class="bet-market-inline"><span class="bet-market-icon">${getMarketIcon(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span></div>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
@@ -936,6 +936,18 @@ function escapeHtml(str){
 }
 
 
+function getMarketIcon(market){
+  const m = String(market || "").toLowerCase();
+  if(m.includes("corner")) return "🚩";
+  if(m.includes("card")) return "🟨";
+  if(m.includes("btts")) return "🥅";
+  if(m.includes("goal")) return "⚽";
+  if(m.includes("over")) return "⚽";
+  if(m.includes("under")) return "⚽";
+  return "📊";
+}
+
+
 let vipPromoChart;
 
 function notificationsEnabled(){
@@ -1136,9 +1148,9 @@ history.push(bankroll);
 tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  <div class="tracker-market-sub">${row.market || "—"}</div>
+  <div class="tracker-market-sub"><span class="bet-market-inline"><span class="bet-market-icon">${getMarketIcon(row.market)}</span><span class="bet-market-text">${row.market || "—"}</span></span></div>
 </td>
-<td class="tracker-market-col">${row.market || "—"}</td>
+<td class="tracker-market-col"><span class="bet-market-inline"><span class="bet-market-icon">${getMarketIcon(row.market)}</span><span class="bet-market-text">${row.market || "—"}</span></span></td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -1654,42 +1666,30 @@ function renderDailyChart(history, labels, dayKeys){
   if(dailyChart) dailyChart.destroy();
 
   const safeHistory = Array.isArray(history) ? history : [];
+  const safeLabels = Array.isArray(labels) ? labels : [];
   const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
   const ctx = el.getContext("2d");
 
-  const monthOnlyLabels = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    if(!curr) return "";
-    const prev = i > 0 ? safeDayKeys[i - 1] : "";
-    const currDate = new Date(`${curr}T12:00:00`);
-    const prevDate = prev ? new Date(`${prev}T12:00:00`) : null;
-    if(Number.isNaN(currDate.getTime())) return "";
-    const isNewMonth = !prevDate || Number.isNaN(prevDate.getTime()) ||
-      currDate.getMonth() !== prevDate.getMonth() ||
-      currDate.getFullYear() !== prevDate.getFullYear();
-    return isNewMonth ? currDate.toLocaleDateString('en-GB',{month:'short'}) : "";
-  });
-
   const pointRadius = safeHistory.map((_, i)=>{
     const curr = safeDayKeys[i];
-    if(!curr) return 0;
-    const prev = i > 0 ? safeDayKeys[i - 1] : "";
-    const currDate = new Date(`${curr}T12:00:00`);
-    const prevDate = prev ? new Date(`${prev}T12:00:00`) : null;
-    if(Number.isNaN(currDate.getTime())) return 0;
-    const isNewMonth = !prevDate || Number.isNaN(prevDate.getTime()) ||
-      currDate.getMonth() !== prevDate.getMonth() ||
-      currDate.getFullYear() !== prevDate.getFullYear();
-    return isNewMonth ? 4 : 0;
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 3 : 0;
   });
-
-  const pointHoverRadius = safeHistory.map((_, i)=> pointRadius[i] ? 6 : 3);
-  const pointHitRadius = safeHistory.map(() => 14);
+  const pointHoverRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 5 : 0;
+  });
+  const pointHitRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    const next = safeDayKeys[i + 1];
+    return (!next || curr !== next) ? 14 : 0;
+  });
 
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels:monthOnlyLabels,
+      labels:safeLabels,
       datasets:[{
         data:safeHistory,
         tension:0.28,
@@ -1718,13 +1718,8 @@ function renderDailyChart(history, labels, dayKeys){
       },
       scales:{
         x:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            autoSkip:false,
-            maxRotation:0,
-            minRotation:0
-          },
-          grid:{display:false}
+          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
+          grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
           ticks:{
@@ -1737,6 +1732,7 @@ function renderDailyChart(history, labels, dayKeys){
     }
   });
 }
+
 
 function renderMonthlyChart(profits, roi, labels){
   const el = document.getElementById("monthlyChart");
@@ -2734,7 +2730,7 @@ window.forgotVipPassword = forgotVipPassword;
       monthEntry.days.get(day).push(row);
     });
 
-    let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
+    let html = `<div class="tracker-grouped-shell">`;
 
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
@@ -2760,45 +2756,45 @@ window.forgotVipPassword = forgotVipPassword;
               <span>${trackerEsc(dayLabel)}</span>
             </button>
             <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
-              <div class="tracker-bet-list">
+              <table class="tracker-results-table">
+                <thead>
+                  <tr>
+                    <th>Match</th>
+                    <th>Market</th>
+                    <th>Stake</th>
+                    <th>Odds</th>
+                    <th>Result</th>
+                    <th class="profit-col">Profit</th>
+                  </tr>
+                </thead>
+                <tbody>
         `;
 
         dayRows.forEach(row=>{
           const p = trackerProfit(row);
           const pClass = p > 0 ? "profit-win" : (p < 0 ? "profit-loss" : "");
           html += `
-            <div class="tracker-grid-card">
-              <div class="tracker-grid-top">
-                <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
-                <div class="tracker-grid-top-result">
-                  <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                    <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                    <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                    <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                    <option value="delete">🗑 delete</option>
-                  </select>
-                </div>
-              </div>
-              <div class="tracker-grid-meta tracker-grid-meta--single-row">
-                <div class="tracker-grid-market-slot">
-                  <span>Market</span>
-                  <div class="tracker-grid-market-inline">${trackerEsc(row.market || "—")}</div>
-                </div>
-                <div>
-                  <span>Stake</span>
-                  <input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)">
-                </div>
-                <div>
-                  <span>Odds</span>
-                  <input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)">
-                </div>
-              </div>
-            </div>
+            <tr>
+              <td>${trackerEsc(row.match || "")}</td>
+              <td><span class="bet-market-inline"><span class="bet-market-icon">${getMarketIcon(row.market)}</span><span class="bet-market-text">${trackerEsc(row.market || "—")}</span></span></td>
+              <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
+              <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
+              <td>
+                <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                  <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                  <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                  <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                  <option value="delete">🗑 delete</option>
+                </select>
+              </td>
+              <td class="profit-col"><span class="${pClass}">£${p.toFixed(2)}</span></td>
+            </tr>
           `;
         });
 
         html += `
-              </div>
+                </tbody>
+              </table>
             </div>
           </div>
         `;
