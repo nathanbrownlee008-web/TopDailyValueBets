@@ -4129,22 +4129,17 @@ input,
 .bet-bookie-row{
   display:flex;
   align-items:center;
-  justify-content:center;
-  min-height:34px;
-  margin:8px 0 6px 0;
+  justify-content:flex-start;
+  min-height:50px;
+  margin-top:8px;
 }
 
 .bet-bookie-logo{
-  height:26px !important;
-  width:auto !important;
-  max-width:90px !important;
+  height:50px;
+  width:auto;
+  max-width:180px;
   object-fit:contain;
   display:block;
-
-  /* NORMALISE ALL LOGOS */
-  background:rgba(255,255,255,0.06);
-  padding:4px 8px;
-  border-radius:10px;
 }
 
 .bet-bookie-logo--dark{
