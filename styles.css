@@ -3941,30 +3941,141 @@ input,
 }
 
 
-/* OPTION 3: centered bookie logo between market and footer (Value Bets only) */
-#betsGrid .bet-bookie-row--center{
-  display:flex;
+
+/* ===== MARKET ICON + TEXT REAL FIX ===== */
+.tracker-grid-market-inline{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+
+
+/* VALUE BETS ONLY: market icons */
+.bet-market{
+  display:inline-flex;
   align-items:center;
-  justify-content:center;
-  min-height:34px;
-  margin:8px 0 6px;
+  gap:6px;
+  min-width:0;
 }
-#betsGrid .bet-bookie-logo{
-  height:30px !important;
-  width:auto !important;
-  max-width:140px !important;
-  object-fit:contain;
-  display:block;
-  margin:0 auto;
+
+.bet-market-inline{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
 }
-#betsGrid .bet-bookie-logo--dark{
-  background:rgba(255,255,255,0.92);
-  padding:5px 10px;
-  border-radius:10px;
-}
-#betsGrid .bet-bookie-text{
+
+.bet-market-icon{
+  flex:0 0 auto;
   font-size:14px;
-  font-weight:700;
-  color:#fff;
-  opacity:0.95;
+  line-height:1;
+  opacity:1 !important;
+  filter:none !important;
+}
+
+.bet-market-text{
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+
+
+/* ===== VALUE BETS ICON POLISH ONLY ===== */
+.bet-market,
+.bet-market-inline{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  min-width:0 !important;
+}
+
+.bet-market-icon{
+  flex:0 0 auto !important;
+  font-size:17px !important;
+  line-height:1 !important;
+  opacity:1 !important;
+  filter:none !important;
+  text-shadow:0 0 4px rgba(255,255,255,0.25) !important;
+  transform:translateY(1px) !important;
+}
+
+.bet-market-text{
+  min-width:0 !important;
+  font-size:15px !important;
+  font-weight:600 !important;
+  color:#e6edf5 !important;
+  letter-spacing:0.2px !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+@media (max-width:600px){
+  .bet-market-icon{
+    font-size:16px !important;
+  }
+  .bet-market-text{
+    font-size:15px !important;
+  }
+}
+/* VALUE BETS: market in tracker-style box */
+.bet-market,
+.bet-market-inline {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+
+  padding: 10px 16px !important;
+  border-radius: 18px !important;
+
+  background: linear-gradient(180deg, rgba(74,85,104,0.34), rgba(45,55,72,0.42)) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,0.06),
+    inset 0 -1px 2px rgba(0,0,0,0.22),
+    0 4px 12px rgba(0,0,0,0.18) !important;
+}
+
+/* icon */
+.bet-market-icon {
+  flex: 0 0 auto !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* text */
+.bet-market-text {
+  color: #ffffff !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* mobile fit */
+@media (max-width: 600px) {
+  .bet-market,
+  .bet-market-inline {
+    padding: 9px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .bet-market-icon {
+    font-size: 16px !important;
+  }
+
+  .bet-market-text {
+    font-size: 14px !important;
+  }
 }
