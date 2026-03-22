@@ -1114,39 +1114,41 @@ async function loadVipPromoProof(){
     if(statsEl) statsEl.textContent = 'Official TDT proof unavailable right now';
   }
 }
-
 async function loadTracker(){
-const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
-trackerRowsCache = rows;
-trackerAllRows = rows;
+  const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+  trackerRowsCache = rows;
+  trackerAllRows = rows;
 
-// Keep Value Bets \"Added\" state synced with tracker rows
-addedKeys.clear();
-rows.forEach(r => addedKeys.add(makeBetKey(r)));
-wireTrackerFilters();
+  // Keep Value Bets "Added" state synced with tracker rows
+  addedKeys.clear();
+  rows.forEach(r => addedKeys.add(makeBetKey(r)));
+  wireTrackerFilters();
 
-let start=parseFloat(document.getElementById("startingBankroll").value);
-let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
-let dailyLabels=[];
-let dayKeys=[];
+  let start = parseFloat(document.getElementById("startingBankroll").value);
+  let bankroll = start, profit = 0, wins = 0, losses = 0, totalStake = 0, totalOdds = 0, history = [];
+  let dailyLabels = [];
+  let dayKeys = [];
 
-	const tableRows = [];
+  const tableRows = [];
 
-rows.forEach(row=>{
-let p=0;
-if(row.result==="won"){p=row.stake*(row.odds-1);wins++;}
-if(row.result==="lost"){p=-row.stake;losses++;}
-profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
-bankroll=start+profit;
+  rows.forEach(row=>{
+    let p = 0;
+    if(row.result === "won"){ p = row.stake * (row.odds - 1); wins++; }
+    if(row.result === "lost"){ p = -row.stake; losses++; }
 
-const gameDate = row.match_date_date || row.bet_date || row.created_at;
-const dayKey = fmtDayLabel(gameDate);
-const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
-dayKeys.push(dayKey);
-dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
-history.push(bankroll);
+    profit += p;
+    totalStake += row.stake;
+    totalOdds += row.odds;
+    bankroll = start + profit;
 
-tableRows.push(`<tr>
+    const gameDate = row.match_date_date || row.bet_date || row.created_at;
+    const dayKey = fmtDayLabel(gameDate);
+    const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
+    dayKeys.push(dayKey);
+    dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
+    history.push(bankroll);
+
+    tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
   <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
@@ -1168,68 +1170,132 @@ onchange="updateResult('${row.id}',this.value)">
 <span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span>
 </td>
 </tr>`);
-});
+  });
 
-let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
-html += tableRows.reverse().join("");
-html+="</table>";
-trackerTable.innerHTML=html;
+  let html = "<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+  html += tableRows.reverse().join("");
+  html += "</table>";
+  trackerTable.innerHTML = html;
 
-bankrollElem.innerText=bankroll.toFixed(2);
-profitElem.innerText=profit.toFixed(2);
-roiElem.innerText=totalStake?((profit/totalStake)*100).toFixed(1):0;
-winrateElem.innerText=(wins+losses)?((wins/(wins+losses))*100).toFixed(1):0;
-const wonLostElem = document.getElementById("wonLost");
-if(wonLostElem){
-  wonLostElem.innerText = `${wins}-${losses}`;
-}
+  bankrollElem.innerText = bankroll.toFixed(2);
+  profitElem.innerText = profit.toFixed(2);
+  roiElem.innerText = totalStake ? ((profit / totalStake) * 100).toFixed(1) : 0;
+  winrateElem.innerText = (wins + losses) ? ((wins / (wins + losses)) * 100).toFixed(1) : 0;
 
-const totalBets = rows.length;
-const totalElem = document.getElementById("totalBets");
-if(totalElem) totalElem.innerText = totalBets;
-const totalStakedCard = document.getElementById("totalStakedCard");
-if(totalStakedCard){
-  totalStakedCard.innerText = totalStake.toFixed(2);
-}
+  const wonLostElem = document.getElementById("wonLost");
+  if(wonLostElem){
+    wonLostElem.innerText = `${wins}-${losses}`;
+  }
 
+  const totalBets = rows.length;
+  const totalElem = document.getElementById("totalBets");
+  if(totalElem) totalElem.innerText = totalBets;
 
-avgOddsElem.innerText=rows.length?(totalOdds/rows.length).toFixed(2):0;
+  const totalStakedCard = document.getElementById("totalStakedCard");
+  if(totalStakedCard){
+    totalStakedCard.innerText = totalStake.toFixed(2);
+  }
 
-profitCard.classList.remove("glow-green","glow-red");
-if(profit>0) profitCard.classList.add("glow-green");
-if(profit<0) profitCard.classList.add("glow-red");
+  avgOddsElem.innerText = rows.length ? (totalOdds / rows.length).toFixed(2) : 0;
 
+  profitCard.classList.remove("glow-green","glow-red");
+  if(profit > 0) profitCard.classList.add("glow-green");
+  if(profit < 0) profitCard.classList.add("glow-red");
 
-renderDailyChart(history, dailyLabels, dayKeys);
+  renderDailyChart(history, dailyLabels, dayKeys);
 
-// ---- Monthly & Market analytics (tabs + mini summary) ----
-const countElem = document.getElementById("betCount");
-if(countElem) countElem.textContent = String(rows.length);
+  const countElem = document.getElementById("betCount");
+  if(countElem) countElem.textContent = String(rows.length);
 
-// Monthly profit aggregation (ROI version)
-const monthMap = {};
-const monthStakeMap = {};
+  // Monthly profit aggregation (ROI version)
+  const monthMap = {};
+  const monthStakeMap = {};
 
-rows.forEach(r=>{
-  const d = new Date(r.created_at);
-  const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
-  monthMap[key] = (monthMap[key]||0) + rowProfit(r);
-  monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
-});
+  rows.forEach(r=>{
+    const d = new Date(r.created_at);
+    const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+    monthMap[key] = (monthMap[key] || 0) + rowProfit(r);
+    monthStakeMap[key] = (monthStakeMap[key] || 0) + r.stake;
+  });
 
-const monthKeys = Object.keys(monthMap).sort();
+  const monthKeys = Object.keys(monthMap).sort();
 
-const monthLabels = monthKeys.map(k=>{
-  const [y,m]=k.split("-");
-  return new Date(parseInt(y), parseInt(m)-1, 1)
-    .toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
-});
+  const monthLabels = monthKeys.map(k=>{
+    const [y,m] = k.split("-");
+    return new Date(parseInt(y), parseInt(m)-1, 1)
+      .toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
+  });
 
-const monthlyProfit = monthKeys.map(k=> monthMap[k]);
-const monthlyROI = monthKeys.map(k=>{
-  const stake = monthStakeMap[k] || 0;
-  return stake ? (monthMap[k] / stake) * 100 : 0;
-});
+  const monthlyProfit = monthKeys.map(k=> monthMap[k]);
+  const monthlyROI = monthKeys.map(k=>{
+    const stake = monthStakeMap[k] || 0;
+    return stake ? (monthMap[k] / stake) * 100 : 0;
+  });
+
+  renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
+
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
+  monthKeys.forEach((k,i)=>{
+    const p = monthlyProfit[i];
+    const r = monthlyROI[i];
+    breakdownHTML += `<tr>
+      <td>${monthLabels[i]}</td>
+      <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
+      <td>${r.toFixed(1)}%</td>
+    </tr>`;
+  });
+  breakdownHTML += "</table>";
+  const tableEl = document.getElementById("monthlyTable");
+  if(tableEl) tableEl.innerHTML = breakdownHTML;
+
+  // Market profit aggregation
+  const marketMap = {};
+  const marketWL = {};
+
+  rows.forEach(r=>{
+    const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
+    marketMap[mk] = (marketMap[mk] || 0) + rowProfit(r);
+
+    if(!marketWL[mk]) marketWL[mk] = {wins:0,losses:0,pending:0,bets:0};
+    marketWL[mk].bets += 1;
+    const res = (r.result || "pending").toLowerCase();
+    if(res === "won") marketWL[mk].wins += 1;
+    else if(res === "lost") marketWL[mk].losses += 1;
+    else marketWL[mk].pending += 1;
+  });
+
+  let entries = Object.entries(marketWL);
+  entries.sort((a,b)=>(b[1].bets)-(a[1].bets));
+  entries = entries.slice(0,8);
+
+  const labels = entries.map(e=>e[0]);
+  const totals = entries.map(e=>({ bets:e[1].bets, wins:e[1].wins, losses:e[1].losses }));
+  const winPct = entries.map(e=>{
+    const resolved = e[1].wins + e[1].losses;
+    return resolved ? (e[1].wins / resolved) * 100 : 0;
+  });
+
+  renderMarketChart(labels, winPct, totals);
+
+  if(entries.length){
+    const bestM = [...Object.entries(marketMap)].sort((a,b)=>b[1]-a[1])[0];
+    const worstM = [...Object.entries(marketMap)].sort((a,b)=>a[1]-b[1])[0];
+    setMiniValue("bestMarket", bestM[0]+":", (bestM[1] >= 0 ? "+£" : "-£") + Math.abs(bestM[1]).toFixed(2));
+    setMiniValue("worstMarket", worstM[0]+":", (worstM[1] >= 0 ? "+£" : "-£") + Math.abs(worstM[1]).toFixed(2));
+  }
+
+  if(monthKeys.length){
+    const monthEntries = monthKeys.map(k=>[k, monthMap[k]]);
+    const bestMo = [...monthEntries].sort((a,b)=>b[1]-a[1])[0];
+    const worstMo = [...monthEntries].sort((a,b)=>a[1]-b[1])[0];
+    const fmtMonth = (k)=>{
+      const [y,m] = k.split("-");
+      return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
+    };
+    setMiniValue("bestMonth", fmtMonth(bestMo[0])+":", (bestMo[1] >= 0 ? "+£" : "-£") + Math.abs(bestMo[1]).toFixed(2));
+    setMiniValue("worstMonth", fmtMonth(worstMo[0])+":", (worstMo[1] >= 0 ? "+£" : "-£") + Math.abs(worstMo[1]).toFixed(2));
+  }
+	  }
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
