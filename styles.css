@@ -4169,3 +4169,40 @@ padding: 6px 10px !important;
 font-size: 12px !important;
 border-radius: 10px !important;
 }
+/* ===== FLASHSCORE STYLE MARKET ===== */
+
+.bet-market-inline{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+  font-weight:600;
+  color:#dfe7ef;
+  margin-top:6px;
+}
+
+/* icon (⚽ etc) */
+.bet-market-icon{
+  font-size:14px;
+  opacity:0.9;
+}
+
+/* market text */
+.bet-market-text{
+  color:#ffffff;
+}
+
+/* bookie text */
+.bet-bookie-text{
+  color:#9aa7b6;
+  font-weight:500;
+  margin-left:6px;
+}
+
+/* REMOVE OLD BIG PILL LOOK */
+.bet-market{
+  background:none !important;
+  padding:0 !important;
+  border-radius:0 !important;
+  font-size:13px !important;
+}
