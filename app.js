@@ -1733,65 +1733,49 @@ function buildAdaptiveChartSeries(history, labels, dayKeys){
   };
 }
 
-function renderDailyChart(history, labels, dayKeys){
-  const el = document.getElementById("chart");
-  if(!el) return;
-  if(dailyChart) dailyChart.destroy();
+const sorted = [...history].sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
 
-  const series = buildAdaptiveChartSeries(history, labels, dayKeys);
-  const ctx = el.getContext("2d");
+let bankroll = Number(document.getElementById("startingBankroll")?.value || 0);
 
-  dailyChart = new Chart(ctx,{
-    type:"line",
-    data:{
-      labels:series.labels,
-      datasets:[{
-        data:series.values,
-        tension:0.28,
-        fill:true,
-        borderWidth:3,
-        borderColor:"rgba(34,197,94,0.95)",
-        backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:series.pointRadius,
-        pointHoverRadius:series.pointHoverRadius,
-        pointHitRadius:series.pointHitRadius,
-        pointBackgroundColor:"rgba(34,197,94,1)"
-      }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      interaction:{mode:"nearest", intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            title:(items)=> series.titles[items?.[0]?.dataIndex ?? 0] || "",
-            label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
-          }
-        }
-      },
-      scales:{
-        x:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            autoSkip:true,
-            maxRotation:0,
-            minRotation:0
-          },
-          grid:{color:"rgba(255,255,255,0.04)"}
-        },
-        y:{
-          ticks:{
-            color:"rgba(226,232,240,0.78)",
-            callback:(v)=>`£${Number(v).toFixed(0)}`
-          },
-          grid:{color:"rgba(255,255,255,0.05)"}
-        }
-      }
-    }
+const labels = [];
+const data = [];
+
+sorted.forEach(r=>{
+  const profit =
+    r.result === "won" ? r.stake * (r.odds - 1) :
+    r.result === "lost" ? -r.stake : 0;
+
+  bankroll += profit;
+
+  const date = new Date(r.created_at).toLocaleDateString('en-GB',{
+    day:'2-digit',
+    month:'short'
   });
-}
+
+  labels.push(date);
+  data.push(bankroll);
+});
+
+if(window.chart) window.chart.destroy();
+
+const ctx = document.getElementById("chart");
+
+window.chart = new Chart(ctx,{
+  type:'line',
+  data:{
+    labels,
+    datasets:[{
+      data,
+      fill:true,
+      tension:0.3
+    }]
+  },
+  options:{
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{legend:{display:false}}
+  }
+});
 
 function renderMonthlyChart(profits, roi, labels){
   const el = document.getElementById("monthlyChart");
