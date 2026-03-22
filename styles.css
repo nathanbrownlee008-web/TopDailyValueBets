@@ -4233,3 +4233,30 @@ input,
     min-width:auto !important;
   }
 }
+
+
+/* Bet Results market icons */
+.tracker-market-sub,
+.tracker-market-col{
+  white-space: nowrap;
+}
+
+
+/* Tracker rebuilt cards: restore market icons */
+.tracker-grid-market-inline .bet-market-icon{
+  flex:0 0 auto;
+  font-size:16px;
+  line-height:1;
+  opacity:1;
+  filter:none;
+}
+.tracker-grid-market-inline .bet-market-text{
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:#f0f5ff;
+  font-weight:700;
+}
+
+.market{display:flex;gap:6px;align-items:center;justify-content:center;}

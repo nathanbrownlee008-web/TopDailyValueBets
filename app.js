@@ -680,7 +680,7 @@ async function loadBets(){
       <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${row.market} ${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
@@ -1146,9 +1146,9 @@ history.push(bankroll);
 tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  <div class="tracker-market-sub">${row.market || "—"}</div>
+  <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market} ${row.market || "—"}</div>
 </td>
-<td class="tracker-market-col">${row.market || "—"}</td>
+<td class="tracker-market-col">${getMarketIcon(row.market)} ${row.market} ${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -2792,7 +2792,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-meta tracker-grid-meta--single-row">
                 <div class="tracker-grid-market-slot">
                   <span>Market</span>
-                  <div class="tracker-grid-market-inline">${trackerEsc(row.market || "—")}</div>
+                  <div class="tracker-grid-market-inline"><span class="bet-market-icon">${trackerEsc(getMarketIcon(row.market) || "📊")}</span><span class="bet-market-text">${trackerEsc(row.market || "—")}</span></div>
                 </div>
                 <div>
                   <span>Stake</span>
