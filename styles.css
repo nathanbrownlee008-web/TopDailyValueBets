@@ -3575,6 +3575,8 @@ body.layout-compact .vip-bar{
 /* Match + market helper classes */
 #trackerTable td.match-market-cell{
   vertical-align: top;
+  display: flex;
+  flex-direction: column;
 }
 #trackerTable .tracker-match-name{
   display:block;
@@ -3586,6 +3588,8 @@ body.layout-compact .vip-bar{
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-top: 4px;
+  font-size: 13px;
 }
 
 @media (max-width: 768px){
