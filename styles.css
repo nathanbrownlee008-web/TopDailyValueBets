@@ -4216,10 +4216,10 @@ input,
   min-width:0 !important;
 }
 /* GLOBAL CARD SCALE FIX (MOBILE) */
-@media (max-width: 600px){
+@media (max-width: 500px){
   
   .bet-card{
-    transform: scale(0.94);
+    transform: scale(0.90);
     transform-origin: top center;
   }
 
