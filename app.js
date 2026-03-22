@@ -1,4 +1,15 @@
 
+const MARKET_ICONS = {
+  "Over 0.5": "⚽",
+  "Over 1.5": "⚽",
+  "Over 2.5": "⚽",
+  "Over 3.5": "⚽",
+  "BTTS": "🤝",
+  "Win": "🏆",
+  "Draw": "➖",
+  "Double Chance": "🔁"
+};
+
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);

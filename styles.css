@@ -4328,3 +4328,23 @@ input,
   .tracker-grid-market-inline .bet-market-text,
   .tracker-market-text{font-size:12px;}
 }
+
+
+.market-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+}
+
+.market-icon {
+  font-size: 18px;
+}
+
+.market-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
