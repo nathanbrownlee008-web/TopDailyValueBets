@@ -4127,21 +4127,24 @@ input,
 
 /* VALUE BETS ONLY: bookmaker logos */
 .bet-bookie-row{
-  .bet-bookie-row{
   display:flex;
   align-items:center;
-  justify-content:center; /* center it */
+  justify-content:center;
   min-height:34px;
-  margin:8px 0 6px 0; /* tighter spacing */
-  }
+  margin:8px 0 6px 0;
+}
 
 .bet-bookie-logo{
-  height:52px;
-  width:auto;
-  max-width:180px;
+  height:26px !important;
+  width:auto !important;
+  max-width:90px !important;
   object-fit:contain;
   display:block;
-  margin:0 auto;
+
+  /* NORMALISE ALL LOGOS */
+  background:rgba(255,255,255,0.06);
+  padding:4px 8px;
+  border-radius:10px;
 }
 
 .bet-bookie-logo--dark{
