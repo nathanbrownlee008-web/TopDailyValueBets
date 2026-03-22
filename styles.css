@@ -3583,7 +3583,9 @@ body.layout-compact .vip-bar{
   overflow-wrap: anywhere;
 }
 #trackerTable .tracker-market-sub{
-  display:none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 @media (max-width: 768px){
