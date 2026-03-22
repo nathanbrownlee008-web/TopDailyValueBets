@@ -4278,7 +4278,7 @@ input,
 }
 /* 🔥 Market text upgrade */
 .tracker-grid-market-inline-text{
-  font-size: 14.5px !important;   /* bigger */
+  font-size: 18px !important;   /* bigger */
   font-weight: 800 !important;    /* stronger */
   color: #ffffff !important;      /* full white */
   letter-spacing: 0.3px;
