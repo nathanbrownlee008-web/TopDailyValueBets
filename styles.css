@@ -4235,15 +4235,8 @@ input,
 }
 
 
-/* restored market icons in tracker result cards */
-.market-pill,
-.tracker-market-pill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  white-space:nowrap;
-}
-
-.tracker-market-sub{
-  white-space:nowrap;
+/* Bet Results market icons */
+.tracker-market-sub,
+.tracker-market-col{
+  white-space: nowrap;
 }
