@@ -4258,3 +4258,73 @@ input,
   color:#f0f5ff;
   font-weight:700;
 }
+
+
+/* Premium market icons + text */
+.market-icon-badge{
+  width:22px;
+  height:22px;
+  min-width:22px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.38), rgba(255,255,255,.08) 34%, rgba(17,29,53,.95) 100%);
+  border:1px solid rgba(255,255,255,.24);
+  box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 0 14px rgba(102,255,204,.16);
+  flex:0 0 auto;
+}
+.market-icon-badge svg{
+  width:13px;
+  height:13px;
+  stroke:#f7fbff;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  fill:none;
+  filter:drop-shadow(0 0 6px rgba(255,255,255,.24));
+}
+.market-icon-badge--goal{ box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 0 14px rgba(87,255,166,.26); }
+.market-icon-badge--btts{ box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 0 14px rgba(92,201,255,.26); }
+.market-icon-badge--corner{ box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 0 14px rgba(255,211,87,.26); }
+.market-icon-badge--card{ box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 0 14px rgba(255,182,63,.28); }
+.market-icon-badge--win{ box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 0 14px rgba(170,126,255,.26); }
+.market-icon-badge--double{ box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 0 14px rgba(95,239,224,.24); }
+.market-icon-badge--draw{ box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 0 14px rgba(180,196,255,.20); }
+.market-icon-badge--score{ box-shadow:0 0 0 1px rgba(255,255,255,.06) inset, 0 0 14px rgba(255,132,193,.24); }
+
+.tracker-grid-market-inline,
+.tracker-market-sub,
+.tracker-market-col{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.tracker-grid-market-inline .bet-market-text,
+.tracker-market-text{
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:#f5f8ff;
+  font-weight:700;
+}
+.tracker-grid-market-inline{
+  justify-content:flex-start;
+  padding:0 12px;
+}
+.tracker-market-sub{
+  margin-top:4px;
+  color:#dce6fb;
+}
+.tracker-market-col{
+  color:#eef4ff;
+  font-weight:700;
+}
+@media (max-width:700px){
+  .market-icon-badge{width:20px;height:20px;min-width:20px;}
+  .market-icon-badge svg{width:12px;height:12px;}
+  .tracker-grid-market-inline{gap:7px;padding:0 10px;}
+  .tracker-grid-market-inline .bet-market-text,
+  .tracker-market-text{font-size:12px;}
+}
