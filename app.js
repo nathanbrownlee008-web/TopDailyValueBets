@@ -1663,46 +1663,98 @@ loadTracker = async function(){
 
 
 
+
+function buildAdaptiveChartSeries(history, labels, dayKeys){
+  const safeHistory = Array.isArray(history) ? history : [];
+  const safeLabels = Array.isArray(labels) ? labels : [];
+  const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
+
+  const dailyBuckets = [];
+  for(let i = 0; i < safeHistory.length; i++){
+    const rawDay = safeDayKeys[i] || safeLabels[i] || `Day ${i+1}`;
+    const last = dailyBuckets[dailyBuckets.length - 1];
+    if(last && last.key === rawDay){
+      last.value = safeHistory[i];
+      last.endIndex = i;
+    }else{
+      dailyBuckets.push({
+        key: rawDay,
+        label: rawDay,
+        title: rawDay,
+        value: safeHistory[i],
+        startIndex: i,
+        endIndex: i
+      });
+    }
+  }
+
+  const totalDays = dailyBuckets.length;
+  if(totalDays <= 7){
+    return {
+      labels: dailyBuckets.map(b => b.label),
+      titles: dailyBuckets.map(b => b.title),
+      values: dailyBuckets.map(b => b.value),
+      pointRadius: dailyBuckets.map(() => 3),
+      pointHoverRadius: dailyBuckets.map(() => 5),
+      pointHitRadius: dailyBuckets.map(() => 14)
+    };
+  }
+
+  let chunkSize = 7;
+  let labelPrefix = "Week";
+  if(totalDays > 31){
+    chunkSize = 30;
+    labelPrefix = "Month";
+  }
+  if(totalDays > 365){
+    chunkSize = 90;
+    labelPrefix = "Quarter";
+  }
+
+  const grouped = [];
+  for(let start = 0; start < dailyBuckets.length; start += chunkSize){
+    const slice = dailyBuckets.slice(start, start + chunkSize);
+    if(!slice.length) continue;
+    const idx = grouped.length + 1;
+    grouped.push({
+      label: `${labelPrefix} ${idx}`,
+      title: slice.length === 1 ? slice[0].title : `${slice[0].title} → ${slice[slice.length - 1].title}`,
+      value: slice[slice.length - 1].value
+    });
+  }
+
+  return {
+    labels: grouped.map(b => b.label),
+    titles: grouped.map(b => b.title),
+    values: grouped.map(b => b.value),
+    pointRadius: grouped.map(() => 3),
+    pointHoverRadius: grouped.map(() => 5),
+    pointHitRadius: grouped.map(() => 14)
+  };
+}
+
 function renderDailyChart(history, labels, dayKeys){
   const el = document.getElementById("chart");
   if(!el) return;
   if(dailyChart) dailyChart.destroy();
 
-  const safeHistory = Array.isArray(history) ? history : [];
-  const safeLabels = Array.isArray(labels) ? labels : [];
-  const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
+  const series = buildAdaptiveChartSeries(history, labels, dayKeys);
   const ctx = el.getContext("2d");
-
-  const pointRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 3 : 0;
-  });
-  const pointHoverRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 5 : 0;
-  });
-  const pointHitRadius = safeHistory.map((_, i)=>{
-    const curr = safeDayKeys[i];
-    const next = safeDayKeys[i + 1];
-    return (!next || curr !== next) ? 14 : 0;
-  });
 
   dailyChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels:safeLabels,
+      labels:series.labels,
       datasets:[{
-        data:safeHistory,
+        data:series.values,
         tension:0.28,
         fill:true,
         borderWidth:3,
         borderColor:"rgba(34,197,94,0.95)",
         backgroundColor:"rgba(34,197,94,0.14)",
-        pointRadius:pointRadius,
-        pointHoverRadius:pointHoverRadius,
-        pointHitRadius:pointHitRadius,
+        pointRadius:series.pointRadius,
+        pointHoverRadius:series.pointHoverRadius,
+        pointHitRadius:series.pointHitRadius,
         pointBackgroundColor:"rgba(34,197,94,1)"
       }]
     },
@@ -1714,14 +1766,19 @@ function renderDailyChart(history, labels, dayKeys){
         legend:{display:false},
         tooltip:{
           callbacks:{
-            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
+            title:(items)=> series.titles[items?.[0]?.dataIndex ?? 0] || "",
             label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
           }
         }
       },
       scales:{
         x:{
-          ticks:{color:"rgba(226,232,240,0.78)", autoSkip:false, maxRotation:45, minRotation:45},
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            autoSkip:true,
+            maxRotation:0,
+            minRotation:0
+          },
           grid:{color:"rgba(255,255,255,0.04)"}
         },
         y:{
@@ -1735,7 +1792,6 @@ function renderDailyChart(history, labels, dayKeys){
     }
   });
 }
-
 
 function renderMonthlyChart(profits, roi, labels){
   const el = document.getElementById("monthlyChart");
