@@ -3942,43 +3942,13 @@ input,
 
 
 
-/* ===== VALUE BETS FIX (BRIGHT TEXT + ICONS BACK) ===== */
-
-/* force no dim */
-.value-card, .value-card * {
-  opacity:1 !important;
-}
-
-/* market row */
-.bet-market, .bet-market-inline {
-  display:inline-flex !important;
+/* ===== MARKET ICON + TEXT REAL FIX ===== */
+.tracker-grid-market-inline{
+  display:flex !important;
   align-items:center !important;
-  gap:10px !important;
-}
-
-/* ICON */
-.bet-market-icon {
-  font-size:18px !important;
-  opacity:1 !important;
-  filter:none !important;
-}
-
-/* TEXT */
-.bet-market-text {
-  color:#ffffff !important;
-  font-size:16px !important;
-  font-weight:700 !important;
-  opacity:1 !important;
-  letter-spacing:0.2px;
-
-  text-shadow:
-    0 0 2px rgba(255,255,255,0.35),
-    0 0 4px rgba(255,255,255,0.15);
-}
-
-/* fallback if classes missing (your case likely) */
-.value-card span,
-.value-card p {
-  color:#ffffff !important;
-  opacity:1 !important;
+  justify-content:center !important;
+  gap:8px !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
 }
