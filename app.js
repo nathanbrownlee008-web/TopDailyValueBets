@@ -268,12 +268,15 @@ function shouldTryVipFinalize(){
 
 function getMarketIcon(market){
   if(!market) return "";
+
   const m = market.toLowerCase();
-  if(m.includes("goal")) return "⚽";
-  if(m.includes("btts")) return "🥅";
+
   if(m.includes("corner")) return "🚩";
   if(m.includes("card")) return "🟨";
-  return "⚽";
+  if(m.includes("goal")) return "⚽";
+  if(m.includes("btts")) return "🥅";
+
+  return "";
 }
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
