@@ -4276,3 +4276,15 @@ input,
     font-size:12px !important;
   }
 }
+/* 🔥 Market text upgrade */
+.tracker-grid-market-inline-text{
+  font-size: 14.5px !important;   /* bigger */
+  font-weight: 800 !important;    /* stronger */
+  color: #ffffff !important;      /* full white */
+  letter-spacing: 0.3px;
+}
+
+/* make emoji slightly cleaner too */
+.tracker-grid-market-inline{
+  gap: 10px !important;
+}
