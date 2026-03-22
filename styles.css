@@ -432,7 +432,7 @@ th{text-align:left}
 }
 
 .bet-title{
-  font-size:20px;
+  font-size:14px;
   margin:0;
   font-weight:800;
   letter-spacing:0.1px;
@@ -550,7 +550,7 @@ th{text-align:left}
   }
 
   .bet-title{
-    font-size: 20px;
+    font-size: 15px;
   }
 
   .bet-meta{
@@ -4117,40 +4117,5 @@ input,
 
 /* keep enough room on the left so the centered value chip doesn't force wrapping */
 .bet-card .bet-left{
-  padding-right: 130px !important;
-}
-.bet-title{
-  font-size: 16px !important;
-}
-
-
-
-/* VALUE BETS ONLY: bookmaker logos */
-.bet-bookie-row{
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  min-height:50px;
-  margin-top:8px;
-}
-
-.bet-bookie-logo{
-  height:50px;
-  width:auto;
-  max-width:180px;
-  object-fit:contain;
-  display:block;
-}
-
-.bet-bookie-logo--dark{
-  background:rgba(255,255,255,0.92);
-  padding:4px 8px;
-  border-radius:10px;
-}
-
-.bet-bookie-text{
-  font-size:14px;
-  font-weight:700;
-  color:#ffffff;
-  opacity:0.95;
+  padding-right: 140px !important;
 }
