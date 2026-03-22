@@ -4242,86 +4242,37 @@ input,
 }
 
 
-/* Tracker rebuilt cards: restore market icons */
-.tracker-grid-market-inline .bet-market-icon{
-  flex:0 0 auto;
-  font-size:16px;
-  line-height:1;
-  opacity:1;
-  filter:none;
-}
-.tracker-grid-market-inline .bet-market-text{
-  min-width:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  color:#f0f5ff;
-  font-weight:700;
-}
 
-
-
-/* ===== TRACKER MARKET TEXT ACTUAL FIX ===== */
-.tracker-grid-market-slot{
-  min-width: 0 !important;
-}
-
+/* ===== TRACKER MARKET TEXT LAST FIX ===== */
 .tracker-grid-market-inline{
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 8px !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  padding: 0 10px !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
-  white-space: nowrap !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:8px !important;
+  padding:0 12px !important;
+  font-weight:800 !important;
+  text-align:left !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
 }
 
-.tracker-grid-market-icon{
-  flex: 0 0 auto !important;
-  display: inline-block !important;
-  font-size: 16px !important;
-  line-height: 1 !important;
-  opacity: 1 !important;
-  filter: none !important;
+.tracker-grid-market-inline-text{
+  display:inline !important;
+  color:#eef4ff !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
 }
 
-.tracker-grid-market-text{
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-  display: inline-block !important;
-  color: #f0f5ff !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  line-height: 1.15 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  text-align: left !important;
-}
-
-.tracker-grid-market-inline .bet-market-icon,
-.tracker-grid-market-inline .bet-market-text{
-  all: unset !important;
-}
-
-@media (max-width: 600px){
-  .tracker-grid-meta--single-row{
-    grid-template-columns: 1.65fr 0.7fr 0.7fr !important;
-  }
-
+@media (max-width:700px){
   .tracker-grid-market-inline{
-    padding: 0 8px !important;
+    justify-content:flex-start !important;
+    padding:0 10px !important;
+    font-size:13px !important;
   }
-
-  .tracker-grid-market-icon{
-    font-size: 15px !important;
-  }
-
-  .tracker-grid-market-text{
-    font-size: 12px !important;
+  .tracker-grid-market-inline-text{
+    font-size:12px !important;
   }
 }
