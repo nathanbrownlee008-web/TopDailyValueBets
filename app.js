@@ -1,15 +1,4 @@
 
-const MARKET_ICONS = {
-  "Over 0.5": "⚽",
-  "Over 1.5": "⚽",
-  "Over 2.5": "⚽",
-  "Over 3.5": "⚽",
-  "BTTS": "🤝",
-  "Win": "🏆",
-  "Draw": "➖",
-  "Double Chance": "🔁"
-};
-
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -279,31 +268,12 @@ function shouldTryVipFinalize(){
 
 function getMarketIcon(market){
   if(!market) return "";
-  const m = String(market).toLowerCase();
-  if(m.includes("btts")) return "btts";
-  if(m.includes("corner")) return "corner";
-  if(m.includes("card")) return "card";
-  if(m.includes("draw")) return "draw";
-  if(m.includes("double chance") || m.includes("dc")) return "double";
-  if(m.includes("correct score")) return "score";
-  if(m.includes("win") || m.includes("moneyline")) return "win";
-  if(m.includes("over") || m.includes("under") || m.includes("goal")) return "goal";
-  return "market";
-}
-function getMarketIconMarkup(market){
-  const type = getMarketIcon(market);
-  const svgMap = {
-    goal: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 3.5l2.5 2 3.2-.3.8 3 2.6 1.8-1.8 2.7.6 3.1-3 .7-1.9 2.6-3-1.5-3 1.5-1.9-2.6-3-.7.6-3.1-1.8-2.7 2.6-1.8.8-3 3.2.3z"></path></svg>',
-    btts: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15.5V7.2c0-.7.5-1.2 1.2-1.2h4.1"></path><path d="M20 8.5v8.3c0 .7-.5 1.2-1.2 1.2h-4.1"></path><path d="M9 4.5L4.5 9 9 13.5"></path><path d="M15 10.5L19.5 15 15 19.5"></path><circle cx="12" cy="12" r="2.2"></circle></svg>',
-    corner: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 20V4"></path><path d="M7 5c5 0 5 3 10 3v6c-5 0-5-3-10-3z"></path><path d="M4 20h4"></path></svg>',
-    card: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="4.5" width="10" height="15" rx="1.8" ry="1.8"></rect><path d="M9.5 8h5"></path></svg>',
-    draw: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10"></path><path d="M7 12h10"></path><path d="M7 16h10"></path></svg>',
-    double: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7H4v4"></path><path d="M4.5 10.5A7.5 7.5 0 0 1 17 6.5"></path><path d="M16 17h4v-4"></path><path d="M19.5 13.5A7.5 7.5 0 0 1 7 17.5"></path></svg>',
-    score: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"></circle><path d="M12 7v5l3 2"></path></svg>',
-    win: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h8v3a4 4 0 0 1-4 4 4 4 0 0 1-4-4z"></path><path d="M6 7H4a3 3 0 0 0 3 3"></path><path d="M18 7h2a3 3 0 0 1-3 3"></path><path d="M10 13h4"></path><path d="M9 19h6"></path><path d="M10 13v6"></path><path d="M14 13v6"></path></svg>',
-    market: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>'
-  };
-  return `<span class="market-icon-badge market-icon-badge--${type}" aria-hidden="true">${svgMap[type] || svgMap.market}</span>`;
+  const m = market.toLowerCase();
+  if(m.includes("goal")) return "⚽";
+  if(m.includes("btts")) return "🥅";
+  if(m.includes("corner")) return "🚩";
+  if(m.includes("card")) return "🟨";
+  return "⚽";
 }
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
@@ -1176,9 +1146,9 @@ history.push(bankroll);
 tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  <div class="tracker-market-sub">${getMarketIconMarkup(row.market)} <span class="tracker-market-text">${escapeHtml(row.market || "—")}</span></div>
+  <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
 </td>
-<td class="tracker-market-col">${getMarketIconMarkup(row.market)} <span class="tracker-market-text">${escapeHtml(row.market || "—")}</span></td>
+<td class="tracker-market-col">${getMarketIcon(row.market)} ${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -2822,7 +2792,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-meta tracker-grid-meta--single-row">
                 <div class="tracker-grid-market-slot">
                   <span>Market</span>
-                  <div class="tracker-grid-market-inline">${getMarketIconMarkup(row.market)}<span class="bet-market-text">${trackerEsc(row.market || "—")}</span></div>
+                  <div class="tracker-grid-market-inline"><span class="bet-market-icon">${trackerEsc(getMarketIcon(row.market) || "📊")}</span><span class="bet-market-text">${trackerEsc(row.market || "—")}</span></div>
                 </div>
                 <div>
                   <span>Stake</span>
