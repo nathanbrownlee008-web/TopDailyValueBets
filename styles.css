@@ -4308,3 +4308,6 @@ input,
   background: rgba(255,255,255,0.08) !important;
   border-color: rgba(255,255,255,0.18) !important;
 }
+.tracker-grid-market-inline-text{
+  font-size: 18px !important;
+}
