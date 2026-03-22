@@ -383,7 +383,7 @@ th{text-align:left}
   }
 
   #trackerTable input[type="number"]{
-    width:55px;
+    width:80px;
   }
 
   #trackerTable select{
