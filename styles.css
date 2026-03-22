@@ -4119,3 +4119,32 @@ input,
 .bet-card .bet-left{
   padding-right: 140px !important;
 }
+/* REMOVE PILL LOOK */
+.bet-market{
+  background: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* INLINE TEXT LOOK */
+.bet-market{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px !important;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* icon smaller */
+.bet-market-icon{
+  font-size: 13px !important;
+}
+
+/* optional: slightly dim bookie look if it appears */
+.bet-market::after{
+  margin-left: 6px;
+  color: #9aa7b6;
+  font-weight: 500;
+}
