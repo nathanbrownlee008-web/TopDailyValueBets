@@ -4276,38 +4276,3 @@ input,
     font-size:12px !important;
   }
 }
-/* 🔥 Market text upgrade */
-.tracker-grid-market-inline-text{
-  font-size: 18px !important;   /* bigger */
-  font-weight: 800 !important;    /* stronger */
-  color: #ffffff !important;      /* full white */
-  letter-spacing: 0.3px;
-}
-
-/* make emoji slightly cleaner too */
-.tracker-grid-market-inline{
-  gap: 10px !important;
-}
-/* 🔥 FORCE MARKET TEXT BRIGHT + BIG */
-.tracker-grid-market-inline{
-  opacity: 1 !important;
-}
-
-.tracker-grid-market-inline-text{
-  font-size: 15px !important;
-  font-weight: 900 !important;
-  color: #ffffff !important;
-  opacity: 1 !important;
-  filter: none !important;
-  text-shadow: 0 0 8px rgba(255,255,255,0.35) !important;
-}
-
-/* also make the whole pill brighter */
-.tracker-grid-market-slot,
-.tracker-grid-market-inline{
-  background: rgba(255,255,255,0.08) !important;
-  border-color: rgba(255,255,255,0.18) !important;
-}
-.tracker-grid-market-inline-text{
-  font-size: 18px !important;
-}
