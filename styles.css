@@ -3575,8 +3575,6 @@ body.layout-compact .vip-bar{
 /* Match + market helper classes */
 #trackerTable td.match-market-cell{
   vertical-align: top;
-  display: flex;
-  flex-direction: column;
 }
 #trackerTable .tracker-match-name{
   display:block;
@@ -3585,11 +3583,7 @@ body.layout-compact .vip-bar{
   overflow-wrap: anywhere;
 }
 #trackerTable .tracker-market-sub{
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-  font-size: 13px;
+  display:none;
 }
 
 @media (max-width: 768px){
@@ -4246,33 +4240,21 @@ input,
 .tracker-market-col{
   white-space: nowrap;
 }
-/* ===== AUTO ICONS FOR BET RESULTS ===== */
 
-.tracker-market-sub::before,
-.tracker-market-col::before {
-  margin-right: 6px;
+
+/* Tracker rebuilt cards: restore market icons */
+.tracker-grid-market-inline .bet-market-icon{
+  flex:0 0 auto;
+  font-size:16px;
+  line-height:1;
+  opacity:1;
+  filter:none;
 }
-
-/* Goals */
-.tracker-market-sub:has(:contains("Goal")),
-.tracker-market-col:contains("Goal")::before {
-  content: "⚽";
-}
-
-/* Corners */
-.tracker-market-sub:contains("Corner")::before,
-.tracker-market-col:contains("Corner")::before {
-  content: "🚩";
-}
-
-/* Cards */
-.tracker-market-sub:contains("Card")::before,
-.tracker-market-col:contains("Card")::before {
-  content: "🟨";
-}
-
-/* BTTS */
-.tracker-market-sub:contains("BTTS")::before,
-.tracker-market-col:contains("BTTS")::before {
-  content: "🥅";
+.tracker-grid-market-inline .bet-market-text{
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:#f0f5ff;
+  font-weight:700;
 }
