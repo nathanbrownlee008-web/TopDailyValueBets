@@ -493,6 +493,21 @@ const FREE_VISIBLE_COUNT = 3;
 const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
+
+function marketIconForText(market){
+  const m = String(market || "").toLowerCase();
+  if(m.includes("corner")) return "🚩";
+  if(m.includes("card")) return "🟨";
+  if(m.includes("btts") || m.includes("both teams to score")) return "🥅";
+  if(m.includes("goal")) return "⚽";
+  if(m.includes("shot")) return "🎯";
+  if(m.includes("assist")) return "🅰️";
+  if(m.includes("foul")) return "🚫";
+  if(m.includes("offside")) return "🚨";
+  if(m.includes("win") || m.includes("draw") || m.includes("double chance")) return "🏁";
+  return "📌";
+}
+
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
@@ -627,6 +642,7 @@ function switchTab(tab){
 
 function getBookieLogo(bookie = "") {
   const b = String(bookie || "").toLowerCase().trim();
+
   if (b.includes("bet365")) return "bookies/bet365.png";
   if (b.includes("sky")) return "bookies/skybet.png";
   if (b.includes("william")) return "bookies/williamhill.png";
@@ -640,17 +656,14 @@ function getBookieLogo(bookie = "") {
   return "";
 }
 
-function renderBookieLogo(bookie = "", extraClass = "") {
+function renderBookieValueBet(bookie = "") {
   const clean = escapeHtml(bookie || "");
   const logo = getBookieLogo(bookie || "");
   const darkLogo = /betfair|betuk/i.test(String(bookie || ""));
-  if (!bookie) return "";
-  if (!logo) {
-    return `<div class="bet-bookie-row ${extraClass}"><span class="bet-bookie-text">${clean}</span></div>`;
-  }
-  return `<div class="bet-bookie-row ${extraClass}"><img class="bet-bookie-logo ${darkLogo ? "bet-bookie-logo--dark" : ""}" src="${logo}" alt="${clean}"></div>`;
+  return logo
+    ? `<div class="bet-bookie-row"><img class="bet-bookie-logo ${darkLogo ? "bet-bookie-logo--dark" : ""}" src="${logo}" alt="${clean}" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<span class=&quot;bet-bookie-text&quot;>${clean}</span>');"></div>`
+    : `<div class="bet-bookie-row"><span class="bet-bookie-text">${clean}</span></div>`;
 }
-
 
 async function loadBets(){
   addedKeys.clear();
@@ -697,11 +710,10 @@ async function loadBets(){
     <div class="bet-teaser">
       <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
-      ${row.bookie ? renderBookieLogo(row.bookie, 'bet-bookie-row--leftbadge') : ''}
       <div class="bet-meta">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${escapeHtml(row.market || '')}</span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market"><span class="bet-market-icon">${marketIconForText(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
       </div>
-      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
+      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? renderBookieValueBet(row.bookie) : ''}`}
     </div>
     <div class="bet-details">
       <div class="bet-footer">
@@ -720,7 +732,7 @@ async function loadBets(){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
         <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<span class="bet-market-inline"><span class="bet-market-icon">${marketIconForText(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market||'')}</span></span>`}</td>
         <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
@@ -2683,6 +2695,21 @@ window.forgotVipPassword = forgotVipPassword;
     return 0;
   }
 
+
+  function trackerMarketIcon(market){
+    const m = String(market || "").toLowerCase();
+    if(m.includes("corner")) return "🚩";
+    if(m.includes("card")) return "🟨";
+    if(m.includes("btts") || m.includes("both teams to score")) return "🥅";
+    if(m.includes("goal")) return "⚽";
+    if(m.includes("shot")) return "🎯";
+    if(m.includes("assist")) return "🅰️";
+    if(m.includes("foul")) return "🚫";
+    if(m.includes("offside")) return "🚨";
+    if(m.includes("win") || m.includes("draw") || m.includes("double chance")) return "🏁";
+    return "📌";
+  }
+
   function trackerEsc(s){
     return String(s ?? "")
       .replace(/&/g, "&amp;")
@@ -2795,7 +2822,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-meta tracker-grid-meta--single-row">
                 <div class="tracker-grid-market-slot">
                   <span>Market</span>
-                  <div class="tracker-grid-market-inline">${trackerEsc(row.market || "—")}</div>
+                  <div class="tracker-grid-market-inline">${trackerMarketIcon(row.market)} ${trackerEsc(row.market || "—")}</div>
                 </div>
                 <div>
                   <span>Stake</span>
