@@ -1146,9 +1146,9 @@ history.push(bankroll);
 tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
+  <div class="tracker-market-sub">${row.market || "—"}</div>
 </td>
-<td class="tracker-market-col">${getMarketIcon(row.market)} ${row.market || "—"}</td>
+<td class="tracker-market-col">${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -2792,7 +2792,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-meta tracker-grid-meta--single-row">
                 <div class="tracker-grid-market-slot">
                   <span>Market</span>
-                  <div class="tracker-grid-market-inline">${trackerEsc(getMarketIcon(row.market) || "📊")} <span class="tracker-grid-market-inline-text">${trackerEsc(row.market || "—")}</span></div>
+                  <div class="tracker-grid-market-inline">${trackerEsc(row.market || "—")}</div>
                 </div>
                 <div>
                   <span>Stake</span>
