@@ -4124,107 +4124,112 @@ input,
 }
 
 
-/* ===== Safe inline market + bookie for Value Bets only ===== */
-#betsGrid .bet-meta{
-  display:block;
-  margin-top:6px;
-}
+/* ===== MOBILE FIT HOTFIX: shrink value bet cards so nothing goes off screen ===== */
+@media (max-width: 600px){
+  .bet-lock-wrap,
+  .bet-card,
+  .card.bet-card{
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+  }
 
-#betsGrid .bet-market.bet-market--inline{
-  display:inline-flex !important;
-  align-items:center !important;
-  gap:6px !important;
-  background:none !important;
-  padding:0 !important;
-  border:none !important;
-  border-radius:0 !important;
-  box-shadow:none !important;
-  margin-bottom:10px !important;
-  text-align:left !important;
-  color:#ffffff !important;
-}
-
-#betsGrid .bet-market.bet-market--inline .bet-market-icon{
-  font-size:13px !important;
-  opacity:0.95 !important;
-}
-
-#betsGrid .bet-market.bet-market--inline .bet-market-text{
-  font-size:13px !important;
-  line-height:1.2 !important;
-  font-weight:700 !important;
-  color:#ffffff !important;
-}
-
-#betsGrid .bet-market.bet-market--inline .bet-bookie-inline{
-  font-size:12px !important;
-  line-height:1.2 !important;
-  font-weight:600 !important;
-  color:rgba(226,232,240,0.72) !important;
-  margin-left:6px !important;
-}
-
-#betsGrid .bet-bookie{
-  display:none !important;
-}
-/* FIX CARD OVERFLOW */
-.bet-card{
-  max-width:100% !important;
-  overflow:hidden !important;
-  box-sizing:border-box !important;
-}
-
-.bet-details,
-.bet-footer,
-.bet-left,
-.bet-meta{
-  min-width:0 !important;
-  max-width:100% !important;
-  box-sizing:border-box !important;
-}
-
-/* inline market must not push card wider */
-.bet-market.bet-market--inline{
-  display:flex !important;
-  align-items:center !important;
-  gap:6px !important;
-  max-width:100% !important;
-  min-width:0 !important;
-  flex-wrap:wrap !important;
-  white-space:normal !important;
-  overflow:hidden !important;
-}
-
-.bet-market.bet-market--inline .bet-market-text,
-.bet-market.bet-market--inline .bet-bookie-inline{
-  min-width:0 !important;
-  max-width:100% !important;
-  white-space:normal !important;
-  overflow-wrap:anywhere !important;
-  word-break:break-word !important;
-}
-
-/* keep footer pills inside card */
-.bet-footer{
-  max-width:100% !important;
-  min-width:0 !important;
-  flex-wrap:nowrap !important;
-  gap:8px !important;
-}
-
-.bet-footer > *{
-  min-width:0 !important;
-}
-/* GLOBAL CARD SCALE FIX (MOBILE) */
-@media (max-width: 500px){
-  
   .bet-card{
-    transform: scale(0.90);
-    transform-origin: top center;
+    padding:14px 12px !important;
+    border-radius:18px !important;
   }
 
-  .bets-grid{
-    gap: 6px !important;
+  .bet-title{
+    font-size:14px !important;
+    line-height:1.2 !important;
   }
 
+  .bet-date{
+    font-size:12px !important;
+  }
+
+  .bet-meta{
+    min-width:0 !important;
+    max-width:100% !important;
+    overflow:hidden !important;
+  }
+
+  .bet-market,
+  .bet-market-inline{
+    max-width:100% !important;
+    min-width:0 !important;
+    padding:7px 11px !important;
+    border-radius:14px !important;
+    gap:7px !important;
+    transform:scale(0.94) !important;
+    transform-origin:center center !important;
+  }
+
+  .bet-market-icon{
+    font-size:14px !important;
+  }
+
+  .bet-market-text{
+    font-size:13px !important;
+    line-height:1.15 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    min-width:0 !important;
+  }
+
+  .bet-bookie-inline{
+    font-size:11px !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    max-width:72px !important;
+  }
+
+  .bet-details,
+  .bet-footer,
+  .bet-left{
+    min-width:0 !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+
+  .bet-footer{
+    gap:8px !important;
+  }
+
+  .bet-left{
+    gap:8px !important;
+    padding-right:110px !important;
+  }
+
+  .odds-badge,
+  .stat-chip,
+  .bet-btn{
+    transform:scale(0.94) !important;
+    transform-origin:center center !important;
+  }
+
+  .odds-badge{
+    font-size:12px !important;
+    padding:8px 12px !important;
+    min-width:auto !important;
+  }
+
+  .stat-chip{
+    min-width:auto !important;
+    padding:8px 14px !important;
+  }
+
+  .stat-chip__k,
+  .stat-chip__v{
+    font-size:12px !important;
+  }
+
+  .bet-btn{
+    font-size:12px !important;
+    padding:8px 14px !important;
+    min-width:auto !important;
+  }
 }
