@@ -1590,7 +1590,7 @@ async function loadTdtTracker(){
     set("tdtProfit", profit.toFixed(2));
     set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
     set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
-    set("tdtWonLost", `${wins}-${losses}`);
+    set("tdtWonLost", `${wins}W-${losses}L`);
     set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
     set("tdtTotalBets", rows.length);
     set("tdtBetCount", rows.length);
