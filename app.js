@@ -1273,7 +1273,11 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
       <td>${bets}</td>
-      <td class="${wrClass}">${winrate.toFixed(1)}%</td>
+      <td class="${(() => {
+        const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
+        const diff = winrate - breakEven;
+        return diff > 0.1 ? 'profit-win' : diff < -0.1 ? 'profit-loss' : 'profit-breakeven';
+      })()}">${winrate.toFixed(1)}%</td>
       <td>${avgOdds.toFixed(2)}</td>
     </tr>`;
   });
@@ -1910,9 +1914,9 @@ function renderMarketChart(labels, winPct, totals){
         meta.data.forEach((bar, i)=>{
           const val = winPct[i] ?? 0;
           const text = Math.round(val) + "%";
-          const x = bar.x + 6;   // move text OUTSIDE bar
+          const x = bar.x - 10; // inside bar near end
           const y = bar.y + 4;
-          ctx.textAlign = "left";
+          ctx.textAlign = "right";
           ctx.fillText(text, x, y);
         });
         ctx.restore();
