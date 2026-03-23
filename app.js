@@ -2775,11 +2775,12 @@ window.forgotVipPassword = forgotVipPassword;
 
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
-      const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : (monthKey === currentMonthLabel || monthIndex === 0);
+      const isCurrentMonth = monthKey === currentMonthLabel;
+      const monthOpen = isCurrentMonth ? true : (Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0);
 
       html += `
         <div class="tracker-month-wrap">
-          <button class="tracker-group-toggle tracker-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+          <button class="tracker-group-toggle tracker-month-toggle ${isCurrentMonth ? "tracker-month-toggle--current" : ""}" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
             <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
             <span>${trackerEsc(monthKey)}</span>
           </button>
@@ -2788,11 +2789,12 @@ window.forgotVipPassword = forgotVipPassword;
 
       Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
-        const weekOpen = Object.prototype.hasOwnProperty.call(weekState, weekKey) ? !!weekState[weekKey] : (monthKey === currentMonthLabel && weekLabel === currentWeekLabel ? true : (monthIndex === 0 && weekIndex === 0));
+        const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
+        const weekOpen = isCurrentWeek ? true : (Object.prototype.hasOwnProperty.call(weekState, weekKey) ? !!weekState[weekKey] : (monthIndex === 0 && weekIndex === 0));
 
         html += `
           <div class="tracker-week-wrap">
-            <button class="tracker-group-toggle tracker-week-toggle" data-type="week" data-key="${encodeURIComponent(weekKey)}" onclick="toggleTrackerCollapse(this)">
+            <button class="tracker-group-toggle tracker-week-toggle ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" data-type="week" data-key="${encodeURIComponent(weekKey)}" onclick="toggleTrackerCollapse(this)">
               <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
               <span>${trackerEsc(weekLabel)}</span>
             </button>
@@ -2802,7 +2804,7 @@ window.forgotVipPassword = forgotVipPassword;
         Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
           const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
-          const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (isCurrentDay ? true : (monthIndex === 0 && weekIndex === 0 && dayIndex === 0));
+          const dayOpen = isCurrentDay ? true : (Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && weekIndex === 0 && dayIndex === 0));
 
           html += `
             <div class="tracker-day-wrap">
