@@ -1251,17 +1251,22 @@ const monthlyWinrate = monthKeys.map(k=>{
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
-  monthKeys.forEach((k,i)=>{
-    const p = monthlyProfit[i];
-    const r = monthlyROI[i];
-    breakdownHTML += `<tr>
-      <td>${monthLabels[i]}</td>
-      <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
-      <td>${r.toFixed(1)}%</td>
-    </tr>`;
-  });
-  breakdownHTML += "</table>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>Win %</th></tr>";
+monthKeys.forEach((k,i)=>{
+  const p = monthlyProfit[i];
+  const r = monthlyROI[i];
+  const bets = monthlyBets[i] || 0;
+  const winrate = monthlyWinrate[i] || 0;
+
+  breakdownHTML += `<tr>
+    <td>${monthLabels[i]}</td>
+    <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
+    <td>${r.toFixed(1)}%</td>
+    <td>${bets}</td>
+    <td>${winrate.toFixed(1)}%</td>
+  </tr>`;
+});
+breakdownHTML += "</table>";
   const tableEl = document.getElementById("monthlyTable");
   if(tableEl) tableEl.innerHTML = breakdownHTML;
 
