@@ -4292,24 +4292,3 @@ input,
     padding:10px 12px;
   }
 }
-
-
-
-/* ===== Current month/week/day forced highlights ===== */
-.tracker-month-toggle--current{
-  border-color: rgba(59,130,246,0.35) !important;
-  box-shadow: 0 0 0 1px rgba(59,130,246,0.12);
-}
-
-.tracker-week-toggle--current{
-  border-color: rgba(34,197,94,0.40) !important;
-  background: rgba(34,197,94,0.08) !important;
-  box-shadow: 0 0 0 1px rgba(34,197,94,0.12);
-}
-
-.tracker-day-toggle--current{
-  color: #f8fafc !important;
-}
-
-.tracker-group-toggle{display:flex;justify-content:space-between;align-items:center;}
-.tracker-stats{margin-left:auto;font-size:12px;opacity:.8;font-weight:700;}
