@@ -1889,29 +1889,24 @@ function renderMarketChart(labels, winPct, totals){
       animation: { duration: 250 }
     },
     plugins: [{
-    plugins:[{
-  id:"pctLabels",
+  id: "pctLabels",
   afterDatasetsDraw(chart){
     const {ctx} = chart;
     const meta = chart.getDatasetMeta(0);
+    ctx.save();
+    ctx.font = "800 12px system-ui, sans-serif";
+    ctx.fillStyle = "rgba(229,231,235,0.96)";
 
-    meta.data.forEach((bar,i)=>{
-      const val = Number(winPct[i] || 0);
+    meta.data.forEach((bar, i)=>{
+      const val = winPct[i] ?? 0;
       const text = Math.round(val) + "%";
-
-      ctx.save();
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 12px system-ui";
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
-
-      // always pin label to the right end of the bar area
       const x = chart.chartArea.right - 10;
-      const y = bar.y;
-
+      const y = bar.y + 4;
+      ctx.textAlign = "right";
       ctx.fillText(text, x, y);
-      ctx.restore();
     });
+
+    ctx.restore();
   }
 }]
   });
