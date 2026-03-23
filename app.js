@@ -1206,12 +1206,16 @@ if(countElem) countElem.textContent = String(rows.length);
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
+const monthBetsMap = {};
+const monthWinsMap = {};
 
 rows.forEach(r=>{
   const d = new Date(r.created_at);
   const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
   monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
+  monthBetsMap[key] = (monthBetsMap[key] || 0) + 1;
+  if((r.result || "") === "won") monthWinsMap[key] = (monthWinsMap[key] || 0) + 1;
 });
 
 const monthKeys = Object.keys(monthMap).sort();
@@ -1227,17 +1231,27 @@ const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
+const monthlyBets = monthKeys.map(k => monthBetsMap[k] || 0);
+const monthlyWinrate = monthKeys.map(k=>{
+  const bets = monthBetsMap[k] || 0;
+  const wins = monthWinsMap[k] || 0;
+  return bets ? (wins / bets) * 100 : 0;
+});
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Total Bets</th><th>Win Rate</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
+    const bets = monthlyBets[i] || 0;
+    const winrate = monthlyWinrate[i] || 0;
     breakdownHTML += `<tr>
       <td>${monthLabels[i]}</td>
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
+      <td>${bets}</td>
+      <td>${winrate.toFixed(1)}%</td>
     </tr>`;
   });
   breakdownHTML += "</table>";

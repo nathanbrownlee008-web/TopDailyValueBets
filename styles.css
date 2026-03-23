@@ -4310,3 +4310,17 @@ input,
 .tracker-day-toggle--current{
   color: #f8fafc !important;
 }
+
+
+/* ===== Tracker card input width fix ===== */
+.tracker-grid-card input[type="number"]{
+  width: 92px !important;
+  min-width: 92px !important;
+}
+
+@media (max-width: 600px){
+  .tracker-grid-card input[type="number"]{
+    width: 84px !important;
+    min-width: 84px !important;
+  }
+}
