@@ -2671,21 +2671,11 @@ window.forgotVipPassword = forgotVipPassword;
     return fmtDayLabel(trackerRawDate(row));
   }
 
-  function trackerWeekLabel(row){
-  const d = trackerParseDate(trackerRawDate(row));
-  const day = d.getDate();
-
-  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-
-  let week = Math.ceil(day / 7);
-
-  // force last days into Week 4
-  if (day > lastDay - 7) {
-    week = 4;
-  }
-
-  return `Week ${week}`;
-}
+  Week 1 → Apr 1–6
+Week 2 → Apr 7–13
+Week 3 → Apr 14–20
+Week 4 → Apr 21–27
+Week 5 → Apr 28–30
 
   function trackerProfit(row){
     const stake = Number(row.stake || 0);
