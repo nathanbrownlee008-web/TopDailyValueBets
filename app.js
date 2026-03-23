@@ -2790,19 +2790,32 @@ window.forgotVipPassword = forgotVipPassword;
                 </div>
               </div>
               <div class="tracker-grid-meta tracker-grid-meta--single-row">
-                <div class="tracker-grid-market-slot">
-                  <span>Market</span>
-                  <div class="tracker-grid-market-inline">${trackerEsc(row.market || "—")}</div>
-                </div>
-                <div>
-                  <span>Stake</span>
-                  <input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)">
-                </div>
-                <div>
-                  <span>Odds</span>
-                  <input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)">
-                </div>
-              </div>
+
+  <div class="tracker-grid-market-slot">
+    <span>Market</span>
+    <div class="tracker-grid-market-inline">
+      ${trackerEsc(row.market || "—")}
+    </div>
+  </div>
+
+  <div>
+    <span>Odds</span>
+    <input 
+      type="number" 
+      step="0.01" 
+      value="${Number(row.odds ?? 0)}" 
+      onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
+  </div>
+
+  <div>
+    <span>Stake</span>
+    <input 
+      type="number" 
+      value="${Number(row.stake || 0)}" 
+      onchange="updateStake('${trackerEsc(row.id)}', this.value)">
+  </div>
+
+</div>
             </div>
           `;
         });
