@@ -4311,11 +4311,8 @@ input,
   color: #f8fafc !important;
 }
 
-.tracker-group-toggle{display:flex;justify-content:space-between;align-items:center;}
-.tracker-stats{margin-left:auto;font-size:12px;opacity:.8;font-weight:700;}
 
-
-/* Monthly breakdown break-even amber */
+/* Monthly breakdown smart WR amber */
 .profit-breakeven{
   color:#f59e0b;
   font-weight:600;
