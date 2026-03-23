@@ -1900,11 +1900,10 @@ function renderMarketChart(labels, winPct, totals){
     meta.data.forEach((bar, i)=>{
       const val = winPct[i] ?? 0;
       const text = Math.round(val) + "%";
-      const x = chart.chartArea.right - 10;
-      const y = bar.y + 4;
-      ctx.textAlign = "right";
-      ctx.fillText(text, x, y);
-    });
+      const x = val <= 0 ? bar.x + 22 : bar.x - 10;
+const y = bar.y + 4;
+ctx.textAlign = val <= 0 ? "left" : "right";
+ctx.fillText(text, x, y);
 
     ctx.restore();
   }
