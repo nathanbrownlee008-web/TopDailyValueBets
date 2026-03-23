@@ -3663,7 +3663,11 @@ body.layout-compact .vip-bar{
 .tracker-grid-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;}
 .tracker-grid-match{font-size:17px;font-weight:800;line-height:1.1;color:#eef4ff;flex:1;min-width:0;}
 .tracker-grid-top-result .result-select{min-width:108px;height:40px;padding:6px 12px;border-radius:14px;font-size:13px;}
-.tracker-grid-meta--single-row{display:grid;grid-template-columns:1.5fr .8fr .8fr;gap:12px;align-items:end;}
+.tracker-grid-meta--single-row{
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 0.9fr;
+  align-items: center;
+}
 .tracker-grid-meta--single-row > div{display:flex;flex-direction:column;gap:6px;min-width:0;}
 .tracker-grid-meta--single-row span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#98a8c8;font-weight:800;text-align:center;}
 .tracker-grid-market-slot span{text-align:center;}
