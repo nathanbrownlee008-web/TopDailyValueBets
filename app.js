@@ -1206,26 +1206,12 @@ if(countElem) countElem.textContent = String(rows.length);
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
-const monthBetsMap = {};
-const monthWinsMap = {};
-const monthLossMap = {};
-const monthOddsMap = {};
-const monthOddsCountMap = {};
 
 rows.forEach(r=>{
   const d = new Date(r.created_at);
   const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
   monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
-  monthBetsMap[key] = (monthBetsMap[key] || 0) + 1;
-
-  if((r.result || "") === "won") monthWinsMap[key] = (monthWinsMap[key] || 0) + 1;
-  if((r.result || "") === "lost") monthLossMap[key] = (monthLossMap[key] || 0) + 1;
-
-  if(r.odds != null && r.odds !== ""){
-    monthOddsMap[key] = (monthOddsMap[key] || 0) + Number(r.odds || 0);
-    monthOddsCountMap[key] = (monthOddsCountMap[key] || 0) + 1;
-  }
 });
 
 const monthKeys = Object.keys(monthMap).sort();
@@ -1241,40 +1227,17 @@ const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
-const monthlyBets = monthKeys.map(k => monthBetsMap[k] || 0);
-const monthlyWinrate = monthKeys.map(k=>{
-  const wins = monthWinsMap[k] || 0;
-  const losses = monthLossMap[k] || 0;
-  const settled = wins + losses;
-  return settled ? (wins / settled) * 100 : 0;
-});
-const monthlyAvgOdds = monthKeys.map(k=>{
-  const total = monthOddsMap[k] || 0;
-  const count = monthOddsCountMap[k] || 0;
-  return count ? (total / count) : 0;
-});
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>WR</th><th>Avg</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
-    const bets = monthlyBets[i] || 0;
-    const winrate = monthlyWinrate[i] || 0;
-    const avgOdds = monthlyAvgOdds[i] || 0;
-
-    const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
-    const diff = winrate - breakEven;
-    const wrClass = diff > 0.1 ? 'profit-win' : diff < -0.1 ? 'profit-loss' : 'profit-breakeven';
-
     breakdownHTML += `<tr>
       <td>${monthLabels[i]}</td>
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
-      <td>${bets}</td>
-      <td class="${wrClass}">${winrate.toFixed(1)}%</td>
-      <td>${avgOdds.toFixed(2)}</td>
     </tr>`;
   });
   breakdownHTML += "</table>";
@@ -1590,7 +1553,7 @@ async function loadTdtTracker(){
     set("tdtProfit", profit.toFixed(2));
     set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
     set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
-    set("tdtWonLost", `${wins}W-${losses}L`);
+    set("tdtWonLost", `${wins}-${losses}`);
     set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
     set("tdtTotalBets", rows.length);
     set("tdtBetCount", rows.length);
@@ -1910,9 +1873,9 @@ function renderMarketChart(labels, winPct, totals){
         meta.data.forEach((bar, i)=>{
           const val = winPct[i] ?? 0;
           const text = Math.round(val) + "%";
-          const x = bar.x + 6;   // move text OUTSIDE bar
+          const x = bar.x - 10; // inside bar near end
           const y = bar.y + 4;
-          ctx.textAlign = "left";
+          ctx.textAlign = "right";
           ctx.fillText(text, x, y);
         });
         ctx.restore();
@@ -2810,6 +2773,18 @@ window.forgotVipPassword = forgotVipPassword;
 
     let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
 
+    const trackerGroupStats = (rowsArr)=>{
+      let wins = 0, losses = 0;
+      (rowsArr || []).forEach(r=>{
+        const res = String(r.result || "").toLowerCase();
+        if(res === "won") wins += 1;
+        else if(res === "lost") losses += 1;
+      });
+      const settled = wins + losses;
+      const wr = settled ? Math.round((wins / settled) * 100) : 0;
+      return `${wins}W-${losses}L • ${wr}%`;
+    };
+
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
       const isCurrentMonth = monthKey === currentMonthLabel;
@@ -2833,7 +2808,8 @@ window.forgotVipPassword = forgotVipPassword;
           <div class="tracker-week-wrap">
             <button class="tracker-group-toggle tracker-week-toggle ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" data-type="week" data-key="${encodeURIComponent(weekKey)}" onclick="toggleTrackerCollapse(this)">
               <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
-              <span>${trackerEsc(weekLabel)}</span>
+              <span class="tracker-group-title">${trackerEsc(weekLabel)}</span>
+              <span class="tracker-group-stats">${trackerEsc(trackerGroupStats(Array.from(weekEntry.days.values()).flat()))}</span>
             </button>
             <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
         `;
@@ -2847,7 +2823,8 @@ window.forgotVipPassword = forgotVipPassword;
             <div class="tracker-day-wrap">
               <button class="tracker-group-toggle tracker-day-toggle ${isCurrentDay ? "tracker-day-toggle--current" : ""}" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
                 <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
-                <span>${trackerEsc(dayLabel)}</span>
+                <span class="tracker-group-title">${trackerEsc(dayLabel)}</span>
+                <span class="tracker-group-stats">${trackerEsc(trackerGroupStats(dayRows))}</span>
               </button>
               <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
                 <div class="tracker-bet-list">
