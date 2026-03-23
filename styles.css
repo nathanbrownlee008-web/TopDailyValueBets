@@ -4310,6 +4310,3 @@ input,
 .tracker-day-toggle--current{
   color: #f8fafc !important;
 }
-
-.tracker-group-toggle{display:flex;justify-content:space-between;align-items:center;}
-.tracker-stats{margin-left:auto;font-size:12px;opacity:.8;font-weight:700;}

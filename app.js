@@ -1,15 +1,4 @@
 
-function calcStats(rows){
-  let wins=0, losses=0;
-  rows.forEach(r=>{
-    if(r.result==="won") wins++;
-    if(r.result==="lost") losses++;
-  });
-  const total = rows.length;
-  const winrate = total ? Math.round((wins/total)*100) : 0;
-  return {wins, losses, total, winrate};
-}
-
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -2793,7 +2782,7 @@ window.forgotVipPassword = forgotVipPassword;
         <div class="tracker-month-wrap">
           <button class="tracker-group-toggle tracker-month-toggle ${isCurrentMonth ? "tracker-month-toggle--current" : ""}" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
             <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
-            <span>${trackerEsc(monthKey)}</span><span class="tracker-stats">${(()=>{const all=[]; monthEntry.weeks.forEach(w=>w.days.forEach(d=>all.push(...d))); const s=calcStats(all); return `${s.total}B • ${s.wins}-${s.losses} • ${s.winrate}%`;})()}</span>
+            <span>${trackerEsc(monthKey)}</span>
           </button>
           <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
       `;
@@ -2807,7 +2796,7 @@ window.forgotVipPassword = forgotVipPassword;
           <div class="tracker-week-wrap">
             <button class="tracker-group-toggle tracker-week-toggle ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" data-type="week" data-key="${encodeURIComponent(weekKey)}" onclick="toggleTrackerCollapse(this)">
               <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
-              <span>${trackerEsc(weekLabel)}</span><span class="tracker-stats">${(()=>{const all=[]; weekEntry.days.forEach(d=>all.push(...d)); const s=calcStats(all); return `${s.total}B • ${s.wins}-${s.losses} • ${s.winrate}%`;})()}</span>
+              <span>${trackerEsc(weekLabel)}</span>
             </button>
             <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
         `;
@@ -2821,7 +2810,7 @@ window.forgotVipPassword = forgotVipPassword;
             <div class="tracker-day-wrap">
               <button class="tracker-group-toggle tracker-day-toggle ${isCurrentDay ? "tracker-day-toggle--current" : ""}" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
                 <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
-                <span>${trackerEsc(dayLabel)}</span><span class="tracker-stats">${(()=>{const s=calcStats(dayRows); return `${s.total}B • ${s.wins}-${s.losses} • ${s.winrate}%`;})()}</span>
+                <span>${trackerEsc(dayLabel)}</span>
               </button>
               <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
                 <div class="tracker-bet-list">
