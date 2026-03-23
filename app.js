@@ -2672,11 +2672,20 @@ window.forgotVipPassword = forgotVipPassword;
   }
 
   function trackerWeekLabel(row){
-    const d = trackerParseDate(trackerRawDate(row));
-    const dayNum = d.getDate();
-    const weekNum = Math.floor((dayNum - 1) / 7) + 1;
-    return `Week ${weekNum}`;
+  const d = trackerParseDate(trackerRawDate(row));
+  const day = d.getDate();
+
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+
+  let week = Math.ceil(day / 7);
+
+  // force last days into Week 4
+  if (day > lastDay - 7) {
+    week = 4;
   }
+
+  return `Week ${week}`;
+}
 
   function trackerProfit(row){
     const stake = Number(row.stake || 0);
