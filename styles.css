@@ -3665,8 +3665,13 @@ body.layout-compact .vip-bar{
 .tracker-grid-top-result .result-select{min-width:108px;height:40px;padding:6px 12px;border-radius:14px;font-size:13px;}
 .tracker-grid-meta--single-row{
   display: grid;
-  grid-template-columns: 1.4fr 0.9fr 0.9fr;
+  grid-template-columns: 1.45fr 0.82fr 0.95fr;
   align-items: center;
+  column-gap: 10px;
+}
+
+.tracker-grid-meta--single-row > div:nth-child(2){
+  transform: translateX(-8px);
 }
 .tracker-grid-meta--single-row > div{display:flex;flex-direction:column;gap:6px;min-width:0;}
 .tracker-grid-meta--single-row span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#98a8c8;font-weight:800;text-align:center;}
