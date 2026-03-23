@@ -2671,11 +2671,16 @@ window.forgotVipPassword = forgotVipPassword;
     return fmtDayLabel(trackerRawDate(row));
   }
 
-  Week 1 → Apr 1–6
-Week 2 → Apr 7–13
-Week 3 → Apr 14–20
-Week 4 → Apr 21–27
-Week 5 → Apr 28–30
+  function trackerWeekLabel(row){
+  const d = trackerParseDate(trackerRawDate(row));
+  const firstOfMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+
+  const firstDayIndex = (firstOfMonth.getDay() + 6) % 7;
+
+  const weekNum = Math.ceil((d.getDate() + firstDayIndex) / 7);
+
+  return `Week ${weekNum}`;
+}
 
   function trackerProfit(row){
     const stake = Number(row.stake || 0);
