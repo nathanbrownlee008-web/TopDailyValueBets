@@ -1149,8 +1149,8 @@ tableRows.push(`<tr>
   <div class="tracker-market-sub">${row.market || "—"}</div>
 </td>
 <td class="tracker-market-col">${row.market || "—"}</td>
-<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
+<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td>
 <select 
 class="result-select result-${row.result}" 
