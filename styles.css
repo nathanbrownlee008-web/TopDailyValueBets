@@ -4311,16 +4311,5 @@ input,
   color: #f8fafc !important;
 }
 
-
-/* ===== Tracker card input width fix ===== */
-.tracker-grid-card input[type="number"]{
-  width: 92px !important;
-  min-width: 92px !important;
-}
-
-@media (max-width: 600px){
-  .tracker-grid-card input[type="number"]{
-    width: 84px !important;
-    min-width: 84px !important;
-  }
-}
+.tracker-group-toggle{display:flex;justify-content:space-between;align-items:center;}
+.tracker-stats{margin-left:auto;font-size:12px;opacity:.8;font-weight:700;}
