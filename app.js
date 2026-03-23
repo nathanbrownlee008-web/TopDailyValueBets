@@ -1206,26 +1206,47 @@ if(countElem) countElem.textContent = String(rows.length);
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
+const monthBetsMap = {};
+const monthWinsMap = {};
 
 rows.forEach(r=>{
   const d = new Date(r.created_at);
-  const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
-  monthMap[key] = (monthMap[key]||0) + rowProfit(r);
-  monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
+  const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0');
+
+  // profit + stake (existing)
+  monthMap[key] = (monthMap[key] || 0) + rowProfit(r);
+  monthStakeMap[key] = (monthStakeMap[key] || 0) + Number(r.stake || 0);
+
+  // NEW: bets + wins
+  monthBetsMap[key] = (monthBetsMap[key] || 0) + 1;
+
+  if ((r.result || "") === "won") {
+    monthWinsMap[key] = (monthWinsMap[key] || 0) + 1;
+  }
 });
 
 const monthKeys = Object.keys(monthMap).sort();
 
 const monthLabels = monthKeys.map(k=>{
   const [y,m]=k.split("-");
-  return new Date(parseInt(y), parseInt(m)-1, 1)
-    .toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
+  return new Date(parseInt(y), parseInt(m)-1)
+    .toLocaleDateString('en-GB',{month:'short'});
 });
 
-const monthlyProfit = monthKeys.map(k=> monthMap[k]);
+const monthlyProfit = monthKeys.map(k=>monthMap[k]);
+
 const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
+});
+
+// NEW: totals
+const monthlyBets = monthKeys.map(k=>monthBetsMap[k] || 0);
+
+const monthlyWinrate = monthKeys.map(k=>{
+  const bets = monthBetsMap[k] || 0;
+  const wins = monthWinsMap[k] || 0;
+  return bets ? (wins / bets) * 100 : 0;
 });
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
