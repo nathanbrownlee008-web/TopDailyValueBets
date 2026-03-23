@@ -4305,3 +4305,7 @@ input,
     min-width: 88px !important;
   }
 }
+.bet-results-wrapper{
+  transform: scale(0.96);
+  transform-origin: top center;
+}
