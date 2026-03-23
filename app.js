@@ -1899,9 +1899,9 @@ function renderMarketChart(labels, winPct, totals){
         meta.data.forEach((bar, i)=>{
           const val = winPct[i] ?? 0;
           const text = Math.round(val) + "%";
-          const x = bar.x - 10; // inside bar near end
+          const x = val === 0 ? bar.x + 18 : bar.x - 10;
           const y = bar.y + 4;
-          ctx.textAlign = "right";
+          ctx.textAlign = val === 0 ? "left" : "right";
           ctx.fillText(text, x, y);
         });
         ctx.restore();
