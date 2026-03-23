@@ -1146,11 +1146,11 @@ history.push(bankroll);
 tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
+  <div class="tracker-market-sub">${row.market || "—"}</div>
 </td>
-<td class="tracker-market-col">${getMarketIcon(row.market)} ${row.market || "—"}</td>
-<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td class="tracker-market-col">${row.market || "—"}</td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
+<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td>
 <select 
 class="result-select result-${row.result}" 
@@ -1789,7 +1789,7 @@ function renderMonthlyChart(profits, roi, labels){
     },
     plugins:[{
       afterDatasetsDraw(chart){
-        const {ctx} = chart;
+        const {ctx, chartArea} = chart;
         chart.getDatasetMeta(0).data.forEach((bar,i)=>{
           const val = profits[i];
           if(val === 0) return;
@@ -1871,11 +1871,12 @@ function renderMarketChart(labels, winPct, totals){
         ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
         ctx.fillStyle = "rgba(229,231,235,0.95)";
         meta.data.forEach((bar, i)=>{
-          const val = winPct[i] ?? 0;
+          const val = Number(winPct[i] ?? 0);
           const text = Math.round(val) + "%";
-          const x = bar.x - 10; // inside bar near end
+          const isTiny = val <= 8;
+          const x = isTiny ? (chartArea.left + 8) : (bar.x - 10);
           const y = bar.y + 4;
-          ctx.textAlign = "right";
+          ctx.textAlign = isTiny ? "left" : "right";
           ctx.fillText(text, x, y);
         });
         ctx.restore();
@@ -2672,18 +2673,20 @@ window.forgotVipPassword = forgotVipPassword;
   }
 
   function trackerWeekLabel(row){
-    const d = trackerParseDate(trackerRawDate(row));
-    const year = d.getFullYear();
-    const month = d.getMonth();
-    const day = d.getDate();
-    const week = Math.ceil(day / 7);
-    const startDay = (week - 1) * 7 + 1;
-    let endDay = week * 7;
-    const lastDay = new Date(year, month + 1, 0).getDate();
-    if (endDay > lastDay) endDay = lastDay;
-    const monthShort = d.toLocaleDateString("en-GB", { month: "short" });
-    return `Week ${week} (${startDay}–${endDay} ${monthShort})`;
+  const d = trackerParseDate(trackerRawDate(row));
+  const day = d.getDate();
+
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+
+  let week = Math.ceil(day / 7);
+
+  // force last days into Week 4
+  if (day > lastDay - 7) {
+    week = 4;
   }
+
+  return `Week ${week}`;
+}
 
   function trackerProfit(row){
     const stake = Number(row.stake || 0);
@@ -2734,146 +2737,120 @@ window.forgotVipPassword = forgotVipPassword;
     trackerWriteState(type, state);
   };
 
-  window.buildTrackerGroupedHTML = function(rows){
-    const list = (rows || []).slice().sort((a,b)=> trackerParseDate(trackerRawDate(b)) - trackerParseDate(trackerRawDate(a)));
+window.buildTrackerGroupedHTML = function(rows){
+  const list = (rows || []).slice().sort((a,b)=> trackerParseDate(trackerRawDate(b)) - trackerParseDate(trackerRawDate(a)));
 
-    const monthState = trackerReadState("month");
-    const weekState = trackerReadState("week");
-    const dayState = trackerReadState("day");
+  const monthState = trackerReadState("month");
+  const weekState = trackerReadState("week");
+  const dayState = trackerReadState("day");
 
-    const today = new Date();
-    const currentMonthLabel = today.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-    const currentWeekLabel = trackerWeekLabel({ created_at: today.toISOString() });
-    const currentDayLabel = fmtDayLabel(today.toISOString());
+  const months = [];
+  const monthMap = new Map();
 
-    const months = [];
-    const monthMap = new Map();
+  list.forEach(row=>{
+    const month = trackerMonthLabel(row);
+    const week = trackerWeekLabel(row);
+    const day = trackerDayLabel(row);
 
-    list.forEach(row=>{
-      const month = trackerMonthLabel(row);
-      const week = trackerWeekLabel(row);
-      const day = trackerDayLabel(row);
+    if(!monthMap.has(month)){
+      monthMap.set(month, { label: month, weeks: new Map() });
+      months.push(monthMap.get(month));
+    }
 
-      if(!monthMap.has(month)){
-        monthMap.set(month, { label: month, weeks: new Map() });
-        months.push(monthMap.get(month));
-      }
-      const monthEntry = monthMap.get(month);
+    const monthEntry = monthMap.get(month);
 
-      if(!monthEntry.weeks.has(week)){
-        monthEntry.weeks.set(week, { label: week, days: new Map() });
-      }
-      const weekEntry = monthEntry.weeks.get(week);
+    if(!monthEntry.weeks.has(week)){
+      monthEntry.weeks.set(week, { label: week, days: new Map() });
+    }
 
-      if(!weekEntry.days.has(day)){
-        weekEntry.days.set(day, []);
-      }
-      weekEntry.days.get(day).push(row);
-    });
+    const weekEntry = monthEntry.weeks.get(week);
 
-    let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
+    if(!weekEntry.days.has(day)){
+      weekEntry.days.set(day, []);
+    }
 
-    const trackerGroupStats = (rowsArr)=>{
-      let wins = 0, losses = 0;
-      (rowsArr || []).forEach(r=>{
-        const res = String(r.result || "").toLowerCase();
-        if(res === "won") wins += 1;
-        else if(res === "lost") losses += 1;
-      });
-      const settled = wins + losses;
-      const wr = settled ? Math.round((wins / settled) * 100) : 0;
-      return `${wins}W-${losses}L • ${wr}%`;
-    };
+    weekEntry.days.get(day).push(row);
+  });
 
-    months.forEach((monthEntry, monthIndex)=>{
-      const monthKey = monthEntry.label;
-      const isCurrentMonth = monthKey === currentMonthLabel;
-      const monthOpen = isCurrentMonth ? true : (Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0);
+  let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
+
+  months.forEach((monthEntry, monthIndex)=>{
+    const monthKey = monthEntry.label;
+    const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0;
+
+    html += `
+      <div class="tracker-month-wrap">
+        <button class="tracker-group-toggle tracker-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+          <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
+          <span>${trackerEsc(monthKey)}</span>
+        </button>
+        <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+    `;
+
+    Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
+      const weekKey = `${monthKey}||${weekLabel}`;
+      const weekOpen = Object.prototype.hasOwnProperty.call(weekState, weekKey) ? !!weekState[weekKey] : (monthIndex === 0 && weekIndex === 0);
 
       html += `
-        <div class="tracker-month-wrap">
-          <button class="tracker-group-toggle tracker-month-toggle ${isCurrentMonth ? "tracker-month-toggle--current" : ""}" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
-            <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
-            <span>${trackerEsc(monthKey)}</span>
+        <div class="tracker-week-wrap">
+          <button class="tracker-group-toggle tracker-week-toggle" data-type="week" data-key="${encodeURIComponent(weekKey)}" onclick="toggleTrackerCollapse(this)">
+            <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
+            <span>${trackerEsc(weekLabel)}</span>
           </button>
-          <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+          <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
       `;
 
-      Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
-        const weekKey = `${monthKey}||${weekLabel}`;
-        const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
-        const weekOpen = isCurrentWeek ? true : (Object.prototype.hasOwnProperty.call(weekState, weekKey) ? !!weekState[weekKey] : (monthIndex === 0 && weekIndex === 0));
+      Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
+        const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
+        const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && weekIndex === 0 && dayIndex === 0);
 
         html += `
-          <div class="tracker-week-wrap">
-            <button class="tracker-group-toggle tracker-week-toggle ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" data-type="week" data-key="${encodeURIComponent(weekKey)}" onclick="toggleTrackerCollapse(this)">
-              <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
-              <span class="tracker-group-title">${trackerEsc(weekLabel)}</span>
-              <span class="tracker-group-stats">${trackerEsc(trackerGroupStats(Array.from(weekEntry.days.values()).flat()))}</span>
+          <div class="tracker-day-wrap">
+            <button class="tracker-group-toggle tracker-day-toggle" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
+              <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
+              <span>${trackerEsc(dayLabel)}</span>
             </button>
-            <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
+            <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
+              <div class="tracker-bet-list">
         `;
 
-        Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
-          const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
-          const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
-          const dayOpen = isCurrentDay ? true : (Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && weekIndex === 0 && dayIndex === 0));
-
+        dayRows.forEach(row=>{
           html += `
-            <div class="tracker-day-wrap">
-              <button class="tracker-group-toggle tracker-day-toggle ${isCurrentDay ? "tracker-day-toggle--current" : ""}" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
-                <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
-                <span class="tracker-group-title">${trackerEsc(dayLabel)}</span>
-                <span class="tracker-group-stats">${trackerEsc(trackerGroupStats(dayRows))}</span>
-              </button>
-              <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
-                <div class="tracker-bet-list">
-          `;
-
-          dayRows.forEach(row=>{
-            html += `
-              <div class="tracker-grid-card">
-                <div class="tracker-grid-top">
-                  <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
-                  <div class="tracker-grid-top-result">
-                    <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                      <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                      <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                      <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                      <option value="delete">🗑 delete</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="tracker-grid-meta tracker-grid-meta--single-row">
-                  <div class="tracker-grid-market-slot">
-                    <span>Market</span>
-                    <div class="tracker-grid-market-inline">
-                      ${trackerEsc(row.market || "—")}
-                    </div>
-                  </div>
-
-                  <div>
-                    <span>Odds</span>
-                    <input 
-                      type="number" 
-                      step="0.01" 
-                      value="${Number(row.odds ?? 0)}" 
-                      onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                  </div>
-
-                  <div>
-                    <span>Stake</span>
-                    <input 
-                      type="number" 
-                      value="${Number(row.stake || 0)}" 
-                      onchange="updateStake('${trackerEsc(row.id)}', this.value)">
-                  </div>
+            <div class="tracker-grid-card">
+              <div class="tracker-grid-top">
+                <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
+                <div class="tracker-grid-top-result">
+                  <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                    <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                    <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                    <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                    <option value="delete">🗑 delete</option>
+                  </select>
                 </div>
               </div>
-            `;
-          });
+              <div class="tracker-grid-meta tracker-grid-meta--single-row">
+                <div class="tracker-grid-market-slot">
+                  <span>Market</span>
+                  <div class="tracker-grid-market-inline">
+                    ${trackerEsc(row.market || "—")}
+                  </div>
+                </div>
 
-          html += `
+                <div>
+                  <span>Odds</span>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value="${Number(row.odds ?? 0)}" 
+                    onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
+                </div>
+
+                <div>
+                  <span>Stake</span>
+                  <input 
+                    type="number" 
+                    value="${Number(row.stake || 0)}" 
+                    onchange="updateStake('${trackerEsc(row.id)}', this.value)">
                 </div>
               </div>
             </div>
@@ -2881,17 +2858,24 @@ window.forgotVipPassword = forgotVipPassword;
         });
 
         html += `
+              </div>
             </div>
           </div>
         `;
       });
 
-      html += `</div></div>`;
+      html += `
+          </div>
+        </div>
+      `;
     });
 
-    html += `</div>`;
-    return html;
-  };
+    html += `</div></div>`;
+  });
+
+  html += `</div>`;
+  return html;
+};
 
   if(typeof _renderFilteredTrackerTable === "function"){
     _renderFilteredTrackerTable = function(){
