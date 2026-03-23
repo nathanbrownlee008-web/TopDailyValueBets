@@ -1898,16 +1898,19 @@ function renderMarketChart(labels, winPct, totals){
     ctx.fillStyle = "rgba(229,231,235,0.96)";
 
     meta.data.forEach((bar, i)=>{
-      const val = winPct[i] ?? 0;
-      const text = Math.round(val) + "%";
-      const x = val <= 0 ? bar.x + 22 : bar.x - 10;
-const y = bar.y + 4;
-ctx.textAlign = val <= 0 ? "left" : "right";
-ctx.fillText(text, x, y);
+  const val = winPct[i] ?? 0;
+  const text = Math.round(val) + "%";
+  let x = bar.x - 10;
+  let y = bar.y + 4;
+  ctx.textAlign = "right";
 
-    ctx.restore();
+  if (val <= 0) {
+    x = bar.x + 24;
+    ctx.textAlign = "left";
   }
-}]
+
+  ctx.fillText(text, x, y);
+});
   });
 }
 
