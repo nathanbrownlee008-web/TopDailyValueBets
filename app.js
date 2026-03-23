@@ -1206,26 +1206,12 @@ if(countElem) countElem.textContent = String(rows.length);
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
-const monthBetsMap = {};
-const monthWinsMap = {};
-const monthLossMap = {};
-const monthOddsMap = {};
-const monthOddsCountMap = {};
 
 rows.forEach(r=>{
   const d = new Date(r.created_at);
   const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
   monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
-  monthBetsMap[key] = (monthBetsMap[key] || 0) + 1;
-
-  if((r.result || "") === "won") monthWinsMap[key] = (monthWinsMap[key] || 0) + 1;
-  if((r.result || "") === "lost") monthLossMap[key] = (monthLossMap[key] || 0) + 1;
-
-  if(r.odds != null && r.odds !== ""){
-    monthOddsMap[key] = (monthOddsMap[key] || 0) + Number(r.odds || 0);
-    monthOddsCountMap[key] = (monthOddsCountMap[key] || 0) + 1;
-  }
 });
 
 const monthKeys = Object.keys(monthMap).sort();
@@ -1241,40 +1227,17 @@ const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
-const monthlyBets = monthKeys.map(k => monthBetsMap[k] || 0);
-const monthlyWinrate = monthKeys.map(k=>{
-  const wins = monthWinsMap[k] || 0;
-  const losses = monthLossMap[k] || 0;
-  const settled = wins + losses;
-  return settled ? (wins / settled) * 100 : 0;
-});
-const monthlyAvgOdds = monthKeys.map(k=>{
-  const total = monthOddsMap[k] || 0;
-  const count = monthOddsCountMap[k] || 0;
-  return count ? (total / count) : 0;
-});
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>WR</th><th>Avg</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
-    const bets = monthlyBets[i] || 0;
-    const winrate = monthlyWinrate[i] || 0;
-    const avgOdds = monthlyAvgOdds[i] || 0;
-
-    const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
-    const diff = winrate - breakEven;
-    const wrClass = diff > 0.1 ? 'profit-win' : diff < -0.1 ? 'profit-loss' : 'profit-breakeven';
-
     breakdownHTML += `<tr>
       <td>${monthLabels[i]}</td>
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
-      <td>${bets}</td>
-      <td class="${wrClass}">${winrate.toFixed(1)}%</td>
-      <td>${avgOdds.toFixed(2)}</td>
     </tr>`;
   });
   breakdownHTML += "</table>";
@@ -1826,7 +1789,7 @@ function renderMonthlyChart(profits, roi, labels){
     },
     plugins:[{
       afterDatasetsDraw(chart){
-        const {ctx} = chart;
+        const {ctx, chartArea} = chart;
         chart.getDatasetMeta(0).data.forEach((bar,i)=>{
           const val = profits[i];
           if(val === 0) return;
@@ -1908,11 +1871,12 @@ function renderMarketChart(labels, winPct, totals){
         ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
         ctx.fillStyle = "rgba(229,231,235,0.95)";
         meta.data.forEach((bar, i)=>{
-          const val = winPct[i] ?? 0;
+          const val = Number(winPct[i] ?? 0);
           const text = Math.round(val) + "%";
-          const x = bar.x - 10; // inside bar near end
+          const isTiny = val <= 8;
+          const x = isTiny ? (chartArea.left + 10) : (bar.x - 10);
           const y = bar.y + 4;
-          ctx.textAlign = "right";
+          ctx.textAlign = isTiny ? "left" : "right";
           ctx.fillText(text, x, y);
         });
         ctx.restore();

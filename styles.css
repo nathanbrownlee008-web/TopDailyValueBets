@@ -4310,10 +4310,3 @@ input,
 .tracker-day-toggle--current{
   color: #f8fafc !important;
 }
-
-
-/* Monthly breakdown smart WR amber */
-.profit-breakeven{
-  color:#f59e0b;
-  font-weight:600;
-}
