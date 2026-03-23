@@ -3671,7 +3671,7 @@ body.layout-compact .vip-bar{
 }
 
 .tracker-grid-meta--single-row > div:nth-child(2){
-  transform: translateX(-8px);
+  transform: translateX(-12px);
 }
 .tracker-grid-meta--single-row > div{display:flex;flex-direction:column;gap:6px;min-width:0;}
 .tracker-grid-meta--single-row span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#98a8c8;font-weight:800;text-align:center;}
