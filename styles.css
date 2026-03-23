@@ -3663,16 +3663,7 @@ body.layout-compact .vip-bar{
 .tracker-grid-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;}
 .tracker-grid-match{font-size:17px;font-weight:800;line-height:1.1;color:#eef4ff;flex:1;min-width:0;}
 .tracker-grid-top-result .result-select{min-width:108px;height:40px;padding:6px 12px;border-radius:14px;font-size:13px;}
-.tracker-grid-meta--single-row{
-  display: grid;
-  grid-template-columns: 1.45fr 0.82fr 0.95fr;
-  align-items: center;
-  column-gap: 10px;
-}
-
-.tracker-grid-meta--single-row > div:nth-child(2){
-  transform: translateX(-12px);
-}
+.tracker-grid-meta--single-row{display:grid;grid-template-columns:1.5fr .8fr .8fr;gap:12px;align-items:end;}
 .tracker-grid-meta--single-row > div{display:flex;flex-direction:column;gap:6px;min-width:0;}
 .tracker-grid-meta--single-row span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#98a8c8;font-weight:800;text-align:center;}
 .tracker-grid-market-slot span{text-align:center;}
@@ -4244,163 +4235,81 @@ input,
 }
 
 
-
-/* ===== TRACKER BOX SIZE FIX ===== */
-.result-select{
-  border-radius: 8px !important;
-  padding: 2px 6px !important;
-  font-size: 12px !important;
-  min-width: 76px !important;
-  width: 76px !important;
-}
-
-#trackerTable input[type="number"]{
-  width: 85px !important;
-}
-
-#trackerTable select{
-  min-width: 100px !important;
-  width: 100px !important;
-}
-
-/* Tracker card/grid version */
-.tracker-grid-result select,
-.tracker-grid-card .result-select{
-  min-width: 76px !important;
-  width: 76px !important;
-  padding: 2px 6px !important;
-  font-size: 12px !important;
-  border-radius: 8px !important;
-}
-
-.tracker-grid-stake input,
-.tracker-grid-odds input,
-.tracker-grid-card input[type="number"]{
-  width: 92px !important;
-  min-width: 92px !important;
-}
-
-@media (max-width: 600px){
-  #trackerTable input[type="number"]{
-    width: 80px !important;
-  }
-
-  #trackerTable select{
-    width: 90px !important;
-    min-width: 90px !important;
-  }
-
-  .tracker-grid-result select,
-  .tracker-grid-card .result-select{
-    min-width: 72px !important;
-    width: 72px !important;
-    font-size: 11px !important;
-    padding: 2px 6px !important;
-  }
-
-  .tracker-grid-stake input,
-  .tracker-grid-odds input,
-  .tracker-grid-card input[type="number"]{
-    width: 88px !important;
-    min-width: 88px !important;
-  }
-}
-.bet-results-wrapper{
-  transform: scale(0.94);
-  transform-origin: top center;
-}
-/* ===== COMPACT DATE HEADERS ===== */
-
-/* Month header (March 2026) */
-.results-month-header{
-  padding: 6px 10px !important;
-  font-size: 12px !important;
-  border-radius: 8px !important;
-}
-
-/* Day header (30 Mar etc) */
-.results-day-header{
-  padding: 4px 10px !important;
-  font-size: 11px !important;
-}
-
-/* Remove extra height spacing */
-.results-month-header,
-.results-day-header{
-  min-height: auto !important;
-  line-height: 1.0 !important;
-}
-
-/* tighten arrow spacing */
-.results-month-header span,
-.results-day-header span{
-  gap: 4px !important;
+/* Bet Results market icons */
+.tracker-market-sub,
+.tracker-market-col{
+  white-space: nowrap;
 }
 
 
-/* ===== Tracker header pills v2 ===== */
-.tracker-group-toggle{
+/* ===== Week ranges + current week/day polish ===== */
+.tracker-week-wrap{
+  margin: 10px 0 12px;
+}
+
+.tracker-week-toggle{
+  width: 100%;
   display:flex;
   align-items:center;
-  justify-content:space-between;
   gap:10px;
-}
-
-.tracker-group-toggle > span:first-of-type{
-  min-width:0;
-}
-
-.tracker-stats{
-  display:flex;
-  gap:6px;
-  margin-left:auto;
-  align-items:center;
-  flex:0 0 auto;
-  white-space:nowrap;
-}
-
-.tracker-pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:4px 8px;
-  border-radius:999px;
-  font-size:11px;
+  background:#132035;
+  color:#e2e8f0;
+  border:1px solid #243247;
+  border-top:none;
+  border-radius:0;
+  padding:11px 14px;
   font-weight:800;
-  white-space:nowrap;
-  line-height:1;
+  cursor:pointer;
 }
 
-.bets-pill{
-  background:rgba(59,130,246,0.15);
-  border:1px solid rgba(59,130,246,0.35);
-  color:#93c5fd;
+.tracker-group-body{
+  overflow:hidden;
+  max-height:5000px;
+  opacity:1;
+  transition:max-height .28s ease, opacity .22s ease;
 }
 
-.win-green{
-  background:rgba(34,197,94,0.15);
-  border:1px solid rgba(34,197,94,0.35);
+.tracker-group-body.is-collapsed{
+  display:block !important;
+  max-height:0 !important;
+  opacity:0;
+  pointer-events:none;
+}
+
+.tracker-day-toggle--current{
+  background:rgba(34,197,94,0.12) !important;
+  border-color:rgba(34,197,94,0.38) !important;
+  box-shadow:0 0 0 1px rgba(34,197,94,0.18);
+}
+
+.tracker-day-toggle--current .tracker-group-arrow{
   color:#86efac;
 }
 
-.win-amber{
-  background:rgba(245,158,11,0.15);
-  border:1px solid rgba(245,158,11,0.35);
-  color:#fcd34d;
-}
-
-.win-red{
-  background:rgba(239,68,68,0.15);
-  border:1px solid rgba(239,68,68,0.35);
-  color:#fca5a5;
-}
-
-@media (max-width: 600px){
-  .tracker-stats{
-    gap:5px;
-  }
-  .tracker-pill{
-    padding:4px 7px;
-    font-size:10px;
+@media (max-width:768px){
+  .tracker-week-toggle{
+    font-size:14px;
+    padding:10px 12px;
   }
 }
+
+
+
+/* ===== Current month/week/day forced highlights ===== */
+.tracker-month-toggle--current{
+  border-color: rgba(59,130,246,0.35) !important;
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.12);
+}
+
+.tracker-week-toggle--current{
+  border-color: rgba(34,197,94,0.40) !important;
+  background: rgba(34,197,94,0.08) !important;
+  box-shadow: 0 0 0 1px rgba(34,197,94,0.12);
+}
+
+.tracker-day-toggle--current{
+  color: #f8fafc !important;
+}
+
+.tracker-group-toggle{display:flex;justify-content:space-between;align-items:center;}
+.tracker-stats{margin-left:auto;font-size:12px;opacity:.8;font-weight:700;}
