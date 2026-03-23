@@ -4309,3 +4309,30 @@ input,
   transform: scale(0.96);
   transform-origin: top center;
 }
+/* ===== COMPACT DATE HEADERS ===== */
+
+/* Month header (March 2026) */
+.results-month-header{
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  border-radius: 10px !important;
+}
+
+/* Day header (30 Mar etc) */
+.results-day-header{
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+}
+
+/* Remove extra height spacing */
+.results-month-header,
+.results-day-header{
+  min-height: auto !important;
+  line-height: 1.2 !important;
+}
+
+/* tighten arrow spacing */
+.results-month-header span,
+.results-day-header span{
+  gap: 6px !important;
+}
