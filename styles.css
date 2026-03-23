@@ -4338,13 +4338,24 @@ input,
 }
 
 
-/* ===== Tracker header pills ===== */
+/* ===== Tracker header pills v2 ===== */
+.tracker-group-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.tracker-group-toggle > span:first-of-type{
+  min-width:0;
+}
+
 .tracker-stats{
   display:flex;
   gap:6px;
   margin-left:auto;
   align-items:center;
-  flex-wrap:nowrap;
+  flex:0 0 auto;
   white-space:nowrap;
 }
 
@@ -4388,7 +4399,6 @@ input,
   .tracker-stats{
     gap:5px;
   }
-
   .tracker-pill{
     padding:4px 7px;
     font-size:10px;
