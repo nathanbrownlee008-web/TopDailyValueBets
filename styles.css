@@ -4492,7 +4492,7 @@ input,
 }
 /* tighten space between week and first date */
 .tracker-week-wrap > .tracker-day-wrap:first-child{
-  margin-top: 4px !important;
+  margin-top: -4px !important;
 }
 
 /* remove extra spacing between dates */
