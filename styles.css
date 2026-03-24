@@ -138,7 +138,7 @@ th{text-align:left}
 }
 
 #trackerWrapper.expanded{
-  max-height:2000px;
+  max-height:99999px;
   opacity:1;
 }
 
@@ -153,7 +153,7 @@ th{text-align:left}
 }
 
 #tdtTrackerWrapper.expanded{
-  max-height:2000px;
+  max-height:99999px;
   opacity:1;
 }
 
