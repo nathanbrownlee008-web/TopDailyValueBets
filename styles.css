@@ -4346,3 +4346,18 @@ input,
     0 10px 24px rgba(0,0,0,0.22),
     0 0 18px rgba(40,90,180,0.08);
 }
+/* Make each date header look fully boxed in */
+.tracker-day-toggle{
+  border-top: 1px solid rgba(120,140,180,0.22) !important;
+}
+
+/* Tighten spacing between one date section and the next */
+.tracker-day-wrap{
+  margin-bottom: 10px !important;
+  padding-bottom: 8px !important;
+}
+
+/* Make the separator line sit closer to the next date */
+.tracker-day-wrap::after{
+  margin-top: 8px !important;
+}
