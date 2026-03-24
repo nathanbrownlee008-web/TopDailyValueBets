@@ -4808,3 +4808,18 @@ select.result-lost{
   filter: none !important;
   text-shadow: 0 0 6px rgba(255,255,255,0.15);
 }
+/* Make market text fully bright */
+.bet-market{
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  font-weight: 600;
+
+  text-shadow: 0 0 8px rgba(255,255,255,0.35);
+}
+
+/* Lighten the pill background so text stands out */
+.bet-market{
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+}
