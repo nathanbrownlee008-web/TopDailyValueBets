@@ -4941,5 +4941,5 @@ select.result-lost{
 /* fix VIP container shape (remove bubble look) */
 .vip-container,
 .vip-box{
-  border-radius: 10px !important; /* was too high */
+  border-radius: 4px !important; /* was too high */
 }
