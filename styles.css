@@ -4932,3 +4932,29 @@ select.result-lost{
 .vip-banner::after{
   animation: vipShine 4.5s linear infinite !important;
 }
+/* tighten VIP header box */
+.vip-container,
+.vip-box{
+  padding: 14px 16px !important;
+  border-radius: 16px !important;
+}
+
+/* tighten VIP gold bar */
+.vip-bar{
+  padding: 10px 14px !important;
+  border-radius: 999px !important;
+  font-size: 15px !important;
+}
+
+/* tighten text spacing inside */
+.vip-container h2,
+.vip-container p{
+  margin: 4px 0 !important;
+  line-height: 1.2 !important;
+}
+
+/* shrink admin badge */
+.vip-container .admin-badge{
+  padding: 4px 10px !important;
+  font-size: 12px !important;
+}
