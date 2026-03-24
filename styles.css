@@ -5015,3 +5015,49 @@ select.result-lost{
   0%{ left: -60%; }
   100%{ left: 120%; }
 }
+/* PREMIUM DESYNCED GOLD-WHITE SHINE */
+.tracker-grid-card{
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.42),
+    0 0 12px rgba(255,215,0,0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+/* shine layer */
+.tracker-grid-card::after{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -70%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255,255,255,0.18) 40%,
+    rgba(255,215,0,0.25) 50%,   /* gold hit */
+    rgba(255,255,255,0.18) 60%,
+    transparent 100%
+  );
+  animation: cardShine 7s linear infinite;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* DESYNC each card */
+.tracker-grid-card:nth-child(2n)::after{
+  animation-delay: 1.5s;
+}
+.tracker-grid-card:nth-child(3n)::after{
+  animation-delay: 3s;
+}
+.tracker-grid-card:nth-child(4n)::after{
+  animation-delay: 4.5s;
+}
+
+@keyframes cardShine{
+  0%{ left: -70%; }
+  100%{ left: 130%; }
+}
