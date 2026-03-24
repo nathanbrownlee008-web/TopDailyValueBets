@@ -4733,3 +4733,10 @@ select.result-lost{
     transform: none;
   }
 }
+/* Market text clean white (premium look) */
+.value-bet-card .market,
+.value-bet-card .market span,
+.value-bet-card .market-chip,
+.value-bet-card .market-text{
+  color: #f1f5ff !important;
+}
