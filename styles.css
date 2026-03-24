@@ -5061,3 +5061,10 @@ select.result-lost{
   0%{ left: -70%; }
   100%{ left: 130%; }
 }
+.tracker-grid-card{
+  border: 1px solid rgba(255,215,0,0.22) !important;
+  background: linear-gradient(145deg,#0f1f3d,#142a4d) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 10px rgba(255,215,0,0.06);
+}
