@@ -5212,3 +5212,16 @@ select.result-lost{
     0 8px 22px rgba(0,0,0,0.45),
     inset 0 1px 0 rgba(255,255,255,0.04);
 }
+/* BRIGHTER LABEL TEXT */
+
+.bet-label{
+  color: rgba(255,255,255,0.75) !important;
+  letter-spacing: 0.5px;
+}
+
+/* Slightly boost the actual values too */
+.bet-market,
+.bet-odds,
+.bet-stake{
+  color: #f1f5ff !important;
+}
