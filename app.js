@@ -275,12 +275,6 @@ function getMarketIcon(market){
   if(m.includes("card")) return "🟨";
   return "⚽";
 }
-function getBetTitleSizeClass(match){
-  const len = String(match || "").trim().length;
-  if(len >= 30) return " bet-title--tiny";
-  if(len >= 24) return " bet-title--small";
-  return "";
-}
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -2830,7 +2824,7 @@ window.forgotVipPassword = forgotVipPassword;
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
       const isCurrentMonth = monthKey === currentMonthLabel;
-      const monthOpen = isCurrentMonth;
+      const monthOpen = isCurrentMonth ? true : (Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0);
 
       html += `
         <div class="tracker-month-wrap">
@@ -2844,7 +2838,7 @@ window.forgotVipPassword = forgotVipPassword;
       Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
         const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
-        const weekOpen = isCurrentWeek;
+        const weekOpen = isCurrentWeek ? true : (Object.prototype.hasOwnProperty.call(weekState, weekKey) ? !!weekState[weekKey] : (monthIndex === 0 && weekIndex === 0));
 
         html += `
           <div class="tracker-week-wrap">
@@ -2858,7 +2852,7 @@ window.forgotVipPassword = forgotVipPassword;
         Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
           const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
-          const dayOpen = isCurrentDay;
+          const dayOpen = isCurrentDay ? true : (Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && weekIndex === 0 && dayIndex === 0));
 
           html += `
             <div class="tracker-day-wrap">
