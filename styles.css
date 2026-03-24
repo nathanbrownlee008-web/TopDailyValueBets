@@ -4361,3 +4361,21 @@ input,
 .tracker-day-wrap::after{
   margin-top: 6px !important;
 }
+/* FORCE top border on ALL date/week headers */
+.tracker-day-toggle,
+.tracker-week-toggle,
+.tracker-month-toggle{
+  border-top: 1px solid rgba(120,140,180,0.35) !important;
+}
+
+/* Also ensure full box look */
+.tracker-day-toggle,
+.tracker-week-toggle{
+  border-bottom: 1px solid rgba(120,140,180,0.18) !important;
+}
+
+/* Slightly tighten spacing */
+.tracker-day-wrap{
+  margin-bottom: 8px !important;
+  padding-bottom: 6px !important;
+}
