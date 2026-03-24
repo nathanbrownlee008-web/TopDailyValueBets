@@ -5078,3 +5078,38 @@ select.result-lost{
 .tracker-grid-card{
   animation: none !important;
 }
+/* =========================
+   BASE: CLEAN BLUE CARDS
+========================= */
+.tracker-grid-card{
+  border: 1px solid rgba(80,140,255,0.35) !important;
+  background: linear-gradient(145deg,#0f1f3d,#142a4d) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 14px rgba(80,140,255,0.10);
+  transition: all 0.25s ease;
+}
+
+
+/* =========================
+   WIN (GREEN TINT)
+========================= */
+/* targets your green "won" badge */
+.tracker-grid-card:has(.won){
+  border: 1px solid rgba(0,255,140,0.45) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 16px rgba(0,255,140,0.12);
+}
+
+
+/* =========================
+   LOSS (RED TINT)
+========================= */
+/* targets your red "lost" badge */
+.tracker-grid-card:has(.lost){
+  border: 1px solid rgba(255,80,80,0.45) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 16px rgba(255,80,80,0.12);
+}
