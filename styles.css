@@ -4783,3 +4783,9 @@ select.result-lost{
   -webkit-text-fill-color: #f1f5ff !important;
   text-shadow: none !important;
 }
+.market-chip,
+.market-pill,
+.market-badge{
+  opacity: 1 !important;
+  filter: none !important;
+}
