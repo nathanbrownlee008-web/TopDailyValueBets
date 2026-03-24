@@ -277,8 +277,8 @@ function getMarketIcon(market){
 }
 function getBetTitleSizeClass(match){
   const len = String(match || "").trim().length;
-  if(len >= 34) return " bet-title--tiny";
-  if(len >= 27) return " bet-title--small";
+  if(len >= 30) return " bet-title--tiny";
+  if(len >= 24) return " bet-title--small";
   return "";
 }
 // ===== Layout Mode (Compact / Wide) =====
