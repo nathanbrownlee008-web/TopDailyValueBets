@@ -4497,17 +4497,17 @@ input,
 
 /* remove extra spacing between dates */
 .tracker-day-wrap{
-  margin-bottom: 2px !important;
+  margin-bottom: 0px !important;
 }
 
 /* soften/remove heavy divider lines between dates */
 .tracker-day-wrap::after{
   background: rgba(120,140,180,0.08) !important;
-  margin: 2px 0 !important;
+  margin: 0px 0 !important;
 }
 
 /* slightly tighter date headers */
 .tracker-day-toggle{
-  padding-top: 6px !important;
-  padding-bottom: 6px !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
 }
