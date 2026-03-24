@@ -4860,3 +4860,10 @@ select.result-lost{
 .bet-meta{
   opacity: 0.85; /* slightly brighter overall (optional) */
 }
+/* 🔥 FINAL market text fix (clean + strong white) */
+.bet-card .bet-market{
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(255,255,255,0.35);
+}
