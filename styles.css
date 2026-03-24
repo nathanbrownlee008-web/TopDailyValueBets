@@ -4789,3 +4789,10 @@ select.result-lost{
   opacity: 1 !important;
   filter: none !important;
 }
+/* Force Value Bets market pill text to tracker-style white */
+.bet-market,
+.bet-market-inline{
+  color: #f1f5ff !important;
+  -webkit-text-fill-color: #f1f5ff !important;
+  text-shadow: none !important;
+}
