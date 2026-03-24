@@ -4927,3 +4927,8 @@ select.result-lost{
   opacity: 0.55;
   animation: betMarketShine 3.8s linear infinite;
 }
+/* slow down VIP shine */
+.vip-bar::after,
+.vip-banner::after{
+  animation: vipShine 4.5s linear infinite !important;
+}
