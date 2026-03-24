@@ -275,6 +275,12 @@ function getMarketIcon(market){
   if(m.includes("card")) return "🟨";
   return "⚽";
 }
+function getBetTitleSizeClass(match){
+  const len = String(match || "").trim().length;
+  if(len >= 34) return " bet-title--tiny";
+  if(len >= 28) return " bet-title--small";
+  return "";
+}
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
