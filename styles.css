@@ -4401,3 +4401,52 @@ input,
 .tracker-day-wrap > div:last-child{
   margin-top: 6px !important;
 }
+/* === SNAP TOGETHER MODE (safe version) === */
+
+/* remove most gaps between sections */
+.tracker-week-wrap,
+.tracker-day-wrap{
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* make headers sit flush */
+.tracker-week-toggle{
+  margin-bottom: 0 !important;
+  border-radius: 10px 10px 0 0 !important;
+}
+
+.tracker-day-toggle{
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* cards connect to date nicely */
+.tracker-day-wrap .tracker-opt7-card,
+.tracker-day-wrap .card{
+  margin-top: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* last card in a group gets bottom rounding */
+.tracker-day-wrap .tracker-opt7-card:last-child,
+.tracker-day-wrap .card:last-child{
+  border-radius: 0 0 12px 12px !important;
+}
+
+/* subtle divider instead of gaps */
+.tracker-day-wrap::after{
+  content: "";
+  display: block;
+  height: 1px;
+  background: rgba(120,140,180,0.18);
+  margin: 6px 0;
+}
+
+/* tighten header padding slightly */
+.tracker-day-toggle,
+.tracker-week-toggle{
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
