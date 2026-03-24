@@ -5286,3 +5286,21 @@ select.result-lost{
     font-size:11.5px !important;
   }
 }
+/* === Make match names bigger + bright white === */
+#betsGrid .bet-title{
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  font-size: 17px !important;
+  letter-spacing: 0.2px;
+}
+
+/* keep shrink behaviour but still bright */
+#betsGrid .bet-title.bet-title--small{
+  font-size: 15px !important;
+  color: #ffffff !important;
+}
+
+#betsGrid .bet-title.bet-title--tiny{
+  font-size: 14px !important;
+  color: #ffffff !important;
+}
