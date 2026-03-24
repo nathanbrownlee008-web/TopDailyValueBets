@@ -275,15 +275,6 @@ function getMarketIcon(market){
   if(m.includes("card")) return "🟨";
   return "⚽";
 }
-function getBetTitleSizeClass(match){
-  const len = String(match || "").trim().length;
-
-  // balanced shrink (non-aggressive)
-  if(len >= 34) return " bet-title--tiny";
-  if(len >= 28) return " bet-title--small";
-
-  return "";
-}
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -1265,13 +1256,11 @@ const monthlyAvgOdds = monthKeys.map(k=>{
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>W/L</th><th>WR</th><th>Avg</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>WR</th><th>Avg</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
     const bets = monthlyBets[i] || 0;
-    const wins = monthWinsMap[k] || 0;
-    const losses = monthLossMap[k] || 0;
     const winrate = monthlyWinrate[i] || 0;
     const avgOdds = monthlyAvgOdds[i] || 0;
 
@@ -1284,7 +1273,6 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
       <td>${bets}</td>
-      <td class="month-wl-cell"><span class="month-wl-win">${wins}</span><span class="month-wl-sep">-</span><span class="month-wl-loss">${losses}</span></td>
       <td class="${(() => {
         const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
         const diff = winrate - breakEven;
@@ -2836,7 +2824,7 @@ window.forgotVipPassword = forgotVipPassword;
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
       const isCurrentMonth = monthKey === currentMonthLabel;
-      const monthOpen = isCurrentMonth;
+      const monthOpen = isCurrentMonth ? true : (Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0);
 
       html += `
         <div class="tracker-month-wrap">
@@ -2850,7 +2838,7 @@ window.forgotVipPassword = forgotVipPassword;
       Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
         const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
-        const weekOpen = isCurrentWeek;
+        const weekOpen = isCurrentWeek ? true : (Object.prototype.hasOwnProperty.call(weekState, weekKey) ? !!weekState[weekKey] : (monthIndex === 0 && weekIndex === 0));
 
         html += `
           <div class="tracker-week-wrap">
@@ -2864,7 +2852,7 @@ window.forgotVipPassword = forgotVipPassword;
         Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
           const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
-          const dayOpen = isCurrentDay;
+          const dayOpen = isCurrentDay ? true : (Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && weekIndex === 0 && dayIndex === 0));
 
           html += `
             <div class="tracker-day-wrap">
