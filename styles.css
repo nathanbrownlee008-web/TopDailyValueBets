@@ -5139,3 +5139,26 @@ select.result-lost{
     0 10px 24px rgba(0,0,0,0.5),
     0 0 10px rgba(80,140,255,0.06); /* reduce glow */
 }
+/* MATCH INNER ELEMENTS TO DARKER CARD */
+
+/* MARKET pill */
+.bet-market{
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #e8edf5 !important;
+  box-shadow: none !important;
+}
+
+/* ODDS + STAKE boxes */
+.bet-odds,
+.bet-stake{
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: #dfe6ef !important;
+  box-shadow: none !important;
+}
+
+/* LABELS (MARKET / ODDS / STAKE text) */
+.bet-label{
+  color: rgba(255,255,255,0.5) !important;
+}
