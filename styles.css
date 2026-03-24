@@ -5340,20 +5340,18 @@ select.result-lost{
   }
 }
 
-/* Monthly Breakdown W/L */
-.month-wl-cell{
-  white-space:nowrap;
-  font-weight:800;
+/* Emerald Bet Results header only */
+#trackerSection .tracker-toggle{
+  background: linear-gradient(180deg, rgba(11,59,46,0.96), rgba(7,43,35,0.96));
+  border: 1px solid rgba(34,197,94,0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(90,255,170,0.08),
+    0 10px 24px rgba(0,0,0,0.18),
+    0 0 0 1px rgba(34,197,94,0.10);
+  color: #ecfdf5;
 }
-.month-wl-win{
-  color:#22c55e;
-  font-weight:900;
-}
-.month-wl-sep{
-  color:rgba(226,232,240,0.72);
-  padding:0 1px;
-}
-.month-wl-loss{
-  color:#ef4444;
-  font-weight:900;
+
+#trackerSection .tracker-toggle:hover{
+  background: linear-gradient(180deg, rgba(13,69,54,0.98), rgba(8,48,39,0.98));
+  border-color: rgba(34,197,94,0.42);
 }
