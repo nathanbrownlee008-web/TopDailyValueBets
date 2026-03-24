@@ -4938,3 +4938,8 @@ select.result-lost{
 .vip-banner::after{
   animation: vipShine 5.2s linear infinite !important;
 }
+/* fix VIP container shape (remove bubble look) */
+.vip-container,
+.vip-box{
+  border-radius: 14px !important; /* was too high */
+}
