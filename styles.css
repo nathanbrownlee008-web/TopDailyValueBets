@@ -5253,3 +5253,25 @@ select.result-lost{
   opacity: 1 !important;
   text-shadow: 0 0 6px rgba(255,255,255,0.12);
 }
+/* ===== AUTO SHRINK (CLEAN + CONTROLLED) ===== */
+
+.bet-title{
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  line-height: 1.1 !important;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Medium long names */
+.bet-title--small{
+  font-size: 15px !important;
+}
+
+/* Very long names */
+.bet-title--tiny{
+  font-size: 13.5px !important;
+}
