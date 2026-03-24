@@ -3003,7 +3003,7 @@ body.layout-compact .vip-bar{
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: 104px;
+  padding-right: 118px;
   margin: 0;
   letter-spacing: 0.1px;
 }
@@ -3070,7 +3070,7 @@ body.layout-compact .vip-bar{
 @media (max-width: 420px){
   #betsGrid .bet-title{
     font-size: 13px;
-    padding-right: 96px;
+    padding-right: 108px;
   }
   #betsGrid .bet-market{
     font-size: 12.5px;
@@ -5303,4 +5303,57 @@ select.result-lost{
 #betsGrid .bet-title.bet-title--tiny{
   font-size: 14px !important;
   color: #ffffff !important;
+}
+
+/* === SAFE VALUE BETS TITLE AUTOSHRINK === */
+#betsGrid .bet-title{
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  color: #ffffff !important;
+  line-height: 1.08 !important;
+}
+
+#betsGrid .bet-title.bet-title--small{
+  font-size: 14px !important;
+}
+
+#betsGrid .bet-title.bet-title--tiny{
+  font-size: 13px !important;
+}
+
+@media (min-width: 421px){
+  #betsGrid .bet-title:not(.bet-title--small):not(.bet-title--tiny){
+    font-size: 15px !important;
+  }
+}
+
+@media (max-width: 420px){
+  #betsGrid .bet-title:not(.bet-title--small):not(.bet-title--tiny){
+    font-size: 14px !important;
+  }
+  #betsGrid .bet-title.bet-title--small{
+    font-size: 13.5px !important;
+  }
+  #betsGrid .bet-title.bet-title--tiny{
+    font-size: 12.5px !important;
+  }
+}
+
+/* Monthly Breakdown W/L */
+.month-wl-cell{
+  white-space:nowrap;
+  font-weight:800;
+}
+.month-wl-win{
+  color:#22c55e;
+  font-weight:900;
+}
+.month-wl-sep{
+  color:rgba(226,232,240,0.72);
+  padding:0 1px;
+}
+.month-wl-loss{
+  color:#ef4444;
+  font-weight:900;
 }
