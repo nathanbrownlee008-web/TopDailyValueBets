@@ -5305,53 +5305,20 @@ select.result-lost{
   color: #ffffff !important;
 }
 
-/* === SAFE VALUE BETS TITLE AUTOSHRINK === */
-#betsGrid .bet-title{
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  color: #ffffff !important;
-  line-height: 1.08 !important;
+/* Monthly Breakdown W/L split */
+.month-wl-cell{
+  white-space: nowrap;
+  font-weight: 800;
 }
-
-#betsGrid .bet-title.bet-title--small{
-  font-size: 14px !important;
+.month-wl-win{
+  color: #22c55e;
+  font-weight: 900;
 }
-
-#betsGrid .bet-title.bet-title--tiny{
-  font-size: 13px !important;
+.month-wl-sep{
+  color: rgba(226,232,240,0.72);
+  padding: 0 1px;
 }
-
-@media (min-width: 421px){
-  #betsGrid .bet-title:not(.bet-title--small):not(.bet-title--tiny){
-    font-size: 15px !important;
-  }
-}
-
-@media (max-width: 420px){
-  #betsGrid .bet-title:not(.bet-title--small):not(.bet-title--tiny){
-    font-size: 14px !important;
-  }
-  #betsGrid .bet-title.bet-title--small{
-    font-size: 13.5px !important;
-  }
-  #betsGrid .bet-title.bet-title--tiny{
-    font-size: 12.5px !important;
-  }
-}
-
-/* Emerald Bet Results header only */
-#trackerSection .tracker-toggle{
-  background: linear-gradient(180deg, rgba(11,59,46,0.96), rgba(7,43,35,0.96));
-  border: 1px solid rgba(34,197,94,0.32);
-  box-shadow:
-    inset 0 1px 0 rgba(90,255,170,0.08),
-    0 10px 24px rgba(0,0,0,0.18),
-    0 0 0 1px rgba(34,197,94,0.10);
-  color: #ecfdf5;
-}
-
-#trackerSection .tracker-toggle:hover{
-  background: linear-gradient(180deg, rgba(13,69,54,0.98), rgba(8,48,39,0.98));
-  border-color: rgba(34,197,94,0.42);
+.month-wl-loss{
+  color: #ef4444;
+  font-weight: 900;
 }
