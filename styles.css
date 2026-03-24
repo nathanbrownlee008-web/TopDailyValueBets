@@ -5162,3 +5162,20 @@ select.result-lost{
 .bet-label{
   color: rgba(255,255,255,0.5) !important;
 }
+/* FINAL POLISH — MATCH MARKET PILL TO CARD */
+
+.bet-market{
+  background: rgba(15,25,45,0.9) !important; /* darker, matches card */
+  border: 1px solid rgba(120,170,255,0.25) !important; /* subtle blue edge */
+  color: #ffffff !important;
+  box-shadow: 
+    inset 0 0 6px rgba(255,255,255,0.05),
+    0 0 6px rgba(80,140,255,0.08);
+}
+
+/* Make odds/stake slightly softer too */
+.bet-odds,
+.bet-stake{
+  background: rgba(20,30,50,0.8) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+}
