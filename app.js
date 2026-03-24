@@ -275,12 +275,6 @@ function getMarketIcon(market){
   if(m.includes("card")) return "🟨";
   return "⚽";
 }
-function getBetTitleSizeClass(match){
-  const len = String(match || "").trim().length;
-  if(len >= 30) return " bet-title--tiny";
-  if(len >= 24) return " bet-title--small";
-  return "";
-}
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -683,7 +677,7 @@ async function loadBets(){
 <div class="bet-lock-wrap">
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
-      <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
+      <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
