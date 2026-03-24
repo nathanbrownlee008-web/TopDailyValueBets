@@ -2824,8 +2824,9 @@ window.forgotVipPassword = forgotVipPassword;
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
       const isCurrentMonth = monthKey === currentMonthLabel;
-      const monthOpen = isCurrentMonth ? true : (Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0);
-
+      const monthOpen = Object.prototype.hasOwnProperty.call(monthState, monthKey)
+  ? !!monthState[monthKey]
+  : isCurrentMonth;
       html += `
         <div class="tracker-month-wrap">
           <button class="tracker-group-toggle tracker-month-toggle ${isCurrentMonth ? "tracker-month-toggle--current" : ""}" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
@@ -2838,7 +2839,9 @@ window.forgotVipPassword = forgotVipPassword;
       Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
         const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
-        const weekOpen = isCurrentWeek ? true : (Object.prototype.hasOwnProperty.call(weekState, weekKey) ? !!weekState[weekKey] : (monthIndex === 0 && weekIndex === 0));
+        const weekOpen = Object.prototype.hasOwnProperty.call(weekState, weekKey)
+  ? !!weekState[weekKey]
+  : isCurrentWeek;
 
         html += `
           <div class="tracker-week-wrap">
@@ -2852,7 +2855,9 @@ window.forgotVipPassword = forgotVipPassword;
         Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
           const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
-          const dayOpen = isCurrentDay ? true : (Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && weekIndex === 0 && dayIndex === 0));
+          const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey)
+  ? !!dayState[dayKey]
+  : isCurrentDay;
 
           html += `
             <div class="tracker-day-wrap">
