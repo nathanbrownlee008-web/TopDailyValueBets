@@ -4317,3 +4317,32 @@ input,
   color:#f59e0b;
   font-weight:600;
 }
+/* clearer separation after each date block */
+.tracker-day-wrap{
+  position: relative;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+}
+
+.tracker-day-wrap::after{
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 14px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.00),
+    rgba(120,140,180,0.22),
+    rgba(255,255,255,0.00)
+  );
+}
+
+/* subtle outer edge glow on result cards */
+.tracker-opt7-card,
+.tracker-card,
+.card{
+  box-shadow:
+    0 0 0 1px rgba(120,140,180,0.16),
+    0 10px 24px rgba(0,0,0,0.22),
+    0 0 18px rgba(40,90,180,0.08);
+}
