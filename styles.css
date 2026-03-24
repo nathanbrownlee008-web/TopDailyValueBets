@@ -5339,3 +5339,21 @@ select.result-lost{
     font-size: 12.5px !important;
   }
 }
+
+/* Monthly Breakdown W/L */
+.month-wl-cell{
+  white-space:nowrap;
+  font-weight:800;
+}
+.month-wl-win{
+  color:#22c55e;
+  font-weight:900;
+}
+.month-wl-sep{
+  color:rgba(226,232,240,0.72);
+  padding:0 1px;
+}
+.month-wl-loss{
+  color:#ef4444;
+  font-weight:900;
+}

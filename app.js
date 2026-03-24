@@ -1281,6 +1281,7 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
       <td>${bets}</td>
+      <td class="month-wl-cell"><span class="month-wl-win">${wins}</span><span class="month-wl-sep">-</span><span class="month-wl-loss">${losses}</span></td>
       <td class="${(() => {
         const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
         const diff = winrate - breakEven;
