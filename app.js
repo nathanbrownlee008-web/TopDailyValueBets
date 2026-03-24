@@ -1262,11 +1262,13 @@ const monthlyAvgOdds = monthKeys.map(k=>{
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>WR</th><th>Avg</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>W/L</th><th>WR</th><th>Avg</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
     const bets = monthlyBets[i] || 0;
+    const wins = monthWinsMap[k] || 0;
+    const losses = monthLossMap[k] || 0;
     const winrate = monthlyWinrate[i] || 0;
     const avgOdds = monthlyAvgOdds[i] || 0;
 
