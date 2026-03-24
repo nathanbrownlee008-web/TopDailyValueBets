@@ -4873,3 +4873,11 @@ select.result-lost{
   border: 1px solid rgba(255,255,255,0.18);
   box-shadow: 0 0 12px rgba(255,255,255,0.08);
 }
+/* GOLD RIM market pill (premium look) */
+.bet-card .bet-market{
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,215,0,0.6) !important;
+  box-shadow: 
+    0 0 10px rgba(255,215,0,0.25),
+    inset 0 0 6px rgba(255,215,0,0.08);
+}
