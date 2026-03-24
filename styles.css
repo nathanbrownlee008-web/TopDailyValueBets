@@ -5246,3 +5246,10 @@ select.result-lost{
 .bet-card *:not(.bet-market):not(.bet-odds):not(.bet-stake){
   color: var(--label-color) !important;
 }
+/* Bright white labels in tracker cards */
+.tracker-grid-meta > div > span,
+.tracker-grid-market-slot > span{
+  color: #f8fbff !important;
+  opacity: 1 !important;
+  text-shadow: 0 0 6px rgba(255,255,255,0.12);
+}
