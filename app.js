@@ -1904,24 +1904,31 @@ function renderMarketChart(labels, winPct, totals){
       animation: { duration: 250 }
     },
     plugins: [{
-      id: "pctLabels",
-      afterDatasetsDraw(chart){
-        const {ctx} = chart;
-        const meta = chart.getDatasetMeta(0);
-        ctx.save();
-        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-        ctx.fillStyle = "rgba(229,231,235,0.95)";
-        meta.data.forEach((bar, i)=>{
-          const val = winPct[i] ?? 0;
-          const text = Math.round(val) + "%";
-          const x = bar.x - 10; // inside bar near end
-          const y = bar.y + 4;
-          ctx.textAlign = "right";
-          ctx.fillText(text, x, y);
-        });
-        ctx.restore();
-      }
-    }]
+  id: "pctLabels",
+  afterDatasetsDraw(chart){
+    const {ctx, chartArea} = chart;
+    const meta = chart.getDatasetMeta(0);
+
+    ctx.save();
+    ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.fillStyle = "rgba(229,231,235,0.95)";
+
+    meta.data.forEach((bar, i)=>{
+      const val = Number(winPct[i] ?? 0);
+      const text = Math.round(val) + "%";
+
+      const isTiny = val <= 8;
+
+      const x = isTiny ? (chartArea.left + 8) : (bar.x - 10);
+      const y = bar.y + 4;
+
+      ctx.textAlign = isTiny ? "left" : "right";
+      ctx.fillText(text, x, y);
+    });
+
+    ctx.restore();
+  }
+}]
   });
 }
 
