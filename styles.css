@@ -4490,3 +4490,24 @@ input,
   background: rgba(120,140,180,0.12);
   margin: 6px 0;
 }
+/* tighten space between week and first date */
+.tracker-week-wrap > .tracker-day-wrap:first-child{
+  margin-top: 4px !important;
+}
+
+/* remove extra spacing between dates */
+.tracker-day-wrap{
+  margin-bottom: 4px !important;
+}
+
+/* soften/remove heavy divider lines between dates */
+.tracker-day-wrap::after{
+  background: rgba(120,140,180,0.08) !important;
+  margin: 4px 0 !important;
+}
+
+/* slightly tighter date headers */
+.tracker-day-toggle{
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
