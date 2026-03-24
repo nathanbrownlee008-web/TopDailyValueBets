@@ -5225,3 +5225,24 @@ select.result-lost{
 .bet-stake{
   color: #f1f5ff !important;
 }
+/* FORCE LABEL TEXT BRIGHTER (correct selector) */
+
+.bet-card span,
+.bet-card .label,
+.bet-card .bet-meta span{
+  color: rgba(255,255,255,0.75) !important;
+}
+
+/* TARGET EXACT TEXT (MARKET / ODDS / STAKE) */
+.bet-card div{
+  color: inherit;
+}
+
+/* FORCE actual label words */
+.bet-card{
+  --label-color: rgba(255,255,255,0.75);
+}
+
+.bet-card *:not(.bet-market):not(.bet-odds):not(.bet-stake){
+  color: var(--label-color) !important;
+}
