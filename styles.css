@@ -4930,11 +4930,11 @@ select.result-lost{
 /* big container slower */
 .vip-container::after,
 .vip-box::after{
-  animation: vipShine 5.5s linear infinite !important;
+  animation: vipShine 7.5s linear infinite !important;
 }
 
 /* gold bar slightly faster */
 .vip-bar::after,
 .vip-banner::after{
-  animation: vipShine 4.2s linear infinite !important;
+  animation: vipShine 5.2s linear infinite !important;
 }
