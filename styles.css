@@ -4379,3 +4379,25 @@ input,
   margin-bottom: 8px !important;
   padding-bottom: 6px !important;
 }
+/* tighten spacing between sections more */
+.tracker-day-wrap{
+  margin-bottom: 4px !important;
+  padding-bottom: 4px !important;
+}
+
+/* reduce gap between week blocks */
+.tracker-week-wrap{
+  margin-bottom: 6px !important;
+}
+
+/* reduce space inside headers */
+.tracker-day-toggle,
+.tracker-week-toggle{
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+/* tighten gap between header and first card */
+.tracker-day-wrap > div:last-child{
+  margin-top: 6px !important;
+}
