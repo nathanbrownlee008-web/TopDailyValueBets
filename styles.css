@@ -4925,5 +4925,5 @@ select.result-lost{
 
 .bet-card .bet-market::after{
   opacity: 0.55;
-  animation: betMarketShine 5.5s linear infinite;
+  animation: betMarketShine 2.8s linear infinite;
 }
