@@ -4353,11 +4353,11 @@ input,
 
 /* Tighten spacing between one date section and the next */
 .tracker-day-wrap{
-  margin-bottom: 10px !important;
-  padding-bottom: 8px !important;
+  margin-bottom: 6px !important;
+  padding-bottom: 6px !important;
 }
 
 /* Make the separator line sit closer to the next date */
 .tracker-day-wrap::after{
-  margin-top: 8px !important;
+  margin-top: 6px !important;
 }
