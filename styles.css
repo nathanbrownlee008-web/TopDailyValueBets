@@ -4976,3 +4976,10 @@ select.result-lost{
     0 10px 24px rgba(0,0,0,0.42),
     0 0 16px rgba(80,140,255,0.12) !important;
 }
+/* Gold edge for the actual tracker result cards */
+.tracker-grid-card{
+  border: 1px solid rgba(255,215,0,0.28) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.42),
+    0 0 14px rgba(255,215,0,0.10) !important;
+}
