@@ -4740,3 +4740,19 @@ select.result-lost{
 .value-bet-card .market-text{
   color: #f1f5ff !important;
 }
+/* FORCE market text to white on Value Bets (override green styles) */
+.value-bet-card .market,
+.value-bet-card .market *,
+.value-bet-card .market-chip,
+.value-bet-card .market-text,
+.value-bet-card span,
+.value-bet-card div {
+  color: #f1f5ff !important;
+}
+
+/* Make the market pill text match tracker exactly */
+.value-bet-card .market-chip,
+.value-bet-card .market {
+  color: #f1f5ff !important;
+  font-weight: 600;
+}
