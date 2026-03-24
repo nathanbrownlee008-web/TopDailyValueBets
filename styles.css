@@ -4450,3 +4450,43 @@ input,
   padding-top: 10px !important;
   padding-bottom: 10px !important;
 }
+/* === SEMI SNAP (clean + readable) === */
+
+/* small spacing between weeks */
+.tracker-week-wrap{
+  margin-bottom: 10px !important;
+}
+
+/* keep days tight but not glued */
+.tracker-day-wrap{
+  margin-bottom: 6px !important;
+  padding-bottom: 4px !important;
+}
+
+/* headers still feel grouped */
+.tracker-week-toggle{
+  border-radius: 12px !important;
+  margin-bottom: 4px !important;
+}
+
+.tracker-day-toggle{
+  border-radius: 8px !important;
+  margin-bottom: 4px !important;
+}
+
+/* cards slightly separated again */
+.tracker-opt7-card,
+.tracker-card,
+.card{
+  margin-top: 6px !important;
+  border-radius: 12px !important;
+}
+
+/* subtle divider line (lighter than before) */
+.tracker-day-wrap::after{
+  content: "";
+  display: block;
+  height: 1px;
+  background: rgba(120,140,180,0.12);
+  margin: 6px 0;
+}
