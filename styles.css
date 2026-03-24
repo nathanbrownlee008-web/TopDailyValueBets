@@ -5179,3 +5179,23 @@ select.result-lost{
   background: rgba(20,30,50,0.8) !important;
   border: 1px solid rgba(255,255,255,0.08) !important;
 }
+/* SUBTLE DEPTH + PREMIUM FINISH */
+
+.bet-card{
+  box-shadow: 
+    0 6px 18px rgba(0,0,0,0.4),
+    inset 0 0 10px rgba(255,255,255,0.02);
+}
+
+/* Slight glow depending on result */
+.bet-card[data-result="won"]{
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.4),
+    0 0 12px rgba(0,255,120,0.08);
+}
+
+.bet-card[data-result="lost"]{
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.4),
+    0 0 12px rgba(255,60,60,0.08);
+}
