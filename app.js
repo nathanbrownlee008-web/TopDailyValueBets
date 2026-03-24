@@ -275,6 +275,12 @@ function getMarketIcon(market){
   if(m.includes("card")) return "🟨";
   return "⚽";
 }
+function getBetTitleSizeClass(match){
+  const len = String(match || "").trim().length;
+  if(len >= 30) return " bet-title--tiny";
+  if(len >= 24) return " bet-title--small";
+  return "";
+}
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -677,7 +683,7 @@ async function loadBets(){
 <div class="bet-lock-wrap">
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
-      <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
+      <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
@@ -1275,7 +1281,11 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
       <td>${bets}</td>
-      <td class="${wrClass}">${winrate.toFixed(1)}%</td>
+      <td class="${(() => {
+        const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
+        const diff = winrate - breakEven;
+        return diff > 0.1 ? 'profit-win' : diff < -0.1 ? 'profit-loss' : 'profit-breakeven';
+      })()}">${winrate.toFixed(1)}%</td>
       <td>${avgOdds.toFixed(2)}</td>
     </tr>`;
   });
@@ -1902,24 +1912,31 @@ function renderMarketChart(labels, winPct, totals){
       animation: { duration: 250 }
     },
     plugins: [{
-      id: "pctLabels",
-      afterDatasetsDraw(chart){
-        const {ctx} = chart;
-        const meta = chart.getDatasetMeta(0);
-        ctx.save();
-        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-        ctx.fillStyle = "rgba(229,231,235,0.95)";
-        meta.data.forEach((bar, i)=>{
-          const val = winPct[i] ?? 0;
-          const text = Math.round(val) + "%";
-          const x = bar.x - 10; // inside bar near end
-          const y = bar.y + 4;
-          ctx.textAlign = "right";
-          ctx.fillText(text, x, y);
-        });
-        ctx.restore();
-      }
-    }]
+  id: "pctLabels",
+  afterDatasetsDraw(chart){
+    const {ctx, chartArea} = chart;
+    const meta = chart.getDatasetMeta(0);
+
+    ctx.save();
+    ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.fillStyle = "rgba(229,231,235,0.95)";
+
+    meta.data.forEach((bar, i)=>{
+      const val = Number(winPct[i] ?? 0);
+      const text = Math.round(val) + "%";
+
+      const isTiny = val <= 8;
+
+      const x = isTiny ? (chartArea.left + 8) : (bar.x - 10);
+      const y = bar.y + 4;
+
+      ctx.textAlign = isTiny ? "left" : "right";
+      ctx.fillText(text, x, y);
+    });
+
+    ctx.restore();
+  }
+}]
   });
 }
 
@@ -2815,7 +2832,7 @@ window.forgotVipPassword = forgotVipPassword;
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
       const isCurrentMonth = monthKey === currentMonthLabel;
-      const monthOpen = isCurrentMonth ? true : (Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0);
+      const monthOpen = isCurrentMonth;
 
       html += `
         <div class="tracker-month-wrap">
@@ -2829,7 +2846,7 @@ window.forgotVipPassword = forgotVipPassword;
       Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
         const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
-        const weekOpen = isCurrentWeek ? true : (Object.prototype.hasOwnProperty.call(weekState, weekKey) ? !!weekState[weekKey] : (monthIndex === 0 && weekIndex === 0));
+        const weekOpen = isCurrentWeek;
 
         html += `
           <div class="tracker-week-wrap">
@@ -2843,7 +2860,7 @@ window.forgotVipPassword = forgotVipPassword;
         Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
           const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
-          const dayOpen = isCurrentDay ? true : (Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && weekIndex === 0 && dayIndex === 0));
+          const dayOpen = isCurrentDay;
 
           html += `
             <div class="tracker-day-wrap">
