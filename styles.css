@@ -4765,3 +4765,10 @@ select.result-lost{
   -webkit-text-fill-color: #f1f5ff !important;
   text-shadow: none !important;
 }
+.market-chip,
+.market-chip span,
+.market-chip *{
+  color: #f1f5ff !important;
+  -webkit-text-fill-color: #f1f5ff !important;
+  text-shadow: none !important;
+}
