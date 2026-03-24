@@ -4772,3 +4772,14 @@ select.result-lost{
   -webkit-text-fill-color: #f1f5ff !important;
   text-shadow: none !important;
 }
+/* FORCE Value Bets market pill text to white */
+.market-chip,
+.market-chip *,
+.market-pill,
+.market-pill *,
+.market-badge,
+.market-badge *{
+  color: #f1f5ff !important;
+  -webkit-text-fill-color: #f1f5ff !important;
+  text-shadow: none !important;
+}
