@@ -4867,3 +4867,9 @@ select.result-lost{
   font-weight: 700;
   text-shadow: 0 0 8px rgba(255,255,255,0.35);
 }
+/* market pill - clean white glass */
+.bet-card .bet-market{
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 0 12px rgba(255,255,255,0.08);
+}
