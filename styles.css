@@ -138,7 +138,7 @@ th{text-align:left}
 }
 
 #trackerWrapper.expanded{
-  max-height:2000px;
+  max-height:99999px;
   opacity:1;
 }
 
@@ -153,7 +153,7 @@ th{text-align:left}
 }
 
 #tdtTrackerWrapper.expanded{
-  max-height:2000px;
+  max-height:99999px;
   opacity:1;
 }
 
@@ -4311,12 +4311,498 @@ input,
   color: #f8fafc !important;
 }
 
+
+/* Monthly breakdown smart WR amber */
+.profit-breakeven{
+  color:#f59e0b;
+  font-weight:600;
+}
+/* clearer separation after each date block */
+.tracker-day-wrap{
+  position: relative;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+}
+
+.tracker-day-wrap::after{
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 14px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.00),
+    rgba(120,140,180,0.22),
+    rgba(255,255,255,0.00)
+  );
+}
+
+/* subtle outer edge glow on result cards */
+.tracker-opt7-card,
+.tracker-card,
+.card{
+  box-shadow:
+    0 0 0 1px rgba(120,140,180,0.16),
+    0 10px 24px rgba(0,0,0,0.22),
+    0 0 18px rgba(40,90,180,0.08);
+}
+/* Make each date header look fully boxed in */
+.tracker-day-toggle{
+  border-top: 1px solid rgba(120,140,180,0.22) !important;
+}
+
+/* Tighten spacing between one date section and the next */
+.tracker-day-wrap{
+  margin-bottom: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+/* Make the separator line sit closer to the next date */
+.tracker-day-wrap::after{
+  margin-top: 6px !important;
+}
+/* FORCE top border on ALL date/week headers */
+.tracker-day-toggle,
+.tracker-week-toggle,
+.tracker-month-toggle{
+  border-top: 1px solid rgba(120,140,180,0.35) !important;
+}
+
+/* Also ensure full box look */
+.tracker-day-toggle,
+.tracker-week-toggle{
+  border-bottom: 1px solid rgba(120,140,180,0.18) !important;
+}
+
+/* Slightly tighten spacing */
+.tracker-day-wrap{
+  margin-bottom: 8px !important;
+  padding-bottom: 6px !important;
+}
+/* tighten spacing between sections more */
+.tracker-day-wrap{
+  margin-bottom: 4px !important;
+  padding-bottom: 4px !important;
+}
+
+/* reduce gap between week blocks */
+.tracker-week-wrap{
+  margin-bottom: 6px !important;
+}
+
+/* reduce space inside headers */
+.tracker-day-toggle,
+.tracker-week-toggle{
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+/* tighten gap between header and first card */
+.tracker-day-wrap > div:last-child{
+  margin-top: 6px !important;
+}
+/* === SNAP TOGETHER MODE (safe version) === */
+
+/* remove most gaps between sections */
+.tracker-week-wrap,
+.tracker-day-wrap{
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* make headers sit flush */
+.tracker-week-toggle{
+  margin-bottom: 0 !important;
+  border-radius: 10px 10px 0 0 !important;
+}
+
+.tracker-day-toggle{
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* cards connect to date nicely */
+.tracker-day-wrap .tracker-opt7-card,
+.tracker-day-wrap .card{
+  margin-top: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* last card in a group gets bottom rounding */
+.tracker-day-wrap .tracker-opt7-card:last-child,
+.tracker-day-wrap .card:last-child{
+  border-radius: 0 0 12px 12px !important;
+}
+
+/* subtle divider instead of gaps */
+.tracker-day-wrap::after{
+  content: "";
+  display: block;
+  height: 1px;
+  background: rgba(120,140,180,0.18);
+  margin: 6px 0;
+}
+
+/* tighten header padding slightly */
+.tracker-day-toggle,
+.tracker-week-toggle{
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+/* === SEMI SNAP (clean + readable) === */
+
+/* small spacing between weeks */
+.tracker-week-wrap{
+  margin-bottom: 10px !important;
+}
+
+/* keep days tight but not glued */
+.tracker-day-wrap{
+  margin-bottom: 6px !important;
+  padding-bottom: 4px !important;
+}
+
+/* headers still feel grouped */
+.tracker-week-toggle{
+  border-radius: 12px !important;
+  margin-bottom: 4px !important;
+}
+
+.tracker-day-toggle{
+  border-radius: 8px !important;
+  margin-bottom: 4px !important;
+}
+
+/* cards slightly separated again */
+.tracker-opt7-card,
+.tracker-card,
+.card{
+  margin-top: 6px !important;
+  border-radius: 12px !important;
+}
+
+/* subtle divider line (lighter than before) */
+.tracker-day-wrap::after{
+  content: "";
+  display: block;
+  height: 1px;
+  background: rgba(120,140,180,0.12);
+  margin: 6px 0;
+}
+/* tighten space between week and first date */
+.tracker-week-wrap > .tracker-day-wrap:first-child{
+  margin-top: -4px !important;
+}
+
+/* remove extra spacing between dates */
+.tracker-day-wrap{
+  margin-bottom: 0px !important;
+}
+
+/* soften/remove heavy divider lines between dates */
+.tracker-day-wrap::after{
+  background: rgba(120,140,180,0.08) !important;
+  margin: 0px 0 !important;
+}
+
+/* slightly tighter date headers */
+.tracker-day-toggle{
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+/* ============================= */
+/* 🔥 SAFE VISUAL UPGRADE PATCH */
+/* ============================= */
+
+/* 1. Premium card finish */
+.tracker-opt7-card,
+.card{
+  background:
+    linear-gradient(180deg, rgba(18,31,58,0.96), rgba(10,22,45,0.98));
+  box-shadow:
+    0 0 0 1px rgba(120,140,180,0.14),
+    0 12px 28px rgba(0,0,0,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+/* 2. Subtle lift on hover (desktop safe) */
+.tracker-opt7-card:hover{
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(120,140,180,0.18),
+    0 14px 30px rgba(0,0,0,0.24);
+}
+
+/* 3. Cleaner headers (week/day/month) */
+.tracker-week-toggle,
+.tracker-day-toggle,
+.tracker-month-toggle{
+  background:
+    linear-gradient(180deg, rgba(20,34,62,0.96), rgba(13,25,47,0.98));
+  box-shadow:
+    0 0 0 1px rgba(120,140,180,0.16),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: all .18s ease;
+}
+
+/* 4. Active/open section glow */
+.tracker-week-toggle.active,
+.tracker-day-toggle.active{
+  box-shadow:
+    0 0 0 1px rgba(34,197,94,0.25),
+    0 0 16px rgba(34,197,94,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+/* 5. Better match title hierarchy */
+.tracker-opt7-card h3{
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* 6. Softer labels */
+.tracker-opt7-card .label{
+  opacity: 0.7;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* 7. Better chips (market / odds / stake) */
+.tracker-opt7-card .pill,
+.tracker-opt7-card .market,
+.tracker-opt7-card .odds,
+.tracker-opt7-card .stake{
+  border-radius: 18px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 6px 14px rgba(0,0,0,0.16);
+}
+
+/* 8. Result glow (won / lost) */
+.result-won{
+  box-shadow:
+    0 0 0 1px rgba(34,197,94,0.28),
+    0 0 14px rgba(34,197,94,0.10);
+}
+
+.result-lost{
+  box-shadow:
+    0 0 0 1px rgba(239,68,68,0.24),
+    0 0 14px rgba(239,68,68,0.08);
+}
+
+/* 9. Softer divider lines */
+.tracker-day-wrap::after{
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0),
+    rgba(120,140,180,0.12),
+    rgba(255,255,255,0)
+  ) !important;
+}
+/* ============================= */
+/* SAFE VISUAL UPGRADE PATCH */
+/* ============================= */
+
+.tracker-opt7-card,
+.card{
+  background: linear-gradient(180deg, rgba(18,31,58,0.96), rgba(10,22,45,0.98));
+  box-shadow:
+    0 0 0 1px rgba(120,140,180,0.14),
+    0 12px 28px rgba(0,0,0,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.tracker-opt7-card:hover,
+.card:hover{
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(120,140,180,0.18),
+    0 14px 30px rgba(0,0,0,0.24),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.tracker-week-toggle,
+.tracker-day-toggle,
+.tracker-month-toggle{
+  background: linear-gradient(180deg, rgba(20,34,62,0.96), rgba(13,25,47,0.98));
+  box-shadow:
+    0 0 0 1px rgba(120,140,180,0.16),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: all .18s ease;
+}
+
+.tracker-week-toggle.active,
+.tracker-day-toggle.active,
+.tracker-week-toggle--current,
+.tracker-day-toggle--current{
+  box-shadow:
+    0 0 0 1px rgba(34,197,94,0.25),
+    0 0 16px rgba(34,197,94,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.tracker-opt7-card h3,
+.tracker-opt7-card .match-title{
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.tracker-opt7-card .label,
+.tracker-opt7-card .mini-label{
+  opacity: 0.7;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tracker-opt7-card .pill,
+.tracker-opt7-card .market,
+.tracker-opt7-card .odds,
+.tracker-opt7-card .stake{
+  border-radius: 18px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 6px 14px rgba(0,0,0,0.16);
+}
+
+.result-won,
+select.result-won{
+  box-shadow:
+    0 0 0 1px rgba(34,197,94,0.28),
+    0 0 14px rgba(34,197,94,0.10);
+}
+
+.result-lost,
+select.result-lost{
+  box-shadow:
+    0 0 0 1px rgba(239,68,68,0.24),
+    0 0 14px rgba(239,68,68,0.08);
+}
+
+.tracker-day-wrap::after{
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0),
+    rgba(120,140,180,0.12),
+    rgba(255,255,255,0)
+  ) !important;
+}
+
+/* subtle glassier header finish */
+.tracker-week-toggle,
+.tracker-day-toggle,
+.tracker-month-toggle{
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* smoother open/close feel */
+.tracker-group-body,
+#trackerWrapper,
+#tdtTrackerWrapper{
+  transition: max-height .28s ease, opacity .22s ease, transform .18s ease;
+}
+
+/* premium active edge */
+.tracker-week-toggle.active,
+.tracker-day-toggle.active{
+  border-color: rgba(34,197,94,0.28) !important;
+}
+
+/* slight polish for cards when active/open nearby */
+.tracker-day-wrap .tracker-opt7-card{
+  position: relative;
+}
+
+.tracker-day-wrap .tracker-opt7-card::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+
+/* keep visual polish modest on mobile */
+@media (max-width: 600px){
+  .tracker-opt7-card:hover,
+  .card:hover{
+    transform: none;
+  }
+}
+/* Market text clean white (premium look) */
+.value-bet-card .market,
+.value-bet-card .market span,
+.value-bet-card .market-chip,
+.value-bet-card .market-text{
+  color: #f1f5ff !important;
+}
+/* FORCE market text to white on Value Bets (override green styles) */
+.value-bet-card .market,
+.value-bet-card .market *,
+.value-bet-card .market-chip,
+.value-bet-card .market-text,
+.value-bet-card span,
+.value-bet-card div {
+  color: #f1f5ff !important;
+}
+
+/* Make the market pill text match tracker exactly */
+.value-bet-card .market-chip,
+.value-bet-card .market {
+  color: #f1f5ff !important;
+  font-weight: 600;
+}
+.value-bet-card .market-chip,
+.value-bet-card .market-chip span,
+.value-bet-card .market-chip *,
+.value-bet-card .market,
+.value-bet-card .market span{
+  color: #f1f5ff !important;
+  -webkit-text-fill-color: #f1f5ff !important;
+  text-shadow: none !important;
+}
+.market-chip,
+.market-chip span,
+.market-chip *{
+  color: #f1f5ff !important;
+  -webkit-text-fill-color: #f1f5ff !important;
+  text-shadow: none !important;
+}
+/* FORCE Value Bets market pill text to white */
+.market-chip,
+.market-chip *,
+.market-pill,
+.market-pill *,
+.market-badge,
+.market-badge *{
+  color: #f1f5ff !important;
+  -webkit-text-fill-color: #f1f5ff !important;
+  text-shadow: none !important;
+}
+.market-chip,
+.market-pill,
+.market-badge{
+  opacity: 1 !important;
+  filter: none !important;
+}
+/* Force Value Bets market pill text to tracker-style white */
+.bet-market,
+.bet-market-inline{
+  color: #f1f5ff !important;
+  -webkit-text-fill-color: #f1f5ff !important;
+  text-shadow: none !important;
+}
+
 /* === Value Bets team names: brighter white + consistent sizing === */
 #betsGrid .bet-title{
   display:block !important;
   color:#ffffff !important;
   font-weight:900 !important;
-  font-size:15px !important;
+  font-size:16px !important;
   line-height:1.08 !important;
   letter-spacing:0.1px !important;
   white-space:nowrap !important;
@@ -4324,28 +4810,28 @@ input,
   text-overflow:ellipsis !important;
   padding-right:118px !important;
   margin:0 !important;
-  text-shadow:0 0 4px rgba(255,255,255,0.08) !important;
+  text-shadow:0 0 6px rgba(255,255,255,0.10) !important;
 }
 
 #betsGrid .bet-title.bet-title--small{
-  font-size:14px !important;
+  font-size:15px !important;
 }
 
 #betsGrid .bet-title.bet-title--tiny{
-  font-size:13px !important;
+  font-size:14px !important;
 }
 
 @media (max-width: 420px){
   #betsGrid .bet-title{
-    font-size:14px !important;
+    font-size:15px !important;
     padding-right:108px !important;
   }
 
   #betsGrid .bet-title.bet-title--small{
-    font-size:13px !important;
+    font-size:14px !important;
   }
 
   #betsGrid .bet-title.bet-title--tiny{
-    font-size:12.5px !important;
+    font-size:13px !important;
   }
 }
