@@ -5253,3 +5253,32 @@ select.result-lost{
   opacity: 1 !important;
   text-shadow: 0 0 6px rgba(255,255,255,0.12);
 }
+/* FIX value bet title row cleanly */
+.bet-teaser{
+  display: block !important;
+}
+
+.bet-title{
+  display: block !important;
+  font-size: 18px !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  width: calc(100% - 110px) !important; /* leaves room for date */
+  max-width: calc(100% - 110px) !important;
+  margin: 0 0 10px 0 !important;
+}
+
+.bet-date{
+  position: absolute !important;
+  top: 22px !important;
+  right: 20px !important;
+  font-size: 13px !important;
+  opacity: 0.72 !important;
+  white-space: nowrap !important;
+}
+
+.bet-card{
+  position: relative !important;
+}
