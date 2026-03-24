@@ -5253,3 +5253,36 @@ select.result-lost{
   opacity: 1 !important;
   text-shadow: 0 0 6px rgba(255,255,255,0.12);
 }
+
+/* === Auto-shrink long Value Bets match names without stacking === */
+#betsGrid .bet-title{
+  display:block;
+  margin:0 0 2px 0 !important;
+  padding-right:118px !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  line-height:1.08 !important;
+}
+
+#betsGrid .bet-title.bet-title--small{
+  font-size:13px !important;
+  letter-spacing:0 !important;
+}
+
+#betsGrid .bet-title.bet-title--tiny{
+  font-size:12px !important;
+  letter-spacing:-0.1px !important;
+}
+
+@media (max-width: 420px){
+  #betsGrid .bet-title{
+    padding-right:108px !important;
+  }
+  #betsGrid .bet-title.bet-title--small{
+    font-size:12.5px !important;
+  }
+  #betsGrid .bet-title.bet-title--tiny{
+    font-size:11.5px !important;
+  }
+}
