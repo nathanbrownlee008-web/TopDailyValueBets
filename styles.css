@@ -4796,42 +4796,511 @@ select.result-lost{
   -webkit-text-fill-color: #f1f5ff !important;
   text-shadow: none !important;
 }
+/* Make market text bright crisp white */
+.bet-market{
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
 
-/* === Value Bets team names: brighter white + consistent sizing === */
+  font-weight: 600;
+  opacity: 1 !important;
+
+  /* removes any dimming effect */
+  filter: none !important;
+  text-shadow: 0 0 6px rgba(255,255,255,0.15);
+}
+/* Make market text fully bright */
+.bet-market{
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  font-weight: 600;
+
+  text-shadow: 0 0 8px rgba(255,255,255,0.35);
+}
+
+/* Lighten the pill background so text stands out */
+.bet-market{
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+}
+/* FORCE bright white market text */
+.bet-market,
+.bet-market span,
+.bet-market * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Make the pill cleaner + less muddy */
+.bet-market {
+  background: rgba(255,255,255,0.12) !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  box-shadow: 0 0 10px rgba(255,255,255,0.15);
+  font-weight: 600;
+}
+
+/* REMOVE any inherited dimming */
+.value-bet-card,
+.value-bet-card * {
+  opacity: 1 !important;
+}
+/* FIX: remove fade from market only */
+.bet-market{
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* override parent opacity */
+.bet-market{
+  filter: brightness(1.2);
+}
+
+/* OPTIONAL: keep rest dim but NOT market */
+.bet-meta{
+  opacity: 0.85; /* slightly brighter overall (optional) */
+}
+/* 🔥 FINAL market text fix (clean + strong white) */
+.bet-card .bet-market{
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(255,255,255,0.35);
+}
+/* market pill - clean white glass */
+.bet-card .bet-market{
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 0 12px rgba(255,255,255,0.08);
+}
+/* GOLD RIM market pill (premium look) */
+.bet-card .bet-market{
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,215,0,0.6) !important;
+  box-shadow: 
+    0 0 10px rgba(255,215,0,0.25),
+    inset 0 0 6px rgba(255,215,0,0.08);
+}
+/* premium gold market pill */
+.bet-card .bet-market{
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.07) !important;
+  border: 1px solid rgba(255,215,0,0.58) !important;
+  box-shadow:
+    0 0 10px rgba(255,215,0,0.18),
+    inset 0 0 6px rgba(255,215,0,0.06);
+}
+
+/* soft moving shine */
+.bet-card .bet-market::after{
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: -40%;
+  width: 28%;
+  transform: rotate(18deg);
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.16) 45%,
+    rgba(255,255,255,0.32) 50%,
+    rgba(255,255,255,0.16) 55%,
+    rgba(255,255,255,0) 100%
+  );
+  animation: betMarketShine 3.8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes betMarketShine{
+  0%{ left: -45%; }
+  100%{ left: 120%; }
+}
+.bet-card .bet-market{
+  box-shadow:
+    0 0 8px rgba(255,215,0,0.12),
+    inset 0 0 4px rgba(255,215,0,0.05);
+}
+
+.bet-card .bet-market::after{
+  opacity: 0.55;
+  animation: betMarketShine 3.8s linear infinite;
+}
+/* big container slower */
+.vip-container::after,
+.vip-box::after{
+  animation: vipShine 7.5s linear infinite !important;
+}
+
+/* gold bar slightly faster */
+.vip-bar::after,
+.vip-banner::after{
+  animation: vipShine 5.2s linear infinite !important;
+}
+/* fix VIP container shape (remove bubble look) */
+.vip-container,
+.vip-box{
+  border-radius: 4px !important; /* was too high */
+}
+/* BET RESULT CARDS UPGRADE */
+.tracker-card,
+.bet-result-card{
+  background: linear-gradient(180deg, #122544 0%, #0b162b 100%) !important;
+  border: 1px solid rgba(80,140,255,0.22) !important;
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.45),
+    0 0 14px rgba(80,140,255,0.10);
+
+  transform: translateY(0);
+  transition: all 0.25s ease;
+}
+
+/* slight lift on interaction (feels premium) */
+.tracker-card:active,
+.bet-result-card:active{
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.55),
+    0 0 18px rgba(80,140,255,0.14);
+}
+/* Tracker result cards - stronger standout look */
+.tracker-opt7-card,
+.tracker-card,
+#trackerTable .card,
+#tdtTrackerTable .card{
+  background: linear-gradient(180deg, #122544 0%, #0b162b 100%) !important;
+  border: 1px solid rgba(80,140,255,0.26) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.42),
+    0 0 16px rgba(80,140,255,0.12) !important;
+}
+/* Gold edge for the actual tracker result cards */
+.tracker-grid-card{
+  border: 1px solid rgba(255,215,0,0.28) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.42),
+    0 0 14px rgba(255,215,0,0.10) !important;
+}
+/* CLEAN WHITE EDGE (premium look) */
+.tracker-grid-card{
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.42),
+    0 0 10px rgba(255,255,255,0.06) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle shine sweep */
+.tracker-grid-card::after{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255,255,255,0.12) 50%,
+    transparent 100%
+  );
+  animation: cardShine 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes cardShine{
+  0%{ left: -60%; }
+  100%{ left: 120%; }
+}
+/* PREMIUM DESYNCED GOLD-WHITE SHINE */
+.tracker-grid-card{
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.42),
+    0 0 12px rgba(255,215,0,0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+/* shine layer */
+.tracker-grid-card::after{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -70%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255,255,255,0.18) 40%,
+    rgba(255,215,0,0.25) 50%,   /* gold hit */
+    rgba(255,255,255,0.18) 60%,
+    transparent 100%
+  );
+  animation: cardShine 7s linear infinite;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* DESYNC each card */
+.tracker-grid-card:nth-child(2n)::after{
+  animation-delay: 1.5s;
+}
+.tracker-grid-card:nth-child(3n)::after{
+  animation-delay: 3s;
+}
+.tracker-grid-card:nth-child(4n)::after{
+  animation-delay: 4.5s;
+}
+
+@keyframes cardShine{
+  0%{ left: -70%; }
+  100%{ left: 130%; }
+}
+.tracker-grid-card{
+  border: 1px solid rgba(255,215,0,0.22) !important;
+  background: linear-gradient(145deg,#0f1f3d,#142a4d) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 10px rgba(255,215,0,0.06);
+}
+/* REMOVE ALL SHINE EFFECTS FROM TRACKER CARDS */
+.tracker-grid-card::after{
+  display: none !important;
+  content: none !important;
+}
+
+/* also kill any animation just in case */
+.tracker-grid-card{
+  animation: none !important;
+}
+/* =========================
+   BASE: CLEAN BLUE CARDS
+========================= */
+.tracker-grid-card{
+  border: 1px solid rgba(80,140,255,0.35) !important;
+  background: linear-gradient(145deg,#0f1f3d,#142a4d) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 14px rgba(80,140,255,0.10);
+  transition: all 0.25s ease;
+}
+
+
+/* =========================
+   WIN (GREEN TINT)
+========================= */
+/* targets your green "won" badge */
+.tracker-grid-card:has(.won){
+  border: 1px solid rgba(0,255,140,0.45) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 16px rgba(0,255,140,0.12);
+}
+
+
+/* =========================
+   LOSS (RED TINT)
+========================= */
+/* targets your red "lost" badge */
+.tracker-grid-card:has(.lost){
+  border: 1px solid rgba(255,80,80,0.45) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 16px rgba(255,80,80,0.12);
+}
+/* WIN CARD - subtle green tint */
+.tracker-grid-card:has(.won){
+  background: linear-gradient(145deg,#0f1f3d,#133d2a) !important;
+  border: 1px solid rgba(0,255,140,0.35) !important;
+}
+
+
+/* LOSS CARD - subtle red tint */
+.tracker-grid-card:has(.lost){
+  background: linear-gradient(145deg,#0f1f3d,#3a1f24) !important;
+  border: 1px solid rgba(255,80,80,0.35) !important;
+}
+/* SOFTER / LESS BLUE CARDS */
+.tracker-grid-card{
+  background: linear-gradient(
+    145deg,
+    #0c182f,   /* darker navy */
+    #101f38    /* less blue, more neutral */
+  ) !important;
+
+  border: 1px solid rgba(80,140,255,0.22) !important; /* softer blue edge */
+
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.5),
+    0 0 10px rgba(80,140,255,0.06); /* reduce glow */
+}
+/* MATCH INNER ELEMENTS TO DARKER CARD */
+
+/* MARKET pill */
+.bet-market{
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #e8edf5 !important;
+  box-shadow: none !important;
+}
+
+/* ODDS + STAKE boxes */
+.bet-odds,
+.bet-stake{
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: #dfe6ef !important;
+  box-shadow: none !important;
+}
+
+/* LABELS (MARKET / ODDS / STAKE text) */
+.bet-label{
+  color: rgba(255,255,255,0.5) !important;
+}
+/* FINAL POLISH — MATCH MARKET PILL TO CARD */
+
+.bet-market{
+  background: rgba(15,25,45,0.9) !important; /* darker, matches card */
+  border: 1px solid rgba(120,170,255,0.25) !important; /* subtle blue edge */
+  color: #ffffff !important;
+  box-shadow: 
+    inset 0 0 6px rgba(255,255,255,0.05),
+    0 0 6px rgba(80,140,255,0.08);
+}
+
+/* Make odds/stake slightly softer too */
+.bet-odds,
+.bet-stake{
+  background: rgba(20,30,50,0.8) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+}
+/* SUBTLE DEPTH + PREMIUM FINISH */
+
+.bet-card{
+  box-shadow: 
+    0 6px 18px rgba(0,0,0,0.4),
+    inset 0 0 10px rgba(255,255,255,0.02);
+}
+
+/* Slight glow depending on result */
+.bet-card[data-result="won"]{
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.4),
+    0 0 12px rgba(0,255,120,0.08);
+}
+
+.bet-card[data-result="lost"]{
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.4),
+    0 0 12px rgba(255,60,60,0.08);
+}
+/* FINAL DEPTH — makes cards feel less flat */
+
+.bet-card{
+  background: linear-gradient(
+    180deg,
+    rgba(20,35,60,0.9) 0%,
+    rgba(15,28,50,0.95) 100%
+  ) !important;
+
+  box-shadow: 
+    0 8px 22px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+}
+/* BRIGHTER LABEL TEXT */
+
+.bet-label{
+  color: rgba(255,255,255,0.75) !important;
+  letter-spacing: 0.5px;
+}
+
+/* Slightly boost the actual values too */
+.bet-market,
+.bet-odds,
+.bet-stake{
+  color: #f1f5ff !important;
+}
+/* FORCE LABEL TEXT BRIGHTER (correct selector) */
+
+.bet-card span,
+.bet-card .label,
+.bet-card .bet-meta span{
+  color: rgba(255,255,255,0.75) !important;
+}
+
+/* TARGET EXACT TEXT (MARKET / ODDS / STAKE) */
+.bet-card div{
+  color: inherit;
+}
+
+/* FORCE actual label words */
+.bet-card{
+  --label-color: rgba(255,255,255,0.75);
+}
+
+.bet-card *:not(.bet-market):not(.bet-odds):not(.bet-stake){
+  color: var(--label-color) !important;
+}
+/* Bright white labels in tracker cards */
+.tracker-grid-meta > div > span,
+.tracker-grid-market-slot > span{
+  color: #f8fbff !important;
+  opacity: 1 !important;
+  text-shadow: 0 0 6px rgba(255,255,255,0.12);
+}
+
+/* === Auto-shrink long Value Bets match names without stacking === */
 #betsGrid .bet-title{
-  display:block !important;
-  color:#ffffff !important;
-  font-weight:900 !important;
-  font-size:16px !important;
-  line-height:1.08 !important;
-  letter-spacing:0.1px !important;
+  display:block;
+  margin:0 0 2px 0 !important;
+  padding-right:118px !important;
   white-space:nowrap !important;
   overflow:hidden !important;
   text-overflow:ellipsis !important;
-  padding-right:118px !important;
-  margin:0 !important;
-  text-shadow:0 0 6px rgba(255,255,255,0.10) !important;
+  line-height:1.08 !important;
 }
 
 #betsGrid .bet-title.bet-title--small{
-  font-size:15px !important;
+  font-size:13px !important;
+  letter-spacing:0 !important;
 }
 
 #betsGrid .bet-title.bet-title--tiny{
-  font-size:14px !important;
+  font-size:12px !important;
+  letter-spacing:-0.1px !important;
 }
 
 @media (max-width: 420px){
   #betsGrid .bet-title{
-    font-size:15px !important;
     padding-right:108px !important;
   }
-
   #betsGrid .bet-title.bet-title--small{
-    font-size:14px !important;
+    font-size:12.5px !important;
   }
-
   #betsGrid .bet-title.bet-title--tiny{
-    font-size:13px !important;
+    font-size:11.5px !important;
   }
+}
+/* === Make match names bigger + bright white === */
+#betsGrid .bet-title{
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  font-size: 17px !important;
+  letter-spacing: 0.2px;
+}
+
+/* keep shrink behaviour but still bright */
+#betsGrid .bet-title.bet-title--small{
+  font-size: 15px !important;
+  color: #ffffff !important;
+}
+
+#betsGrid .bet-title.bet-title--tiny{
+  font-size: 14px !important;
+  color: #ffffff !important;
 }
