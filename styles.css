@@ -4983,3 +4983,35 @@ select.result-lost{
     0 10px 24px rgba(0,0,0,0.42),
     0 0 14px rgba(255,215,0,0.10) !important;
 }
+/* CLEAN WHITE EDGE (premium look) */
+.tracker-grid-card{
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.42),
+    0 0 10px rgba(255,255,255,0.06) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle shine sweep */
+.tracker-grid-card::after{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255,255,255,0.12) 50%,
+    transparent 100%
+  );
+  animation: cardShine 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes cardShine{
+  0%{ left: -60%; }
+  100%{ left: 120%; }
+}
