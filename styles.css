@@ -4756,3 +4756,12 @@ select.result-lost{
   color: #f1f5ff !important;
   font-weight: 600;
 }
+.value-bet-card .market-chip,
+.value-bet-card .market-chip span,
+.value-bet-card .market-chip *,
+.value-bet-card .market,
+.value-bet-card .market span{
+  color: #f1f5ff !important;
+  -webkit-text-fill-color: #f1f5ff !important;
+  text-shadow: none !important;
+}
