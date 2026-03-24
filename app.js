@@ -1803,9 +1803,15 @@ function renderMonthlyChart(profits, roi, labels){
   if(!el) return;
   if(monthlyChart) monthlyChart.destroy();
 
-  const maxROI = Math.max(...roi, 5);
-  const minROI = Math.min(...roi, -5);
-  const pad = 5;
+  const safeRoi = Array.isArray(roi) ? roi.map(v => Number(v || 0)) : [];
+  const maxROI = safeRoi.length ? Math.max(...safeRoi) : 0;
+  const minROI = safeRoi.length ? Math.min(...safeRoi) : 0;
+  const allPositive = safeRoi.length && safeRoi.every(v => v >= 0);
+  const allNegative = safeRoi.length && safeRoi.every(v => v <= 0);
+  const spread = Math.max(Math.abs(maxROI - minROI), 1);
+  const pad = Math.max(0.75, spread * 0.12);
+  const yMin = allPositive ? 0 : Math.floor(minROI - pad);
+  const yMax = allNegative ? 0 : Math.ceil(maxROI + pad);
 
   const ctx = el.getContext("2d");
 
@@ -1830,8 +1836,8 @@ function renderMonthlyChart(profits, roi, labels){
       plugins:{legend:{display:false}},
       scales:{
         y:{
-          min: Math.floor(minROI - pad),
-          max: Math.ceil(maxROI + pad),
+          min: yMin,
+          max: yMax,
           ticks:{callback:(v)=>v+"%"},
           grid:{color:"rgba(255,255,255,0.05)"}
         }
