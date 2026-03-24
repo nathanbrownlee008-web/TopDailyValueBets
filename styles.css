@@ -4917,3 +4917,13 @@ select.result-lost{
   0%{ left: -45%; }
   100%{ left: 120%; }
 }
+.bet-card .bet-market{
+  box-shadow:
+    0 0 8px rgba(255,215,0,0.12),
+    inset 0 0 4px rgba(255,215,0,0.05);
+}
+
+.bet-card .bet-market::after{
+  opacity: 0.55;
+  animation: betMarketShine 5.5s linear infinite;
+}
