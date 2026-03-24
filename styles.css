@@ -4823,3 +4823,25 @@ select.result-lost{
   background: rgba(255,255,255,0.08) !important;
   border: 1px solid rgba(255,255,255,0.18) !important;
 }
+/* FORCE bright white market text */
+.bet-market,
+.bet-market span,
+.bet-market * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Make the pill cleaner + less muddy */
+.bet-market {
+  background: rgba(255,255,255,0.12) !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  box-shadow: 0 0 10px rgba(255,255,255,0.15);
+  font-weight: 600;
+}
+
+/* REMOVE any inherited dimming */
+.value-bet-card,
+.value-bet-card * {
+  opacity: 1 !important;
+}
