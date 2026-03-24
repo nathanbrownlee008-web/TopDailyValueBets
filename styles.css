@@ -4845,3 +4845,18 @@ select.result-lost{
 .value-bet-card * {
   opacity: 1 !important;
 }
+/* FIX: remove fade from market only */
+.bet-market{
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* override parent opacity */
+.bet-market{
+  filter: brightness(1.2);
+}
+
+/* OPTIONAL: keep rest dim but NOT market */
+.bet-meta{
+  opacity: 0.85; /* slightly brighter overall (optional) */
+}
