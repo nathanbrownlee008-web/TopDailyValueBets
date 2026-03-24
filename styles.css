@@ -4796,3 +4796,15 @@ select.result-lost{
   -webkit-text-fill-color: #f1f5ff !important;
   text-shadow: none !important;
 }
+/* Make market text bright crisp white */
+.bet-market{
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+
+  font-weight: 600;
+  opacity: 1 !important;
+
+  /* removes any dimming effect */
+  filter: none !important;
+  text-shadow: 0 0 6px rgba(255,255,255,0.15);
+}
