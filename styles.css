@@ -5269,3 +5269,18 @@ select.result-lost{
 .bet-teaser{
   min-width: 0 !important;
 }
+/* VALUE BETS TITLE - single line clean ellipsis */
+.bet-title{
+  font-size: 18px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 75% !important; /* leaves room for date */
+}
+
+/* make sure row layout doesn't squeeze it weird */
+.bet-teaser{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap:
