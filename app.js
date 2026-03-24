@@ -2838,7 +2838,7 @@ window.forgotVipPassword = forgotVipPassword;
 
       Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
-        const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
+        const isCurrentWeek = weekLabel === currentWeekLabel;
         const weekOpen = Object.prototype.hasOwnProperty.call(weekState, weekKey)
   ? !!weekState[weekKey]
   : isCurrentWeek;
@@ -2854,7 +2854,7 @@ window.forgotVipPassword = forgotVipPassword;
 
         Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
-          const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
+          const isCurrentDay = dayLabel === currentDayLabel;
           const dayOpen = Object.prototype.hasOwnProperty.call(dayState, dayKey)
   ? !!dayState[dayKey]
   : isCurrentDay;
