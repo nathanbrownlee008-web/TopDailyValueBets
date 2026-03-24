@@ -5253,3 +5253,19 @@ select.result-lost{
   opacity: 1 !important;
   text-shadow: 0 0 6px rgba(255,255,255,0.12);
 }
+/* Value Bets title - stop harsh cut-off on long match names */
+.bet-title{
+  font-size: 18px !important;
+  line-height: 1.15 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: normal !important;
+  max-width: 100% !important;
+}
+
+.bet-teaser{
+  min-width: 0 !important;
+}
