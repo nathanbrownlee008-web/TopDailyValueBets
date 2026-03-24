@@ -277,8 +277,8 @@ function getMarketIcon(market){
 }
 function getBetTitleSizeClass(match){
   const len = String(match || "").trim().length;
-  if(len >= 34) return " bet-title--tiny";
-  if(len >= 28) return " bet-title--small";
+  if(len >= 30) return " bet-title--tiny";
+  if(len >= 24) return " bet-title--small";
   return "";
 }
 // ===== Layout Mode (Compact / Wide) =====
@@ -2830,7 +2830,7 @@ window.forgotVipPassword = forgotVipPassword;
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
       const isCurrentMonth = monthKey === currentMonthLabel;
-      const monthOpen = isCurrentMonth ? true : (Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0);
+      const monthOpen = isCurrentMonth;
 
       html += `
         <div class="tracker-month-wrap">
@@ -2844,7 +2844,7 @@ window.forgotVipPassword = forgotVipPassword;
       Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
         const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
-        const weekOpen = isCurrentWeek ? true : (Object.prototype.hasOwnProperty.call(weekState, weekKey) ? !!weekState[weekKey] : (monthIndex === 0 && weekIndex === 0));
+        const weekOpen = isCurrentWeek;
 
         html += `
           <div class="tracker-week-wrap">
@@ -2858,7 +2858,7 @@ window.forgotVipPassword = forgotVipPassword;
         Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
           const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
-          const dayOpen = isCurrentDay ? true : (Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && weekIndex === 0 && dayIndex === 0));
+          const dayOpen = isCurrentDay;
 
           html += `
             <div class="tracker-day-wrap">
