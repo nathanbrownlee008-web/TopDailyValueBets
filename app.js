@@ -3084,4 +3084,131 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
+// ===== SAFE TDT DAY PATCH (APPEND ONLY) =====
+(function () {
+  function fmtTodayLabel() {
+    const d = new Date();
+    const wd = d.toLocaleDateString("en-GB", { weekday: "short" });
+    const day = d.toLocaleDateString("en-GB", { day: "numeric" });
+    const mon = d.toLocaleDateString("en-GB", { month: "short" });
+    return `${wd} ${day} ${mon}`.replace(/\s+/g, " ").trim();
+  }
 
+  function getTdtCards() {
+    return Array.from(document.querySelectorAll(".tdt-day-card"));
+  }
+
+  function getTdtBodies() {
+    return Array.from(document.querySelectorAll(".tdt-day-card .tdt-day-body"));
+  }
+
+  function getTdtChevrons() {
+    return Array.from(document.querySelectorAll(".tdt-day-card .tdt-day-chevron"));
+  }
+
+  function updateToggleAllBtn() {
+    const btn = document.getElementById("tdtToggleAllSafe");
+    if (!btn) return;
+    const bodies = getTdtBodies();
+    const allOpen = bodies.length && bodies.every(el => el.style.display !== "none");
+    btn.textContent = allOpen ? "Collapse all days" : "Open all days";
+  }
+
+  function ensureToggleAllBtn() {
+    const wrap = document.querySelector(".tdt-groups-wrap");
+    if (!wrap) return;
+    if (document.getElementById("tdtToggleAllSafe")) return;
+
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.justifyContent = "flex-end";
+    row.style.margin = "0 0 10px";
+
+    const btn = document.createElement("button");
+    btn.id = "tdtToggleAllSafe";
+    btn.type = "button";
+    btn.textContent = "Open all days";
+    btn.style.background = "rgba(255,255,255,0.05)";
+    btn.style.border = "1px solid rgba(255,255,255,0.12)";
+    btn.style.color = "#e2e8f0";
+    btn.style.padding = "8px 12px";
+    btn.style.borderRadius = "999px";
+    btn.style.fontWeight = "800";
+    btn.style.fontSize = "12px";
+
+    btn.onclick = function () {
+      const bodies = getTdtBodies();
+      const chevs = getTdtChevrons();
+      const shouldOpenAll = bodies.some(el => el.style.display === "none");
+      bodies.forEach(el => { el.style.display = shouldOpenAll ? "block" : "none"; });
+      chevs.forEach(el => { el.textContent = shouldOpenAll ? "▼" : "▶"; });
+      updateToggleAllBtn();
+    };
+
+    row.appendChild(btn);
+    wrap.parentNode.insertBefore(row, wrap);
+    updateToggleAllBtn();
+  }
+
+  function applyDefaultTdtState() {
+    const cards = getTdtCards();
+    if (!cards.length) return;
+
+    const todayLabel = fmtTodayLabel();
+    let todayFound = false;
+
+    cards.forEach((card, idx) => {
+      const dateEl = card.querySelector(".tdt-day-date");
+      const body = card.querySelector(".tdt-day-body");
+      const chev = card.querySelector(".tdt-day-chevron");
+      if (!dateEl || !body) return;
+
+      const label = dateEl.textContent.replace(/\s+/g, " ").trim();
+      const isToday = label === todayLabel;
+
+      if (isToday) {
+        todayFound = true;
+        body.style.display = "block";
+        if (chev) chev.textContent = "▼";
+        card.style.boxShadow = "inset 0 0 0 1px rgba(34,197,94,0.35)";
+        dateEl.style.color = "#bbf7d0";
+      } else {
+        body.style.display = "none";
+        if (chev) chev.textContent = "▶";
+        card.style.boxShadow = "";
+        dateEl.style.color = "";
+      }
+    });
+
+    if (!todayFound) {
+      const firstBody = cards[0].querySelector(".tdt-day-body");
+      const firstChev = cards[0].querySelector(".tdt-day-chevron");
+      if (firstBody) firstBody.style.display = "block";
+      if (firstChev) firstChev.textContent = "▼";
+    }
+
+    updateToggleAllBtn();
+  }
+
+  function initSafeTdtPatch() {
+    if (!document.querySelector(".tdt-day-card")) return;
+    ensureToggleAllBtn();
+    applyDefaultTdtState();
+  }
+
+  let tdtInitRuns = 0;
+  const boot = setInterval(() => {
+    initSafeTdtPatch();
+    tdtInitRuns += 1;
+    if (tdtInitRuns > 20) clearInterval(boot);
+  }, 300);
+
+  const obs = new MutationObserver(() => {
+    initSafeTdtPatch();
+  });
+
+  window.addEventListener("load", () => {
+    initSafeTdtPatch();
+    obs.observe(document.body, { childList: true, subtree: true });
+  });
+})();
