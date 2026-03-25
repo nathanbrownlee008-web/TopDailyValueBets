@@ -3195,4 +3195,19 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
+/* ===== AUTO VIP RESTORE AFTER STRIPE RETURN ===== */
 
+window.addEventListener("load", async () => {
+  const email = localStorage.getItem("vip_email");
+
+  if(!email) return;
+
+  try{
+    const active = await forceVipRefreshNow(email);
+    if(active){
+      console.log("VIP auto-restored after checkout");
+    }
+  }catch(e){
+    console.warn("VIP auto restore failed", e);
+  }
+});
