@@ -5340,13 +5340,37 @@ select.result-lost{
   }
 }
 
-/* TDT monthly table date rows */
-.tdt-date-row td{
-  padding:10px 8px 8px;
-  font-size:12px;
+/* Monthly Breakdown W/L */
+.month-wl-cell{
+  white-space:nowrap;
   font-weight:800;
-  letter-spacing:0.04em;
+}
+.month-wl-win{
+  color:#22c55e;
+  font-weight:900;
+}
+.month-wl-sep{
   color:rgba(226,232,240,0.72);
-  background:rgba(255,255,255,0.02);
-  border-bottom:1px solid rgba(148,163,184,0.12);
+  padding:0 1px;
+}
+.month-wl-loss{
+  color:#ef4444;
+  font-weight:900;
+}
+
+/* Softer blended header (Bet Results + Monthly Breakdown) */
+#trackerSection .tracker-toggle,
+#trackerSection .monthly-toggle{
+  background: linear-gradient(180deg, rgba(20,30,50,0.95), rgba(12,20,35,0.95));
+  border: 1px solid rgba(100,116,139,0.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.03),
+    0 6px 18px rgba(0,0,0,0.25);
+  color: #e5e7eb;
+}
+
+#trackerSection .tracker-toggle:hover,
+#trackerSection .monthly-toggle:hover{
+  background: linear-gradient(180deg, rgba(24,36,60,0.98), rgba(14,24,42,0.98));
+  border-color: rgba(148,163,184,0.35);
 }
