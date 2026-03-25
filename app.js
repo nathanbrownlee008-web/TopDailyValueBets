@@ -21,6 +21,8 @@ function setVipUI(active, email){
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
 
   if(active){
+    const vipPromo = document.getElementById('vipPromo');
+    if(vipPromo) vipPromo.style.display = 'none';
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = email ? `Access unlocked for ${email}` : 'Access unlocked';
     if(btnEl){
@@ -32,6 +34,8 @@ function setVipUI(active, email){
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
   }else{
+    const vipPromo = document.getElementById('vipPromo');
+    if(vipPromo) vipPromo.style.display = '';
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
     if(btnEl){
