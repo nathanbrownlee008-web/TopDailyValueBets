@@ -5413,3 +5413,12 @@ select.result-lost{
 .tdt-day-chip.ratio {
   display: none;
 }
+/* shrink TDT month header slightly */
+#tdtTrackerTable .tdt-month-head{
+  padding: 8px 10px;
+}
+
+#tdtTrackerTable .tdt-month-title{
+  font-size: 14px;
+  line-height: 1;
+}
