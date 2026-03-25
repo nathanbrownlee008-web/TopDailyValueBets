@@ -5415,18 +5415,14 @@ select.result-lost{
 }
 
 
-/* ===== All-time stats Win/Loss split ===== */
-#wonLostCard strong{
-  display:inline-flex;
-  align-items:center;
-  gap:2px;
-}
-.wl-split__win{
-  color:#22c55e;
-}
-.wl-split__loss{
-  color:#ef4444;
-}
-.wl-split__sep{
-  color:rgba(226,232,240,0.55);
+/* ===== Tracker all-time stats heading ===== */
+.stats-title-row{
+  margin: 8px 2px 12px;
+  padding-left: 4px;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(226,232,240,0.74);
 }
