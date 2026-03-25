@@ -3145,3 +3145,71 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
+/* ================================
+   SAFE TDT FIX (DO NOT TOUCH ABOVE)
+================================ */
+
+(function(){
+
+function getWeekFromDate(dateStr){
+  const d = new Date(dateStr);
+  const start = new Date(d.getFullYear(), 0, 1);
+  const diff = (d - start) / 86400000;
+  return Math.ceil((diff + start.getDay()+1) / 7);
+}
+
+function highlightTDT(){
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0,10);
+  const currentWeek = getWeekFromDate(todayStr);
+
+  // FIX HEADER COLOR
+  const header = [...document.querySelectorAll("*")]
+    .find(el => el.textContent?.includes("TDT Results"));
+  if(header){
+    header.style.background = "rgba(255,255,255,0.04)";
+    header.style.border = "1px solid rgba(255,255,255,0.08)";
+  }
+
+  // GET WEEKS
+  const weeks = [...document.querySelectorAll("*")]
+    .filter(el => el.textContent?.includes("Week"));
+
+  // SORT DESCENDING (LATEST FIRST)
+  const parent = weeks[0]?.parentElement;
+  if(parent){
+    const sorted = weeks.sort((a,b)=>{
+      const wa = parseInt(a.textContent.match(/Week (\\d+)/)?.[1] || 0);
+      const wb = parseInt(b.textContent.match(/Week (\\d+)/)?.[1] || 0);
+      return wb - wa;
+    });
+
+    sorted.forEach(w => parent.appendChild(w));
+  }
+
+  // HIGHLIGHT CURRENT WEEK
+  weeks.forEach(w=>{
+    const wNum = parseInt(w.textContent.match(/Week (\\d+)/)?.[1] || 0);
+    if(wNum === currentWeek){
+      w.style.border = "1px solid rgba(34,197,94,0.5)";
+      w.style.background = "rgba(34,197,94,0.08)";
+    }
+  });
+
+  // HIGHLIGHT TODAY
+  const days = [...document.querySelectorAll("*")]
+    .filter(el => el.textContent?.match(/\\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/));
+
+  days.forEach(d=>{
+    if(d.textContent.includes(today.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}))){
+      d.style.background = "rgba(34,197,94,0.06)";
+      d.style.border = "1px solid rgba(34,197,94,0.3)";
+    }
+  });
+}
+
+// run after render
+setTimeout(highlightTDT, 500);
+setTimeout(highlightTDT, 1500);
+
+})();
