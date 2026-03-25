@@ -1193,7 +1193,7 @@ roiElem.innerText=totalStake?((profit/totalStake)*100).toFixed(1):0;
 winrateElem.innerText=(wins+losses)?((wins/(wins+losses))*100).toFixed(1):0;
 const wonLostElem = document.getElementById("wonLost");
 if(wonLostElem){
-  wonLostElem.innerText = `${wins}-${losses}`;
+  wonLostElem.innerHTML = `<span class="wl-split__win">${wins}</span><span class="wl-split__sep">-</span><span class="wl-split__loss">${losses}</span>`;
 }
 
 const totalBets = rows.length;
@@ -1210,14 +1210,6 @@ avgOddsElem.innerText=rows.length?(totalOdds/rows.length).toFixed(2):0;
 profitCard.classList.remove("glow-green","glow-red");
 if(profit>0) profitCard.classList.add("glow-green");
 if(profit<0) profitCard.classList.add("glow-red");
-
-const bankrollCard = document.getElementById("bankrollCard");
-if(bankrollCard){
-  bankrollCard.classList.remove("glow-green","glow-red","glow-grey");
-  if(bankroll > start) bankrollCard.classList.add("glow-green-soft");
-  else if(bankroll < start) bankrollCard.classList.add("glow-red-soft");
-  else bankrollCard.classList.add("glow-grey-soft");
-}
 
 
 renderDailyChart(history, dailyLabels, dayKeys);

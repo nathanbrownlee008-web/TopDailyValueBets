@@ -5415,22 +5415,37 @@ select.result-lost{
 }
 
 
-/* ===== Soft bankroll state glow ===== */
+/* ===== Equalized all-time stat glows + W/L split ===== */
+#wonLostCard strong{
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
+}
+.wl-split__win{
+  color:#22c55e;
+}
+.wl-split__loss{
+  color:#ef4444;
+}
+.wl-split__sep{
+  color:rgba(226,232,240,0.55);
+}
+
 .glow-green-soft{
   box-shadow:
     0 0 0 1px rgba(34,197,94,0.18) inset,
-    0 0 18px rgba(34,197,94,0.16),
-    0 0 34px rgba(34,197,94,0.10);
+    0 0 16px rgba(34,197,94,0.15),
+    0 0 30px rgba(34,197,94,0.10) !important;
 }
 .glow-red-soft{
   box-shadow:
     0 0 0 1px rgba(239,68,68,0.18) inset,
-    0 0 18px rgba(239,68,68,0.16),
-    0 0 34px rgba(239,68,68,0.10);
+    0 0 16px rgba(239,68,68,0.15),
+    0 0 30px rgba(239,68,68,0.10) !important;
 }
 .glow-grey-soft{
   box-shadow:
     0 0 0 1px rgba(148,163,184,0.14) inset,
-    0 0 14px rgba(148,163,184,0.10),
-    0 0 26px rgba(148,163,184,0.06);
+    0 0 12px rgba(148,163,184,0.08),
+    0 0 22px rgba(148,163,184,0.05) !important;
 }
