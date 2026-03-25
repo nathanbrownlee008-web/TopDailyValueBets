@@ -1549,10 +1549,11 @@ async function loadTdtTracker(){
     });
 
     const todayKey = getTdtTodayKey();
+    const currentDayExists = groups.some(group => group.key === todayKey);
     let html = `
       <div style="display:flex;justify-content:flex-end;align-items:center;margin:0 0 10px;">
-        <button id="tdtToggleAllDaysBtn" type="button" onclick="toggleAllTdtDays()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#e2e8f0;padding:8px 12px;border-radius:999px;font-weight:800;font-size:12px;">
-          Collapse all days
+        <button id="tdtToggleAllDaysBtn" type="button" onclick="toggleAllTdtDays()" style="display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#e2e8f0;padding:8px 12px;border-radius:999px;font-weight:800;font-size:12px;">
+          Open all days
         </button>
       </div>
       <div class="tdt-groups-wrap">`;
@@ -1560,6 +1561,7 @@ async function loadTdtTracker(){
     groups.forEach((group, idx)=>{
       const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
       const isToday = group.key === todayKey;
+      const isOpen = currentDayExists ? isToday : idx === 0;
       html += `
         <div class="tdt-day-card">
           <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)" style="${isToday ? 'box-shadow: inset 0 0 0 1px rgba(34,197,94,0.35), 0 0 0 1px rgba(34,197,94,0.08); background: rgba(34,197,94,0.05);' : ''}">
@@ -1571,10 +1573,10 @@ async function loadTdtTracker(){
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
               <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
-              <span class="tdt-day-chevron">▼</span>
+              <span class="tdt-day-chevron">${isOpen ? '▼' : '▶'}</span>
             </div>
           </button>
-          <div class="tdt-day-body" style="display:block;">
+          <div class="tdt-day-body" style="display:${isOpen ? 'block' : 'none'};">
             <div class="tdt-table-wrap">
               <table class="tdt-table tdt-table-fit">
                 <thead>
@@ -1645,8 +1647,9 @@ function toggleTdtDay(btn){
   const bodies = Array.from(document.querySelectorAll("#tdtTrackerTable .tdt-day-body"));
   const btnAll = document.getElementById("tdtToggleAllDaysBtn");
   const allHidden = bodies.length && bodies.every(el => el.style.display === "none");
+  const allOpen = bodies.length && bodies.every(el => el.style.display !== "none");
   tdtAllCollapsed = !!allHidden;
-  if(btnAll) btnAll.textContent = tdtAllCollapsed ? "Open all days" : "Collapse all days";
+  if(btnAll) btnAll.textContent = allOpen ? "Collapse all days" : "Open all days";
 }
 
 function toggleAllTdtDays(){
@@ -1655,12 +1658,12 @@ function toggleAllTdtDays(){
   const btnAll = document.getElementById("tdtToggleAllDaysBtn");
   if(!bodies.length) return;
 
-  const nextCollapsed = !tdtAllCollapsed;
-  bodies.forEach(el => { el.style.display = nextCollapsed ? "none" : "block"; });
-  chevs.forEach(el => { el.innerText = nextCollapsed ? "▶" : "▼"; });
+  const shouldOpenAll = bodies.some(el => el.style.display === "none");
+  bodies.forEach(el => { el.style.display = shouldOpenAll ? "block" : "none"; });
+  chevs.forEach(el => { el.innerText = shouldOpenAll ? "▼" : "▶"; });
 
-  tdtAllCollapsed = nextCollapsed;
-  if(btnAll) btnAll.textContent = tdtAllCollapsed ? "Open all days" : "Collapse all days";
+  tdtAllCollapsed = !shouldOpenAll;
+  if(btnAll) btnAll.textContent = shouldOpenAll ? "Collapse all days" : "Open all days";
 }
 
 function tdtWinrateClass(rate){
@@ -2684,94 +2687,25 @@ window.loadTdtTracker = async function(){
                 <tbody>
       `;
 
-      const dayGroups = [];
-      const dayMap = new Map();
-
       group.rows.forEach(row=>{
-        const dayKey = typeof getTdtRowDayKey === "function" ? getTdtRowDayKey(row) : String(row.bet_date || row.created_at || "Unknown");
-
-        if(!dayMap.has(dayKey)){
-          const dayGroup = { key: dayKey, rows: [], wins: 0, losses: 0, settled: 0 };
-          dayMap.set(dayKey, dayGroup);
-          dayGroups.push(dayGroup);
-        }
-
-        const dayGroup = dayMap.get(dayKey);
-        dayGroup.rows.push(row);
-
         const result = String(row.result || "pending").toLowerCase();
-        if(result === "won"){
-          dayGroup.wins++;
-          dayGroup.settled++;
-        }else if(result === "lost"){
-          dayGroup.losses++;
-          dayGroup.settled++;
-        }
+        const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+
+        html += `
+          <tr class="tdt-row ${result}">
+            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+            <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
+            <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
+            <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
+          </tr>
+        `;
       });
 
       html += `
                 </tbody>
               </table>
             </div>
-      `;
-
-      dayGroups.forEach((dayGroup, dayIdx)=>{
-        const dayWinrate = dayGroup.settled ? Math.round((dayGroup.wins / dayGroup.settled) * 100) : 0;
-
-        html += `
-            <div class="tdt-day-card">
-              <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
-                <div class="tdt-day-left">
-                  <div class="tdt-day-date">${escapeHtml(typeof fmtTdtDayHeader === "function" ? fmtTdtDayHeader(dayGroup.key) : dayGroup.key)}</div>
-                  <div class="tdt-day-meta">${dayGroup.rows.length} bet${dayGroup.rows.length === 1 ? "" : "s"}</div>
-                </div>
-                <div class="tdt-day-right">
-                  <span class="tdt-day-chip win">Won ${dayGroup.wins}</span>
-                  <span class="tdt-day-chip loss">Lost ${dayGroup.losses}</span>
-                  <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
-                  <span class="tdt-day-chevron">▼</span>
-                </div>
-              </button>
-              <div class="tdt-day-body" style="display:block;">
-                <div class="tdt-table-wrap">
-                  <table class="tdt-table tdt-table-fit">
-                    <thead>
-                      <tr>
-                        <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('match') : ''}</span></th>
-                        <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('market') : ''}</span></th>
-                        <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('stake') : ''}</span></th>
-                        <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('odds') : ''}</span></th>
-                        <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('result') : ''}</span></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-        `;
-
-        dayGroup.rows.forEach(row=>{
-          const result = String(row.result || "pending").toLowerCase();
-          const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
-
-          html += `
-                      <tr class="tdt-row ${result}">
-                        <td class="tdt-match">${escapeHtml(row.match || '')}</td>
-                        <td class="tdt-market">${escapeHtml(row.market || '')}</td>
-                        <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
-                        <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
-                        <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
-                      </tr>
-          `;
-        });
-
-        html += `
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-        `;
-      });
-
-      html += `
           </div>
         </div>
       `;
