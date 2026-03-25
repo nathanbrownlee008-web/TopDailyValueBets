@@ -1281,7 +1281,6 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
       <td>${bets}</td>
-      <td class="month-wl-cell"><span class="month-wl-win">${wins}</span><span class="month-wl-sep">-</span><span class="month-wl-loss">${losses}</span></td>
       <td class="${(() => {
         const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
         const diff = winrate - breakEven;
@@ -1803,15 +1802,9 @@ function renderMonthlyChart(profits, roi, labels){
   if(!el) return;
   if(monthlyChart) monthlyChart.destroy();
 
-  const safeRoi = Array.isArray(roi) ? roi.map(v => Number(v || 0)) : [];
-  const maxROI = safeRoi.length ? Math.max(...safeRoi) : 0;
-  const minROI = safeRoi.length ? Math.min(...safeRoi) : 0;
-  const allPositive = safeRoi.length && safeRoi.every(v => v >= 0);
-  const allNegative = safeRoi.length && safeRoi.every(v => v <= 0);
-  const spread = Math.max(Math.abs(maxROI - minROI), 1);
-  const pad = Math.max(0.75, spread * 0.12);
-  const yMin = allPositive ? 0 : Math.floor(minROI - pad);
-  const yMax = allNegative ? 0 : Math.ceil(maxROI + pad);
+  const maxROI = Math.max(...roi, 5);
+  const minROI = Math.min(...roi, -5);
+  const pad = 5;
 
   const ctx = el.getContext("2d");
 
@@ -1836,8 +1829,8 @@ function renderMonthlyChart(profits, roi, labels){
       plugins:{legend:{display:false}},
       scales:{
         y:{
-          min: yMin,
-          max: yMax,
+          min: Math.floor(minROI - pad),
+          max: Math.ceil(maxROI + pad),
           ticks:{callback:(v)=>v+"%"},
           grid:{color:"rgba(255,255,255,0.05)"}
         }
@@ -2647,9 +2640,21 @@ window.loadTdtTracker = async function(){
                 <tbody>
       `;
 
+      let lastDateLabel = "";
       group.rows.forEach(row=>{
         const result = String(row.result || "pending").toLowerCase();
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+        const rowDayKey = (typeof getTdtRowDayKey === "function") ? getTdtRowDayKey(row) : "";
+        const rowDateLabel = (typeof fmtTdtDayHeader === "function") ? fmtTdtDayHeader(rowDayKey) : escapeHtml(String(row.bet_date || row.created_at || ""));
+
+        if(rowDateLabel !== lastDateLabel){
+          html += `
+          <tr class="tdt-date-row">
+            <td colspan="5">${escapeHtml(rowDateLabel)}</td>
+          </tr>
+          `;
+          lastDateLabel = rowDateLabel;
+        }
 
         html += `
           <tr class="tdt-row ${result}">
