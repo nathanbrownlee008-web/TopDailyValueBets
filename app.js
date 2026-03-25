@@ -2647,25 +2647,94 @@ window.loadTdtTracker = async function(){
                 <tbody>
       `;
 
-      group.rows.forEach(row=>{
-        const result = String(row.result || "pending").toLowerCase();
-        const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+      const dayGroups = [];
+      const dayMap = new Map();
 
-        html += `
-          <tr class="tdt-row ${result}">
-            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
-            <td class="tdt-market">${escapeHtml(row.market || '')}</td>
-            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
-            <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
-            <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
-          </tr>
-        `;
+      group.rows.forEach(row=>{
+        const dayKey = typeof getTdtRowDayKey === "function" ? getTdtRowDayKey(row) : String(row.bet_date || row.created_at || "Unknown");
+
+        if(!dayMap.has(dayKey)){
+          const dayGroup = { key: dayKey, rows: [], wins: 0, losses: 0, settled: 0 };
+          dayMap.set(dayKey, dayGroup);
+          dayGroups.push(dayGroup);
+        }
+
+        const dayGroup = dayMap.get(dayKey);
+        dayGroup.rows.push(row);
+
+        const result = String(row.result || "pending").toLowerCase();
+        if(result === "won"){
+          dayGroup.wins++;
+          dayGroup.settled++;
+        }else if(result === "lost"){
+          dayGroup.losses++;
+          dayGroup.settled++;
+        }
       });
 
       html += `
                 </tbody>
               </table>
             </div>
+      `;
+
+      dayGroups.forEach((dayGroup, dayIdx)=>{
+        const dayWinrate = dayGroup.settled ? Math.round((dayGroup.wins / dayGroup.settled) * 100) : 0;
+
+        html += `
+            <div class="tdt-day-card">
+              <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
+                <div class="tdt-day-left">
+                  <div class="tdt-day-date">${escapeHtml(typeof fmtTdtDayHeader === "function" ? fmtTdtDayHeader(dayGroup.key) : dayGroup.key)}</div>
+                  <div class="tdt-day-meta">${dayGroup.rows.length} bet${dayGroup.rows.length === 1 ? "" : "s"}</div>
+                </div>
+                <div class="tdt-day-right">
+                  <span class="tdt-day-chip win">Won ${dayGroup.wins}</span>
+                  <span class="tdt-day-chip loss">Lost ${dayGroup.losses}</span>
+                  <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
+                  <span class="tdt-day-chevron">▼</span>
+                </div>
+              </button>
+              <div class="tdt-day-body" style="display:block;">
+                <div class="tdt-table-wrap">
+                  <table class="tdt-table tdt-table-fit">
+                    <thead>
+                      <tr>
+                        <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('match') : ''}</span></th>
+                        <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('market') : ''}</span></th>
+                        <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('stake') : ''}</span></th>
+                        <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('odds') : ''}</span></th>
+                        <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('result') : ''}</span></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        dayGroup.rows.forEach(row=>{
+          const result = String(row.result || "pending").toLowerCase();
+          const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+
+          html += `
+                      <tr class="tdt-row ${result}">
+                        <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+                        <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+                        <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
+                        <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
+                        <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
+                      </tr>
+          `;
+        });
+
+        html += `
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+        `;
+      });
+
+      html += `
           </div>
         </div>
       `;
