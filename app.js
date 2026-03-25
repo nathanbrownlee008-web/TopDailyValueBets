@@ -1803,9 +1803,15 @@ function renderMonthlyChart(profits, roi, labels){
   if(!el) return;
   if(monthlyChart) monthlyChart.destroy();
 
-  const maxROI = Math.max(...roi, 5);
-  const minROI = Math.min(...roi, -5);
-  const pad = 5;
+  const safeRoi = Array.isArray(roi) ? roi.map(v => Number(v || 0)) : [];
+  const maxROI = safeRoi.length ? Math.max(...safeRoi) : 0;
+  const minROI = safeRoi.length ? Math.min(...safeRoi) : 0;
+  const allPositive = safeRoi.length && safeRoi.every(v => v >= 0);
+  const allNegative = safeRoi.length && safeRoi.every(v => v <= 0);
+  const spread = Math.max(Math.abs(maxROI - minROI), 1);
+  const pad = Math.max(0.75, spread * 0.12);
+  const yMin = allPositive ? 0 : Math.floor(minROI - pad);
+  const yMax = allNegative ? 0 : Math.ceil(maxROI + pad);
 
   const ctx = el.getContext("2d");
 
@@ -3261,7 +3267,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
                   <span>${escapeHtml(weekGroup.label)}</span>
                   <span class="tracker-stats">
-<span class="wl-pill"><span class="wl-win">${weekGroup.wins}</span><span class="wl-sep">-</span><span class="wl-loss">${weekGroup.losses}</span></span>
+<span class="wl-pill"><span class="wl-tag wl-tag-win">W</span><span class="wl-win">${weekGroup.wins}</span><span class="wl-sep">-</span><span class="wl-tag wl-tag-loss">L</span><span class="wl-loss">${weekGroup.losses}</span></span>
 <span class="wr-text">WR: ${weekWinrate}%</span>
 </span>
                 </button>
@@ -3279,7 +3285,7 @@ window.forgotVipPassword = forgotVipPassword;
                       <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
                       <span>${escapeHtml(fmtTdtDayHeader(dayGroup.key))}</span>
                       <span class="tracker-stats">
-<span class="wl-pill"><span class="wl-win">${dayGroup.wins}</span><span class="wl-sep">-</span><span class="wl-loss">${dayGroup.losses}</span></span>
+<span class="wl-pill"><span class="wl-tag wl-tag-win">W</span><span class="wl-win">${dayGroup.wins}</span><span class="wl-sep">-</span><span class="wl-tag wl-tag-loss">L</span><span class="wl-loss">${dayGroup.losses}</span></span>
 <span class="wr-text">WR: ${dayWinrate}%</span>
 </span>
                     </button>
@@ -3371,13 +3377,27 @@ window.forgotVipPassword = forgotVipPassword;
   .wl-pill{
     display:inline-flex;
     align-items:center;
-    gap:2px;
-    padding:2px 6px;
+    gap:3px;
+    padding:3px 8px;
     border-radius:999px;
     background:rgba(255,255,255,0.06);
     margin-right:6px;
     font-weight:700;
   }
+  .wl-tag{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:16px;
+    height:16px;
+    border-radius:999px;
+    font-size:10px;
+    line-height:1;
+    font-weight:800;
+    background:rgba(255,255,255,0.06);
+  }
+  .wl-tag-win{ color:#22c55e; }
+  .wl-tag-loss{ color:#ef4444; }
   .wl-win{ color:#22c55e; }
   .wl-loss{ color:#ef4444; }
   .wl-sep{ opacity:0.5; }
