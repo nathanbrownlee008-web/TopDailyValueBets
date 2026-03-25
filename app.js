@@ -3145,3 +3145,21 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
+
+
+/* ===== FINAL WORKING WEEK SORT FIX ===== */
+function fixTDTWeeks() {
+  const weekRows = [...document.querySelectorAll("div")]
+    .filter(el => el.textContent?.includes("Week") && el.textContent?.includes("Mar"));
+
+  if (!weekRows.length) return;
+
+  const parent = weekRows[0].parentElement;
+
+  const reversed = weekRows.reverse();
+  reversed.forEach(el => parent.appendChild(el));
+}
+
+setTimeout(fixTDTWeeks, 500);
+setTimeout(fixTDTWeeks, 1500);
+setTimeout(fixTDTWeeks, 3000);
