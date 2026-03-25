@@ -1196,6 +1196,18 @@ if(wonLostElem){
   wonLostElem.innerHTML = `<span class="wl-split__win">${wins}</span><span class="wl-split__sep">-</span><span class="wl-split__loss">${losses}</span>`;
 }
 
+const winrateCard = document.getElementById("winrateCard");
+if(winrateCard){
+  const avgOddsVal = rows.length ? (totalOdds / rows.length) : 0;
+  const winrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
+  const breakEven = avgOddsVal > 0 ? (100 / avgOddsVal) : 0;
+  const diff = winrateVal - breakEven;
+  winrateCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
+  if(diff > 0.1) winrateCard.classList.add("glow-green-soft");
+  else if(diff < -0.1) winrateCard.classList.add("glow-red-soft");
+  else winrateCard.classList.add("glow-grey-soft");
+}
+
 const totalBets = rows.length;
 const totalElem = document.getElementById("totalBets");
 if(totalElem) totalElem.innerText = totalBets;
@@ -1207,9 +1219,18 @@ if(totalStakedCard){
 
 avgOddsElem.innerText=rows.length?(totalOdds/rows.length).toFixed(2):0;
 
-profitCard.classList.remove("glow-green","glow-red");
-if(profit>0) profitCard.classList.add("glow-green");
-if(profit<0) profitCard.classList.add("glow-red");
+profitCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
+if(profit>0) profitCard.classList.add("glow-green-soft");
+else if(profit<0) profitCard.classList.add("glow-red-soft");
+else profitCard.classList.add("glow-grey-soft");
+
+const bankrollCard = document.getElementById("bankrollCard");
+if(bankrollCard){
+  bankrollCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
+  if(bankroll > start) bankrollCard.classList.add("glow-green-soft");
+  else if(bankroll < start) bankrollCard.classList.add("glow-red-soft");
+  else bankrollCard.classList.add("glow-grey-soft");
+}
 
 
 renderDailyChart(history, dailyLabels, dayKeys);

@@ -5415,21 +5415,15 @@ select.result-lost{
 }
 
 
-/* ===== Equalized all-time stat glows + W/L split ===== */
+/* ===== All-time stat refinements ===== */
 #wonLostCard strong{
   display:inline-flex;
   align-items:center;
   gap:2px;
 }
-.wl-split__win{
-  color:#22c55e;
-}
-.wl-split__loss{
-  color:#ef4444;
-}
-.wl-split__sep{
-  color:rgba(226,232,240,0.55);
-}
+.wl-split__win{ color:#22c55e; }
+.wl-split__loss{ color:#ef4444; }
+.wl-split__sep{ color:rgba(226,232,240,0.55); }
 
 .glow-green-soft{
   box-shadow:
