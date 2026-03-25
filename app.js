@@ -1548,10 +1548,10 @@ async function loadTdtTracker(){
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
               <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
-              <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
+              <span class="tdt-day-chevron">▼</span>
             </div>
           </button>
-          <div class="tdt-day-body" style="display:${idx === 0 ? 'block' : 'none'};">
+          <div class="tdt-day-body" style="display:block;">
             <div class="tdt-table-wrap">
               <table class="tdt-table tdt-table-fit">
                 <thead>
