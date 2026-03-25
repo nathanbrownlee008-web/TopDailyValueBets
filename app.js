@@ -122,15 +122,11 @@ async function restoreVipAccess(){
     if(vipErrorEl) vipErrorEl.textContent = "";
     if(vipRestoreEl) vipRestoreEl.disabled = true;
 
-    const signIn = await client.auth.signInWithPassword({ email, password });
-    if(signIn.error){
-      throw new Error("No VIP account found for this email, or the password is wrong.");
-    }
-
+    await ensureVipPasswordAccount(email, password);
     const active = await forceVipRefreshNow(email);
 
     if(active) return;
-    if(vipErrorEl) vipErrorEl.textContent = "No active VIP subscription found for this email.";
+    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
   }catch(e){
     if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
   }finally{
@@ -3195,19 +3191,4 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
-/* ===== AUTO VIP RESTORE AFTER STRIPE RETURN ===== */
 
-window.addEventListener("load", async () => {
-  const email = localStorage.getItem("vip_email");
-
-  if(!email) return;
-
-  try{
-    const active = await forceVipRefreshNow(email);
-    if(active){
-      console.log("VIP auto-restored after checkout");
-    }
-  }catch(e){
-    console.warn("VIP auto restore failed", e);
-  }
-});
