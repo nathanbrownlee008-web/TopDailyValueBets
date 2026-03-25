@@ -2295,7 +2295,7 @@ function monthKeyFromDateLabel(dateLabel){
   const d = new Date(`${day} ${mon} ${yr}`);
   if(Number.isNaN(d.getTime())) return "";
 
-  return d.toLocaleDateString("en-GB", { month: "long", year: "2-digit" });
+  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
 }
 
 function getPersonalTrackerMonthCollapseKey(){
@@ -3145,12 +3145,3 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
-/* ===== FORCE FIX MONTH TEXT + SIZE ===== */
-
-setTimeout(() => {
-  document.querySelectorAll("*").forEach(el => {
-    if (el.textContent?.includes("March 2026")) {
-      el.textContent = el.textContent.replace("March 2026", "March 26");
-    }
-  });
-}, 500);
