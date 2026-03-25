@@ -1719,18 +1719,31 @@ function toggleTdtTracker(){
   }
 }
 
-function exportCSV(){
-  const data = readTrackerRows();
-  let csv="match,market,odds,stake,result\n";
-  data.forEach(r=>{
-    csv+=`${r.match},${r.market},${r.odds},${r.stake},${r.result}\n`;
+async function exportCSV(){
+  const data = await readTrackerRows();
+  const rows = Array.isArray(data) ? data : [];
+  const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+
+  let csv = "match,market,odds,stake,result\n";
+  rows.forEach(r=>{
+    csv += [
+      esc(r.match),
+      esc(r.market),
+      esc(r.odds),
+      esc(r.stake),
+      esc(r.result)
+    ].join(",") + "\n";
   });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="bet_tracker.csv";
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "bet_tracker.csv";
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
 loadBets();
