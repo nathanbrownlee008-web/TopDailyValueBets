@@ -5413,12 +5413,16 @@ select.result-lost{
 .tdt-day-chip.ratio {
   display: none;
 }
-/* shrink TDT month header slightly */
-#tdtTrackerTable .tdt-month-head{
-  padding: 8px 10px;
-}
 
-#tdtTrackerTable .tdt-month-title{
+
+/* ===== Tracker all-time stats heading ===== */
+.stats-title-row{
+  margin: 8px 2px 12px;
+  padding-left: 4px;
   font-size: 14px;
   line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(226,232,240,0.74);
 }
