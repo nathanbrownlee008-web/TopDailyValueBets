@@ -5420,3 +5420,20 @@ select.result-lost{
     font-size: 12px;
   }
 }
+/* ===== TDT MONTH HEADER SMALLER + INLINE ===== */
+
+#tdtTrackerTable .tdt-month-head{
+  padding: 10px 14px !important;
+  gap: 10px !important;
+}
+
+#tdtTrackerTable .tdt-month-title{
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+
+#tdtTrackerTable .tdt-month-left{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
