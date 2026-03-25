@@ -3086,3 +3086,271 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
+
+/* ===== SAFE TDT MONTH/WEEK/DAY REBUILD (APPEND ONLY) ===== */
+(function(){
+  function __tdtMonthKeySafe(row){
+    const raw = getTdtRowDateValue(row);
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return "unknown";
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}`;
+  }
+
+  function __tdtMonthLabelSafe(monthKey){
+    if(!monthKey || monthKey === "unknown") return "Unknown month";
+    const [y, m] = String(monthKey).split("-");
+    const d = new Date(Number(y), Number(m) - 1, 1);
+    if (Number.isNaN(d.getTime())) return monthKey;
+    return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  }
+
+  function __tdtWeekLabelSafe(row){
+    const raw = getTdtRowDateValue(row);
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return "Unknown week";
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const day = d.getDate();
+    const week = Math.ceil(day / 7);
+    const startDay = (week - 1) * 7 + 1;
+    let endDay = week * 7;
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    if (endDay > lastDay) endDay = lastDay;
+    const monthShort = d.toLocaleDateString("en-GB", { month: "short" });
+    return `Week ${week} (${startDay}–${endDay} ${monthShort})`;
+  }
+
+  const __originalLoadTdtTracker = loadTdtTracker;
+
+  loadTdtTracker = async function(){
+    const tableEl = document.getElementById("tdtTrackerTable");
+    try{
+      const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
+      if(error) throw error;
+      const rows = Array.isArray(data) ? data : [];
+      tdtRowsCache = rows;
+
+      let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
+
+      rows.forEach(row=>{
+        const result = String(row.result || 'pending').toLowerCase();
+        const p = result==="won"
+          ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
+          : result==="lost"
+          ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
+          : 0;
+
+        if(result==="won") wins++;
+        if(result==="lost") losses++;
+        if(result !== 'pending') resolvedCount++;
+        profit += p;
+        if(result !== 'pending'){
+          totalStake += Number(row.stake || 0);
+          totalOdds += Number(row.odds || 0);
+        }
+      });
+
+      const sortedRows = sortTdtRows(rows).slice().sort((a,b)=>{
+        return new Date(getTdtRowDateValue(b) || 0).getTime() - new Date(getTdtRowDateValue(a) || 0).getTime();
+      });
+
+      const todayIso = new Date().toISOString();
+      const currentMonthKey = __tdtMonthKeySafe({ created_at: todayIso });
+      const currentWeekLabel = __tdtWeekLabelSafe({ created_at: todayIso });
+      const currentDayKey = getTdtRowDayKey({ created_at: todayIso });
+
+      const monthMap = new Map();
+
+      sortedRows.forEach(row=>{
+        const monthKey = __tdtMonthKeySafe(row);
+        const weekLabel = __tdtWeekLabelSafe(row);
+        const dayKey = getTdtRowDayKey(row);
+        const result = String(row.result || "pending").toLowerCase();
+
+        if(!monthMap.has(monthKey)){
+          monthMap.set(monthKey, {
+            key: monthKey,
+            rows: [],
+            wins: 0,
+            losses: 0,
+            settled: 0,
+            weeks: new Map()
+          });
+        }
+
+        const monthGroup = monthMap.get(monthKey);
+        monthGroup.rows.push(row);
+        if(result === "won"){
+          monthGroup.wins++;
+          monthGroup.settled++;
+        }else if(result === "lost"){
+          monthGroup.losses++;
+          monthGroup.settled++;
+        }
+
+        if(!monthGroup.weeks.has(weekLabel)){
+          monthGroup.weeks.set(weekLabel, {
+            label: weekLabel,
+            rows: [],
+            wins: 0,
+            losses: 0,
+            settled: 0,
+            days: new Map()
+          });
+        }
+
+        const weekGroup = monthGroup.weeks.get(weekLabel);
+        weekGroup.rows.push(row);
+        if(result === "won"){
+          weekGroup.wins++;
+          weekGroup.settled++;
+        }else if(result === "lost"){
+          weekGroup.losses++;
+          weekGroup.settled++;
+        }
+
+        if(!weekGroup.days.has(dayKey)){
+          weekGroup.days.set(dayKey, {
+            key: dayKey,
+            rows: [],
+            wins: 0,
+            losses: 0,
+            settled: 0
+          });
+        }
+
+        const dayGroup = weekGroup.days.get(dayKey);
+        dayGroup.rows.push(row);
+        if(result === "won"){
+          dayGroup.wins++;
+          dayGroup.settled++;
+        }else if(result === "lost"){
+          dayGroup.losses++;
+          dayGroup.settled++;
+        }
+      });
+
+      const monthGroups = Array.from(monthMap.values()).sort((a,b)=>b.key.localeCompare(a.key));
+
+      let html = `<div class="tdt-month-groups">`;
+
+      monthGroups.forEach((monthGroup, monthIdx)=>{
+        const monthWinrate = monthGroup.settled ? Math.round((monthGroup.wins / monthGroup.settled) * 100) : 0;
+        const monthOpen = monthGroup.key === currentMonthKey || (!monthGroups.some(m => m.key === currentMonthKey) && monthIdx === 0);
+
+        html += `
+          <div class="tracker-month-wrap">
+            <button class="tracker-group-toggle tracker-month-toggle ${monthGroup.key === currentMonthKey ? "tracker-month-toggle--current" : ""}" type="button" onclick="toggleTdtDay(this)">
+              <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
+              <span>${escapeHtml(__tdtMonthLabelSafe(monthGroup.key))}</span>
+              <span class="tracker-stats">W/L: ${monthGroup.wins}-${monthGroup.losses} • WR: ${monthWinrate}%</span>
+            </button>
+            <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+        `;
+
+        Array.from(monthGroup.weeks.values()).forEach((weekGroup)=>{
+          const weekWinrate = weekGroup.settled ? Math.round((weekGroup.wins / weekGroup.settled) * 100) : 0;
+          const isCurrentWeek = monthGroup.key === currentMonthKey && weekGroup.label === currentWeekLabel;
+          const weekOpen = isCurrentWeek;
+
+          html += `
+              <div class="tracker-week-wrap">
+                <button class="tracker-group-toggle tracker-week-toggle ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" type="button" onclick="toggleTdtDay(this)">
+                  <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
+                  <span>${escapeHtml(weekGroup.label)}</span>
+                  <span class="tracker-stats">W/L: ${weekGroup.wins}-${weekGroup.losses} • WR: ${weekWinrate}%</span>
+                </button>
+                <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
+          `;
+
+          Array.from(weekGroup.days.values()).forEach((dayGroup)=>{
+            const dayWinrate = dayGroup.settled ? Math.round((dayGroup.wins / dayGroup.settled) * 100) : 0;
+            const isCurrentDay = dayGroup.key === currentDayKey;
+            const dayOpen = isCurrentDay;
+
+            html += `
+                  <div class="tracker-day-wrap">
+                    <button class="tracker-group-toggle tracker-day-toggle ${isCurrentDay ? "tracker-day-toggle--current" : ""}" type="button" onclick="toggleTdtDay(this)">
+                      <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
+                      <span>${escapeHtml(fmtTdtDayHeader(dayGroup.key))}</span>
+                      <span class="tracker-stats">W/L: ${dayGroup.wins}-${dayGroup.losses} • WR: ${dayWinrate}%</span>
+                    </button>
+                    <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
+                      <div class="tdt-table-wrap">
+                        <table class="tdt-table tdt-table-fit">
+                          <thead>
+                            <tr>
+                              <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
+                              <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
+                              <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
+                              <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
+                              <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${tdtSortArrow('result')}</span></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+            `;
+
+            sortTdtRows(dayGroup.rows).forEach(row=>{
+              const result = String(row.result || 'pending').toLowerCase();
+              const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+              html += `
+                <tr class="tdt-row ${result}">
+                  <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+                  <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+                  <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
+                  <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
+                  <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
+                </tr>
+              `;
+            });
+
+            html += `
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+            `;
+          });
+
+          html += `
+                </div>
+              </div>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+
+      if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
+
+      const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
+      set("tdtProfit", profit.toFixed(2));
+      set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
+      set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
+      set("tdtWonLost", `${wins}-${losses}`);
+      set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
+      set("tdtTotalBets", rows.length);
+      set("tdtBetCount", rows.length);
+      updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
+    }catch(err){
+      if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
+    }
+  };
+
+  window.toggleTdtDay = function(btn){
+    const body = btn ? btn.nextElementSibling : null;
+    const chev = btn ? btn.querySelector(".tracker-group-arrow, .tdt-day-chevron") : null;
+    if(!body) return;
+    const collapsed = body.classList.toggle("is-collapsed");
+    if(chev) chev.innerText = collapsed ? "▶" : "▼";
+  };
+})();
+
