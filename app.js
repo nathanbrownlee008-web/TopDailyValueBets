@@ -2295,7 +2295,7 @@ function monthKeyFromDateLabel(dateLabel){
   const d = new Date(`${day} ${mon} ${yr}`);
   if(Number.isNaN(d.getTime())) return "";
 
-  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  return d.toLocaleDateString("en-GB", { month: "long", year: "2-digit" });
 }
 
 function getPersonalTrackerMonthCollapseKey(){

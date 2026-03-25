@@ -5374,42 +5374,49 @@ select.result-lost{
   background: linear-gradient(180deg, rgba(24,36,60,0.98), rgba(14,24,42,0.98));
   border-color: rgba(148,163,184,0.35);
 }
-/* TDT DAY HEADER - FLAT STYLE */
-.tdt-day-card {
-  background: transparent !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  margin-bottom: 0 !important;
-  border-top: 1px solid rgba(255,255,255,0.08);
+
+
+/* ===== TDT Results header blend only ===== */
+#tdtTrackerSection .tracker-toggle{
+  background: linear-gradient(180deg, rgba(33,45,67,0.88), rgba(24,35,55,0.88));
+  border: 1px solid rgba(120,140,180,0.18);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.18);
+}
+#tdtTrackerSection .tracker-toggle:hover{
+  background: linear-gradient(180deg, rgba(37,51,76,0.92), rgba(27,39,61,0.92));
 }
 
-.tdt-day-head {
-  padding: 10px 0 !important;
-  background: transparent !important;
-}
 
-/* DATE TEXT */
-.tdt-day-date {
-  font-size: 14px !important;
-  font-weight: 600;
-  opacity: 0.8;
+/* ===== Smaller TDT month header ===== */
+#tdtTrackerTable .tdt-month-head{
+  gap: 12px;
+  padding: 12px 16px 10px;
 }
-
-/* REMOVE BIG PILLS LOOK */
-.tdt-day-right {
-  gap: 6px;
+#tdtTrackerTable .tdt-month-left{
+  gap: 2px;
 }
-
-/* SMALL INLINE STATS */
-.tdt-day-chip {
-  padding: 2px 6px !important;
-  font-size: 11px !important;
-  border-radius: 6px !important;
-  background: transparent !important;
-  border: 1px solid rgba(255,255,255,0.15);
+#tdtTrackerTable .tdt-month-title{
+  font-size: 17px;
+  line-height: 1;
+  white-space: nowrap;
 }
-
-/* OPTIONAL: hide winrate for cleaner look */
-.tdt-day-chip.ratio {
-  display: none;
+#tdtTrackerTable .tdt-month-sub{
+  font-size: 12px;
+  line-height: 1.15;
+}
+@media (max-width: 600px){
+  #tdtTrackerTable .tdt-month-head{
+    padding: 10px 14px 9px;
+    gap: 10px;
+  }
+  #tdtTrackerTable .tdt-month-title{
+    font-size: 16px;
+  }
+  #tdtTrackerTable .tdt-month-right{
+    gap: 8px;
+  }
+  #tdtTrackerTable .tdt-day-chip{
+    padding: 8px 12px;
+    font-size: 12px;
+  }
 }
