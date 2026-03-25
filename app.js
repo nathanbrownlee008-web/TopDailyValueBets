@@ -1548,8 +1548,6 @@ async function loadTdtTracker(){
       else { group.pending++; }
     });
 
-    groups.sort((a,b)=> b.key.localeCompare(a.key));
-
     const todayKey = getTdtTodayKey();
     let html = `
       <div style="display:flex;justify-content:flex-end;align-items:center;margin:0 0 10px;">
@@ -1573,10 +1571,10 @@ async function loadTdtTracker(){
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
               <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
-              <span class="tdt-day-chevron">${(group.key === todayKey || idx===0) ? "▼" : "▶"}</span>
+              <span class="tdt-day-chevron">▼</span>
             </div>
           </button>
-          <div class="tdt-day-body" style="display:${(group.key === todayKey || idx===0) ? "block" : "none"};">
+          <div class="tdt-day-body" style="display:block;">
             <div class="tdt-table-wrap">
               <table class="tdt-table tdt-table-fit">
                 <thead>
@@ -3147,15 +3145,3 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
-
-
-/* TDT HEADER BLEND SAFE */
-(function(){
-  const tryFix=()=>{
-    const el=[...document.querySelectorAll('*')].find(e=>e.textContent?.trim()==='TDT Results');
-    if(!el) return;
-    el.style.background='linear-gradient(180deg, rgba(30,41,59,0.9), rgba(15,23,42,0.9))';
-    el.style.border='1px solid rgba(120,140,180,0.2)';
-  };
-  window.addEventListener('load', tryFix);
-})();
