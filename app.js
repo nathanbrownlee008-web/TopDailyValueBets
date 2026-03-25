@@ -3084,4 +3084,92 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
+// ===== SAFE TDT COLLAPSE PATCH (NON-DESTRUCTIVE) =====
 
+(function () {
+  function getTodayKey() {
+    const d = new Date();
+    return d.toISOString().split("T")[0]; // YYYY-MM-DD
+  }
+
+  function initTdtCollapseSafe() {
+    const allBodies = document.querySelectorAll(".tdt-day-body");
+    const allCards = document.querySelectorAll(".tdt-day-card");
+
+    if (!allBodies.length) return;
+
+    const todayKey = getTodayKey();
+
+    let foundToday = false;
+
+    allCards.forEach(card => {
+      const dateEl = card.querySelector(".tdt-day-date");
+      const body = card.querySelector(".tdt-day-body");
+      const chev = card.querySelector(".tdt-day-chevron");
+
+      if (!dateEl || !body) return;
+
+      const text = dateEl.innerText;
+
+      if (text.includes(todayKey) || text.includes("Today")) {
+        body.style.display = "block";
+        if (chev) chev.innerText = "▼";
+        foundToday = true;
+
+        // highlight today
+        card.style.boxShadow = "inset 0 0 0 1px rgba(34,197,94,0.4)";
+        dateEl.style.color = "#86efac";
+      } else {
+        body.style.display = "none";
+        if (chev) chev.innerText = "▶";
+      }
+    });
+
+    // fallback → open first if today not found
+    if (!foundToday && allBodies[0]) {
+      allBodies[0].style.display = "block";
+      const chev = allCards[0]?.querySelector(".tdt-day-chevron");
+      if (chev) chev.innerText = "▼";
+    }
+
+    addToggleAllButton();
+  }
+
+  function addToggleAllButton() {
+    if (document.getElementById("tdtToggleAllSafe")) return;
+
+    const container = document.querySelector(".tdt-groups-wrap");
+    if (!container) return;
+
+    const btn = document.createElement("button");
+    btn.id = "tdtToggleAllSafe";
+    btn.innerText = "Open all days";
+
+    btn.style.marginBottom = "10px";
+    btn.style.padding = "8px 12px";
+    btn.style.borderRadius = "999px";
+    btn.style.background = "rgba(255,255,255,0.05)";
+    btn.style.border = "1px solid rgba(255,255,255,0.12)";
+    btn.style.color = "#e2e8f0";
+    btn.style.fontWeight = "700";
+
+    let open = false;
+
+    btn.onclick = () => {
+      const bodies = document.querySelectorAll(".tdt-day-body");
+      const chevs = document.querySelectorAll(".tdt-day-chevron");
+
+      open = !open;
+
+      bodies.forEach(b => b.style.display = open ? "block" : "none");
+      chevs.forEach(c => c.innerText = open ? "▼" : "▶");
+
+      btn.innerText = open ? "Collapse all days" : "Open all days";
+    };
+
+    container.prepend(btn);
+  }
+
+  // run AFTER page renders
+  setTimeout(initTdtCollapseSafe, 300);
+})();
