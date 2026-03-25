@@ -1127,6 +1127,15 @@ async function loadVipPromoProof(){
   }
 }
 
+
+function pulseStatCard(el){
+  if(!el) return;
+  el.classList.remove("glow-pulse");
+  void el.offsetWidth;
+  el.classList.add("glow-pulse");
+}
+
+
 async function loadTracker(){
 const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
@@ -1193,19 +1202,7 @@ roiElem.innerText=totalStake?((profit/totalStake)*100).toFixed(1):0;
 winrateElem.innerText=(wins+losses)?((wins/(wins+losses))*100).toFixed(1):0;
 const wonLostElem = document.getElementById("wonLost");
 if(wonLostElem){
-  wonLostElem.innerHTML = `<span class="wl-split__win">${wins}</span><span class="wl-split__sep">-</span><span class="wl-split__loss">${losses}</span>`;
-}
-
-const winrateCard = document.getElementById("winrateCard");
-if(winrateCard){
-  const avgOddsVal = rows.length ? (totalOdds / rows.length) : 0;
-  const winrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
-  const breakEven = avgOddsVal > 0 ? (100 / avgOddsVal) : 0;
-  const diff = winrateVal - breakEven;
-  winrateCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
-  if(diff > 0.1) winrateCard.classList.add("glow-green-soft");
-  else if(diff < -0.1) winrateCard.classList.add("glow-red-soft");
-  else winrateCard.classList.add("glow-grey-soft");
+  wonLostElem.innerText = `${wins}-${losses}`;
 }
 
 const totalBets = rows.length;
@@ -1223,6 +1220,7 @@ profitCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-
 if(profit>0) profitCard.classList.add("glow-green-soft");
 else if(profit<0) profitCard.classList.add("glow-red-soft");
 else profitCard.classList.add("glow-grey-soft");
+pulseStatCard(profitCard);
 
 const bankrollCard = document.getElementById("bankrollCard");
 if(bankrollCard){
@@ -1230,6 +1228,7 @@ if(bankrollCard){
   if(bankroll > start) bankrollCard.classList.add("glow-green-soft");
   else if(bankroll < start) bankrollCard.classList.add("glow-red-soft");
   else bankrollCard.classList.add("glow-grey-soft");
+  pulseStatCard(bankrollCard);
 }
 
 
