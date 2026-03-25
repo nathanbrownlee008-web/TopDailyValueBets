@@ -304,6 +304,15 @@ const ADMIN_SYNC_EMAIL = "nathanbrownlee40@gmail.com";
 let tdtRowsCache = [];
 let tdtSortKey = 'date';
 let tdtSortDir = 'asc';
+let tdtAllCollapsed = false;
+
+function getTdtTodayKey(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const d = String(now.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
 
 function currentVipEmail(){
   return ((localStorage.getItem('vip_email')||'').trim().toLowerCase());
@@ -1539,25 +1548,33 @@ async function loadTdtTracker(){
       else { group.pending++; }
     });
 
-    let html = `<div class="tdt-groups-wrap">`;
+    const todayKey = getTdtTodayKey();
+    let html = `
+      <div style="display:flex;justify-content:flex-end;align-items:center;margin:0 0 10px;">
+        <button id="tdtToggleAllDaysBtn" type="button" onclick="toggleAllTdtDays()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#e2e8f0;padding:8px 12px;border-radius:999px;font-weight:800;font-size:12px;">
+          Collapse all days
+        </button>
+      </div>
+      <div class="tdt-groups-wrap">`;
 
     groups.forEach((group, idx)=>{
       const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
+      const isToday = group.key === todayKey;
       html += `
         <div class="tdt-day-card">
-          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
+          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)" style="${isToday ? 'box-shadow: inset 0 0 0 1px rgba(34,197,94,0.35), 0 0 0 1px rgba(34,197,94,0.08); background: rgba(34,197,94,0.05);' : ''}">
             <div class="tdt-day-left">
-              <div class="tdt-day-date">${escapeHtml(fmtTdtDayHeader(group.key))}</div>
+              <div class="tdt-day-date" style="${isToday ? 'color:#bbf7d0;' : ''}">${escapeHtml(fmtTdtDayHeader(group.key))}${isToday ? ' • Today' : ''}</div>
               <div class="tdt-day-meta">${group.rows.length} bet${group.rows.length === 1 ? '' : 's'}</div>
             </div>
             <div class="tdt-day-right">
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
               <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
-              <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
+              <span class="tdt-day-chevron">▼</span>
             </div>
           </button>
-          <div class="tdt-day-body" style="display:${idx === 0 ? 'block' : 'none'};">
+          <div class="tdt-day-body" style="display:block;">
             <div class="tdt-table-wrap">
               <table class="tdt-table tdt-table-fit">
                 <thead>
@@ -1624,6 +1641,26 @@ function toggleTdtDay(btn){
   const isHidden = body.style.display === "none";
   body.style.display = isHidden ? "block" : "none";
   if(chev) chev.innerText = isHidden ? "▼" : "▶";
+
+  const bodies = Array.from(document.querySelectorAll("#tdtTrackerTable .tdt-day-body"));
+  const btnAll = document.getElementById("tdtToggleAllDaysBtn");
+  const allHidden = bodies.length && bodies.every(el => el.style.display === "none");
+  tdtAllCollapsed = !!allHidden;
+  if(btnAll) btnAll.textContent = tdtAllCollapsed ? "Open all days" : "Collapse all days";
+}
+
+function toggleAllTdtDays(){
+  const bodies = Array.from(document.querySelectorAll("#tdtTrackerTable .tdt-day-body"));
+  const chevs = Array.from(document.querySelectorAll("#tdtTrackerTable .tdt-day-chevron"));
+  const btnAll = document.getElementById("tdtToggleAllDaysBtn");
+  if(!bodies.length) return;
+
+  const nextCollapsed = !tdtAllCollapsed;
+  bodies.forEach(el => { el.style.display = nextCollapsed ? "none" : "block"; });
+  chevs.forEach(el => { el.innerText = nextCollapsed ? "▶" : "▼"; });
+
+  tdtAllCollapsed = nextCollapsed;
+  if(btnAll) btnAll.textContent = tdtAllCollapsed ? "Open all days" : "Collapse all days";
 }
 
 function tdtWinrateClass(rate){
