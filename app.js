@@ -3145,24 +3145,3 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
-
-
-/* === FINAL TDT FIX === */
-setTimeout(()=>{
-  const weeks = [...document.querySelectorAll('*')].filter(el=>el.textContent?.includes('Week'));
-  const parent = weeks[0]?.parentElement;
-  if(parent){
-    const sorted = weeks.sort((a,b)=>{
-      const wa = parseInt(a.textContent.match(/Week (\d+)/)?.[1]||0);
-      const wb = parseInt(b.textContent.match(/Week (\d+)/)?.[1]||0);
-      return wb - wa;
-    });
-    sorted.forEach(w=>parent.appendChild(w));
-  }
-
-  const header = [...document.querySelectorAll('*')].find(el=>el.textContent?.includes('TDT Results'));
-  if(header){
-    header.style.background = "rgba(255,255,255,0.04)";
-    header.style.border = "1px solid rgba(255,255,255,0.08)";
-  }
-}, 800);
