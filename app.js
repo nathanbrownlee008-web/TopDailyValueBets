@@ -275,12 +275,6 @@ function getMarketIcon(market){
   if(m.includes("card")) return "🟨";
   return "⚽";
 }
-function getBetTitleSizeClass(match){
-  const len = String(match || "").trim().length;
-  if(len >= 30) return " bet-title--tiny";
-  if(len >= 24) return " bet-title--small";
-  return "";
-}
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -304,6 +298,15 @@ const ADMIN_SYNC_EMAIL = "nathanbrownlee40@gmail.com";
 let tdtRowsCache = [];
 let tdtSortKey = 'date';
 let tdtSortDir = 'asc';
+let tdtAllCollapsed = false;
+
+function getTdtTodayKey(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const d = String(now.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
 
 function currentVipEmail(){
   return ((localStorage.getItem('vip_email')||'').trim().toLowerCase());
@@ -683,7 +686,7 @@ async function loadBets(){
 <div class="bet-lock-wrap">
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
-      <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
+      <h3 class="bet-title">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
@@ -1212,26 +1215,12 @@ if(countElem) countElem.textContent = String(rows.length);
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
-const monthBetsMap = {};
-const monthWinsMap = {};
-const monthLossMap = {};
-const monthOddsMap = {};
-const monthOddsCountMap = {};
 
 rows.forEach(r=>{
   const d = new Date(r.created_at);
   const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
   monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
-  monthBetsMap[key] = (monthBetsMap[key] || 0) + 1;
-
-  if((r.result || "") === "won") monthWinsMap[key] = (monthWinsMap[key] || 0) + 1;
-  if((r.result || "") === "lost") monthLossMap[key] = (monthLossMap[key] || 0) + 1;
-
-  if(r.odds != null && r.odds !== ""){
-    monthOddsMap[key] = (monthOddsMap[key] || 0) + Number(r.odds || 0);
-    monthOddsCountMap[key] = (monthOddsCountMap[key] || 0) + 1;
-  }
 });
 
 const monthKeys = Object.keys(monthMap).sort();
@@ -1247,47 +1236,17 @@ const monthlyROI = monthKeys.map(k=>{
   const stake = monthStakeMap[k] || 0;
   return stake ? (monthMap[k] / stake) * 100 : 0;
 });
-const monthlyBets = monthKeys.map(k => monthBetsMap[k] || 0);
-const monthlyWinrate = monthKeys.map(k=>{
-  const wins = monthWinsMap[k] || 0;
-  const losses = monthLossMap[k] || 0;
-  const settled = wins + losses;
-  return settled ? (wins / settled) * 100 : 0;
-});
-const monthlyAvgOdds = monthKeys.map(k=>{
-  const total = monthOddsMap[k] || 0;
-  const count = monthOddsCountMap[k] || 0;
-  return count ? (total / count) : 0;
-});
 
 renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 
-  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>W/L</th><th>WR</th><th>Avg</th></tr>";
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th></tr>";
   monthKeys.forEach((k,i)=>{
     const p = monthlyProfit[i];
     const r = monthlyROI[i];
-    const bets = monthlyBets[i] || 0;
-    const wins = monthWinsMap[k] || 0;
-    const losses = monthLossMap[k] || 0;
-    const winrate = monthlyWinrate[i] || 0;
-    const avgOdds = monthlyAvgOdds[i] || 0;
-
-    const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
-    const diff = winrate - breakEven;
-    const wrClass = diff > 0.1 ? 'profit-win' : diff < -0.1 ? 'profit-loss' : 'profit-breakeven';
-
     breakdownHTML += `<tr>
       <td>${monthLabels[i]}</td>
       <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
       <td>${r.toFixed(1)}%</td>
-      <td>${bets}</td>
-      <td class="month-wl-cell"><span class="month-wl-win">${wins}</span><span class="month-wl-sep">-</span><span class="month-wl-loss">${losses}</span></td>
-      <td class="${(() => {
-        const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
-        const diff = winrate - breakEven;
-        return diff > 0.1 ? 'profit-win' : diff < -0.1 ? 'profit-loss' : 'profit-breakeven';
-      })()}">${winrate.toFixed(1)}%</td>
-      <td>${avgOdds.toFixed(2)}</td>
     </tr>`;
   });
   breakdownHTML += "</table>";
@@ -1539,25 +1498,37 @@ async function loadTdtTracker(){
       else { group.pending++; }
     });
 
-    let html = `<div class="tdt-groups-wrap">`;
+    const todayDayKey = getTdtTodayKey();
+    let html = `
+      <div style="display:flex;justify-content:flex-end;align-items:center;margin:0 0 10px;">
+        <button id="tdtToggleAllDaysBtn" type="button" onclick="toggleAllTdtDays()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#e2e8f0;padding:8px 12px;border-radius:999px;font-weight:800;font-size:12px;">
+          Collapse all days
+        </button>
+      </div>
+      <div class="tdt-groups-wrap">`;
 
     groups.forEach((group, idx)=>{
       const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
+      const isCurrentDay = group.key === todayDayKey;
+      const headStyle = isCurrentDay
+        ? 'box-shadow: inset 0 0 0 1px rgba(34,197,94,0.35), 0 0 0 1px rgba(34,197,94,0.08); background: rgba(34,197,94,0.05);'
+        : '';
+      const dateStyle = isCurrentDay ? 'color:#bbf7d0;' : '';
       html += `
         <div class="tdt-day-card">
-          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
+          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)" style="${headStyle}">
             <div class="tdt-day-left">
-              <div class="tdt-day-date">${escapeHtml(fmtTdtDayHeader(group.key))}</div>
+              <div class="tdt-day-date" style="${dateStyle}">${escapeHtml(fmtTdtDayHeader(group.key))}${isCurrentDay ? ' • Today' : ''}</div>
               <div class="tdt-day-meta">${group.rows.length} bet${group.rows.length === 1 ? '' : 's'}</div>
             </div>
             <div class="tdt-day-right">
               <span class="tdt-day-chip win">Won ${group.wins}</span>
               <span class="tdt-day-chip loss">Lost ${group.losses}</span>
               <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
-              <span class="tdt-day-chevron">${idx === 0 ? '▼' : '▶'}</span>
+              <span class="tdt-day-chevron">▼</span>
             </div>
           </button>
-          <div class="tdt-day-body" style="display:${idx === 0 ? 'block' : 'none'};">
+          <div class="tdt-day-body" style="display:block;">
             <div class="tdt-table-wrap">
               <table class="tdt-table tdt-table-fit">
                 <thead>
@@ -1624,6 +1595,26 @@ function toggleTdtDay(btn){
   const isHidden = body.style.display === "none";
   body.style.display = isHidden ? "block" : "none";
   if(chev) chev.innerText = isHidden ? "▼" : "▶";
+
+  const bodies = Array.from(document.querySelectorAll("#tdtTrackerTable .tdt-day-body"));
+  const btnAll = document.getElementById("tdtToggleAllDaysBtn");
+  const allHidden = bodies.length && bodies.every(el => el.style.display === "none");
+  tdtAllCollapsed = !!allHidden;
+  if(btnAll) btnAll.textContent = tdtAllCollapsed ? "Open all days" : "Collapse all days";
+}
+
+function toggleAllTdtDays(){
+  const bodies = Array.from(document.querySelectorAll("#tdtTrackerTable .tdt-day-body"));
+  const chevs = Array.from(document.querySelectorAll("#tdtTrackerTable .tdt-day-chevron"));
+  const btnAll = document.getElementById("tdtToggleAllDaysBtn");
+  if(!bodies.length) return;
+
+  const nextCollapsed = !tdtAllCollapsed;
+  bodies.forEach(el => { el.style.display = nextCollapsed ? "none" : "block"; });
+  chevs.forEach(el => { el.innerText = nextCollapsed ? "▶" : "▼"; });
+
+  tdtAllCollapsed = nextCollapsed;
+  if(btnAll) btnAll.textContent = tdtAllCollapsed ? "Open all days" : "Collapse all days";
 }
 
 function tdtWinrateClass(rate){
@@ -1803,15 +1794,9 @@ function renderMonthlyChart(profits, roi, labels){
   if(!el) return;
   if(monthlyChart) monthlyChart.destroy();
 
-  const safeRoi = Array.isArray(roi) ? roi.map(v => Number(v || 0)) : [];
-  const maxROI = safeRoi.length ? Math.max(...safeRoi) : 0;
-  const minROI = safeRoi.length ? Math.min(...safeRoi) : 0;
-  const allPositive = safeRoi.length && safeRoi.every(v => v >= 0);
-  const allNegative = safeRoi.length && safeRoi.every(v => v <= 0);
-  const spread = Math.max(Math.abs(maxROI - minROI), 1);
-  const pad = Math.max(0.75, spread * 0.12);
-  const yMin = allPositive ? 0 : Math.floor(minROI - pad);
-  const yMax = allNegative ? 0 : Math.ceil(maxROI + pad);
+  const maxROI = Math.max(...roi, 5);
+  const minROI = Math.min(...roi, -5);
+  const pad = 5;
 
   const ctx = el.getContext("2d");
 
@@ -1836,8 +1821,8 @@ function renderMonthlyChart(profits, roi, labels){
       plugins:{legend:{display:false}},
       scales:{
         y:{
-          min: yMin,
-          max: yMax,
+          min: Math.floor(minROI - pad),
+          max: Math.ceil(maxROI + pad),
           ticks:{callback:(v)=>v+"%"},
           grid:{color:"rgba(255,255,255,0.05)"}
         }
@@ -1919,31 +1904,24 @@ function renderMarketChart(labels, winPct, totals){
       animation: { duration: 250 }
     },
     plugins: [{
-  id: "pctLabels",
-  afterDatasetsDraw(chart){
-    const {ctx, chartArea} = chart;
-    const meta = chart.getDatasetMeta(0);
-
-    ctx.save();
-    ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.fillStyle = "rgba(229,231,235,0.95)";
-
-    meta.data.forEach((bar, i)=>{
-      const val = Number(winPct[i] ?? 0);
-      const text = Math.round(val) + "%";
-
-      const isTiny = val <= 8;
-
-      const x = isTiny ? (chartArea.left + 8) : (bar.x - 10);
-      const y = bar.y + 4;
-
-      ctx.textAlign = isTiny ? "left" : "right";
-      ctx.fillText(text, x, y);
-    });
-
-    ctx.restore();
-  }
-}]
+      id: "pctLabels",
+      afterDatasetsDraw(chart){
+        const {ctx} = chart;
+        const meta = chart.getDatasetMeta(0);
+        ctx.save();
+        ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+        ctx.fillStyle = "rgba(229,231,235,0.95)";
+        meta.data.forEach((bar, i)=>{
+          const val = winPct[i] ?? 0;
+          const text = Math.round(val) + "%";
+          const x = bar.x - 10; // inside bar near end
+          const y = bar.y + 4;
+          ctx.textAlign = "right";
+          ctx.fillText(text, x, y);
+        });
+        ctx.restore();
+      }
+    }]
   });
 }
 
@@ -2647,94 +2625,25 @@ window.loadTdtTracker = async function(){
                 <tbody>
       `;
 
-      const dayGroups = [];
-      const dayMap = new Map();
-
       group.rows.forEach(row=>{
-        const dayKey = typeof getTdtRowDayKey === "function" ? getTdtRowDayKey(row) : String(row.bet_date || row.created_at || "Unknown");
-
-        if(!dayMap.has(dayKey)){
-          const dayGroup = { key: dayKey, rows: [], wins: 0, losses: 0, settled: 0 };
-          dayMap.set(dayKey, dayGroup);
-          dayGroups.push(dayGroup);
-        }
-
-        const dayGroup = dayMap.get(dayKey);
-        dayGroup.rows.push(row);
-
         const result = String(row.result || "pending").toLowerCase();
-        if(result === "won"){
-          dayGroup.wins++;
-          dayGroup.settled++;
-        }else if(result === "lost"){
-          dayGroup.losses++;
-          dayGroup.settled++;
-        }
+        const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+
+        html += `
+          <tr class="tdt-row ${result}">
+            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+            <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
+            <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
+            <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
+          </tr>
+        `;
       });
 
       html += `
                 </tbody>
               </table>
             </div>
-      `;
-
-      dayGroups.forEach((dayGroup, dayIdx)=>{
-        const dayWinrate = dayGroup.settled ? Math.round((dayGroup.wins / dayGroup.settled) * 100) : 0;
-
-        html += `
-            <div class="tdt-day-card">
-              <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)">
-                <div class="tdt-day-left">
-                  <div class="tdt-day-date">${escapeHtml(typeof fmtTdtDayHeader === "function" ? fmtTdtDayHeader(dayGroup.key) : dayGroup.key)}</div>
-                  <div class="tdt-day-meta">${dayGroup.rows.length} bet${dayGroup.rows.length === 1 ? "" : "s"}</div>
-                </div>
-                <div class="tdt-day-right">
-                  <span class="tdt-day-chip win">Won ${dayGroup.wins}</span>
-                  <span class="tdt-day-chip loss">Lost ${dayGroup.losses}</span>
-                  <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
-                  <span class="tdt-day-chevron">▼</span>
-                </div>
-              </button>
-              <div class="tdt-day-body" style="display:block;">
-                <div class="tdt-table-wrap">
-                  <table class="tdt-table tdt-table-fit">
-                    <thead>
-                      <tr>
-                        <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('match') : ''}</span></th>
-                        <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('market') : ''}</span></th>
-                        <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('stake') : ''}</span></th>
-                        <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('odds') : ''}</span></th>
-                        <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('result') : ''}</span></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-        `;
-
-        dayGroup.rows.forEach(row=>{
-          const result = String(row.result || "pending").toLowerCase();
-          const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
-
-          html += `
-                      <tr class="tdt-row ${result}">
-                        <td class="tdt-match">${escapeHtml(row.match || '')}</td>
-                        <td class="tdt-market">${escapeHtml(row.market || '')}</td>
-                        <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
-                        <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
-                        <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
-                      </tr>
-          `;
-        });
-
-        html += `
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-        `;
-      });
-
-      html += `
           </div>
         </div>
       `;
@@ -2908,7 +2817,7 @@ window.forgotVipPassword = forgotVipPassword;
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
       const isCurrentMonth = monthKey === currentMonthLabel;
-      const monthOpen = isCurrentMonth;
+      const monthOpen = isCurrentMonth ? true : (Object.prototype.hasOwnProperty.call(monthState, monthKey) ? !!monthState[monthKey] : monthIndex === 0);
 
       html += `
         <div class="tracker-month-wrap">
@@ -2922,7 +2831,7 @@ window.forgotVipPassword = forgotVipPassword;
       Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
         const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
-        const weekOpen = isCurrentWeek;
+        const weekOpen = isCurrentWeek ? true : (Object.prototype.hasOwnProperty.call(weekState, weekKey) ? !!weekState[weekKey] : (monthIndex === 0 && weekIndex === 0));
 
         html += `
           <div class="tracker-week-wrap">
@@ -2936,7 +2845,7 @@ window.forgotVipPassword = forgotVipPassword;
         Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
           const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
-          const dayOpen = isCurrentDay;
+          const dayOpen = isCurrentDay ? true : (Object.prototype.hasOwnProperty.call(dayState, dayKey) ? !!dayState[dayKey] : (monthIndex === 0 && weekIndex === 0 && dayIndex === 0));
 
           html += `
             <div class="tracker-day-wrap">
