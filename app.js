@@ -1830,8 +1830,8 @@ function renderMonthlyChart(profits, roi, labels){
       plugins:{legend:{display:false}},
       scales:{
         y:{
-          min: Math.floor(minROI - pad),
-          max: Math.ceil(maxROI + pad),
+          min: yMin,
+          max: yMax,
           ticks:{callback:(v)=>v+"%"},
           grid:{color:"rgba(255,255,255,0.05)"}
         }
@@ -3260,7 +3260,10 @@ window.forgotVipPassword = forgotVipPassword;
                 <button class="tracker-group-toggle tracker-week-toggle ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" type="button" onclick="toggleTdtDay(this)">
                   <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
                   <span>${escapeHtml(weekGroup.label)}</span>
-                  <span class="tracker-stats">W/L: ${weekGroup.wins}-${weekGroup.losses} • WR: ${weekWinrate}%</span>
+                  <span class="tracker-stats">
+<span class="wl-pill"><span class="wl-win">${weekGroup.wins}</span><span class="wl-sep">-</span><span class="wl-loss">${weekGroup.losses}</span></span>
+<span class="wr-text">WR: ${weekWinrate}%</span>
+</span>
                 </button>
                 <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
           `;
@@ -3275,7 +3278,10 @@ window.forgotVipPassword = forgotVipPassword;
                     <button class="tracker-group-toggle tracker-day-toggle ${isCurrentDay ? "tracker-day-toggle--current" : ""}" type="button" onclick="toggleTdtDay(this)">
                       <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
                       <span>${escapeHtml(fmtTdtDayHeader(dayGroup.key))}</span>
-                      <span class="tracker-stats">W/L: ${dayGroup.wins}-${dayGroup.losses} • WR: ${dayWinrate}%</span>
+                      <span class="tracker-stats">
+<span class="wl-pill"><span class="wl-win">${dayGroup.wins}</span><span class="wl-sep">-</span><span class="wl-loss">${dayGroup.losses}</span></span>
+<span class="wr-text">WR: ${dayWinrate}%</span>
+</span>
                     </button>
                     <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
                       <div class="tdt-table-wrap">
@@ -3354,3 +3360,28 @@ window.forgotVipPassword = forgotVipPassword;
   };
 })();
 
+
+
+
+(function(){
+  if(document.getElementById('wl-pill-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'wl-pill-styles';
+  style.innerHTML = `
+  .wl-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:2px;
+    padding:2px 6px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.06);
+    margin-right:6px;
+    font-weight:700;
+  }
+  .wl-win{ color:#22c55e; }
+  .wl-loss{ color:#ef4444; }
+  .wl-sep{ opacity:0.5; }
+  .wr-text{ opacity:0.9; font-weight:600; }
+  `;
+  document.head.appendChild(style);
+})();
