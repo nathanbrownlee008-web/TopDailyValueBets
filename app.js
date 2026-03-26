@@ -21,8 +21,6 @@ function setVipUI(active, email){
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
 
   if(active){
-    const vipPromo = document.getElementById('vipPromo');
-    if(vipPromo) vipPromo.style.display = 'none';
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = email ? `Access unlocked for ${email}` : 'Access unlocked';
     if(btnEl){
@@ -34,8 +32,6 @@ function setVipUI(active, email){
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
   }else{
-    const vipPromo = document.getElementById('vipPromo');
-    if(vipPromo) vipPromo.style.display = '';
     if(titleEl) titleEl.textContent = 'VIP Access';
     if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
     if(btnEl){
@@ -695,6 +691,7 @@ async function loadBets(){
       : '';
     const teaser = teaserCopyForLockedBet(row, state);
     const unlockLabel = formatUnlockLabel(state);
+    const leagueName = row.league || row.competition || row.league_name || row.tournament || '';
 
     betsGrid.innerHTML += `
 <div class="bet-lock-wrap">
@@ -702,6 +699,7 @@ async function loadBets(){
     <div class="bet-teaser">
       <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
+      ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
       </div>
