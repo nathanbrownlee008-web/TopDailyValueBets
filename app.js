@@ -122,11 +122,15 @@ async function restoreVipAccess(){
     if(vipErrorEl) vipErrorEl.textContent = "";
     if(vipRestoreEl) vipRestoreEl.disabled = true;
 
-    await ensureVipPasswordAccount(email, password);
+    const signIn = await client.auth.signInWithPassword({ email, password });
+    if(signIn.error){
+      throw new Error("No VIP account found for this email, or the password is wrong.");
+    }
+
     const active = await forceVipRefreshNow(email);
 
     if(active) return;
-    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
+    if(vipErrorEl) vipErrorEl.textContent = "No active VIP subscription found for this email.";
   }catch(e){
     if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
   }finally{
@@ -274,77 +278,6 @@ function getMarketIcon(market){
   if(m.includes("corner")) return "🚩";
   if(m.includes("card")) return "🟨";
   return "⚽";
-}
-
-function getCountryFlag(country){
-  if(!country) return "";
-  const key = String(country).trim().toLowerCase();
-  const flags = {
-    england: "🏴", english: "🏴",
-    scotland: "🏴", scottish: "🏴",
-    ireland: "🇮🇪", irish: "🇮🇪",
-    wales: "🏴", welsh: "🏴",
-    czech: "🇨🇿", "czech republic": "🇨🇿",
-    slovenia: "🇸🇮",
-    slovakia: "🇸🇰",
-    norway: "🇳🇴",
-    italy: "🇮🇹", italian: "🇮🇹",
-    germany: "🇩🇪", german: "🇩🇪",
-    brazil: "🇧🇷", brazilian: "🇧🇷",
-    france: "🇫🇷", french: "🇫🇷",
-    spain: "🇪🇸", spanish: "🇪🇸",
-    portugal: "🇵🇹", portuguese: "🇵🇹",
-    netherlands: "🇳🇱", dutch: "🇳🇱",
-    belgium: "🇧🇪", belgian: "🇧🇪",
-    austria: "🇦🇹",
-    switzerland: "🇨🇭",
-    turkey: "🇹🇷",
-    sweden: "🇸🇪",
-    denmark: "🇩🇰",
-    poland: "🇵🇱",
-    croatia: "🇭🇷",
-    serbia: "🇷🇸",
-    argentina: "🇦🇷",
-    usa: "🇺🇸", "united states": "🇺🇸",
-    mexico: "🇲🇽"
-  };
-  return flags[key] || "";
-}
-
-function inferCountryFromLeague(leagueText){
-  const text = String(leagueText || "").trim().toLowerCase();
-  if(!text) return "";
-  if(text.includes("premier league") || text.includes("championship") || text.includes("league one") || text.includes("league two") || text.includes("fa cup") || text.includes("efl")) return "england";
-  if(text.includes("scottish")) return "scotland";
-  if(text.includes("irish")) return "ireland";
-  if(text.includes("welsh")) return "wales";
-  if(text.includes("serie a") || text.includes("serie b")) return "italy";
-  if(text.includes("bundesliga")) return "germany";
-  if(text.includes("ligue 1") || text.includes("ligue 2")) return "france";
-  if(text.includes("la liga")) return "spain";
-  if(text.includes("primeira")) return "portugal";
-  if(text.includes("eredivisie")) return "netherlands";
-  if(text.includes("jupiler")) return "belgium";
-  if(text.includes("eliteserien")) return "norway";
-  if(text.includes("allsvenskan")) return "sweden";
-  if(text.includes("superliga") || text.includes("superligaen")) return "denmark";
-  if(text.includes("ekstraklasa")) return "poland";
-  if(text.includes("hnl")) return "croatia";
-  if(text.includes("slovakia")) return "slovakia";
-  if(text.includes("slovenia")) return "slovenia";
-  if(text.includes("czech")) return "czech";
-  if(text.includes("brasileirao")) return "brazil";
-  return "";
-}
-
-function getBetFlag(row){
-  const rawCountry = row?.country || row?.nation || row?.region || row?.league_country || "";
-  const directFlag = getCountryFlag(rawCountry);
-  if(directFlag) return directFlag;
-
-  const leagueText = row?.league || row?.competition || row?.league_name || row?.tournament || "";
-  const inferredCountry = inferCountryFromLeague(leagueText);
-  return getCountryFlag(inferredCountry);
 }
 function getBetTitleSizeClass(match){
   const len = String(match || "").trim().length;
@@ -758,7 +691,6 @@ async function loadBets(){
       : '';
     const teaser = teaserCopyForLockedBet(row, state);
     const unlockLabel = formatUnlockLabel(state);
-    const betFlag = getBetFlag(row);
 
     betsGrid.innerHTML += `
 <div class="bet-lock-wrap">
@@ -767,7 +699,6 @@ async function loadBets(){
       <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
       <div class="bet-meta">
-        ${!locked && betFlag ? `<span class="bet-flag" aria-hidden="true">${betFlag}</span>` : ``}
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)}</div>` : ''}`}
@@ -1792,18 +1723,31 @@ function toggleTdtTracker(){
   }
 }
 
-function exportCSV(){
-  const data = readTrackerRows();
-  let csv="match,market,odds,stake,result\n";
-  data.forEach(r=>{
-    csv+=`${r.match},${r.market},${r.odds},${r.stake},${r.result}\n`;
+async function exportCSV(){
+  const data = await readTrackerRows();
+  const rows = Array.isArray(data) ? data : [];
+  const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+
+  let csv = "match,market,odds,stake,result\n";
+  rows.forEach(r=>{
+    csv += [
+      esc(r.match),
+      esc(r.market),
+      esc(r.odds),
+      esc(r.stake),
+      esc(r.result)
+    ].join(",") + "\n";
   });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="bet_tracker.csv";
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "bet_tracker.csv";
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
 loadBets();
