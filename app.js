@@ -122,11 +122,15 @@ async function restoreVipAccess(){
     if(vipErrorEl) vipErrorEl.textContent = "";
     if(vipRestoreEl) vipRestoreEl.disabled = true;
 
-    await ensureVipPasswordAccount(email, password);
+    const signIn = await client.auth.signInWithPassword({ email, password });
+    if(signIn.error){
+      throw new Error("No VIP account found for this email, or the password is wrong.");
+    }
+
     const active = await forceVipRefreshNow(email);
 
     if(active) return;
-    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
+    if(vipErrorEl) vipErrorEl.textContent = "No active VIP subscription found for this email.";
   }catch(e){
     if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
   }finally{
@@ -697,7 +701,7 @@ async function loadBets(){
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
       </div>
-      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)}</div>` : ''}`}
+      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
     <div class="bet-details">
       <div class="bet-footer">
