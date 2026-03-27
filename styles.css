@@ -5454,31 +5454,33 @@ select.result-lost{
   animation: glowPulse 0.55s ease;
 }
 
-
-/* === LEAGUE LEFT / MARKET CENTER FINAL === */
+/* === FINAL POLISH (CLEAN STACK) === */
 #betsGrid .bet-meta{
   display:flex !important;
   flex-direction:column !important;
-  align-items:stretch !important;
+  align-items:center !important;
+  justify-content:center !important;
   gap:6px !important;
   margin:4px 0 2px !important;
 }
 
-/* league LEFT */
 #betsGrid .bet-league{
-  align-self:flex-start !important;
   font-size:10.5px !important;
+  line-height:1.05 !important;
   padding:3px 9px !important;
+  opacity:0.9 !important;
 }
 
-/* market CENTER */
 #betsGrid .bet-market{
-  align-self:center !important;
   font-size:12px !important;
+  line-height:1.1 !important;
   padding:6px 12px !important;
 }
 
-/* keep compact */
 #betsGrid .bet-card{
   padding:11px 12px 9px !important;
+}
+
+#betsGrid .bet-bookie{
+  margin:2px 0 6px !important;
 }
