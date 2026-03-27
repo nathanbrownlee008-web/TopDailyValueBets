@@ -5484,3 +5484,27 @@ select.result-lost{
 #betsGrid .bet-bookie{
   margin:2px 0 6px !important;
 }
+/* === LEAGUE + MARKET SAME ROW === */
+#betsGrid .bet-meta{
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+/* league (left) */
+#betsGrid .bet-league{
+  font-size: 11px !important;
+  padding: 4px 10px !important;
+  align-self: center !important;
+}
+
+/* market (right next to it) */
+#betsGrid .bet-market{
+  font-size: 12px !important;
+  padding: 5px 12px !important;
+  align-self: center !important;
+  margin: 0 !important;
+}
