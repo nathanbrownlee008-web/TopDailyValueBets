@@ -122,15 +122,11 @@ async function restoreVipAccess(){
     if(vipErrorEl) vipErrorEl.textContent = "";
     if(vipRestoreEl) vipRestoreEl.disabled = true;
 
-    const signIn = await client.auth.signInWithPassword({ email, password });
-    if(signIn.error){
-      throw new Error("No VIP account found for this email, or the password is wrong.");
-    }
-
+    await ensureVipPasswordAccount(email, password);
     const active = await forceVipRefreshNow(email);
 
     if(active) return;
-    if(vipErrorEl) vipErrorEl.textContent = "No active VIP subscription found for this email.";
+    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
   }catch(e){
     if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
   }finally{
@@ -701,7 +697,7 @@ async function loadBets(){
       <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
       </div>
-      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">Bookie: ${escapeHtml(row.bookie)}</div>` : ''}`}
+      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)}</div>` : ''}`}
     </div>
     <div class="bet-details">
       <div class="bet-footer">
@@ -1723,31 +1719,18 @@ function toggleTdtTracker(){
   }
 }
 
-async function exportCSV(){
-  const data = await readTrackerRows();
-  const rows = Array.isArray(data) ? data : [];
-  const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-
-  let csv = "match,market,odds,stake,result\n";
-  rows.forEach(r=>{
-    csv += [
-      esc(r.match),
-      esc(r.market),
-      esc(r.odds),
-      esc(r.stake),
-      esc(r.result)
-    ].join(",") + "\n";
+function exportCSV(){
+  const data = readTrackerRows();
+  let csv="match,market,odds,stake,result\n";
+  data.forEach(r=>{
+    csv+=`${r.match},${r.market},${r.odds},${r.stake},${r.result}\n`;
   });
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "bet_tracker.csv";
-  document.body.appendChild(a);
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="bet_tracker.csv";
   a.click();
-  document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
 loadBets();
