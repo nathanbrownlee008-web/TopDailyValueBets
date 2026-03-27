@@ -5672,3 +5672,40 @@ select.result-lost{
     font-size:10.5px !important;
   }
 }
+/* === FIX ODDS + ROW ALIGNMENT === */
+
+#betsGrid .bet-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  flex-wrap:nowrap !important;
+}
+
+/* Fix odds pill breaking */
+#betsGrid .odds-badge{
+  white-space:nowrap !important;
+  flex:0 0 auto !important;
+  min-width:auto !important;
+  padding:5px 10px !important;
+  font-size:12px !important;
+}
+
+/* Fix value pill */
+#betsGrid .stat-chip{
+  white-space:nowrap !important;
+  flex:0 0 auto !important;
+  padding:5px 10px !important;
+}
+
+/* Keep everything in ONE LINE */
+#betsGrid .bet-footer{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+}
+
+/* Make sure Add button doesn’t wrap */
+#betsGrid .bet-btn{
+  flex:0 0 auto !important;
+  white-space:nowrap !important;
+}
