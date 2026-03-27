@@ -5414,142 +5414,42 @@ select.result-lost{
   display: none;
 }
 
-/* === SAFE VALUE BET CARD REBALANCE === */
-#betsGrid .bet-card{
-  padding: 12px 12px 10px !important;
-  border-radius: 16px !important;
+/* ===== All-time stats glow + W/L split ===== */
+#wonLostCard strong{
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
 }
+.wl-split__win{ color:#22c55e; }
+.wl-split__loss{ color:#ef4444; }
+.wl-split__sep{ color:rgba(226,232,240,0.55); }
 
-#betsGrid .bet-teaser{
-  position: relative;
-  gap: 6px !important;
+.stat-card{
+  transition: box-shadow 0.45s ease, transform 0.28s ease;
 }
-
-#betsGrid .bet-title{
-  font-size: 14px !important;
-  line-height: 1.18 !important;
-  padding-right: 112px !important;
-  margin: 0 !important;
+.glow-green-soft{
+  box-shadow:
+    0 0 0 1px rgba(34,197,94,0.25) inset,
+    0 0 20px rgba(34,197,94,0.22),
+    0 0 42px rgba(34,197,94,0.14) !important;
 }
-
-#betsGrid .bet-date{
-  position: absolute !important;
-  top: 1px !important;
-  right: 0 !important;
-  font-size: 12px !important;
-  opacity: 0.76 !important;
+.glow-red-soft{
+  box-shadow:
+    0 0 0 1px rgba(239,68,68,0.25) inset,
+    0 0 20px rgba(239,68,68,0.22),
+    0 0 42px rgba(239,68,68,0.14) !important;
 }
-
-#betsGrid .bet-meta{
-  display: flex !important;
-  justify-content: flex-start !important;
-  align-items: center !important;
-  gap: 8px !important;
-  margin-top: 2px !important;
+.glow-grey-soft{
+  box-shadow:
+    0 0 0 1px rgba(148,163,184,0.16) inset,
+    0 0 14px rgba(148,163,184,0.10),
+    0 0 28px rgba(148,163,184,0.06) !important;
 }
-
-#betsGrid .bet-league{
-  display: inline-flex !important;
-  align-items: center !important;
-  width: auto !important;
-  max-width: 100% !important;
-  padding: 4px 10px !important;
-  border-radius: 999px !important;
-  font-size: 11px !important;
-  line-height: 1.1 !important;
-  font-weight: 800 !important;
-  color: rgba(255,236,179,0.96) !important;
-  background: rgba(255,215,0,0.08) !important;
-  border: 1px solid rgba(255,215,0,0.34) !important;
+@keyframes glowPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
 }
-
-#betsGrid .bet-market{
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  width: auto !important;
-  max-width: 100% !important;
-  padding: 6px 12px !important;
-  border-radius: 999px !important;
-  font-size: 12.5px !important;
-  line-height: 1.15 !important;
-  font-weight: 800 !important;
-  margin: 0 !important;
-  text-align: left !important;
-}
-
-#betsGrid .bet-bookie{
-  display: inline-flex !important;
-  align-items: center !important;
-  width: auto !important;
-  max-width: max-content !important;
-  padding: 4px 10px !important;
-  border-radius: 999px !important;
-  font-size: 11px !important;
-  line-height: 1.1 !important;
-  font-weight: 700 !important;
-  color: rgba(226,232,240,0.92) !important;
-  background: rgba(255,255,255,0.05) !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
-  margin: 2px 0 8px !important;
-}
-
-#betsGrid .bet-details{
-  gap: 8px !important;
-}
-
-#betsGrid .bet-footer{
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 8px !important;
-  margin-top: 0 !important;
-}
-
-#betsGrid .bet-left{
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  flex-wrap: nowrap !important;
-  min-width: 0 !important;
-}
-
-#betsGrid .odds-badge,
-#betsGrid .stat-chip{
-  padding: 6px 11px !important;
-  font-size: 12px !important;
-}
-
-#betsGrid .bet-btn{
-  padding: 6px 12px !important;
-  min-width: 78px !important;
-  border-radius: 999px !important;
-  flex: 0 0 auto !important;
-}
-
-@media (max-width: 430px){
-  #betsGrid .bet-title{
-    font-size: 13.5px !important;
-    padding-right: 104px !important;
-  }
-
-  #betsGrid .bet-market{
-    font-size: 12px !important;
-    padding: 6px 11px !important;
-  }
-
-  #betsGrid .bet-left{
-    gap: 7px !important;
-  }
-
-  #betsGrid .odds-badge,
-  #betsGrid .stat-chip{
-    padding: 6px 10px !important;
-    font-size: 11.5px !important;
-  }
-
-  #betsGrid .bet-btn{
-    min-width: 74px !important;
-    padding: 6px 11px !important;
-  }
+.glow-pulse{
+  animation: glowPulse 0.55s ease;
 }
