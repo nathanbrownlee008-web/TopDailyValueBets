@@ -5755,9 +5755,64 @@ select.result-lost{
   font-weight:700 !important;
   text-shadow:0 0 4px rgba(255,255,255,0.16) !important;
 }
+/* ===== FORCE FIX FOR YOUR CURRENT CLASSES ===== */
 
-/* odds brighter */
-#betsGrid .odds-badge,
-#betsGrid .bet-odds-top{
+/* BOOKIE - stop overlap + size */
+.bookie,
+.bet365,
+[class*="bookie"]{
+  display:inline-block !important;
+  padding:6px 10px !important;
+  border-radius:999px !important;
+
+  background:linear-gradient(145deg,#0f6d45,#0b4c31) !important;
   color:#ffffff !important;
-  font-weight
+  font-weight:700 !important;
+
+  border:1px solid rgba(255,255,255,0.35) !important;
+
+  box-shadow:
+  inset 0 0 4px rgba(255,255,255,0.12),
+  0 0 5px rgba(0,255,150,0.15) !important;
+
+  max-width:max-content !important;
+  white-space:nowrap !important;
+}
+
+
+/* VALUE - MAKE SHORTER */
+.value,
+[class*="value"]{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  padding:6px 10px !important;
+  border-radius:999px !important;
+
+  min-width:85px !important;
+  width:auto !important;
+
+  font-weight:800 !important;
+  color:#ffffff !important;
+
+  opacity:1 !important;
+}
+
+
+/* ODDS - BRIGHTER */
+.odds,
+[class*="odds"]{
+  color:#ffffff !important;
+  font-weight:900 !important;
+
+  opacity:1 !important;
+
+  text-shadow:0 0 6px rgba(255,255,255,0.25) !important;
+}
+
+
+/* EXTRA: stop row crushing */
+.bookie + .value{
+  margin-left:10px !important;
+}
