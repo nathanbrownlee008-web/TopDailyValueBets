@@ -5374,155 +5374,82 @@ select.result-lost{
   background: linear-gradient(180deg, rgba(24,36,60,0.98), rgba(14,24,42,0.98));
   border-color: rgba(148,163,184,0.35);
 }
-
-/* === FLAG + BLUE BOOKIE PILL FINAL === */
-#betsGrid .bet-card{
-  padding: 11px 12px 10px !important;
-  border-radius: 16px !important;
+/* TDT DAY HEADER - FLAT STYLE */
+.tdt-day-card {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 0 !important;
+  border-top: 1px solid rgba(255,255,255,0.08);
 }
 
-#betsGrid .bet-teaser{
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 7px !important;
+.tdt-day-head {
+  padding: 10px 0 !important;
+  background: transparent !important;
 }
 
-#betsGrid .bet-title{
-  margin: 0 !important;
-  line-height: 1.14 !important;
-  padding-right: 112px !important;
+/* DATE TEXT */
+.tdt-day-date {
+  font-size: 14px !important;
+  font-weight: 600;
+  opacity: 0.8;
 }
 
-#betsGrid .bet-date{
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-  font-size: 12px !important;
-  opacity: 0.78 !important;
+/* REMOVE BIG PILLS LOOK */
+.tdt-day-right {
+  gap: 6px;
 }
 
-#betsGrid .bet-meta{
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 8px !important;
-  flex-wrap: wrap !important;
-  margin: 0 !important;
+/* SMALL INLINE STATS */
+.tdt-day-chip {
+  padding: 2px 6px !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.15);
 }
 
-#betsGrid .bet-flag{
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 32px !important;
-  height: 32px !important;
-  font-size: 18px !important;
-  line-height: 1 !important;
-  border-radius: 999px !important;
-  background: rgba(255,255,255,0.06) !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
-  box-shadow: inset 0 0 6px rgba(255,255,255,0.04) !important;
+/* OPTIONAL: hide winrate for cleaner look */
+.tdt-day-chip.ratio {
+  display: none;
 }
 
-#betsGrid .bet-market{
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: auto !important;
-  max-width: calc(100% - 44px) !important;
-  padding: 5px 12px !important;
-  font-size: 12px !important;
-  line-height: 1.1 !important;
-  margin: 0 !important;
+/* ===== All-time stats glow + W/L split ===== */
+#wonLostCard strong{
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
 }
+.wl-split__win{ color:#22c55e; }
+.wl-split__loss{ color:#ef4444; }
+.wl-split__sep{ color:rgba(226,232,240,0.55); }
 
-#betsGrid .bet-bookie{
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: fit-content !important;
-  max-width: max-content !important;
-  padding: 5px 12px !important;
-  border-radius: 999px !important;
-  font-size: 11.5px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.2px !important;
-  color: #dbeafe !important;
-  background: rgba(59,130,246,0.08) !important;
-  border: 1px solid rgba(59,130,246,0.35) !important;
+.stat-card{
+  transition: box-shadow 0.45s ease, transform 0.28s ease;
+}
+.glow-green-soft{
   box-shadow:
-    0 0 8px rgba(59,130,246,0.25),
-    inset 0 0 6px rgba(59,130,246,0.15) !important;
-  margin: 2px 0 4px !important;
-  position: relative;
-  overflow: hidden;
-  animation: betBookiePulse 2.6s ease-in-out infinite;
+    0 0 0 1px rgba(34,197,94,0.25) inset,
+    0 0 20px rgba(34,197,94,0.22),
+    0 0 42px rgba(34,197,94,0.14) !important;
 }
-
-#betsGrid .bet-bookie::after{
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -65%;
-  width: 45%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(255,255,255,0) 0%,
-    rgba(191,219,254,0.22) 50%,
-    rgba(255,255,255,0) 100%
-  );
-  transform: skewX(-18deg);
-  animation: betBookieShine 2.8s linear infinite;
+.glow-red-soft{
+  box-shadow:
+    0 0 0 1px rgba(239,68,68,0.25) inset,
+    0 0 20px rgba(239,68,68,0.22),
+    0 0 42px rgba(239,68,68,0.14) !important;
 }
-
-@keyframes betBookieShine{
-  0%{ left: -65%; }
-  100%{ left: 130%; }
+.glow-grey-soft{
+  box-shadow:
+    0 0 0 1px rgba(148,163,184,0.16) inset,
+    0 0 14px rgba(148,163,184,0.10),
+    0 0 28px rgba(148,163,184,0.06) !important;
 }
-
-@keyframes betBookiePulse{
-  0%,100%{
-    box-shadow:
-      0 0 8px rgba(59,130,246,0.22),
-      inset 0 0 6px rgba(59,130,246,0.14);
-  }
-  50%{
-    box-shadow:
-      0 0 14px rgba(59,130,246,0.38),
-      inset 0 0 8px rgba(59,130,246,0.22);
-  }
+@keyframes glowPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
 }
-
-#betsGrid .bet-details{
-  margin-top: 4px !important;
-}
-
-#betsGrid .bet-footer{
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 8px !important;
-  margin-top: 0 !important;
-}
-
-#betsGrid .bet-left{
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  flex-wrap: nowrap !important;
-}
-
-#betsGrid .odds-badge,
-#betsGrid .stat-chip{
-  padding: 6px 11px !important;
-  font-size: 12px !important;
-}
-
-#betsGrid .bet-btn{
-  min-width: 78px !important;
-  padding: 6px 12px !important;
-  flex: 0 0 auto !important;
+.glow-pulse{
+  animation: glowPulse 0.55s ease;
 }
