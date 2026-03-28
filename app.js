@@ -122,15 +122,11 @@ async function restoreVipAccess(){
     if(vipErrorEl) vipErrorEl.textContent = "";
     if(vipRestoreEl) vipRestoreEl.disabled = true;
 
-    const signIn = await client.auth.signInWithPassword({ email, password });
-    if(signIn.error){
-      throw new Error("No VIP account found for this email, or the password is wrong.");
-    }
-
+    await ensureVipPasswordAccount(email, password);
     const active = await forceVipRefreshNow(email);
 
     if(active) return;
-    if(vipErrorEl) vipErrorEl.textContent = "No active VIP subscription found for this email.";
+    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
   }catch(e){
     if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
   }finally{
@@ -691,7 +687,6 @@ async function loadBets(){
       : '';
     const teaser = teaserCopyForLockedBet(row, state);
     const unlockLabel = formatUnlockLabel(state);
-    const leagueName = row.league || row.competition || row.league_name || row.tournament || '';
 
     betsGrid.innerHTML += `
 <div class="bet-lock-wrap">
@@ -699,16 +694,18 @@ async function loadBets(){
     <div class="bet-teaser">
       <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
-      ${!locked && leagueName ? `<div class="bet-league-row"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
-      <div class="bet-market-row">
+      <div class="bet-meta">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
     <div class="bet-details">
+      <div class="bet-footer-top">
+        <div></div>
+        ${!locked && row.bookie ? `<span class="bet-bookie">${escapeHtml(row.bookie)}</span>` : ``}
+      </div>
       <div class="bet-footer">
         <div class="bet-left">
-          ${!locked && row.bookie ? `<span class="bet-bookie">${escapeHtml(row.bookie)}</span>` : ``}
           <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
           <span class="stat-chip${valueClass}"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
         </div>
