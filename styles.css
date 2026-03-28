@@ -5552,18 +5552,107 @@ select.result-lost{
   padding: 4px 12px !important;
   font-size: 15px !important;
 }
-/* MARKET PILL — bigger + matches bookie height */
-#betsGrid .market-badge{
-  height: 34px !important;
-  min-height: 34px !important;
 
-  padding: 0 14px !important;
-  border-radius: 999px;
-
-  font-size: 13px !important;
-  font-weight: 600 !important;
-
+/* === FINAL UI POLISH: ODDS / VALUE / ADD / MARKET / BOOKIE === */
+#betsGrid .odds-badge{
+  /* slightly shorter height than before */
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  border-radius: 999px !important;
+  white-space: nowrap !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+}
+
+#betsGrid .odds-badge strong{
+  font-weight: 900 !important;
+}
+
+#betsGrid .stat-chip{
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 14px !important;
+  font-size: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}
+
+#betsGrid .stat-chip__k,
+#betsGrid .stat-chip__v{
+  color: #f8fafc !important;
+  opacity: 1 !important;
+  font-weight: 900 !important;
+}
+
+#betsGrid .bet-btn{
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 14px !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  color: #f8fafc !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}
+
+#betsGrid .bet-market{
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 16px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}
+
+#betsGrid .bet-bookie{
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 14px !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 430px){
+  #betsGrid .bet-market{
+    min-height: 35px !important;
+    height: 35px !important;
+    font-size: 12.5px !important;
+    padding: 0 15px !important;
+  }
+
+  #betsGrid .bet-bookie{
+    min-height: 35px !important;
+    height: 35px !important;
+    font-size: 11.5px !important;
+    padding: 0 13px !important;
+  }
+
+  #betsGrid .odds-badge{
+    min-height: 29px !important;
+    height: 29px !important;
+    font-size: 11.5px !important;
+  }
+
+  #betsGrid .stat-chip,
+  #betsGrid .bet-btn{
+    min-height: 31px !important;
+    height: 31px !important;
+    font-size: 11.5px !important;
+  }
 }
