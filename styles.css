@@ -5483,7 +5483,7 @@ select.result-lost{
 .bet-card,
 .bet-card *{
   color:#ffffff !important;
-  text-shadow:0 0 2px rgba(255,255,255,0.25);
+  text-shadow:0 0 4px rgba(255,255,255,0.25);
 }
 
 /* odds + value numbers extra bright */
@@ -5496,12 +5496,12 @@ select.result-lost{
 .bet-league{
   display:inline-flex !important;
   justify-content:flex-start !important;
-  margin-left:0 !important;
+  margin-left:2 !important;
   align-self:flex-start !important;
 }
 /* keep market centered */
 .bet-market{
   display:flex !important;
   justify-content:center !important;
-  width:50%;
+  width:60%;
 }
