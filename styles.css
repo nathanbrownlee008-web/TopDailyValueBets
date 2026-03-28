@@ -5577,7 +5577,7 @@ select.result-lost{
   align-items: center;
   justify-content: center;
 
-  height: 26px;              /* smaller height */
+  height: 20px;              /* smaller height */
   padding: 0 10px;
 
   font-size: 11.5px;
