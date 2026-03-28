@@ -5505,3 +5505,33 @@ select.result-lost{
   justify-content:center !important;
   width:60%;
 }
+/* ===== LEAGUE PILL ONLY ===== */
+.bet-league{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  padding: 6px 16px !important;   /* change these */
+  min-height: 34px !important;    /* change this */
+  font-size: 12px !important;     /* change this */
+  font-weight: 700 !important;
+
+  width: auto !important;
+  max-width: max-content !important;
+  border-radius: 999px !important;
+}
+/* ===== MARKET PILL ONLY ===== */
+.bet-market{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  padding: 8px 20px !important;   /* change these */
+  min-height: 40px !important;    /* change this */
+  font-size: 13px !important;     /* change this */
+  font-weight: 700 !important;
+
+  width: auto !important;
+  max-width: max-content !important;
+  border-radius: 999px !important;
+}
