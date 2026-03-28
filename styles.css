@@ -5708,3 +5708,56 @@ select.result-lost{
 
   color:#ffffff;
 }
+/* ===== FIX OVERLAP + BRIGHTER ODDS/VALUE ===== */
+
+/* bottom row spacing */
+#betsGrid .bet-footer{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+}
+
+#betsGrid .bet-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  flex-wrap:nowrap !important;
+}
+
+/* bookie pill: smaller + no overlap */
+#betsGrid .bet-bookie{
+  flex:0 0 auto !important;
+  margin:0 !important;
+  padding:6px 12px !important;
+  min-width:auto !important;
+  max-width:max-content !important;
+  border:1px solid rgba(255,255,255,0.35) !important;
+  box-shadow:
+    inset 0 0 4px rgba(255,255,255,0.10),
+    0 0 5px rgba(0,255,150,0.14) !important;
+}
+
+/* value pill: shorter so it stops crashing into bookie */
+#betsGrid .stat-chip{
+  flex:0 0 auto !important;
+  min-width:98px !important;
+  width:auto !important;
+  padding:6px 12px !important;
+  justify-content:center !important;
+  color:#ffffff !important;
+}
+
+#betsGrid .stat-chip__k,
+#betsGrid .stat-chip__v{
+  color:#ffffff !important;
+  opacity:1 !important;
+  font-weight:900 !important;
+  text-shadow:0 0 4px rgba(255,255,255,0.16) !important;
+}
+
+/* odds brighter */
+#betsGrid .odds-badge,
+#betsGrid .bet-odds-top{
+  color:#ffffff !important;
+  font-weight
