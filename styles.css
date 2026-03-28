@@ -5479,3 +5479,29 @@ select.result-lost{
   position:relative !important;
   overflow:hidden !important;
 }
+/* brighten all card text */
+.bet-card,
+.bet-card *{
+  color:#ffffff !important;
+  text-shadow:0 0 2px rgba(255,255,255,0.25);
+}
+
+/* odds + value numbers extra bright */
+.bet-odds,
+.bet-value{
+  color:#ffffff !important;
+  font-weight:800 !important;
+}
+/* league pill left */
+.bet-league{
+  display:inline-flex !important;
+  justify-content:flex-start !important;
+  margin-left:0 !important;
+  align-self:flex-start !important;
+}
+/* keep market centered */
+.bet-market{
+  display:flex !important;
+  justify-content:center !important;
+  width:100%;
+}
