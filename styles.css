@@ -5640,3 +5640,50 @@ select.result-lost{
 
   transform:rotate(25deg);
 }
+/* ===== LEAGUE PILL (smaller subtle) ===== */
+.league-pill{
+  display:inline-flex;
+  align-items:center;
+
+  font-size:12px;
+  font-weight:600;
+
+  padding:4px 10px;
+
+  border-radius:999px;
+
+  color:#ffffff;
+
+  border:1px solid rgba(255,215,0,0.7);
+  background:rgba(255,215,0,0.08);
+
+  box-shadow: inset 0 0 4px rgba(255,215,0,0.25);
+}
+
+
+/* ===== MARKET PILL (main highlight) ===== */
+.market-pill{
+  display:inline-flex;
+  align-items:center;
+
+  font-size:14px;
+  font-weight:700;
+
+  padding:7px 16px;
+
+  border-radius:999px;
+
+  color:#ffffff;
+
+  border:2px solid rgba(255,215,0,0.85);
+
+  background:linear-gradient(
+    145deg,
+    rgba(255,215,0,0.10),
+    rgba(255,215,0,0.04)
+  );
+
+  box-shadow:
+    inset 0 0 8px rgba(255,215,0,0.35),
+    0 0 8px rgba(255,215,0,0.25);
+}
