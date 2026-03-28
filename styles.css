@@ -5741,7 +5741,7 @@ select.result-lost{
 /* value pill: shorter so it stops crashing into bookie */
 #betsGrid .stat-chip{
   flex:0 0 auto !important;
-  min-width:98px !important;
+  min-width:80px !important;
   width:auto !important;
   padding:6px 12px !important;
   justify-content:center !important;
@@ -5752,7 +5752,7 @@ select.result-lost{
 #betsGrid .stat-chip__v{
   color:#ffffff !important;
   opacity:1 !important;
-  font-weight:900 !important;
+  font-weight:700 !important;
   text-shadow:0 0 4px rgba(255,255,255,0.16) !important;
 }
 
