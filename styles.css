@@ -5570,28 +5570,34 @@ select.result-lost{
   /* keep it aligned left clean */
   width: fit-content;
 }
+/* === CLEAN BOOKIE PILL (NO SPREAD SHINE) === */
 
-/* VERY subtle shine sweep */
-#betsGrid .bet-bookie::after{
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -120%;
-  width: 50%;
-  height: 100%;
+#betsGrid .bet-bookie{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  background: linear-gradient(
-    120deg,
-    transparent,
-    rgba(255,255,255,0.12),
-    transparent
-  );
+  height: 26px;              /* smaller height */
+  padding: 0 10px;
 
-  transform: skewX(-20deg);
-  animation: bookieShine 6s infinite;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #ffffff;
+
+  border-radius: 999px;
+
+  /* green pill */
+  background: linear-gradient(145deg, rgba(0,255,140,0.12), rgba(0,255,140,0.06));
+
+  /* white outline */
+  border: 1px solid rgba(255,255,255,0.55);
+
+  /* subtle inner glow ONLY */
+  box-shadow:
+    0 0 4px rgba(0,255,140,0.12),
+    inset 0 0 3px rgba(255,255,255,0.05);
+
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes bookieShine{
-  0% { left: -120%; }
-  100% { left: 140%; }
-}
