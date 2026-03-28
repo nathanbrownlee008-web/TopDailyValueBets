@@ -5454,84 +5454,195 @@ select.result-lost{
   animation: glowPulse 0.55s ease;
 }
 
-/* === BOOKIE PILL ONLY FIX === */
-#betsGrid .bet-bookie{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  width:fit-content !important;
-  max-width:max-content !important;
-  min-height:26px !important;
-  height:26px !important;
-  padding:0 10px !important;
-  margin:6px 0 8px !important;
-  border-radius:999px !important;
-  font-size:11.5px !important;
-  line-height:1 !important;
-  font-weight:800 !important;
-  color:#ffffff !important;
-  background:linear-gradient(145deg, rgba(16,185,129,0.14), rgba(16,185,129,0.08)) !important;
-  border:1px solid rgba(255,255,255,0.58) !important;
-  box-shadow:
-    0 0 4px rgba(16,185,129,0.10),
-    inset 0 0 3px rgba(255,255,255,0.04) !important;
-  white-space:nowrap !important;
-  position:relative !important;
-  overflow:hidden !important;
-}
-/* brighten all card text */
-.bet-card,
-.bet-card *{
-  color:#ffffff !important;
-  text-shadow:0 0 4px rgba(255,255,255,0.25);
-}
-
-/* odds + value numbers extra bright */
-.bet-odds,
-.bet-value{
-  color:#ffffff !important;
-  font-weight:800 !important;
-}
-/* league pill left */
-.bet-league{
-  display:inline-flex !important;
-  justify-content:flex-start !important;
-  margin-left:2 !important;
-  align-self:flex-start !important;
-}
-/* keep market centered */
-.bet-market{
+/* === FINAL POLISH (CLEAN STACK) === */
+#betsGrid .bet-meta{
   display:flex !important;
-  justify-content:center !important;
-  width:60%;
-}
-/* ===== LEAGUE PILL ONLY ===== */
-.bet-league{
-  display:inline-flex !important;
+  flex-direction:column !important;
   align-items:center !important;
   justify-content:center !important;
-
-  padding: 5px 14px !important;   /* change these */
-  min-height: 32px !important;    /* change this */
-  font-size: 11.5px !important;     /* change this */
-  font-weight: 700 !important;
-
-  width: auto !important;
-  max-width: max-content !important;
-  border-radius: 999px !important;
+  gap:6px !important;
+  margin:4px 0 2px !important;
 }
-/* ===== MARKET PILL ONLY ===== */
-.bet-market{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
 
-  padding: 8px 18px !important;   /* change these */
-  min-height: 40px !important;    /* change this */
-  font-size: 13px !important;     /* change this */
+#betsGrid .bet-league{
+  font-size:14px !important;
+  line-height:1.05 !important;
+  padding:3px 9px !important;
+  opacity:0.9 !important;
+}
+
+#betsGrid .bet-market{
+  font-size:14px !important;
+  line-height:1.1 !important;
+  padding:6px 12px !important;
+}
+
+#betsGrid .bet-card{
+  padding:11px 12px 9px !important;
+}
+
+#betsGrid .bet-bookie{
+  margin:2px 0 6px !important;
+}
+/* === LEAGUE + MARKET SAME ROW === */
+#betsGrid .bet-meta{
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+/* league (left) */
+#betsGrid .bet-league{
+  font-size: 14px !important;
+  padding: 4px 10px !important;
+  align-self: center !important;
+}
+
+/* market (right next to it) */
+#betsGrid .bet-market{
+  font-size: 12px !important;
+  padding: 5px 12px !important;
+  align-self: center !important;
+  margin: 0 !important;
+}
+
+
+/* === FINAL TUNE V2 === */
+
+/* ODDS brighter + match value size */
+#betsGrid .odds-badge{
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 14px !important;
+  font-size: 12.5px !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  background: linear-gradient(145deg, rgba(60,80,255,0.25), rgba(120,140,255,0.15)) !important;
+  border: 1px solid rgba(120,140,255,0.45) !important;
+  box-shadow: 0 0 10px rgba(120,140,255,0.25);
+}
+
+/* VALUE same height as odds (fix mismatch) */
+#betsGrid .stat-chip{
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 14px !important;
+  font-size: 12.5px !important;
+}
+
+/* BOOKIE slightly smaller */
+#betsGrid .bet-bookie{
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+  font-size: 11.5px !important;
+}
+/* === BOOKIE FINAL STYLE (LEFT SIDE - CLEAN PILL) === */
+
+#betsGrid .bet-bookie{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 30px;
+  padding: 0 12px;
+
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+
+  border-radius: 999px;
+
+  /* green pill */
+  background: linear-gradient(145deg, rgba(0,255,140,0.15), rgba(0,255,140,0.08));
+
+  /* white outline */
+  border: 1px solid rgba(255,255,255,0.6);
+
+  /* subtle glow */
+  box-shadow:
+    0 0 6px rgba(0,255,140,0.15),
+    inset 0 0 4px rgba(255,255,255,0.08);
+
+  /* keep it aligned left clean */
+  width: fit-content;
+}
+/* === CLEAN BOOKIE PILL (NO SPREAD SHINE) === */
+
+#betsGrid .bet-bookie{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 15px;              /* smaller height */
+  padding: 0 10px;
+
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #ffffff;
+
+  border-radius: 999px;
+
+  /* green pill */
+  background: linear-gradient(145deg, rgba(0,255,140,0.12), rgba(0,255,140,0.06));
+
+  /* white outline */
+  border: 1px solid rgba(255,255,255,0.55);
+
+  /* subtle inner glow ONLY */
+  box-shadow:
+    0 0 4px rgba(0,255,140,0.12),
+    inset 0 0 3px rgba(255,255,255,0.05);
+
+  position: relative;
+  overflow: hidden;
+}
+
+/* === TEXT BOOST (BRIGHTER + BOLDER EVERYWHERE) === */
+
+/* Match / Teams */
+#betsGrid .bet-teams{
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.2px;
+}
+
+/* League + Market pills text */
+#betsGrid .bet-league,
+#betsGrid .bet-market{
+  color: #ffffff !important;
   font-weight: 700 !important;
+}
 
-  width: auto !important;
-  max-width: max-content !important;
-  border-radius: 999px !important;
+/* Bookie text */
+#betsGrid .bet-bookie{
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* Odds + Value text */
+#betsGrid .odds-badge,
+#betsGrid .stat-chip{
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+/* Add button text */
+#betsGrid .add-btn{
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+/* Slight glow to lift text off background */
+#betsGrid .bet-teams,
+#betsGrid .bet-league,
+#betsGrid .bet-market,
+#betsGrid .bet-bookie,
+#betsGrid .odds-badge,
+#betsGrid .stat-chip,
+#betsGrid .add-btn{
+  text-shadow: 0 0 6px rgba(255,255,255,0.15);
 }
