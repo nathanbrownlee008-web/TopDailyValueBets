@@ -5601,3 +5601,48 @@ select.result-lost{
   overflow: hidden;
 }
 
+/* === TEXT BOOST (BRIGHTER + BOLDER EVERYWHERE) === */
+
+/* Match / Teams */
+#betsGrid .bet-teams{
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.2px;
+}
+
+/* League + Market pills text */
+#betsGrid .bet-league,
+#betsGrid .bet-market{
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* Bookie text */
+#betsGrid .bet-bookie{
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* Odds + Value text */
+#betsGrid .odds-badge,
+#betsGrid .stat-chip{
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+/* Add button text */
+#betsGrid .add-btn{
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+/* Slight glow to lift text off background */
+#betsGrid .bet-teams,
+#betsGrid .bet-league,
+#betsGrid .bet-market,
+#betsGrid .bet-bookie,
+#betsGrid .odds-badge,
+#betsGrid .stat-chip,
+#betsGrid .add-btn{
+  text-shadow: 0 0 6px rgba(255,255,255,0.15);
+}
