@@ -5585,21 +5585,20 @@ select.result-lost{
 .bet-bookie{
   display:inline-flex;
   align-items:center;
-  justify-content:center;
 
   padding:6px 14px;
   border-radius:999px;
 
-  background:linear-gradient(145deg,#0f6d45,#0c4f34);
+  background:linear-gradient(145deg,#0f6d45,#0b4c31);
+
   color:#ffffff;
   font-weight:700;
-  font-size:13px;
 
-  border:2px solid rgba(255,255,255,0.7);
+  border:1px solid rgba(255,255,255,0.45);
 
   box-shadow:
-  inset 0 0 8px rgba(255,255,255,0.15),
-  0 0 10px rgba(0,255,170,0.25);
+  inset 0 0 4px rgba(255,255,255,0.15),
+  0 0 6px rgba(0,255,150,0.20);
 }
 
 
