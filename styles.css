@@ -5686,3 +5686,26 @@ select.result-lost{
     inset 0 0 8px rgba(255,215,0,0.35),
     0 0 8px rgba(255,215,0,0.25);
 }
+.value-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:6px 12px;
+
+  border-radius:999px;
+
+  min-width:80px;
+
+  font-weight:700;
+
+  background:linear-gradient(
+    145deg,
+    rgba(255,215,0,0.25),
+    rgba(255,215,0,0.08)
+  );
+
+  border:1px solid rgba(255,215,0,0.6);
+
+  color:#ffffff;
+}
