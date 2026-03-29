@@ -20,7 +20,8 @@ function setVipUI(active, email){
   const btnEl = document.getElementById('vipButton');
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
   const vipPromoEl = document.getElementById('vipPromo');
-  if(vipPromoEl) vipPromoEl.style.display = active ? 'none' : '';
+
+  if(vipPromoEl) vipPromoEl.style.display = active ? 'none' : 'block';
 
   if(active){
     if(titleEl) titleEl.textContent = 'VIP Access';
@@ -124,15 +125,11 @@ async function restoreVipAccess(){
     if(vipErrorEl) vipErrorEl.textContent = "";
     if(vipRestoreEl) vipRestoreEl.disabled = true;
 
-    const signIn = await client.auth.signInWithPassword({ email, password });
-    if(signIn.error){
-      throw new Error("No VIP account found for this email, or the password is wrong.");
-    }
-
+    await ensureVipPasswordAccount(email, password);
     const active = await forceVipRefreshNow(email);
 
     if(active) return;
-    if(vipErrorEl) vipErrorEl.textContent = "No active VIP subscription found for this email.";
+    if(vipErrorEl) vipErrorEl.textContent = "VIP not ready yet. Wait a few seconds and tap Restore VIP again.";
   }catch(e){
     if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
   }finally{
@@ -701,13 +698,17 @@ async function loadBets(){
     <div class="bet-teaser">
       <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
-      ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
-      <div class="bet-meta">
+      ${!locked && leagueName ? `<div class="bet-league-row"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
+      <div class="bet-market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
       </div>
-      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : `${row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)}</div>` : ''}`}
+      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
     <div class="bet-details">
+      <div class="bet-footer-top">
+        <div></div>
+        ${!locked && row.bookie ? `<span class="bet-bookie">${escapeHtml(row.bookie)}</span>` : ``}
+      </div>
       <div class="bet-footer">
         <div class="bet-left">
           <span class="odds-badge">Odds <strong>${escapeHtml(String(row.odds ?? ''))}</strong></span>
@@ -1135,15 +1136,6 @@ async function loadVipPromoProof(){
   }
 }
 
-
-function pulseStatCard(el){
-  if(!el) return;
-  el.classList.remove("glow-pulse");
-  void el.offsetWidth;
-  el.classList.add("glow-pulse");
-}
-
-
 async function loadTracker(){
 const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
@@ -1210,20 +1202,7 @@ roiElem.innerText=totalStake?((profit/totalStake)*100).toFixed(1):0;
 winrateElem.innerText=(wins+losses)?((wins/(wins+losses))*100).toFixed(1):0;
 const wonLostElem = document.getElementById("wonLost");
 if(wonLostElem){
-  wonLostElem.innerHTML = `<span class="wl-split__win">${wins}</span><span class="wl-split__sep">-</span><span class="wl-split__loss">${losses}</span>`;
-}
-
-const winrateCard = document.getElementById("winrateCard");
-if(winrateCard){
-  const avgOddsVal = rows.length ? (totalOdds / rows.length) : 0;
-  const winrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
-  const breakEven = avgOddsVal > 0 ? (100 / avgOddsVal) : 0;
-  const diff = winrateVal - breakEven;
-  winrateCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
-  if(diff > 0.1) winrateCard.classList.add("glow-green-soft");
-  else if(diff < -0.1) winrateCard.classList.add("glow-red-soft");
-  else winrateCard.classList.add("glow-grey-soft");
-  pulseStatCard(winrateCard);
+  wonLostElem.innerText = `${wins}-${losses}`;
 }
 
 const totalBets = rows.length;
@@ -1237,21 +1216,9 @@ if(totalStakedCard){
 
 avgOddsElem.innerText=rows.length?(totalOdds/rows.length).toFixed(2):0;
 
-profitCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
-if(profit>0) profitCard.classList.add("glow-green-soft");
-else if(profit<0) profitCard.classList.add("glow-red-soft");
-else profitCard.classList.add("glow-grey-soft");
-pulseStatCard(profitCard);
-pulseStatCard(profitCard);
-
-const bankrollCard = document.getElementById("bankrollCard");
-if(bankrollCard){
-  bankrollCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
-  if(bankroll > start) bankrollCard.classList.add("glow-green-soft");
-  else if(bankroll < start) bankrollCard.classList.add("glow-red-soft");
-  else bankrollCard.classList.add("glow-grey-soft");
-  pulseStatCard(bankrollCard);
-}
+profitCard.classList.remove("glow-green","glow-red");
+if(profit>0) profitCard.classList.add("glow-green");
+if(profit<0) profitCard.classList.add("glow-red");
 
 
 renderDailyChart(history, dailyLabels, dayKeys);
@@ -1727,31 +1694,18 @@ function toggleTdtTracker(){
   }
 }
 
-async function exportCSV(){
-  const data = await readTrackerRows();
-  const rows = Array.isArray(data) ? data : [];
-  const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-
-  let csv = "match,market,odds,stake,result\n";
-  rows.forEach(r=>{
-    csv += [
-      esc(r.match),
-      esc(r.market),
-      esc(r.odds),
-      esc(r.stake),
-      esc(r.result)
-    ].join(",") + "\n";
+function exportCSV(){
+  const data = readTrackerRows();
+  let csv="match,market,odds,stake,result\n";
+  data.forEach(r=>{
+    csv+=`${r.match},${r.market},${r.odds},${r.stake},${r.result}\n`;
   });
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "bet_tracker.csv";
-  document.body.appendChild(a);
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="bet_tracker.csv";
   a.click();
-  document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
 loadBets();
