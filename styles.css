@@ -5718,3 +5718,20 @@ select.result-lost{
 
   line-height: 1 !important;
 }
+/* ===== FORCE MARKET PILL SIZE (OVERRIDE) ===== */
+.bet-market,
+.bet-market-inline{
+  padding: 14px 14px !important; /* height + width */
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  border-radius: 999px !important;
+}
+
+/* MOBILE FIX */
+@media (max-width: 600px){
+  .bet-market,
+  .bet-market-inline{
+    padding: 9px 12px !important;
+    font-size: 12.5px !important;
+  }
+}
