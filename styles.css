@@ -5626,9 +5626,9 @@ select.result-lost{
 /* === FINAL ODDS CLEAN FIX (SAFE – NO LAYOUT CHANGE) === */
 #betsGrid .odds-badge,
 #betsGrid .bet-odds-top {
-  height: 24px !important;
-  min-height: 24px !important;
-  padding: 0 9px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  padding: 0 5px !important;
 
   /* cleaner look */
   background: linear-gradient(145deg, #5a6bff, #2f3fae) !important;
