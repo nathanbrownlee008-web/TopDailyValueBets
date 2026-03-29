@@ -5688,7 +5688,7 @@ select.result-lost{
 }
 /* === CENTER TEXT IN FULL-WIDTH BOOKIE BAR === */
 #betsGrid .bet-bookie{
-  width:100% !important;
+  width:85% !important;
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
@@ -5699,4 +5699,7 @@ select.result-lost{
 
   font-weight:600 !important;
   letter-spacing:0.3px;
+}
+#betsGrid .bet-bookie{
+  box-shadow:0 0 10px rgba(0,255,150,0.25) !important;
 }
