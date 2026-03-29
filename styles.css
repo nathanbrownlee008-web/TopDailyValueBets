@@ -5700,13 +5700,13 @@ select.result-lost{
   background: linear-gradient(145deg, #6f7cff, #8ea2ff) !important;
 
   color: #ffffff !important;
-  font-weight: 700 !important;   /* slightly bolder */
+  font-weight: 500 !important;   /* slightly bolder */
   font-size: 13px !important;
 
   padding: 4px 10px !important;
-  height: 28px !important;
+  height: 18px !important;
 
-  border-radius: 8px !important; /* 🔥 more square, not round */
+  border-radius: 6px !important; /* 🔥 more square, not round */
 
   box-shadow: 0 0 10px rgba(120, 140, 255, 0.5) !important;
 
