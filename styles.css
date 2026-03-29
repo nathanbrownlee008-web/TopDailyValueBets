@@ -5664,3 +5664,22 @@ select.result-lost{
   font-weight: 900 !important;
   text-shadow: 0 0 6px rgba(255,255,255,0.25) !important;
 }
+/* === ODDS PILL FIX (FINAL) === */
+.odds,
+.odds-pill {
+  font-size: 12.5px !important;     /* 🔽 smaller text */
+  font-weight: 600 !important;      /* 🔽 less bold */
+  padding: 4px 10px !important;     /* 🔽 controls height */
+  line-height: 1 !important;        /* ✅ FIXES tall pill issue */
+  border-radius: 14px !important;
+
+  color: #ffffff !important;
+
+  background: linear-gradient(145deg, #5f6dff, #7c8cff) !important;
+
+  box-shadow: 0 0 6px rgba(100, 120, 255, 0.35) !important;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
