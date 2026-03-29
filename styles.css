@@ -5508,3 +5508,230 @@ select.result-lost{
   align-self: center !important;
   margin: 0 !important;
 }
+
+/* === VALUE BETS FINAL ROW LAYOUT === */
+#betsGrid .bet-card{
+  padding: 11px 12px 10px !important;
+  border-radius: 16px !important;
+}
+
+#betsGrid .bet-teaser{
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+}
+
+#betsGrid .bet-title{
+  margin: 0 !important;
+  line-height: 1.14 !important;
+  padding-right: 112px !important;
+}
+
+#betsGrid .bet-date{
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  font-size: 12px !important;
+  opacity: 0.78 !important;
+}
+
+#betsGrid .bet-league-row{
+  display:flex !important;
+  justify-content:flex-start !important;
+  align-items:center !important;
+  margin: 0 !important;
+}
+
+#betsGrid .bet-market-row{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  margin: 0 !important;
+}
+
+#betsGrid .bet-league{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:auto !important;
+  max-width:max-content !important;
+  padding:4px 10px !important;
+  border-radius:999px !important;
+  font-size:10.8px !important;
+  line-height:1.1 !important;
+  font-weight:800 !important;
+  color: rgba(255,236,179,0.96) !important;
+  background: rgba(255,215,0,0.08) !important;
+  border: 1px solid rgba(255,215,0,0.34) !important;
+}
+
+#betsGrid .bet-market{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:auto !important;
+  max-width:100% !important;
+  padding:5px 12px !important;
+  border-radius:999px !important;
+  font-size:12px !important;
+  line-height:1.1 !important;
+  margin:0 !important;
+}
+
+#betsGrid .bet-details{
+  margin-top: 4px !important;
+}
+
+#betsGrid .bet-footer{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:8px !important;
+  margin-top:0 !important;
+}
+
+#betsGrid .bet-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:7px !important;
+  flex-wrap:nowrap !important;
+  min-width:0 !important;
+}
+
+#betsGrid .bet-bookie{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:fit-content !important;
+  max-width:max-content !important;
+  padding:4px 10px !important;
+  border-radius:999px !important;
+  font-size:10.8px !important;
+  line-height:1.1 !important;
+  font-weight:800 !important;
+  color:#dcfce7 !important;
+  background: rgba(34,197,94,0.08) !important;
+  border:1px solid rgba(34,197,94,0.34) !important;
+  box-shadow:
+    0 0 8px rgba(34,197,94,0.18),
+    inset 0 0 6px rgba(34,197,94,0.12) !important;
+  position:relative !important;
+  overflow:hidden !important;
+}
+
+#betsGrid .bet-bookie::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-65%;
+  width:45%;
+  height:100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(220,252,231,0.22) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  transform: skewX(-18deg);
+  animation: betBookieGreenShine 2.9s linear infinite;
+}
+
+@keyframes betBookieGreenShine{
+  0%{ left:-65%; }
+  100%{ left:130%; }
+}
+
+#betsGrid .odds-badge,
+#betsGrid .stat-chip{
+  padding:4px 9px !important;
+  font-size:11px !important;
+  line-height:1.1 !important;
+}
+
+#betsGrid .bet-btn{
+  min-width:74px !important;
+  padding:5px 11px !important;
+  font-size:11.5px !important;
+  flex:0 0 auto !important;
+}
+
+@media (max-width: 430px){
+  #betsGrid .bet-card{
+    padding: 10px 11px 9px !important;
+  }
+  #betsGrid .bet-title{
+    padding-right: 104px !important;
+  }
+  #betsGrid .bet-left{
+    gap:6px !important;
+  }
+  #betsGrid .bet-bookie,
+  #betsGrid .odds-badge,
+  #betsGrid .stat-chip{
+    font-size:10.5px !important;
+  }
+}
+
+/* === FINAL POLISH: ODDS SMALLER + BOOKIE/VALUE BOTTOM ALIGN === */
+#betsGrid .bet-left{align-items:center !important;}
+#betsGrid .bet-bookie{
+  margin:0 !important;min-height:30px !important;height:30px !important;padding:0 12px !important;
+  line-height:1 !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;vertical-align:middle !important;
+}
+#betsGrid .odds-badge{
+  min-width:auto !important;height:28px !important;min-height:28px !important;padding:0 11px !important;
+  font-size:12px !important;font-weight:700 !important;line-height:1 !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;
+}
+#betsGrid .odds-badge strong{font-weight:800 !important;}
+#betsGrid .stat-chip{
+  min-width:auto !important;min-height:30px !important;height:30px !important;padding:0 12px !important;
+  font-size:12px !important;line-height:1 !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;
+}
+#betsGrid .stat-chip__k,#betsGrid .stat-chip__v{line-height:1 !important;font-weight:800 !important;}
+@media (max-width:430px){
+  #betsGrid .bet-bookie{min-height:29px !important;height:29px !important;padding:0 11px !important;}
+  #betsGrid .odds-badge{height:27px !important;min-height:27px !important;padding:0 10px !important;font-size:11.5px !important;}
+  #betsGrid .stat-chip{min-height:29px !important;height:29px !important;padding:0 11px !important;font-size:11.5px !important;}
+}
+/* === ODDS CLEAN FINAL === */
+#betsGrid .odds-badge,
+#betsGrid .odds {
+
+  background: rgba(120, 140, 255, 0.12) !important;
+
+  color: #e9ecff !important;
+  font-weight: 500 !important;
+  font-size: 12px !important;
+
+  padding: 3px 9px !important;
+  height: 20px !important;
+
+  border-radius: 16px !important;
+
+  box-shadow: none !important;
+  border: 1px solid rgba(140,160,255,0.25) !important;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1 !important;
+}
+/* ===== FORCE MARKET PILL SIZE (OVERRIDE) ===== */
+.bet-market,
+.bet-market-inline{
+  padding: 14px 14px !important; /* height + width */
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  border-radius: 999px !important;
+}
+
+/* MOBILE FIX */
+@media (max-width: 600px){
+  .bet-market,
+  .bet-market-inline{
+    padding: 9px 12px !important;
+    font-size: 12.5px !important;
+  }
+}
