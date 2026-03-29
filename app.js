@@ -15,13 +15,13 @@ function normalizeVipEmail(email){
 function setVipUI(active, email){
   vipActive = !!active;
 
+  const vipPromoEl = document.getElementById('vipPromo');
+  if(vipPromoEl) vipPromoEl.style.display = active ? 'none' : '';
+
   const titleEl = document.getElementById('vipTitle');
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
-  const vipPromoEl = document.getElementById('vipPromo');
-
-  if(vipPromoEl) vipPromoEl.style.display = active ? 'none' : 'block';
 
   if(active){
     if(titleEl) titleEl.textContent = 'VIP Access';
@@ -698,8 +698,8 @@ async function loadBets(){
     <div class="bet-teaser">
       <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
-      ${!locked && leagueName ? `<div class="bet-league-row"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
-      <div class="bet-market-row">
+      <div class="bet-top">
+        ${!locked && leagueName ? `<span class="bet-market bet-league">${escapeHtml(leagueName)}</span>` : ``}
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}

@@ -108,10 +108,11 @@
   <div class="bankroll-row">
     <label>Starting Bankroll</label>
     <input type="number" id="startingBankroll" value="290" />
-    <button onclick="exportCSV()">Export CSV</button>
+    <button id="exportCsvBtn" onclick="exportCSV()">Export CSV</button>
   </div>
 </div>
 
+<div class="tracker-title">All Time Stats</div>
 <div class="stats-grid">
 <div class="stat-card" id="bankrollCard">Bankroll<br><strong>£<span id="bankroll">0</span></strong></div>
 <div class="stat-card" id="profitCard">Profit<br><strong>£<span id="profit">0</span></strong></div>
