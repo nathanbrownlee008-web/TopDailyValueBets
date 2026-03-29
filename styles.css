@@ -5694,3 +5694,27 @@ select.result-lost{
   #betsGrid .odds-badge{height:27px !important;min-height:27px !important;padding:0 10px !important;font-size:11.5px !important;}
   #betsGrid .stat-chip{min-height:29px !important;height:29px !important;padding:0 11px !important;font-size:11.5px !important;}
 }
+/* === ODDS CLEAN FINAL === */
+#betsGrid .odds-badge,
+#betsGrid .odds {
+
+  background: rgba(120, 140, 255, 0.12) !important;
+
+  color: #e9ecff !important;
+  font-weight: 600 !important;
+  font-size: 12.5px !important;
+
+  padding: 4px 10px !important;
+  height: 26px !important;
+
+  border-radius: 10px !important;
+
+  box-shadow: none !important;
+  border: 1px solid rgba(140,160,255,0.25) !important;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1 !important;
+}
