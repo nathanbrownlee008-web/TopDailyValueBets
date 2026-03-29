@@ -5623,3 +5623,44 @@ select.result-lost{
     padding: 0 11px !important;
   }
 }
+/* === FINAL ODDS CLEAN FIX (SAFE – NO LAYOUT CHANGE) === */
+#betsGrid .odds-badge,
+#betsGrid .bet-odds-top {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 11px !important;
+
+  /* cleaner look */
+  background: linear-gradient(145deg, #5a6bff, #2f3fae) !important;
+
+  /* REMOVE that misty square glow */
+  box-shadow:
+    inset 0 0 3px rgba(255,255,255,0.15),
+    0 0 4px rgba(90,120,255,0.25) !important;
+
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* kill hidden overlay layer causing square haze */
+#betsGrid .odds-badge::before,
+#betsGrid .bet-odds-top::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* keep shine but tighter + cleaner */
+#betsGrid .odds-badge::after,
+#betsGrid .bet-odds-top::after {
+  opacity: 0.6 !important;
+  filter: none !important;
+}
+
+/* brighter text */
+#betsGrid .odds-badge,
+#betsGrid .bet-odds-top,
+#betsGrid .odds-badge strong {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  text-shadow: 0 0 6px rgba(255,255,255,0.25) !important;
+}
