@@ -5740,3 +5740,78 @@ select.result-lost{
 .bet-odds-top{
   display:none !important;
 }
+
+
+/* ===== Desktop-only tracker table (mobile untouched) ===== */
+#trackerTable .tracker-desktop-table-wrap{
+  display:none;
+}
+
+@media (min-width: 950px){
+  body.layout-wide #trackerTable .tracker-bet-list{
+    display:none;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table-wrap{
+    display:block;
+    padding-top:10px;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table{
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed;
+    background:transparent;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table thead th{
+    text-align:left;
+    padding:12px 8px;
+    border-bottom:1px solid #334155;
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:rgba(180,205,230,.78);
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table tbody td{
+    padding:12px 8px;
+    border-bottom:1px solid #22314a;
+    vertical-align:middle;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-date{
+    width:12%;
+    white-space:nowrap;
+    color:#cbd5e1;
+    font-size:12px;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-match{
+    width:28%;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-weight:800;
+    font-size:14px;
+    line-height:1.15;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-market{
+    width:26%;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    color:#dbe6fb;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table input[type="number"]{
+    width:74px;
+    text-align:center;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table select{
+    width:96px;
+    min-width:96px;
+  }
+}

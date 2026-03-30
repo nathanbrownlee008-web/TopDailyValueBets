@@ -3143,6 +3143,58 @@ window.forgotVipPassword = forgotVipPassword;
 
           html += `
                 </div>
+                <div class="tracker-desktop-table-wrap">
+                  <table class="tracker-desktop-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Match</th>
+                        <th>Market</th>
+                        <th>Stake</th>
+                        <th>Odds</th>
+                        <th>Result</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+          `;
+
+          dayRows.forEach(row=>{
+            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
+            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
+            html += `
+                      <tr>
+                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
+                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
+                        <td class="tracker-desktop-market">${trackerEsc(row.market || "—")}</td>
+                        <td>
+                          <input 
+                            type="number" 
+                            value="${Number(row.stake || 0)}" 
+                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
+                        </td>
+                        <td>
+                          <input 
+                            type="number" 
+                            step="0.01" 
+                            value="${Number(row.odds ?? 0)}" 
+                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
+                        </td>
+                        <td>
+                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                            <option value="delete">🗑 delete</option>
+                          </select>
+                        </td>
+                      </tr>
+            `;
+          });
+
+          html += `
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           `;
