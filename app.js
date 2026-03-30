@@ -3249,4 +3249,24 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
+// ===== FIX: Hide VIP preview if VIP active =====
+(function(){
+  const observer = new MutationObserver(()=>{
+    const vipPromo = document.getElementById('vipPromo');
+    if(!vipPromo) return;
 
+    if(vipActive){
+      vipPromo.style.display = "none";
+    }else{
+      vipPromo.style.display = "";
+    }
+  });
+
+  observer.observe(document.body, { childList:true, subtree:true });
+
+  // also run immediately
+  const vipPromo = document.getElementById('vipPromo');
+  if(vipPromo && vipActive){
+    vipPromo.style.display = "none";
+  }
+})();
