@@ -5815,3 +5815,35 @@ select.result-lost{
     min-width:96px;
   }
 }
+/* ===== FIX: Value Bets table alignment ===== */
+.bets-table {
+  table-layout: fixed;
+}
+
+.bets-table th,
+.bets-table td {
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* column widths */
+.bets-table th:nth-child(1),
+.bets-table td:nth-child(1){ width: 28%; }
+
+.bets-table th:nth-child(2),
+.bets-table td:nth-child(2){ width: 22%; }
+
+.bets-table th:nth-child(3),
+.bets-table td:nth-child(3){ width: 14%; }
+
+.bets-table th:nth-child(4),
+.bets-table td:nth-child(4){ width: 10%; }
+
+.bets-table th:nth-child(5),
+.bets-table td:nth-child(5){ width: 10%; }
+
+.bets-table th:nth-child(6),
+.bets-table td:nth-child(6){ width: 10%; }
+
+.bets-table th:nth-child(7),
+.bets-table td:nth-child(7){ width: 6%; text-align:right; }
