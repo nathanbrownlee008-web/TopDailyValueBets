@@ -3269,3 +3269,58 @@ function syncVipPromoVisibilitySafe(){
   setTimeout(syncVipPromoVisibilitySafe, 0);
   window.addEventListener('load', syncVipPromoVisibilitySafe);
 })();
+
+
+// ===== FINAL SAFE PATCH: force grouped tracker results and keep VIP promo hidden =====
+(function(){
+  function finalSyncVipPromo(){
+    try{
+      const promo = document.getElementById('vipPromo');
+      if(!promo) return;
+      promo.style.display = vipActive ? 'none' : '';
+    }catch(e){}
+  }
+
+  function finalRenderTrackerGrouped(){
+    try{
+      const tableEl = document.getElementById('trackerTable');
+      if(!tableEl) return;
+      if(typeof buildTrackerGroupedHTML !== 'function') return;
+      if(!Array.isArray(trackerAllRows)) return;
+      tableEl.innerHTML = buildTrackerGroupedHTML(trackerAllRows);
+      const countEl = document.getElementById('betCount');
+      if(countEl) countEl.textContent = trackerAllRows.length;
+    }catch(e){
+      console.error('Final grouped tracker patch failed', e);
+    }
+  }
+
+  const __finalOldSwitchTab = switchTab;
+  switchTab = function(tab){
+    const out = __finalOldSwitchTab.apply(this, arguments);
+    if(tab === 'tracker'){
+      setTimeout(finalRenderTrackerGrouped, 0);
+      setTimeout(finalRenderTrackerGrouped, 120);
+    }
+    finalSyncVipPromo();
+    return out;
+  };
+
+  if(typeof loadTracker === 'function'){
+    const __finalOldLoadTracker = loadTracker;
+    loadTracker = async function(){
+      const out = await __finalOldLoadTracker.apply(this, arguments);
+      finalRenderTrackerGrouped();
+      finalSyncVipPromo();
+      return out;
+    };
+  }
+
+  const __finalOldSetVipUI = setVipUI;
+  setVipUI = function(active, email){
+    __finalOldSetVipUI(active, email);
+    finalSyncVipPromo();
+  };
+
+  setTimeout(finalSyncVipPromo, 0);
+})();
