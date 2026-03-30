@@ -3270,18 +3270,9 @@ function syncVipPromoVisibilitySafe(){
   window.addEventListener('load', syncVipPromoVisibilitySafe);
 })();
 
-
-// ===== FINAL SAFE PATCH: force grouped tracker results and keep VIP promo hidden =====
+// ===== FINAL APPEND PATCH: restore grouped personal tracker shell in compact + wide =====
 (function(){
-  function finalSyncVipPromo(){
-    try{
-      const promo = document.getElementById('vipPromo');
-      if(!promo) return;
-      promo.style.display = vipActive ? 'none' : '';
-    }catch(e){}
-  }
-
-  function finalRenderTrackerGrouped(){
+  function renderPersonalTrackerGroupedSafe(){
     try{
       const tableEl = document.getElementById('trackerTable');
       if(!tableEl) return;
@@ -3290,37 +3281,31 @@ function syncVipPromoVisibilitySafe(){
       tableEl.innerHTML = buildTrackerGroupedHTML(trackerAllRows);
       const countEl = document.getElementById('betCount');
       if(countEl) countEl.textContent = trackerAllRows.length;
-    }catch(e){
-      console.error('Final grouped tracker patch failed', e);
+    }catch(err){
+      console.error('restore grouped tracker safe patch failed', err);
     }
   }
 
-  const __finalOldSwitchTab = switchTab;
-  switchTab = function(tab){
-    const out = __finalOldSwitchTab.apply(this, arguments);
-    if(tab === 'tracker'){
-      setTimeout(finalRenderTrackerGrouped, 0);
-      setTimeout(finalRenderTrackerGrouped, 120);
-    }
-    finalSyncVipPromo();
-    return out;
-  };
-
   if(typeof loadTracker === 'function'){
-    const __finalOldLoadTracker = loadTracker;
+    const __keepGroupedLoadTracker = loadTracker;
     loadTracker = async function(){
-      const out = await __finalOldLoadTracker.apply(this, arguments);
-      finalRenderTrackerGrouped();
-      finalSyncVipPromo();
+      const out = await __keepGroupedLoadTracker.apply(this, arguments);
+      renderPersonalTrackerGroupedSafe();
+      setTimeout(renderPersonalTrackerGroupedSafe, 0);
+      setTimeout(renderPersonalTrackerGroupedSafe, 120);
       return out;
     };
   }
 
-  const __finalOldSetVipUI = setVipUI;
-  setVipUI = function(active, email){
-    __finalOldSetVipUI(active, email);
-    finalSyncVipPromo();
-  };
-
-  setTimeout(finalSyncVipPromo, 0);
+  if(typeof switchTab === 'function'){
+    const __keepGroupedSwitchTab = switchTab;
+    switchTab = function(tab){
+      const out = __keepGroupedSwitchTab.apply(this, arguments);
+      if(tab === 'tracker'){
+        setTimeout(renderPersonalTrackerGroupedSafe, 0);
+        setTimeout(renderPersonalTrackerGroupedSafe, 120);
+      }
+      return out;
+    };
+  }
 })();
