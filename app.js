@@ -3116,7 +3116,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(row.market || "—")}
+                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
                     </div>
                   </div>
 
@@ -3142,6 +3142,63 @@ window.forgotVipPassword = forgotVipPassword;
           });
 
           html += `
+                </div>
+                <div class="tracker-desktop-table-wrap">
+                  <table class="tracker-desktop-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Match</th>
+                        <th>Market</th>
+                        <th>Stake</th>
+                        <th>Odds</th>
+                        <th>Result</th>
+                        <th class="profit-col">Profit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+          `;
+
+          dayRows.forEach(row=>{
+            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
+            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
+            let p = 0;
+            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+            if(row.result === "lost") p = -Number(row.stake || 0);
+            html += `
+                      <tr>
+                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
+                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
+                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
+                        <td>
+                          <input 
+                            type="number" 
+                            value="${Number(row.stake || 0)}" 
+                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
+                        </td>
+                        <td>
+                          <input 
+                            type="number" 
+                            step="0.01" 
+                            value="${Number(row.odds ?? 0)}" 
+                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
+                        </td>
+                        <td>
+                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                            <option value="delete">🗑 delete</option>
+                          </select>
+                        </td>
+                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
+                      </tr>
+            `;
+          });
+
+          html += `
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -3198,199 +3255,3 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
-
-/* ==== FINAL SAFE TRACKER GROUPED PATCH ==== */
-(function(){
-  function trackerProfitValue(row){
-    const odds = Number(row?.odds || 0);
-    const stake = Number(row?.stake || 0);
-    if((row?.result || 'pending') === 'won') return stake * (odds - 1);
-    if((row?.result || 'pending') === 'lost') return -stake;
-    return 0;
-  }
-
-  function trackerProfitHTML(row){
-    const result = row?.result || 'pending';
-    const profit = trackerProfitValue(row);
-    if(result === 'won') return `<span class="profit-win">£${profit.toFixed(2)}</span>`;
-    if(result === 'lost') return `<span class="profit-loss">-£${Math.abs(profit).toFixed(2)}</span>`;
-    return `£0.00`;
-  }
-
-  function trackerMarketWithIcon(row){
-    return `${trackerEsc(getMarketIcon(row?.market || ''))} ${trackerEsc(row?.market || '—')}`.trim();
-  }
-
-  window.buildTrackerGroupedHTML = function(rows){
-    const list = (rows || []).slice().sort((a,b)=> trackerParseDate(trackerRawDate(b)) - trackerParseDate(trackerRawDate(a)));
-
-    const today = new Date();
-    const currentMonthLabel = today.toLocaleDateString('en-GB', { month:'long', year:'numeric' });
-    const currentWeekLabel = trackerWeekLabel({ created_at: today.toISOString() });
-    const currentDayLabel = fmtDayLabel(today.toISOString());
-
-    const months = [];
-    const monthMap = new Map();
-
-    list.forEach(row=>{
-      const month = trackerMonthLabel(row);
-      const week = trackerWeekLabel(row);
-      const day = trackerDayLabel(row);
-      if(!monthMap.has(month)){
-        monthMap.set(month, { label: month, weeks: new Map() });
-        months.push(monthMap.get(month));
-      }
-      const monthEntry = monthMap.get(month);
-      if(!monthEntry.weeks.has(week)) monthEntry.weeks.set(week, { label: week, days: new Map() });
-      const weekEntry = monthEntry.weeks.get(week);
-      if(!weekEntry.days.has(day)) weekEntry.days.set(day, []);
-      weekEntry.days.get(day).push(row);
-    });
-
-    let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
-
-    months.forEach(monthEntry=>{
-      const monthKey = monthEntry.label;
-      const isCurrentMonth = monthKey === currentMonthLabel;
-      const monthOpen = isCurrentMonth;
-      html += `
-        <div class="tracker-month-wrap">
-          <button class="tracker-group-toggle tracker-month-toggle ${isCurrentMonth ? 'tracker-month-toggle--current' : ''}" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
-            <span class="tracker-group-arrow">${monthOpen ? '▼' : '▶'}</span>
-            <span>${trackerEsc(monthKey)}</span>
-          </button>
-          <div class="tracker-group-body ${monthOpen ? '' : 'is-collapsed'}">`;
-
-      Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry])=>{
-        const weekKey = `${monthKey}||${weekLabel}`;
-        const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
-        const weekOpen = isCurrentWeek;
-        html += `
-          <div class="tracker-week-wrap">
-            <button class="tracker-group-toggle tracker-week-toggle ${isCurrentWeek ? 'tracker-week-toggle--current' : ''}" data-type="week" data-key="${encodeURIComponent(weekKey)}" onclick="toggleTrackerCollapse(this)">
-              <span class="tracker-group-arrow">${weekOpen ? '▼' : '▶'}</span>
-              <span>${trackerEsc(weekLabel)}</span>
-            </button>
-            <div class="tracker-group-body ${weekOpen ? '' : 'is-collapsed'}">`;
-
-        Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows])=>{
-          const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
-          const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
-          const dayOpen = isCurrentDay;
-          html += `
-            <div class="tracker-day-wrap">
-              <button class="tracker-group-toggle tracker-day-toggle ${isCurrentDay ? 'tracker-day-toggle--current' : ''}" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
-                <span class="tracker-group-arrow">${dayOpen ? '▼' : '▶'}</span>
-                <span>${trackerEsc(dayLabel)}</span>
-              </button>
-              <div class="tracker-group-body ${dayOpen ? '' : 'is-collapsed'}">
-                <div class="tracker-bet-list">`;
-
-          dayRows.forEach(row=>{
-            html += `
-              <div class="tracker-grid-card">
-                <div class="tracker-grid-top">
-                  <div class="tracker-grid-match">${trackerEsc(row.match || '')}</div>
-                  <div class="tracker-grid-top-result">
-                    <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                      <option value="pending" ${(row.result==='pending'?'selected':'')}>pending</option>
-                      <option value="won" ${(row.result==='won'?'selected':'')}>won</option>
-                      <option value="lost" ${(row.result==='lost'?'selected':'')}>lost</option>
-                      <option value="delete">🗑 delete</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="tracker-grid-meta tracker-grid-meta--single-row">
-                  <div class="tracker-grid-market-slot">
-                    <span>Market</span>
-                    <div class="tracker-grid-market-inline">${trackerEsc(row.market || '—')}</div>
-                  </div>
-                  <div>
-                    <span>Odds</span>
-                    <input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                  </div>
-                  <div>
-                    <span>Stake</span>
-                    <input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}', this.value)">
-                  </div>
-                </div>
-              </div>`;
-          });
-
-          html += `</div>
-                <div class="tracker-results-table-wrap">
-                  <table class="tracker-results-table">
-                    <colgroup>
-                      <col class="tracker-col-match">
-                      <col class="tracker-col-market">
-                      <col class="tracker-col-stake">
-                      <col class="tracker-col-odds">
-                      <col class="tracker-col-result">
-                      <col class="tracker-col-profit">
-                    </colgroup>
-                    <thead>
-                      <tr>
-                        <th>Match</th>
-                        <th>Market</th>
-                        <th>Stake</th>
-                        <th>Odds</th>
-                        <th>Result</th>
-                        <th class="profit-col">Profit</th>
-                      </tr>
-                    </thead>
-                    <tbody>`;
-
-          dayRows.forEach(row=>{
-            html += `
-                      <tr>
-                        <td class="tracker-match-col"><span class="tracker-match-name">${trackerEsc(row.match || '')}</span></td>
-                        <td class="tracker-market-col">${trackerMarketWithIcon(row)}</td>
-                        <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}', this.value)"></td>
-                        <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}', this.value)"></td>
-                        <td>
-                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                            <option value="pending" ${(row.result==='pending'?'selected':'')}>pending</option>
-                            <option value="won" ${(row.result==='won'?'selected':'')}>won</option>
-                            <option value="lost" ${(row.result==='lost'?'selected':'')}>lost</option>
-                            <option value="delete">🗑 delete</option>
-                          </select>
-                        </td>
-                        <td class="profit-col">${trackerProfitHTML(row)}</td>
-                      </tr>`;
-          });
-
-          html += `
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>`;
-        });
-
-        html += `</div></div>`;
-      });
-      html += `</div></div>`;
-    });
-
-    html += `</div>`;
-    return html;
-  };
-
-  if(typeof loadTracker === 'function'){
-    const __groupedTrackerFinal = loadTracker;
-    loadTracker = async function(){
-      await __groupedTrackerFinal();
-      try{
-        const tableEl = document.getElementById('trackerTable');
-        const countEl = document.getElementById('betCount');
-        const rows = Array.isArray(trackerAllRows) ? trackerAllRows.slice() : [];
-        if(tableEl){
-          tableEl.innerHTML = buildTrackerGroupedHTML(rows);
-          if(countEl) countEl.textContent = rows.length;
-        }
-      }catch(err){
-        console.error('Final grouped tracker patch failed', err);
-      }
-    };
-  }
-})();
