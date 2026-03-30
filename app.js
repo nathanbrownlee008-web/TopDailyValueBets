@@ -721,13 +721,13 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
-        <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
-        <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
-        <td>${escapeHtml(betDate)}</td>
-        <td>
+        <td class="bets-date-col">${escapeHtml(betDate)}</td>
+        <td class="bets-match-col"><b>${escapeHtml(row.match||'')}</b></td>
+        <td class="bets-market-col">${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
+        <td class="bets-bookie-col">${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
+        <td class="bets-odds-col"><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
+        <td class="bets-value-col"><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
+        <td class="bets-add-col">
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
       </tr>`;
@@ -3143,6 +3143,54 @@ window.forgotVipPassword = forgotVipPassword;
 
           html += `
                 </div>
+                <table class="tracker-results-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Match</th>
+                      <th>Market</th>
+                      <th>Stake</th>
+                      <th>Odds</th>
+                      <th>Result</th>
+                      <th class="profit-col">Profit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+          `;
+
+          dayRows.forEach(row=>{
+            const shortDate = formatValueBetShortDate(row.bet_date || row.created_at || '') || trackerEsc(dayLabel);
+            const profitNum = row.result === 'won'
+              ? Number(row.stake || 0) * (Number(row.odds || 0) - 1)
+              : row.result === 'lost'
+                ? -Number(row.stake || 0)
+                : 0;
+            const profitTxt = row.result === 'pending' ? '£0.00' : `${profitNum >= 0 ? '£' : '-£'}${Math.abs(profitNum).toFixed(2)}`;
+            const profitCls = row.result === 'won' ? 'profit-win' : row.result === 'lost' ? 'profit-loss' : '';
+
+            html += `
+              <tr>
+                <td class="date-col">${trackerEsc(shortDate)}</td>
+                <td class="match-market-cell"><b>${trackerEsc(row.match || '')}</b></td>
+                <td class="tracker-market-col">${trackerEsc(getMarketIcon(row.market) || '')} ${trackerEsc(row.market || '—')}</td>
+                <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}', this.value)"></td>
+                <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}', this.value)"></td>
+                <td>
+                  <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                    <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                    <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                    <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                    <option value="delete">🗑 delete</option>
+                  </select>
+                </td>
+                <td class="profit-col ${profitCls}">${profitTxt}</td>
+              </tr>
+            `;
+          });
+
+          html += `
+                  </tbody>
+                </table>
               </div>
             </div>
           `;
