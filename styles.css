@@ -5770,3 +5770,40 @@ select.result-lost{
     text-align:right;
   }
 }
+
+
+/* ===== Tracker desktop rows only, keep mobile cards ===== */
+@media (min-width: 950px){
+  body.layout-wide .tracker-opt7-shell .tracker-bet-list{
+    display:none !important;
+  }
+  body.layout-wide .tracker-opt7-shell .tracker-results-table{
+    display:table !important;
+    table-layout:fixed;
+  }
+  body.layout-wide .tracker-opt7-shell .tracker-date-col{
+    width:84px;
+    white-space:nowrap;
+    opacity:.78;
+  }
+  body.layout-wide .tracker-opt7-shell .tracker-match-col{
+    width:32%;
+  }
+  body.layout-wide .tracker-opt7-shell .match-market-cell{
+    width:32%;
+  }
+  body.layout-wide .tracker-opt7-shell .tracker-match-name{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    overflow-wrap:normal;
+  }
+  body.layout-wide .tracker-opt7-shell .tracker-market-col{
+    width:24%;
+    color:#dbe7ff;
+  }
+  body.layout-wide .tracker-opt7-shell .tracker-results-table thead th,
+  body.layout-wide .tracker-opt7-shell .tracker-results-table tbody td{
+    padding:12px 8px;
+  }
+}
