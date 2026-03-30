@@ -215,6 +215,17 @@ function normalizeDateOnly(value){
   if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
   return null;
 }
+
+function formatValueBetShortDate(value){
+  if(!value) return '';
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return String(value);
+  const day = d.getDate();
+  const suffix = (day % 10 === 1 && day !== 11) ? 'st' : (day % 10 === 2 && day !== 12) ? 'nd' : (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
+  const month = d.toLocaleDateString('en-GB', { month:'short' });
+  return `${day}${suffix} ${month}`;
+}
+
 function isValueBetActiveToday(row){
   const today=toLocalYMD(new Date());
   const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
@@ -683,6 +694,7 @@ async function loadBets(){
     if(!locked) visibleForAlerts.push(row);
 
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
+    const betDateShort = formatValueBetShortDate(row.bet_date || row.created_at);
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -721,13 +733,13 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
-        <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
-        <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
-        <td>${escapeHtml(betDate)}</td>
-        <td>
+        <td class="bets-date-col">${escapeHtml(betDateShort)}</td>
+        <td class="bets-match-col"><b>${escapeHtml(row.match||'')}</b></td>
+        <td class="bets-market-col">${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
+        <td class="bets-bookie-col">${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
+        <td class="bets-odds-col"><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
+        <td class="bets-value-col"><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
+        <td class="bets-action-col">
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
       </tr>`;
@@ -3116,7 +3128,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
+                      ${trackerEsc(row.market || "—")}
                     </div>
                   </div>
 
@@ -3142,63 +3154,6 @@ window.forgotVipPassword = forgotVipPassword;
           });
 
           html += `
-                </div>
-                <div class="tracker-desktop-table-wrap">
-                  <table class="tracker-desktop-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Match</th>
-                        <th>Market</th>
-                        <th>Stake</th>
-                        <th>Odds</th>
-                        <th>Result</th>
-                        <th class="profit-col">Profit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-          `;
-
-          dayRows.forEach(row=>{
-            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
-            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
-            let p = 0;
-            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
-            if(row.result === "lost") p = -Number(row.stake || 0);
-            html += `
-                      <tr>
-                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
-                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
-                        <td>
-                          <input 
-                            type="number" 
-                            value="${Number(row.stake || 0)}" 
-                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <input 
-                            type="number" 
-                            step="0.01" 
-                            value="${Number(row.odds ?? 0)}" 
-                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                            <option value="delete">🗑 delete</option>
-                          </select>
-                        </td>
-                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-                      </tr>
-            `;
-          });
-
-          html += `
-                    </tbody>
-                  </table>
                 </div>
               </div>
             </div>
