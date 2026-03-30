@@ -5771,3 +5771,27 @@ select.result-lost{
   flex:0 0 auto !important;
   white-space:nowrap !important;
 }
+/* === FIX BOOKIE + VALUE OVERLAP === */
+.bet-left{
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: nowrap !important;
+}
+
+.bet-bookie{
+  display: inline-flex !important;
+  width: fit-content !important;
+  max-width: max-content !important;
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
+
+.stat-chip{
+  display: inline-flex !important;
+  width: fit-content !important;
+  max-width: max-content !important;
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  margin-left: 0 !important;
+}
