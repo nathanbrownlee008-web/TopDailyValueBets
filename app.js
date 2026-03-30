@@ -3257,3 +3257,12 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
+// SAFE VIP PREVIEW HIDE
+setInterval(() => {
+  const vipActive = document.getElementById("vipStatus")?.innerText?.toLowerCase().includes("active");
+  const promo = document.getElementById("vipPromo");
+
+  if(promo){
+    promo.style.display = vipActive ? "none" : "block";
+  }
+}, 1000);
