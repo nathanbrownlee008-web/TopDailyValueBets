@@ -5741,142 +5741,97 @@ select.result-lost{
   display:none !important;
 }
 
-/* ===== WIDE MODE TRACKER ROWS: force rows even on phone when Wide is active ===== */
-body.layout-wide #trackerTable .tracker-bet-list{
-  display:none !important;
-}
-body.layout-wide #trackerTable .tracker-rows-shell{
-  display:block !important;
-  margin-top:10px;
-}
-body.layout-compact #trackerTable .tracker-rows-shell{
-  display:none !important;
+/* ===== TRACKER WIDE ROWS FIX ===== */
+#trackerTable .tracker-results-table-wrap{
+  display:none;
+  padding-top:10px;
 }
 
-body.layout-wide #trackerTable .tracker-day-wrap{
-  margin-bottom:10px !important;
-}
-
-body.layout-wide #trackerTable .tracker-results-table{
+#trackerTable .tracker-results-table{
   width:100%;
   border-collapse:separate;
-  border-spacing:0;
+  border-spacing:0 10px;
   table-layout:fixed;
-  background:linear-gradient(180deg, rgba(10,21,45,0.82), rgba(8,18,38,0.92));
-  border:1px solid rgba(100,150,230,0.16);
-  border-top:none;
-  border-radius:0 0 16px 16px;
-  overflow:hidden;
-  box-shadow:0 16px 38px rgba(0,0,0,0.22);
 }
 
-body.layout-wide #trackerTable .tracker-results-table thead th{
-  padding:14px 12px;
-  font-size:11px;
-  letter-spacing:.14em;
+#trackerTable .tracker-results-table thead th{
+  padding:0 12px 8px;
+  font-size:12px;
+  letter-spacing:.12em;
   text-transform:uppercase;
-  color:rgba(196,215,240,0.78);
-  border-bottom:1px solid rgba(120,150,200,0.18);
-  background:rgba(255,255,255,0.03);
-}
-
-body.layout-wide #trackerTable .tracker-results-table tbody td{
-  padding:12px;
-  border-bottom:1px solid rgba(120,150,200,0.12);
-  vertical-align:middle;
-}
-body.layout-wide #trackerTable .tracker-results-table tbody tr:last-child td{
+  color:rgba(180,205,230,.76);
   border-bottom:none;
 }
-body.layout-wide #trackerTable .tracker-results-table tbody tr{
-  transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
-}
-body.layout-wide #trackerTable .tracker-results-table tbody tr:hover{
-  background:rgba(30,64,120,0.14);
+
+#trackerTable .tracker-results-table tbody td{
+  padding:14px 12px;
+  vertical-align:middle;
+  border-bottom:none;
+  background:rgba(16,28,50,.82);
 }
 
-body.layout-wide #trackerTable .tracker-col-match{width:28%;}
-body.layout-wide #trackerTable .tracker-col-market{width:26%;}
-body.layout-wide #trackerTable .tracker-col-odds{width:13%;}
-body.layout-wide #trackerTable .tracker-col-stake{width:13%;}
-body.layout-wide #trackerTable .tracker-col-result{width:12%;}
-body.layout-wide #trackerTable .tracker-col-profit{width:14%; text-align:right;}
-
-body.layout-wide #trackerTable .tracker-row-match{
-  font-weight:900;
-  color:#eff6ff;
-  line-height:1.12;
-  letter-spacing:.01em;
-  overflow-wrap:anywhere;
-}
-body.layout-wide #trackerTable .tracker-row-market{
-  color:rgba(222,232,246,0.88);
-  line-height:1.12;
-  overflow-wrap:anywhere;
+#trackerTable .tracker-results-table tbody tr td:first-child{
+  border-top-left-radius:16px;
+  border-bottom-left-radius:16px;
+  border-left:3px solid rgba(34,197,94,.50);
 }
 
-body.layout-wide #trackerTable .tracker-input-pill{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 10px;
-  border-radius:14px;
-  background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.09);
+#trackerTable .tracker-results-table tbody tr td:last-child{
+  border-top-right-radius:16px;
+  border-bottom-right-radius:16px;
 }
-body.layout-wide #trackerTable .tracker-mini-label{
-  font-size:10px;
+
+#trackerTable .tracker-row-match-name{
   font-weight:800;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:rgba(190,205,225,0.72);
+  color:#eef4ff;
+  line-height:1.1;
 }
-body.layout-wide #trackerTable .tracker-input-pill input{
-  width:100%;
-  min-width:0;
-  height:38px;
-  padding:6px 8px;
-  border-radius:12px;
-  border:1px solid rgba(120,150,200,0.16);
-  background:#162742;
-  color:#fff;
-  text-align:center;
-  box-sizing:border-box;
-}
-body.layout-wide #trackerTable .tracker-col-result .result-select{
-  width:100%;
-  min-width:0;
-  height:40px;
-  border-radius:12px;
-  font-size:12px;
-}
-body.layout-wide #trackerTable .tracker-profit-pill{
+
+#trackerTable .tracker-row-pill{
   display:inline-flex;
   align-items:center;
-  justify-content:center;
-  min-width:88px;
-  padding:9px 12px;
+  max-width:100%;
+  padding:8px 12px;
   border-radius:999px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-weight:700;
+}
+
+#trackerTable .tracker-results-table input[type="number"]{
+  width:84px;
+  height:38px;
+  border-radius:12px;
+  text-align:center;
+}
+
+#trackerTable .tracker-results-table select{
+  min-width:106px;
+  height:38px;
+  border-radius:12px;
+}
+
+#trackerTable .tracker-row-profit{
   font-weight:900;
-  background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.09);
+  text-align:right;
+  white-space:nowrap;
 }
-body.layout-wide #trackerTable .tracker-profit-pill.profit-win{
-  color:#86efac;
-  background:rgba(34,197,94,0.12);
-  border-color:rgba(34,197,94,0.26);
+
+body.layout-wide #trackerTable .tracker-bet-list{
+  display:none;
 }
-body.layout-wide #trackerTable .tracker-profit-pill.profit-loss{
-  color:#fca5a5;
-  background:rgba(239,68,68,0.12);
-  border-color:rgba(239,68,68,0.24);
+
+body.layout-wide #trackerTable .tracker-results-table-wrap{
+  display:block;
 }
-body.layout-wide #trackerTable .tracker-row-item--won{
-  box-shadow: inset 3px 0 0 rgba(34,197,94,0.65);
+
+body.layout-compact #trackerTable .tracker-bet-list{
+  display:grid;
 }
-body.layout-wide #trackerTable .tracker-row-item--lost{
-  box-shadow: inset 3px 0 0 rgba(239,68,68,0.65);
-}
-body.layout-wide #trackerTable .tracker-row-item--pending{
-  box-shadow: inset 3px 0 0 rgba(245,158,11,0.55);
+
+body.layout-compact #trackerTable .tracker-results-table-wrap{
+  display:none;
 }
