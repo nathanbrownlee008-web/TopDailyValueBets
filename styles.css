@@ -5736,29 +5736,7 @@ select.result-lost{
   }
 }
 
-/* === Add button moved under date === */
-.bet-header{
-  display:flex !important;
-  justify-content:space-between !important;
-  align-items:flex-start !important;
-  gap:10px !important;
-}
-.bet-header-right{
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:flex-end !important;
-  gap:6px !important;
-  flex:0 0 auto !important;
-}
-.bet-header-right .bet-date{
-  text-align:right !important;
-}
-.bet-header-right .bet-btn{
-  padding:4px 10px !important;
-  font-size:11px !important;
-  line-height:1.1 !important;
-  border-radius:999px !important;
-}
-.bet-footer{
-  justify-content:flex-start !important;
+/* === MERGE ODDS INTO BOOKIE PILL === */
+.bet-odds-top{
+  display:none !important;
 }
