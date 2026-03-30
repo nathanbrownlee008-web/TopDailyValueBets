@@ -5865,26 +5865,25 @@ select.result-lost{
 
 #trackerTable th:nth-child(1),
 #trackerTable td:nth-child(1){
-  width: 38%;
+  width: 42%; /* MATCH bigger */
 }
 
 #trackerTable th:nth-child(2),
 #trackerTable td:nth-child(2){
-  width: 30%;
+  width: 28%; /* MARKET */
 }
 
-/* separate block */
 #trackerTable td:nth-child(2){
   text-align: left;
-  padding-left: 6px;
+  padding-left: 4px;
 }
 
-/* tighten other columns */
+/* tighter others */
 #trackerTable th:nth-child(3),
-#trackerTable td:nth-child(3){ width: 10%; }
+#trackerTable td:nth-child(3){ width: 9%; }
 
 #trackerTable th:nth-child(4),
-#trackerTable td:nth-child(4){ width: 10%; }
+#trackerTable td:nth-child(4){ width: 9%; }
 
 #trackerTable th:nth-child(5),
 #trackerTable td:nth-child(5){ width: 6%; }
@@ -5927,3 +5926,13 @@ select.result-lost{
 
 .bets-table th:nth-child(7),
 .bets-table td:nth-child(7){ width: 6%; text-align:right; }
+/* ===== FORCE TRACKER TABLE LEFT ===== */
+#trackerTable table{
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+/* remove any centering */
+#trackerTable{
+  text-align: left !important;
+}
