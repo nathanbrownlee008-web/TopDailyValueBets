@@ -5742,68 +5742,21 @@ select.result-lost{
 }
 
 
-@media (min-width: 980px){
-  .bets-table .bets-date-col{
-    width:84px;
-    font-size:12px;
-    color:rgba(200,214,231,.78);
-    white-space:nowrap;
-  }
-  .bets-table .bets-match-col{
-    width:240px;
-    white-space:nowrap;
-  }
-  .bets-table .bets-market-col{
-    width:220px;
-    white-space:nowrap;
-  }
-  .bets-table .bets-bookie-col{
-    width:120px;
-    white-space:nowrap;
-  }
-  .bets-table .bets-odds-col,
-  .bets-table .bets-value-col{
-    width:88px;
-  }
-  .bets-table .bets-action-col{
-    width:96px;
-    text-align:right;
-  }
-}
-
-
-/* ===== Tracker desktop rows only, keep mobile cards ===== */
+/* ===== SAFE PATCH: nudge tracker desktop market column left ===== */
 @media (min-width: 950px){
-  body.layout-wide .tracker-opt7-shell .tracker-bet-list{
-    display:none !important;
+  #trackerTable .tracker-results-table th:nth-child(1),
+  #trackerTable .tracker-results-table td:nth-child(1){
+    width: 74px;
   }
-  body.layout-wide .tracker-opt7-shell .tracker-results-table{
-    display:table !important;
-    table-layout:fixed;
+
+  #trackerTable .tracker-results-table th:nth-child(2),
+  #trackerTable .tracker-results-table td.match-market-cell{
+    width: 200px;
   }
-  body.layout-wide .tracker-opt7-shell .tracker-date-col{
-    width:84px;
-    white-space:nowrap;
-    opacity:.78;
-  }
-  body.layout-wide .tracker-opt7-shell .tracker-match-col{
-    width:32%;
-  }
-  body.layout-wide .tracker-opt7-shell .match-market-cell{
-    width:32%;
-  }
-  body.layout-wide .tracker-opt7-shell .tracker-match-name{
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    overflow-wrap:normal;
-  }
-  body.layout-wide .tracker-opt7-shell .tracker-market-col{
-    width:24%;
-    color:#dbe7ff;
-  }
-  body.layout-wide .tracker-opt7-shell .tracker-results-table thead th,
-  body.layout-wide .tracker-opt7-shell .tracker-results-table tbody td{
-    padding:12px 8px;
+
+  #trackerTable .tracker-results-table th:nth-child(3),
+  #trackerTable .tracker-results-table td.tracker-market-col{
+    width: 150px;
+    padding-left: 2px !important;
   }
 }
