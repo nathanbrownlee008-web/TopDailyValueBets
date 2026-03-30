@@ -3116,7 +3116,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(row.market || "—")}
+                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
                     </div>
                   </div>
 
@@ -3153,6 +3153,7 @@ window.forgotVipPassword = forgotVipPassword;
                         <th>Stake</th>
                         <th>Odds</th>
                         <th>Result</th>
+                        <th class="profit-col">Profit</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3161,11 +3162,14 @@ window.forgotVipPassword = forgotVipPassword;
           dayRows.forEach(row=>{
             const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
             const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
+            let p = 0;
+            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+            if(row.result === "lost") p = -Number(row.stake || 0);
             html += `
                       <tr>
                         <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
                         <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(row.market || "—")}</td>
+                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
                         <td>
                           <input 
                             type="number" 
@@ -3187,6 +3191,7 @@ window.forgotVipPassword = forgotVipPassword;
                             <option value="delete">🗑 delete</option>
                           </select>
                         </td>
+                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
                       </tr>
             `;
           });
