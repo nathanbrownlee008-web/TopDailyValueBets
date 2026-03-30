@@ -5757,3 +5757,10 @@ select.result-lost{
   padding:6px 14px !important;
   line-height:1 !important;
 }
+/* SPACE BETWEEN BOOKIE + VALUE */
+.bet-bottom{
+  display:flex;
+  align-items:center;
+  gap:10px; /* THIS is what pushes value to the right */
+  flex-wrap:nowrap;
+}
