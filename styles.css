@@ -5741,66 +5741,27 @@ select.result-lost{
   display:none !important;
 }
 
+/* ==== FINAL SAFE TRACKER GROUPED DISPLAY PATCH ==== */
+.tracker-results-table-wrap{display:none;}
+.tracker-opt7-shell .tracker-bet-list{display:grid;}
 
-/* ===== SAFE PATCH: nudge tracker desktop market column left ===== */
-@media (min-width: 950px){
-  #trackerTable .tracker-results-table th:nth-child(1),
-  #trackerTable .tracker-results-table td:nth-child(1){
-    width: 74px;
-  }
-
-  #trackerTable .tracker-results-table th:nth-child(2),
-  #trackerTable .tracker-results-table td.match-market-cell{
-    width: 200px;
-  }
-
-  #trackerTable .tracker-results-table th:nth-child(3),
-  #trackerTable .tracker-results-table td.tracker-market-col{
-    width: 150px;
-    padding-left: 2px !important;
-  }
+@media (min-width:950px){
+  body.layout-wide #trackerTable .tracker-bet-list{display:none !important;}
+  body.layout-wide #trackerTable .tracker-results-table-wrap{display:block !important; padding-top:10px;}
+  body.layout-wide #trackerTable .tracker-results-table{display:table !important; table-layout:fixed; width:100%;}
+  body.layout-wide #trackerTable .tracker-results-table .tracker-col-match{width:30%;}
+  body.layout-wide #trackerTable .tracker-results-table .tracker-col-market{width:26%;}
+  body.layout-wide #trackerTable .tracker-results-table .tracker-col-stake{width:11%;}
+  body.layout-wide #trackerTable .tracker-results-table .tracker-col-odds{width:11%;}
+  body.layout-wide #trackerTable .tracker-results-table .tracker-col-result{width:12%;}
+  body.layout-wide #trackerTable .tracker-results-table .tracker-col-profit{width:10%;}
+  body.layout-wide #trackerTable .tracker-results-table th,
+  body.layout-wide #trackerTable .tracker-results-table td{padding:10px 8px !important;}
+  body.layout-wide #trackerTable .tracker-results-table .tracker-match-name{display:block; white-space:normal; overflow-wrap:anywhere; line-height:1.05;}
+  body.layout-wide #trackerTable .tracker-results-table .tracker-market-col{padding-left:2px !important;}
 }
 
-
-/* ===== SAFE PATCH: restore wide tracker rows + align Value Bets columns ===== */
-body.layout-wide .tracker-opt7-shell .tracker-bet-list{display:none;}
-body.layout-wide .tracker-opt7-shell .tracker-results-table{display:table;width:100%;}
-
-body.layout-wide .bets-table{table-layout:fixed;}
-body.layout-wide .bets-table th:nth-child(1),
-body.layout-wide .bets-table td.bets-date-col{width:68px;}
-body.layout-wide .bets-table th:nth-child(2),
-body.layout-wide .bets-table td.bets-match-col{width:180px;white-space:nowrap;}
-body.layout-wide .bets-table th:nth-child(3),
-body.layout-wide .bets-table td.bets-market-col{width:150px;}
-body.layout-wide .bets-table th:nth-child(4),
-body.layout-wide .bets-table td.bets-bookie-col{width:110px;}
-body.layout-wide .bets-table th:nth-child(5),
-body.layout-wide .bets-table td.bets-odds-col{width:70px;text-align:center;}
-body.layout-wide .bets-table th:nth-child(6),
-body.layout-wide .bets-table td.bets-value-col{width:78px;text-align:center;}
-body.layout-wide .bets-table th:nth-child(7),
-body.layout-wide .bets-table td.bets-add-col{width:74px;text-align:right;}
-
-body.layout-wide #trackerTable .tracker-results-table{table-layout:fixed;}
-body.layout-wide #trackerTable .tracker-results-table th:nth-child(1),
-body.layout-wide #trackerTable .tracker-results-table td:nth-child(1){width:64px;}
-body.layout-wide #trackerTable .tracker-results-table th:nth-child(2),
-body.layout-wide #trackerTable .tracker-results-table td.match-market-cell{width:170px;white-space:nowrap;}
-body.layout-wide #trackerTable .tracker-results-table th:nth-child(3),
-body.layout-wide #trackerTable .tracker-results-table td.tracker-market-col{width:150px;padding-left:0 !important;}
-body.layout-wide #trackerTable .tracker-results-table th:nth-child(4),
-body.layout-wide #trackerTable .tracker-results-table th:nth-child(5){width:72px;}
-body.layout-wide #trackerTable .tracker-results-table th:nth-child(6){width:96px;}
-body.layout-wide #trackerTable .tracker-results-table th:nth-child(7),
-body.layout-wide #trackerTable .tracker-results-table td.profit-col{width:84px;text-align:right;}
-
-/* ===== FINAL APPEND PATCH: keep grouped tracker layout stable ===== */
-#trackerTable .tracker-grouped-shell{display:block !important;}
-#trackerTable .tracker-month-wrap,
-#trackerTable .tracker-week-wrap,
-#trackerTable .tracker-day-wrap{display:block !important;}
-body.layout-compact #trackerTable .tracker-opt7-shell .tracker-bet-list{display:grid !important;}
-body.layout-compact #trackerTable .tracker-opt7-shell .tracker-results-table{display:none !important;}
-body.layout-wide #trackerTable .tracker-opt7-shell .tracker-bet-list{display:none !important;}
-body.layout-wide #trackerTable .tracker-opt7-shell .tracker-results-table{display:table !important;width:100% !important;}
+@media (max-width:949px){
+  #trackerTable .tracker-results-table-wrap{display:none !important;}
+  #trackerTable .tracker-bet-list{display:grid !important;}
+}
