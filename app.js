@@ -3098,7 +3098,20 @@ window.forgotVipPassword = forgotVipPassword;
                 <div class="tracker-bet-list">
           `;
 
+          const desktopRows = [];
+
           dayRows.forEach(row=>{
+            const rowResult = String(row.result || 'pending').toLowerCase();
+            const rowStake = Number(row.stake || 0);
+            const rowOdds = Number(row.odds ?? 0);
+            const rowProfit = rowResult === 'won'
+              ? rowStake * (rowOdds - 1)
+              : rowResult === 'lost'
+              ? -rowStake
+              : 0;
+            const rowProfitClass = rowProfit > 0 ? 'is-win' : rowProfit < 0 ? 'is-loss' : 'is-pending';
+            const rowProfitText = rowProfit > 0 ? `+£${rowProfit.toFixed(2)}` : rowProfit < 0 ? `-£${Math.abs(rowProfit).toFixed(2)}` : '—';
+
             html += `
               <div class="tracker-grid-card">
                 <div class="tracker-grid-top">
@@ -3125,7 +3138,7 @@ window.forgotVipPassword = forgotVipPassword;
                     <input 
                       type="number" 
                       step="0.01" 
-                      value="${Number(row.odds ?? 0)}" 
+                      value="${rowOdds}" 
                       onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
                   </div>
 
@@ -3133,15 +3146,67 @@ window.forgotVipPassword = forgotVipPassword;
                     <span>Stake</span>
                     <input 
                       type="number" 
-                      value="${Number(row.stake || 0)}" 
+                      value="${rowStake}" 
                       onchange="updateStake('${trackerEsc(row.id)}', this.value)">
                   </div>
                 </div>
               </div>
             `;
+
+            desktopRows.push(`
+              <tr class="tracker-desktop-row tracker-desktop-row--${trackerEsc(rowResult)}">
+                <td class="tracker-desktop-match-cell">
+                  <div class="tracker-desktop-match">${trackerEsc(row.match || "")}</div>
+                </td>
+                <td class="tracker-desktop-market-cell">
+                  <span class="tracker-desktop-market-pill">${getMarketIcon(row.market)} ${trackerEsc(row.market || "—")}</span>
+                </td>
+                <td class="tracker-desktop-odds-cell">
+                  <input 
+                    class="tracker-desktop-input" 
+                    type="number" 
+                    step="0.01" 
+                    value="${rowOdds}" 
+                    onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
+                </td>
+                <td class="tracker-desktop-stake-cell">
+                  <input 
+                    class="tracker-desktop-input" 
+                    type="number" 
+                    value="${rowStake}" 
+                    onchange="updateStake('${trackerEsc(row.id)}', this.value)">
+                </td>
+                <td class="tracker-desktop-result-cell">
+                  <select class="result-select result-${trackerEsc(row.result || 'pending')} tracker-desktop-select" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                    <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                    <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                    <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                    <option value="delete">🗑 delete</option>
+                  </select>
+                </td>
+                <td class="tracker-desktop-profit-cell ${rowProfitClass}">${rowProfitText}</td>
+              </tr>
+            `);
           });
 
           html += `
+                </div>
+                <div class="tracker-results-table-wrap">
+                  <table class="tracker-results-table">
+                    <thead>
+                      <tr>
+                        <th>Match</th>
+                        <th>Market</th>
+                        <th>Odds</th>
+                        <th>Stake</th>
+                        <th>Result</th>
+                        <th>Profit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${desktopRows.join("")}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>

@@ -5740,3 +5740,148 @@ select.result-lost{
 .bet-odds-top{
   display:none !important;
 }
+
+
+/* ===== Desktop-wide tracker results rows only (mobile stays on cards) ===== */
+.tracker-results-table-wrap{
+  display:none;
+}
+
+@media (min-width: 950px){
+  body.layout-wide .tracker-opt7-shell .tracker-bet-list{
+    display:none;
+  }
+
+  body.layout-wide .tracker-results-table-wrap{
+    display:block;
+    margin-top:12px;
+    overflow-x:auto;
+    border-radius:20px;
+    border:1px solid rgba(255,255,255,0.08);
+    background:linear-gradient(180deg, rgba(9,17,35,0.94), rgba(13,25,48,0.88));
+    box-shadow:0 18px 42px rgba(0,0,0,0.24);
+    animation:trackerDesktopRowsIn .28s ease;
+  }
+
+  body.layout-wide .tracker-results-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    table-layout:fixed;
+    min-width:900px;
+  }
+
+  body.layout-wide .tracker-results-table thead th{
+    position:sticky;
+    top:0;
+    z-index:2;
+    padding:14px 16px;
+    text-align:left;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:rgba(205,223,244,0.82);
+    background:rgba(10,20,38,0.98);
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+
+  body.layout-wide .tracker-results-table thead th:nth-child(1){width:35%;}
+  body.layout-wide .tracker-results-table thead th:nth-child(2){width:23%;}
+  body.layout-wide .tracker-results-table thead th:nth-child(3){width:10%;}
+  body.layout-wide .tracker-results-table thead th:nth-child(4){width:10%;}
+  body.layout-wide .tracker-results-table thead th:nth-child(5){width:12%;}
+  body.layout-wide .tracker-results-table thead th:nth-child(6){width:10%; text-align:right;}
+
+  body.layout-wide .tracker-results-table tbody td{
+    padding:14px 16px;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    vertical-align:middle;
+    background:transparent;
+  }
+
+  body.layout-wide .tracker-results-table tbody tr{
+    transition:transform .18s ease, background-color .18s ease, box-shadow .18s ease;
+  }
+
+  body.layout-wide .tracker-results-table tbody tr:hover{
+    background:rgba(255,255,255,0.03);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+
+  body.layout-wide .tracker-results-table tbody tr:last-child td{
+    border-bottom:none;
+  }
+
+  body.layout-wide .tracker-desktop-row--won td:first-child{
+    box-shadow:inset 3px 0 0 rgba(34,197,94,0.95);
+  }
+  body.layout-wide .tracker-desktop-row--lost td:first-child{
+    box-shadow:inset 3px 0 0 rgba(239,68,68,0.95);
+  }
+  body.layout-wide .tracker-desktop-row--pending td:first-child{
+    box-shadow:inset 3px 0 0 rgba(234,179,8,0.95);
+  }
+
+  body.layout-wide .tracker-desktop-match{
+    font-weight:900;
+    font-size:15px;
+    line-height:1.15;
+    color:#f8fbff;
+    overflow-wrap:anywhere;
+  }
+
+  body.layout-wide .tracker-desktop-market-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.10);
+    color:#dfeaf7;
+    font-weight:800;
+    font-size:13px;
+    line-height:1.1;
+    max-width:100%;
+  }
+
+  body.layout-wide .tracker-desktop-input{
+    width:100%;
+    min-width:72px;
+    max-width:88px;
+    height:40px;
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.12);
+    background:rgba(255,255,255,0.06);
+    color:#fff;
+    font-weight:800;
+    text-align:center;
+    box-sizing:border-box;
+  }
+
+  body.layout-wide .tracker-desktop-select{
+    min-width:108px;
+    width:108px;
+    height:40px;
+    padding:8px 10px;
+    border-radius:12px;
+    font-weight:800;
+  }
+
+  body.layout-wide .tracker-desktop-profit-cell{
+    text-align:right;
+    font-weight:900;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+
+  body.layout-wide .tracker-desktop-profit-cell.is-win{ color:#4ade80; }
+  body.layout-wide .tracker-desktop-profit-cell.is-loss{ color:#f87171; }
+  body.layout-wide .tracker-desktop-profit-cell.is-pending{ color:#cbd5e1; }
+}
+
+@keyframes trackerDesktopRowsIn{
+  from{ opacity:0; transform:translateY(6px); }
+  to{ opacity:1; transform:translateY(0); }
+}
