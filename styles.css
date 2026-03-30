@@ -5740,3 +5740,20 @@ select.result-lost{
 .bet-odds-top{
   display:none !important;
 }
+/* === BOOKIE PILL AUTO WIDTH, NO STACKING === */
+.bet-bookie{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  width:auto !important;
+  min-width:0 !important;
+  max-width:max-content !important;
+  flex:0 0 auto !important;
+
+  white-space:nowrap !important;
+  word-break:keep-all !important;
+
+  padding:6px 14px !important;
+  line-height:1 !important;
+}
