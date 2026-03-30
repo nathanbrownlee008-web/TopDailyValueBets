@@ -5764,3 +5764,10 @@ select.result-lost{
   gap:10px; /* THIS is what pushes value to the right */
   flex-wrap:nowrap;
 }
+.value-pill{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:max-content !important;
+  flex:0 0 auto !important;
+  white-space:nowrap !important;
+}
