@@ -5736,13 +5736,7 @@ select.result-lost{
   }
 }
 
-/* === BOOKIE PILL AUTO WIDTH TO TEXT === */
-.bet-bookie{
-  display:inline-flex !important;
-  width:fit-content !important;
-  max-width:100% !important;
-  flex:0 0 auto !important;
-  white-space:nowrap !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
+/* === MERGE ODDS INTO BOOKIE PILL === */
+.bet-odds-top{
+  display:none !important;
 }
