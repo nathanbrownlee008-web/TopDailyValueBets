@@ -5735,3 +5735,8 @@ select.result-lost{
     font-size: 12.5px !important;
   }
 }
+
+/* === MERGE ODDS INTO BOOKIE PILL === */
+.bet-odds-top{
+  display:none !important;
+}
