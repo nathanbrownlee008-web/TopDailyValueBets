@@ -5742,197 +5742,75 @@ select.result-lost{
 }
 
 
-/* ===== Desktop-only tracker table (mobile untouched) ===== */
-#trackerTable .tracker-desktop-table-wrap{
-  display:none;
+/* ===== FINAL SAFE PATCH: VIP preview hide + better tracker/value-bets alignment ===== */
+.bets-table{
+  table-layout: fixed;
 }
+.bets-table th:nth-child(1), .bets-table td:nth-child(1){ width: 28%; }
+.bets-table th:nth-child(2), .bets-table td:nth-child(2){ width: 20%; }
+.bets-table th:nth-child(3), .bets-table td:nth-child(3){ width: 14%; }
+.bets-table th:nth-child(4), .bets-table td:nth-child(4){ width: 10%; }
+.bets-table th:nth-child(5), .bets-table td:nth-child(5){ width: 10%; }
+.bets-table th:nth-child(6), .bets-table td:nth-child(6){ width: 12%; white-space: nowrap; }
+.bets-table th:nth-child(7), .bets-table td:nth-child(7){ width: 6%; text-align:right; }
 
-@media (min-width: 950px){
-  body.layout-wide #trackerTable .tracker-bet-list{
-    display:none;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table-wrap{
-    display:block;
-    padding-top:10px;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table{
-    width:100%;
-    border-collapse:collapse;
-    table-layout:fixed;
-    background:transparent;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table thead th{
-    text-align:left;
-    padding:12px 8px;
-    border-bottom:1px solid #334155;
-    font-size:12px;
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    color:rgba(180,205,230,.78);
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table tbody td{
-    padding:12px 8px;
-    border-bottom:1px solid #22314a;
-    vertical-align:middle;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-date{
-    width:9%;
-    white-space:nowrap;
-    color:#cbd5e1;
-    font-size:12px;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-match{
-    width:33%;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    font-weight:800;
-    font-size:14px;
-    line-height:1.15;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-market{
-    width:24%;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    color:#dbe6fb;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table input[type="number"]{
-    width:74px;
-    text-align:center;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table select{
-    width:96px;
-    min-width:96px;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table th.profit-col,
-  body.layout-wide #trackerTable .tracker-desktop-table td.profit-col{
-    width:11%;
-    text-align:right;
-    white-space:nowrap;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table td.profit-col span{
-    font-weight:800;
-  }
-
-  body.layout-wide .bets-table{
-    table-layout:fixed;
-  }
-
-  body.layout-wide .bets-table thead th:nth-child(1),
-  body.layout-wide .bets-table tbody td:nth-child(1){ width:25%; }
-  body.layout-wide .bets-table thead th:nth-child(2),
-  body.layout-wide .bets-table tbody td:nth-child(2){ width:21%; }
-  body.layout-wide .bets-table thead th:nth-child(3),
-  body.layout-wide .bets-table tbody td:nth-child(3){ width:14%; }
-  body.layout-wide .bets-table thead th:nth-child(4),
-  body.layout-wide .bets-table tbody td:nth-child(4){ width:10%; text-align:center; }
-  body.layout-wide .bets-table thead th:nth-child(5),
-  body.layout-wide .bets-table tbody td:nth-child(5){ width:10%; text-align:center; }
-  body.layout-wide .bets-table thead th:nth-child(6),
-  body.layout-wide .bets-table tbody td:nth-child(6){ width:12%; white-space:nowrap; }
-  body.layout-wide .bets-table thead th:nth-child(7),
-  body.layout-wide .bets-table tbody td:nth-child(7){ width:8%; text-align:right; white-space:nowrap; }
-
-  body.layout-wide .bets-table tbody td:nth-child(1){
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  body.layout-wide .bets-table tbody td:nth-child(3){
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-}
-/* ===== FIX: Give Match more space in tracker ===== */
-#trackerTable table {
+#trackerTable > table{
   table-layout: fixed;
   width: 100%;
 }
-
-#trackerTable th:nth-child(1),
-#trackerTable td:nth-child(1){
-  width: 42%; /* MATCH bigger */
+#trackerTable > table th:nth-child(1),
+#trackerTable > table td:nth-child(1){ width: 38%; }
+#trackerTable > table th:nth-child(2),
+#trackerTable > table td:nth-child(2){ width: 18%; }
+#trackerTable > table th:nth-child(3),
+#trackerTable > table td:nth-child(3){ width: 12%; }
+#trackerTable > table th:nth-child(4),
+#trackerTable > table td:nth-child(4){ width: 12%; }
+#trackerTable > table th:nth-child(5),
+#trackerTable > table td:nth-child(5){ width: 12%; }
+#trackerTable > table th:nth-child(6),
+#trackerTable > table td:nth-child(6){ width: 8%; }
+#trackerTable td.match-market-cell,
+#trackerTable td:first-child{
+  padding-right: 14px;
+}
+#trackerTable .tracker-match-name{
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
-#trackerTable th:nth-child(2),
-#trackerTable td:nth-child(2){
-  width: 28%; /* MARKET */
-}
 
-#trackerTable td:nth-child(2){
-  text-align: left;
-  padding-left: 4px;
-}
+/* ===== SAFE FINAL PATCH: Value Bets alignment + grouped desktop tracker ===== */
+.bets-table{table-layout:fixed;}
+.bets-table th:nth-child(1), .bets-table td:nth-child(1){ width: 29%; }
+.bets-table th:nth-child(2), .bets-table td:nth-child(2){ width: 22%; }
+.bets-table th:nth-child(3), .bets-table td:nth-child(3){ width: 14%; }
+.bets-table th:nth-child(4), .bets-table td:nth-child(4){ width: 10%; }
+.bets-table th:nth-child(5), .bets-table td:nth-child(5){ width: 10%; }
+.bets-table th:nth-child(6), .bets-table td:nth-child(6){ width: 9%; white-space:nowrap; }
+.bets-table th:nth-child(7), .bets-table td:nth-child(7){ width: 6%; text-align:right; }
 
-/* tighter others */
-#trackerTable th:nth-child(3),
-#trackerTable td:nth-child(3){ width: 9%; }
+.tracker-desktop-table-wrap{display:none;}
+.tracker-desktop-table{width:100%; border-collapse:collapse; table-layout:fixed; background:transparent;}
+.tracker-desktop-table thead th{padding:10px 6px; text-align:left; border-bottom:1px solid #334155; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:rgba(180,205,230,.75);}
+.tracker-desktop-table tbody td{padding:10px 6px; border-bottom:1px solid #334155; vertical-align:middle; font-size:13px;}
+.tracker-desktop-table input[type="number"]{width:60px;}
+.tracker-desktop-table select{min-width:92px; width:92px;}
+.tracker-desktop-table .date-col{width:11%; white-space:nowrap;}
+.tracker-desktop-table .tracker-col-match{width:30%;}
+.tracker-desktop-table .tracker-col-market{width:25%; text-align:left; padding-left:2px;}
+.tracker-desktop-table thead th:nth-child(1){width:11%;}
+.tracker-desktop-table thead th:nth-child(2){width:30%;}
+.tracker-desktop-table thead th:nth-child(3){width:25%;}
+.tracker-desktop-table thead th:nth-child(4){width:9%;}
+.tracker-desktop-table thead th:nth-child(5){width:9%;}
+.tracker-desktop-table thead th:nth-child(6){width:10%;}
+.tracker-desktop-table thead th:nth-child(7){width:6%;}
 
-#trackerTable th:nth-child(4),
-#trackerTable td:nth-child(4){ width: 9%; }
+body.layout-wide .tracker-opt7-shell .tracker-bet-list{display:none;}
+body.layout-wide .tracker-opt7-shell .tracker-desktop-table-wrap{display:block;}
 
-#trackerTable th:nth-child(5),
-#trackerTable td:nth-child(5){ width: 6%; }
-
-#trackerTable th:nth-child(6),
-#trackerTable td:nth-child(6){ width: 6%; }
-/* allow match text to wrap nicer instead of stacking ugly */
-#trackerTable td{
-  word-break: break-word;
-}
-/* ===== FIX: Value Bets table alignment ===== */
-.bets-table {
-  table-layout: fixed;
-}
-
-.bets-table th,
-.bets-table td {
-  text-align: left;
-  vertical-align: middle;
-}
-
-/* column widths */
-.bets-table th:nth-child(1),
-.bets-table td:nth-child(1){ width: 28%; }
-
-.bets-table th:nth-child(2),
-.bets-table td:nth-child(2){ width: 22%; }
-
-.bets-table th:nth-child(3),
-.bets-table td:nth-child(3){ width: 14%; }
-
-.bets-table th:nth-child(4),
-.bets-table td:nth-child(4){ width: 10%; }
-
-.bets-table th:nth-child(5),
-.bets-table td:nth-child(5){ width: 10%; }
-
-.bets-table th:nth-child(6),
-.bets-table td:nth-child(6){ width: 10%; }
-
-.bets-table th:nth-child(7),
-.bets-table td:nth-child(7){ width: 6%; text-align:right; }
-/* ===== FORCE TRACKER TABLE LEFT ===== */
-#trackerTable table{
-  margin-left: 0 !important;
-  margin-right: auto !important;
-}
-
-/* remove any centering */
-#trackerTable{
-  text-align: left !important;
+@media (max-width: 949px){
+  .tracker-desktop-table-wrap{display:none !important;}
+  .tracker-opt7-shell .tracker-bet-list{display:grid !important;}
 }

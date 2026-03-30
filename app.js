@@ -11,9 +11,16 @@ function normalizeVipEmail(email){
   return String(email || "").trim().toLowerCase();
 }
 
+function updateVipPromoVisibility(){
+  const promo = document.getElementById('vipPromo');
+  if(!promo) return;
+  promo.style.display = vipActive ? 'none' : '';
+}
+
 
 function setVipUI(active, email){
   vipActive = !!active;
+  updateVipPromoVisibility();
 
   const titleEl = document.getElementById('vipTitle');
   const statusEl = document.getElementById('vipStatus');
@@ -3116,7 +3123,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
+                      ${trackerEsc(row.market || "—")}
                     </div>
                   </div>
 
@@ -3157,46 +3164,35 @@ window.forgotVipPassword = forgotVipPassword;
                       </tr>
                     </thead>
                     <tbody>
-          `;
-
-          dayRows.forEach(row=>{
-            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
-            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
-            let p = 0;
-            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
-            if(row.result === "lost") p = -Number(row.stake || 0);
-            html += `
-                      <tr>
-                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
-                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
-                        <td>
-                          <input 
-                            type="number" 
-                            value="${Number(row.stake || 0)}" 
-                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <input 
-                            type="number" 
-                            step="0.01" 
-                            value="${Number(row.odds ?? 0)}" 
-                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                            <option value="delete">🗑 delete</option>
-                          </select>
-                        </td>
-                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-                      </tr>
-            `;
-          });
-
-          html += `
+                      ${dayRows.map(row=>{
+                        const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
+                        const rowDateText = rowDateRaw ? formatShortDateNoYear(rowDateRaw) : '—';
+                        const profitValue = row.result === 'won'
+                          ? (Number(row.stake || 0) * (Number(row.odds || 0) - 1))
+                          : row.result === 'lost'
+                            ? -Number(row.stake || 0)
+                            : 0;
+                        const profitClass = profitValue > 0 ? 'profit-win' : profitValue < 0 ? 'profit-loss' : '';
+                        const profitLabel = (profitValue > 0 ? '+' : '') + '£' + Number(profitValue || 0).toFixed(2);
+                        return `
+                          <tr>
+                            <td class="date-col">${trackerEsc(rowDateText)}</td>
+                            <td class="tracker-col-match"><strong>${trackerEsc(row.match || '')}</strong></td>
+                            <td class="tracker-col-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || '—'}` : (row.market || '—'))}</td>
+                            <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}', this.value)"></td>
+                            <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}', this.value)"></td>
+                            <td>
+                              <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                                <option value="pending" ${(row.result==='pending'?'selected':'')}>pending</option>
+                                <option value="won" ${(row.result==='won'?'selected':'')}>won</option>
+                                <option value="lost" ${(row.result==='lost'?'selected':'')}>lost</option>
+                                <option value="delete">🗑 delete</option>
+                              </select>
+                            </td>
+                            <td class="profit-col ${profitClass}">${trackerEsc(profitLabel)}</td>
+                          </tr>
+                        `;
+                      }).join('')}
                     </tbody>
                   </table>
                 </div>
@@ -3254,24 +3250,4 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
-// ===== FIX: Hide VIP preview if VIP active =====
-(function(){
-  const observer = new MutationObserver(()=>{
-    const vipPromo = document.getElementById('vipPromo');
-    if(!vipPromo) return;
 
-    if(vipActive){
-      vipPromo.style.display = "none";
-    }else{
-      vipPromo.style.display = "";
-    }
-  });
-
-  observer.observe(document.body, { childList:true, subtree:true });
-
-  // also run immediately
-  const vipPromo = document.getElementById('vipPromo');
-  if(vipPromo && vipActive){
-    vipPromo.style.display = "none";
-  }
-})();
