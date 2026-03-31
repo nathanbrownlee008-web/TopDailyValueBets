@@ -5798,10 +5798,7 @@ select.result-lost{
   #tabTdtPicks{
     grid-column: auto;
   }
-}
-
-
-/* ===== Main tabs: 3 core tabs on first row, TDT Picks underneath ===== */
+}\n\n/* ===== Main tabs: 3 core tabs on first row, TDT Picks underneath ===== */
 .tabs{
   display:grid !important;
   grid-template-columns:repeat(3, minmax(0,1fr));
@@ -5861,4 +5858,4 @@ select.result-lost{
   .section-intro__text{
     font-size:11px;
   }
-}
+}\n
