@@ -6040,3 +6040,13 @@ select.result-lost{
   }
 }
 
+/* 🚫 FORCE REMOVE OLD TDT PICK CARDS */
+#tdtPicksGrid,
+.tdt-picks-grid,
+.tdt-picks-card {
+  display: none !important;
+}
+/* ✅ FORCE TABLE */
+#tdtPicksTable {
+  display: table !important;
+}
