@@ -215,6 +215,16 @@ function normalizeDateOnly(value){
   if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
   return null;
 }
+
+function formatValueBetShortDate(value){
+  if(!value) return '';
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return String(value);
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const day = d.getDate();
+  const suffix = (day >= 11 && day <= 13) ? 'th' : (day % 10 == 1 ? 'st' : day % 10 == 2 ? 'nd' : day % 10 == 3 ? 'rd' : 'th');
+  return `${months[d.getMonth()]} ${day}${suffix}`;
+}
 function isValueBetActiveToday(row){
   const today=toLocalYMD(new Date());
   const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
@@ -682,7 +692,7 @@ async function loadBets(){
     const isAdded = addedKeys.has(key);
     if(!locked) visibleForAlerts.push(row);
 
-    const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
+    const betDate = formatValueBetShortDate(row.bet_date || row.created_at || '');
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -721,12 +731,12 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
+        <td>${escapeHtml(betDate)}</td>
         <td><b>${escapeHtml(row.match||'')}</b></td>
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
         <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
-        <td>${escapeHtml(betDate)}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
@@ -3143,58 +3153,6 @@ window.forgotVipPassword = forgotVipPassword;
 
           html += `
                 </div>
-                <div class="tracker-desktop-table-wrap">
-                  <table class="tracker-desktop-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Match</th>
-                        <th>Market</th>
-                        <th>Stake</th>
-                        <th>Odds</th>
-                        <th>Result</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-          `;
-
-          dayRows.forEach(row=>{
-            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
-            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
-            html += `
-                      <tr>
-                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
-                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(row.market || "—")}</td>
-                        <td>
-                          <input 
-                            type="number" 
-                            value="${Number(row.stake || 0)}" 
-                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <input 
-                            type="number" 
-                            step="0.01" 
-                            value="${Number(row.odds ?? 0)}" 
-                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                            <option value="delete">🗑 delete</option>
-                          </select>
-                        </td>
-                      </tr>
-            `;
-          });
-
-          html += `
-                    </tbody>
-                  </table>
-                </div>
               </div>
             </div>
           `;
@@ -3249,24 +3207,4 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
-// ===== FIX: Hide VIP preview if VIP active =====
-(function(){
-  const observer = new MutationObserver(()=>{
-    const vipPromo = document.getElementById('vipPromo');
-    if(!vipPromo) return;
 
-    if(vipActive){
-      vipPromo.style.display = "none";
-    }else{
-      vipPromo.style.display = "";
-    }
-  });
-
-  observer.observe(document.body, { childList:true, subtree:true });
-
-  // also run immediately
-  const vipPromo = document.getElementById('vipPromo');
-  if(vipPromo && vipActive){
-    vipPromo.style.display = "none";
-  }
-})();
