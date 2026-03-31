@@ -215,14 +215,13 @@ function normalizeDateOnly(value){
   if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
   return null;
 }
-function formatValueBetsTableDate(value){
+function formatValueBetsDateShort(value){
   if(!value) return '';
   const d = new Date(value);
   if(Number.isNaN(d.getTime())) return String(value);
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const day = d.getDate();
-  const mod100 = day % 100;
-  const suffix = (mod100 >= 11 && mod100 <= 13) ? 'th' : (day % 10 === 1 ? 'st' : day % 10 === 2 ? 'nd' : day % 10 === 3 ? 'rd' : 'th');
+  const suffix = (day >= 11 && day <= 13) ? 'th' : (day % 10 === 1 ? 'st' : day % 10 === 2 ? 'nd' : day % 10 === 3 ? 'rd' : 'th');
   return `${months[d.getMonth()]} ${day}${suffix}`;
 }
 
@@ -693,8 +692,7 @@ async function loadBets(){
     const isAdded = addedKeys.has(key);
     if(!locked) visibleForAlerts.push(row);
 
-    const betDate = row.bet_date || row.created_at || '';
-    const betDateLabel = formatValueBetsTableDate(betDate);
+    const betDate = formatValueBetsDateShort(row.bet_date || row.created_at || '');
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -710,7 +708,7 @@ async function loadBets(){
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
       <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-      <span class="bet-date">${escapeHtml(betDateLabel)}</span>
+      <span class="bet-date">${escapeHtml(betDate)}</span>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
@@ -733,7 +731,7 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td>${escapeHtml(betDateLabel)}</td>
+        <td>${escapeHtml(betDate)}</td>
         <td><b>${escapeHtml(row.match||'')}</b></td>
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
         <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
