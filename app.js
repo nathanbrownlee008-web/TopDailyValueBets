@@ -52,15 +52,11 @@ function openVipModal(){
   if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
   if(vipPasswordEl && !vipPasswordEl.value) vipPasswordEl.value="";
   vipModalEl.style.display="flex";
-  vipModalEl.setAttribute("aria-hidden","false");
-  document.body.style.overflow = "hidden";
 }
 
 function closeVipModal(){
   if(!vipModalEl) return;
   vipModalEl.style.display="none";
-  vipModalEl.setAttribute("aria-hidden","true");
-  document.body.style.overflow = "";
 }
 
 async function ensureVipPasswordAccount(email, password){
@@ -568,6 +564,17 @@ function teaserCopyForLockedBet(row, state){
   return `VIP only • ${valueText} • market hidden`;
 }
 
+
+function formatTdtPickDate(value){
+  if(!value) return "";
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return String(value);
+  const day = d.getDate();
+  const suffix = (day >= 11 && day <= 13) ? 'th' : (day % 10 === 1) ? 'st' : (day % 10 === 2) ? 'nd' : (day % 10 === 3) ? 'rd' : 'th';
+  const month = d.toLocaleString('en-GB', { month:'short' });
+  return `${day}${suffix} ${month}`;
+}
+
 function formatUnlockLabel(state){
   if(!state?.unlocksAt) return 'VIP only';
   return `Unlocks ${state.unlocksAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
@@ -576,6 +583,8 @@ function formatUnlockLabel(state){
 // Top navigation tabs
 const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
 const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
+const tabTdtPicksEl = document.getElementById("tabTdtPicks");
+const tdtPicksSectionEl = document.getElementById("tdtPicksSection");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
 const tabTdtHistoryEl = document.getElementById("tabTdtHistory");
@@ -604,11 +613,11 @@ tabTracker.onclick=()=>{
   switchTab("tracker");
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
+if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>switchTab("tdtPicks");
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
 if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
-if(vipCloseEl) vipCloseEl.onclick = closeVipModal;
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
@@ -642,10 +651,12 @@ function switchTab(tab){
   betsSection.style.display=(tab==="bets")?"block":"none";
   trackerSection.style.display=(tab==="tracker")?"block":"none";
   if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
+  if(tdtPicksSectionEl) tdtPicksSectionEl.style.display=(tab==="tdtPicks")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
   tabTracker.classList.toggle("active",tab==="tracker");
   if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
+  if(tabTdtPicksEl) tabTdtPicksEl.classList.toggle("active",tab==="tdtPicks");
 
   if(tab==="tracker"){
     loadTracker();
@@ -654,6 +665,78 @@ function switchTab(tab){
   if(tab==="tdt"){
     loadTdtTracker();
     return;
+  }
+  if(tab==="tdtPicks"){
+    loadTdtPicks();
+    return;
+  }
+}
+
+async function loadTdtPicks(){
+  const grid = document.getElementById("tdtPicksGrid");
+  const table = document.getElementById("tdtPicksTable");
+  const tbody = table ? table.querySelector("tbody") : null;
+
+  if(grid) grid.innerHTML = `<div class="card">Loading TDT picks...</div>`;
+  if(tbody) tbody.innerHTML = "";
+
+  try{
+    const { data, error } = await client
+      .from("tdt_picks")
+      .select("*")
+      .order("created_at", { ascending:false });
+
+    if(error) throw error;
+
+    const rows = data || [];
+    if(!rows.length){
+      if(grid) grid.innerHTML = `<div class="card">No TDT picks yet.</div>`;
+      return;
+    }
+
+    if(grid){
+      grid.innerHTML = rows.map(row=>{
+        const match = row.match || "";
+        const market = row.market || "";
+        const bookie = row.bookie || "";
+        const odds = row.odds ?? "";
+        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
+        return `
+          <div class="card bet-card">
+            <div class="bet-title">${match}</div>
+            <div class="bet-meta">
+              <span class="bet-market">${market}</span>
+              <span class="bet-date">${dateText}</span>
+            </div>
+            ${bookie ? `<div class="bet-bookie">${bookie}</div>` : ``}
+            <div class="bet-footer">
+              <span class="odds-badge"><strong>@ ${odds}</strong></span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    if(tbody){
+      tbody.innerHTML = rows.map(row=>{
+        const match = row.match || "";
+        const market = row.market || "";
+        const bookie = row.bookie || "-";
+        const odds = row.odds ?? "";
+        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
+        return `
+          <tr>
+            <td>${match}</td>
+            <td>${market}</td>
+            <td>${bookie}</td>
+            <td><span class="pill">${odds}</span></td>
+            <td>${dateText}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+  }catch(err){
+    if(grid) grid.innerHTML = `<div class="card">Could not load TDT picks.</div>`;
   }
 }
 

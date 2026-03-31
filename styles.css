@@ -5742,51 +5742,29 @@ select.result-lost{
 }
 
 
-
-/* ===== tabs: keep the 3 main tabs on one row ===== */
+/* ===== Tabs layout cleanup ===== */
 .tabs{
-  display:flex;
-  width:100%;
-  max-width:560px;
-  justify-content:center;
-  align-items:center;
+  display:grid;
   gap:8px;
-  flex-wrap:nowrap;
+  grid-template-columns:repeat(2, minmax(0,1fr));
 }
-
 .tabs button{
-  flex:1 1 0;
-  min-width:0;
-  margin:0 !important;
-  padding:8px 10px;
-  font-size:13px;
+  margin:0;
+  width:100%;
   white-space:nowrap;
+  font-size:12px;
+  padding:9px 6px;
 }
-
-@media (max-width: 480px){
+@media (min-width: 760px){
   .tabs{
-    max-width:100%;
-    gap:6px;
+    grid-template-columns:repeat(4, minmax(0,1fr));
   }
-
   .tabs button{
-    padding:8px 6px;
-    font-size:12px;
-    letter-spacing:0;
+    font-size:13px;
   }
 }
-/* FORCE 3 TABS PERFECT ROW */
-.tabs {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-  width: 100%;
-}
 
-.tabs button {
-  width: 100%;
-  text-align: center;
-  white-space: nowrap;
-  font-size: 14px;
-  padding: 10px 6px;
+/* ===== TDT Picks ===== */
+#tdtPicksSection{
+  margin-top: 8px;
 }
