@@ -5990,30 +5990,11 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
 }
 
 
-.match-cell{
-  display:flex;
-  flex-direction:column;
-  gap:3px;
-}
-.match-league{
-  font-size:11px;
-  opacity:.75;
-  font-weight:600;
-}
-.match-teams{
-  font-size:14px;
-  font-weight:800;
-}
+.match-cell{display:flex;flex-direction:column;gap:3px}
+.match-league{font-size:11px;opacity:.75;font-weight:600}
+.match-teams{font-size:14px;font-weight:800}
 .coming-soon-pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:700;
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.12);
-  color:#cbd5e1;
-  white-space:nowrap;
-}
+display:inline-flex;align-items:center;justify-content:center;
+padding:6px 10px;border-radius:999px;font-size:11px;font-weight:700;
+background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+color:#cbd5e1}
