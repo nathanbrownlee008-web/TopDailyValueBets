@@ -5742,186 +5742,96 @@ select.result-lost{
 }
 
 
-/* ===== Desktop-only tracker table (mobile untouched) ===== */
-#trackerTable .tracker-desktop-table-wrap{
-  display:none;
+/* ===== Tabs layout cleanup ===== */
+.tabs{
+  display:grid;
+  gap:8px;
+  grid-template-columns:repeat(2, minmax(0,1fr));
 }
-
-@media (min-width: 950px){
-  body.layout-wide #trackerTable .tracker-bet-list{
-    display:none;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table-wrap{
-    display:block;
-    padding-top:10px;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table{
-    width:100%;
-    border-collapse:collapse;
-    table-layout:fixed;
-    background:transparent;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table thead th{
-    text-align:left;
-    padding:12px 8px;
-    border-bottom:1px solid #334155;
-    font-size:12px;
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    color:rgba(180,205,230,.78);
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table tbody td{
-    padding:12px 8px;
-    border-bottom:1px solid #22314a;
-    vertical-align:middle;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-date{
-    width:9%;
-    white-space:nowrap;
-    color:#cbd5e1;
-    font-size:12px;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-match{
-    width:33%;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    font-weight:800;
-    font-size:14px;
-    line-height:1.15;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-market{
-    width:24%;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    color:#dbe6fb;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table input[type="number"]{
-    width:74px;
-    text-align:center;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table select{
-    width:96px;
-    min-width:96px;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table th.profit-col,
-  body.layout-wide #trackerTable .tracker-desktop-table td.profit-col{
-    width:11%;
-    text-align:right;
-    white-space:nowrap;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table td.profit-col span{
-    font-weight:800;
-  }
-
-  body.layout-wide .bets-table{
-    table-layout:fixed;
-  }
-
-  body.layout-wide .bets-table thead th:nth-child(1),
-  body.layout-wide .bets-table tbody td:nth-child(1){ width:25%; }
-  body.layout-wide .bets-table thead th:nth-child(2),
-  body.layout-wide .bets-table tbody td:nth-child(2){ width:21%; }
-  body.layout-wide .bets-table thead th:nth-child(3),
-  body.layout-wide .bets-table tbody td:nth-child(3){ width:14%; }
-  body.layout-wide .bets-table thead th:nth-child(4),
-  body.layout-wide .bets-table tbody td:nth-child(4){ width:10%; text-align:center; }
-  body.layout-wide .bets-table thead th:nth-child(5),
-  body.layout-wide .bets-table tbody td:nth-child(5){ width:10%; text-align:center; }
-  body.layout-wide .bets-table thead th:nth-child(6),
-  body.layout-wide .bets-table tbody td:nth-child(6){ width:12%; white-space:nowrap; }
-  body.layout-wide .bets-table thead th:nth-child(7),
-  body.layout-wide .bets-table tbody td:nth-child(7){ width:8%; text-align:right; white-space:nowrap; }
-
-  body.layout-wide .bets-table tbody td:nth-child(1){
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  body.layout-wide .bets-table tbody td:nth-child(3){
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-}
-
-/* ===== TRACKER WIDE MODE: force grouped rows even on phone when Wide is on ===== */
-body.layout-wide #trackerTable .tracker-bet-list{
-  display:none !important;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table-wrap{
-  display:block !important;
-  padding-top:10px;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table{
+.tabs button{
+  margin:0;
   width:100%;
-  border-collapse:collapse;
-  table-layout:fixed;
-  background:transparent;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table thead th{
-  text-align:left;
-  padding:12px 8px;
-  border-bottom:1px solid #334155;
-  font-size:12px;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:rgba(180,205,230,.78);
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table tbody td{
-  padding:12px 8px;
-  border-bottom:1px solid #22314a;
-  vertical-align:middle;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-date{
-  width:12%;
   white-space:nowrap;
-  color:#cbd5e1;
   font-size:12px;
+  padding:9px 6px;
+}
+@media (min-width: 760px){
+  .tabs{
+    grid-template-columns:repeat(4, minmax(0,1fr));
+  }
+  .tabs button{
+    font-size:13px;
+  }
 }
 
-body.layout-wide #trackerTable .tracker-desktop-match{
-  width:28%;
+/* ===== TDT Picks ===== */
+#tdtPicksSection{
+  margin-top: 8px;
+}
+/* main tabs: 3 on top, TDT Picks below */
+.tabs{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:8px;
+  width:100%;
+}
+
+.tabs button{
+  margin:0;
+  width:100%;
   white-space:nowrap;
+  font-size:12px;
+  padding:9px 6px;
+}
+
+/* make TDT Picks sit on its own row */
+#tabTdtPicks{
+  grid-column: 2 / 3; /* centered */
+}
+
+/* desktop can keep all 4 in one row if you want */
+@media (min-width: 950px){
+  .tabs{
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  #tabTdtPicks{
+    grid-column: auto;
+  }
+}
+
+
+/* ===== Desktop Value Bets: market + league icons in table ===== */
+.table-market-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+.table-league-line,
+.table-market-line{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+.table-league-line{
+  font-size:12px;
+  color:rgba(226,232,240,.78);
+}
+.table-market-line{
+  font-size:13px;
+  color:rgba(240,248,255,.92);
+}
+.table-league-icon,
+.table-market-icon{
+  flex:0 0 auto;
+  line-height:1;
+}
+.table-league-text,
+.table-market-text{
+  min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
-  font-weight:800;
-  font-size:14px;
-  line-height:1.15;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-market{
-  width:26%;
   white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  color:#dbe6fb;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table input[type="number"]{
-  width:74px;
-  text-align:center;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table select{
-  width:96px;
-  min-width:96px;
 }
