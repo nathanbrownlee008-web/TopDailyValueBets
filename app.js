@@ -318,6 +318,21 @@ function getTdtTodayKey(){
   return `${y}-${m}-${d}`;
 }
 
+
+function normalizeTdtPickType(row){
+  const raw = String(row?.pick_type || row?.type || row?.bet_type || '').trim().toLowerCase();
+  if(raw === 'acca' || raw === 'multi' || raw === 'multiple') return 'ACCA';
+  return 'Single';
+}
+
+function formatTdtConfidence(row){
+  const raw = row?.confidence ?? row?.confidence_label ?? row?.confidence_pct ?? row?.confidence_percent;
+  if(raw == null || raw === '') return '-';
+  if(typeof raw === 'number') return `${raw}%`;
+  const txt = String(raw).trim();
+  return /%$/.test(txt) ? txt : txt;
+}
+
 function currentVipEmail(){
   return ((localStorage.getItem('vip_email')||'').trim().toLowerCase());
 }
@@ -686,70 +701,97 @@ function switchTab(tab){
 }
 
 async function loadTdtPicks(){
-  const grid = document.getElementById("tdtPicksGrid");
   const table = document.getElementById("tdtPicksTable");
   const tbody = table ? table.querySelector("tbody") : null;
+  const emptyEl = document.getElementById("tdtPicksEmpty");
 
-  if(grid) grid.innerHTML = `<div class="card">Loading TDT picks...</div>`;
   if(tbody) tbody.innerHTML = "";
+  if(emptyEl){
+    emptyEl.style.display = "block";
+    emptyEl.textContent = "Loading TDT picks...";
+  }
 
   try{
+    const localRows = await readTrackerRows();
+    const localKeys = new Set((localRows || []).map(makeBetKey));
+
     const { data, error } = await client
       .from("tdt_picks")
       .select("*")
+      .order("bet_date", { ascending:false, nullsFirst:false })
       .order("created_at", { ascending:false });
 
     if(error) throw error;
 
     const rows = data || [];
     if(!rows.length){
-      if(grid) grid.innerHTML = `<div class="card">No TDT picks yet.</div>`;
+      if(emptyEl){
+        emptyEl.style.display = "block";
+        emptyEl.textContent = "No TDT picks yet.";
+      }
+      if(table) table.style.display = "none";
       return;
     }
 
-    if(grid){
-      grid.innerHTML = rows.map(row=>{
-        const match = row.match || "";
-        const market = row.market || "";
-        const bookie = row.bookie || "";
-        const odds = row.odds ?? "";
-        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
-        return `
-          <div class="card bet-card">
-            <div class="bet-title">${match}</div>
-            <div class="bet-meta">
-              <span class="bet-market">${market}</span>
-              <span class="bet-date">${dateText}</span>
-            </div>
-            ${bookie ? `<div class="bet-bookie">${bookie}</div>` : ``}
-            <div class="bet-footer">
-              <span class="odds-badge"><strong>@ ${odds}</strong></span>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
+    if(emptyEl) emptyEl.style.display = "none";
+    if(table) table.style.display = "table";
 
     if(tbody){
-      tbody.innerHTML = rows.map(row=>{
+      tbody.innerHTML = rows.map(row => {
+        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
         const match = row.match || "";
         const market = row.market || "";
         const bookie = row.bookie || "-";
         const odds = row.odds ?? "";
-        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
+        const confidence = formatTdtConfidence(row);
+        const pickType = normalizeTdtPickType(row);
+        const isTop = !!row.is_top_pick;
+        const topBadge = isTop
+          ? '<span class="tdt-top-badge" title="Top Pick">🔥</span>'
+          : '<span class="tdt-top-badge tdt-top-badge--off">—</span>';
+
+        const typeBadge = pickType === 'ACCA'
+          ? '<span class="tdt-type-badge tdt-type-badge--acca">ACCA</span>'
+          : '<span class="tdt-type-badge">Single</span>';
+
+        const addRow = makeTdtPickTrackerRow(row);
+        const alreadyAdded = localKeys.has(makeBetKey(addRow));
+        const addBtn = alreadyAdded
+          ? '<button class="btn added" disabled>Added</button>'
+          : `<button class="btn" onclick='addTdtPickToTracker(${JSON.stringify(row).replace(/'/g, "&#39;")})'>Add</button>`;
+
         return `
-          <tr>
-            <td>${match}</td>
-            <td>${market}</td>
-            <td>${bookie}</td>
-            <td><span class="pill">${odds}</span></td>
-            <td>${dateText}</td>
+          <tr class="tdt-pick-row ${isTop ? 'top-pick' : ''} ${pickType === 'ACCA' ? 'acca-row' : ''}">
+            <td class="tdt-date" data-label="Date">${dateText}</td>
+            <td class="tdt-match" data-label="Match">${match}</td>
+            <td class="tdt-market" data-label="Market">${market}</td>
+            <td class="tdt-bookie" data-label="Bookie">${bookie}</td>
+            <td class="tdt-odds" data-label="Odds"><span class="pill">@ ${odds}</span></td>
+            <td class="tdt-confidence" data-label="Confidence"><span class="tdt-confidence-badge">${confidence}</span></td>
+            <td class="tdt-type" data-label="Type">${typeBadge}</td>
+            <td class="tdt-top" data-label="Top">${topBadge}</td>
+            <td class="tdt-add" data-label="">${addBtn}</td>
           </tr>
         `;
       }).join("");
     }
   }catch(err){
-    if(grid) grid.innerHTML = `<div class="card">Could not load TDT picks.</div>`;
+    if(emptyEl){
+      emptyEl.style.display = "block";
+      emptyEl.textContent = "Could not load TDT picks.";
+    }
+    if(table) table.style.display = "none";
+  }
+}
+
+async function addTdtPickToTracker(row){
+  try{
+    await upsertTrackerRow(makeTdtPickTrackerRow(row));
+    if(currentTopTab === "tdtPicks"){
+      loadTdtPicks();
+    }
+  }catch(e){
+    alert("Could not add pick to tracker.");
   }
 }
 
