@@ -52,11 +52,15 @@ function openVipModal(){
   if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
   if(vipPasswordEl && !vipPasswordEl.value) vipPasswordEl.value="";
   vipModalEl.style.display="flex";
+  vipModalEl.setAttribute("aria-hidden","false");
+  document.body.style.overflow = "hidden";
 }
 
 function closeVipModal(){
   if(!vipModalEl) return;
   vipModalEl.style.display="none";
+  vipModalEl.setAttribute("aria-hidden","true");
+  document.body.style.overflow = "";
 }
 
 async function ensureVipPasswordAccount(email, password){
@@ -215,17 +219,6 @@ function normalizeDateOnly(value){
   if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
   return null;
 }
-
-function formatValueBetShortDate(value){
-  if(!value) return '';
-  const d = new Date(value);
-  if(Number.isNaN(d.getTime())) return String(value);
-  const day = d.getDate();
-  const suffix = (day % 10 === 1 && day !== 11) ? 'st' : (day % 10 === 2 && day !== 12) ? 'nd' : (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
-  const month = d.toLocaleDateString('en-GB', { month:'short' });
-  return `${day}${suffix} ${month}`;
-}
-
 function isValueBetActiveToday(row){
   const today=toLocalYMD(new Date());
   const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
@@ -611,11 +604,11 @@ tabTracker.onclick=()=>{
   switchTab("tracker");
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
-if(tabTopPicks) tabTopPicks.onclick=()=>switchTab("topPicks");
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
 if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
+if(vipCloseEl) vipCloseEl.onclick = closeVipModal;
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
 if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
@@ -623,10 +616,6 @@ if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
 if(vipForgotEl) vipForgotEl.addEventListener('click', forgotVipPassword);
 const vipPromoBtnEl = document.getElementById('vipPromoBtn');
 if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
-const tabTopPicks = document.getElementById("tabTopPicks");
-const topPicksSection = document.getElementById("topPicksSection");
-const topPicksGrid = document.getElementById("topPicksGrid");
-
 const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
 if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
 
@@ -651,19 +640,13 @@ function switchTab(tab){
   initChartTabs();
 
   betsSection.style.display=(tab==="bets")?"block":"none";
-  if(topPicksSection) topPicksSection.style.display=(tab==="topPicks")?"block":"none";
   trackerSection.style.display=(tab==="tracker")?"block":"none";
   if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
-  if(tabTopPicks) tabTopPicks.classList.toggle("active",tab==="topPicks");
   tabTracker.classList.toggle("active",tab==="tracker");
   if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
 
-  if(tab==="topPicks"){
-    loadTopPicks();
-    return;
-  }
   if(tab==="tracker"){
     loadTracker();
     return;
@@ -671,51 +654,6 @@ function switchTab(tab){
   if(tab==="tdt"){
     loadTdtTracker();
     return;
-  }
-}
-
-
-async function loadTopPicks(){
-  if(!topPicksGrid) return;
-  topPicksGrid.innerHTML = `<div class="card">Loading top picks...</div>`;
-
-  try{
-    const { data, error } = await client
-      .from("top_picks")
-      .select("*")
-      .order("created_at", { ascending:false });
-
-    if(error) throw error;
-
-    const rows = data || [];
-    if(!rows.length){
-      topPicksGrid.innerHTML = `<div class="card">No top picks yet.</div>`;
-      return;
-    }
-
-    topPicksGrid.innerHTML = rows.map(row => {
-      const match = row.match || '';
-      const market = row.market || '';
-      const odds = row.odds ?? '';
-      const bookie = row.bookie || '';
-      const confidence = row.confidence || row.confidence_label || '';
-
-      return `
-        <div class="card bet-card">
-          <div class="bet-title">${match}</div>
-          <div class="bet-meta">
-            <span class="bet-market">${market}</span>
-          </div>
-          ${bookie ? `<div class="bet-bookie">${bookie}</div>` : ``}
-          <div class="bet-footer">
-            <span class="odds-badge"><strong>@ ${odds}</strong></span>
-            ${confidence ? `<span class="stat-chip"><span class="stat-chip__k">Confidence</span><span class="stat-chip__v">${confidence}</span></span>` : ``}
-          </div>
-        </div>
-      `;
-    }).join("");
-  }catch(err){
-    topPicksGrid.innerHTML = `<div class="card">Could not load top picks.</div>`;
   }
 }
 
@@ -750,7 +688,6 @@ async function loadBets(){
     if(!locked) visibleForAlerts.push(row);
 
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
-    const betDateShort = formatValueBetShortDate(row.bet_date || row.created_at);
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -789,13 +726,13 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="bets-date-col">${escapeHtml(betDateShort)}</td>
-        <td class="bets-match-col"><b>${escapeHtml(row.match||'')}</b></td>
-        <td class="bets-market-col">${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
-        <td class="bets-bookie-col">${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
-        <td class="bets-odds-col"><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td class="bets-value-col"><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
-        <td class="bets-action-col">
+        <td><b>${escapeHtml(row.match||'')}</b></td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
+        <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
+        <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
+        <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
+        <td>${escapeHtml(betDate)}</td>
+        <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
       </tr>`;
