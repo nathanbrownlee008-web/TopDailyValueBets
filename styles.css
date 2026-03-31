@@ -5990,11 +5990,44 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
 }
 
 
-.match-cell{display:flex;flex-direction:column;gap:3px}
-.match-league{font-size:11px;opacity:.75;font-weight:600}
-.match-teams{font-size:14px;font-weight:800}
+/* ===== Desktop Value Bets: match column now shows league above teams ===== */
+.table-match-cell{
+  min-width:0;
+}
+.table-match-league{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  margin-bottom:4px;
+  font-size:12px;
+  color:rgba(226,232,240,.78);
+}
+.table-match-league-icon{
+  flex:0 0 auto;
+  line-height:1;
+}
+.table-match-league-text{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.table-match-name{
+  font-size:13px;
+  color:rgba(240,248,255,.96);
+}
+
 .coming-soon-pill{
-display:inline-flex;align-items:center;justify-content:center;
-padding:6px 10px;border-radius:999px;font-size:11px;font-weight:700;
-background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
-color:#cbd5e1}
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  color:#dbe4ee;
+  white-space:nowrap;
+}

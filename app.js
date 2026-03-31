@@ -723,24 +723,25 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${
-          locked
-            ? '<span class="table-lock-copy">Hidden for VIP</span>'
-            : `<div class="table-market-wrap">${
-                leagueName
-                  ? `<div class="table-league-line"><span class="table-league-icon">🏆</span><span class="table-league-text">${escapeHtml(leagueName)}</span></div>`
-                  : ''
-              }<div class="table-market-line"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
-        }</td>
-        <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
-        <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
-        <td>${escapeHtml(betDate)}</td>
-        <td>
-          <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
-        </td>
-      </tr>`;
+  <td class="table-match-cell">${
+    leagueName
+      ? `<div class="table-match-league"><span class="table-match-league-icon">🏆</span><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>`
+      : ''
+  }<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
+  <td>${
+    locked
+      ? '<span class="table-lock-copy">Hidden for VIP</span>'
+      : `<div class="table-market-wrap"><div class="table-market-line"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
+  }</td>
+  <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
+  <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
+  <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
+  <td>${escapeHtml(betDate)}</td>
+  <td><span class="coming-soon-pill">Coming soon</span></td>
+  <td>
+    <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
+  </td>
+</tr>`;
     }
   });
 
