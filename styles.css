@@ -5799,3 +5799,66 @@ select.result-lost{
     grid-column: auto;
   }
 }
+
+
+/* ===== Main tabs: 3 core tabs on first row, TDT Picks underneath ===== */
+.tabs{
+  display:grid !important;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:8px;
+  width:100%;
+  align-items:stretch;
+}
+.tabs button{
+  margin:0 !important;
+  width:100%;
+  white-space:nowrap;
+  font-size:12px;
+  padding:10px 6px;
+}
+#tabTdtPicks{
+  grid-column:2 / 3;
+}
+@media (min-width: 950px){
+  .tabs{
+    grid-template-columns:repeat(4, minmax(0,1fr));
+  }
+  #tabTdtPicks{
+    grid-column:auto;
+  }
+}
+
+/* ===== Neat section explainer cards ===== */
+.section-intro{
+  max-width:1200px;
+  margin:0 auto 14px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 10px 24px rgba(0,0,0,0.16);
+}
+.section-intro__title{
+  font-size:14px;
+  font-weight:800;
+  color:#f8fafc;
+  margin-bottom:4px;
+}
+.section-intro__text{
+  font-size:12px;
+  line-height:1.45;
+  color:rgba(226,232,240,0.82);
+}
+@media (max-width: 600px){
+  .section-intro{
+    margin-bottom:12px;
+    padding:10px 12px;
+    border-radius:14px;
+  }
+  .section-intro__title{
+    font-size:13px;
+  }
+  .section-intro__text{
+    font-size:11px;
+  }
+}
