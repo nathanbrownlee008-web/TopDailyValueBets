@@ -5768,3 +5768,34 @@ select.result-lost{
 #tdtPicksSection{
   margin-top: 8px;
 }
+/* main tabs: 3 on top, TDT Picks below */
+.tabs{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:8px;
+  width:100%;
+}
+
+.tabs button{
+  margin:0;
+  width:100%;
+  white-space:nowrap;
+  font-size:12px;
+  padding:9px 6px;
+}
+
+/* make TDT Picks sit on its own row */
+#tabTdtPicks{
+  grid-column: 2 / 3; /* centered */
+}
+
+/* desktop can keep all 4 in one row if you want */
+@media (min-width: 950px){
+  .tabs{
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  #tabTdtPicks{
+    grid-column: auto;
+  }
+}
