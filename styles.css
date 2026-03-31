@@ -5801,7 +5801,51 @@ select.result-lost{
 }
 
 
-/* ===== TDT Picks rows ===== */
+/* ===== Tabs layout ===== */
+.tabs{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  width:100%;
+  align-items:stretch;
+}
+.tabs button{
+  margin:0 !important;
+  width:100%;
+  white-space:nowrap;
+  font-size:12px;
+  padding:10px 6px;
+}
+#tabTdtPicks{ grid-column:2 / 3; }
+@media (min-width:950px){
+  .tabs{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+  #tabTdtPicks{ grid-column:auto; }
+}
+
+/* ===== Section intro ===== */
+.section-intro{
+  max-width:1200px;
+  margin:0 auto 14px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 10px 24px rgba(0,0,0,0.16);
+}
+.section-intro__title{
+  font-size:14px;
+  font-weight:800;
+  color:#f8fafc;
+  margin-bottom:4px;
+}
+.section-intro__text{
+  font-size:12px;
+  line-height:1.45;
+  color:rgba(226,232,240,0.82);
+}
+
+
+/* ===== TDT Picks table ===== */
 .tdt-picks-table-wrap{
   max-width:1200px;
   margin:0 auto;
@@ -5814,7 +5858,7 @@ select.result-lost{
 .tdt-picks-table thead th{
   text-align:left;
   font-size:11px;
-  opacity:.7;
+  opacity:.72;
   padding:8px 6px;
   letter-spacing:.08em;
   text-transform:uppercase;
@@ -5825,16 +5869,12 @@ select.result-lost{
   border-top:1px solid rgba(255,255,255,0.06);
   vertical-align:middle;
 }
-.tdt-pick-row:hover{
-  background:rgba(255,255,255,0.03);
-}
-.tdt-pick-row.top-pick{
-  background:rgba(255,140,0,0.06);
-}
+.tdt-pick-row:hover{ background:rgba(255,255,255,0.03); }
+.tdt-pick-row.top-pick{ background:rgba(255,140,0,0.06); }
 .tdt-date{ width:72px; white-space:nowrap; }
-.tdt-match{ width:30%; font-weight:700; }
-.tdt-market{ width:26%; }
-.tdt-bookie{ width:18%; }
+.tdt-match{ width:28%; font-weight:700; }
+.tdt-market{ width:24%; }
+.tdt-bookie{ width:16%; font-weight:700; }
 .tdt-odds{ width:68px; font-weight:800; white-space:nowrap; }
 .tdt-top{ width:52px; text-align:center; }
 .tdt-add{ width:86px; text-align:right; white-space:nowrap; }
@@ -5856,14 +5896,9 @@ select.result-lost{
   color:rgba(255,255,255,0.35);
 }
 
-@media (max-width: 720px){
-  .tdt-picks-table thead{
-    display:none;
-  }
-  .tdt-picks-table,
-  .tdt-picks-table tbody,
-  .tdt-picks-table tr,
-  .tdt-picks-table td{
+@media (max-width:720px){
+  .tdt-picks-table thead{ display:none; }
+  .tdt-picks-table, .tdt-picks-table tbody, .tdt-picks-table tr, .tdt-picks-table td{
     display:block;
     width:100%;
   }
@@ -5872,105 +5907,45 @@ select.result-lost{
     border:1px solid rgba(255,255,255,0.06);
     border-radius:14px;
     margin-bottom:12px;
-    padding:10px 12px 54px;
-    position:relative;
-  }
-  .tdt-picks-table tr::before{
-    content:"";
-    position:absolute;
-    left:0;
-    top:0;
-    bottom:0;
-    width:3px;
-    border-radius:14px 0 0 14px;
-    background:rgba(34,197,94,0.95);
-    opacity:.9;
+    padding:10px 12px;
   }
   .tdt-picks-table td{
     border:none;
     padding:4px 0;
   }
+  .tdt-picks-table td::before{
+    content:attr(data-label);
+    display:block;
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    opacity:.58;
+    margin-bottom:3px;
+  }
   .tdt-date{
-    position:absolute;
-    top:10px;
-    right:12px;
-    width:auto;
     font-size:12px;
-    opacity:.72;
+    opacity:.78;
   }
   .tdt-match{
-    width:auto;
-    padding-right:74px !important;
     font-size:15px;
     font-weight:800;
-    margin-bottom:4px;
   }
   .tdt-market{
-    width:auto;
-    display:inline-block !important;
-    margin:6px 0 10px;
-    padding:7px 12px !important;
-    border:1px solid rgba(255,215,0,0.38);
-    border-radius:999px;
-  }
-  .tdt-bookie{
-    width:auto;
-    font-size:13px;
-    opacity:.92;
-    font-weight:700;
-    margin-bottom:10px;
-  }
-  .tdt-odds{
-    width:auto;
-    display:inline-flex !important;
-    align-items:center;
-    justify-content:center;
-    padding:10px 14px !important;
-    border-radius:999px;
-    background:rgba(255,255,255,0.06);
-    border:1px solid rgba(255,255,255,0.10);
     font-size:14px;
   }
-  .tdt-top{
-    position:absolute;
-    left:12px;
-    bottom:12px;
+  .tdt-bookie{
+    font-size:13px;
+    font-weight:700;
+  }
+  .tdt-odds{
+    font-size:14px;
+    font-weight:800;
+  }
+  .tdt-top, .tdt-add{
     width:auto;
     text-align:left;
   }
-  .tdt-add{
-    position:absolute;
-    right:12px;
-    bottom:12px;
-    width:auto;
-    text-align:right;
-  }
-}
-
-
-/* ===== Main tabs: 3 main tabs on top row, TDT Picks below ===== */
-.tabs{
-  display:grid !important;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:8px;
-  width:100%;
-  align-items:stretch;
-}
-.tabs button{
-  margin:0 !important;
-  width:100%;
-  white-space:nowrap;
-  font-size:12px;
-  padding:10px 6px;
-}
-#tabTdtPicks{
-  grid-column:2 / 3;
-}
-@media (min-width: 950px){
-  .tabs{
-    grid-template-columns:repeat(4,minmax(0,1fr));
-  }
-  #tabTdtPicks{
-    grid-column:auto;
+  .tdt-add .btn{
+    margin-top:4px;
   }
 }
