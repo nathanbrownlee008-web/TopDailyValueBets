@@ -19,6 +19,7 @@ function setVipUI(active, email){
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
   const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
+  const vipPromoEl = document.getElementById('vipPromo');
 
   if(active){
     if(titleEl) titleEl.textContent = 'VIP Access';
@@ -30,6 +31,7 @@ function setVipUI(active, email){
       btnEl.style.pointerEvents = "none";
       btnEl.style.cursor = "default";
     }
+    if(vipPromoEl) vipPromoEl.style.display = 'none';
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
@@ -41,6 +43,7 @@ function setVipUI(active, email){
       btnEl.style.pointerEvents = "";
       btnEl.style.cursor = "pointer";
     }
+    if(vipPromoEl) vipPromoEl.style.display = '';
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
   }
 }
