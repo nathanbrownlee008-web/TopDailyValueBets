@@ -50,9 +50,9 @@
 
 <div class="tabs">
 <button id="tabBets" class="active">Value Bets</button>
-<button id="tabTracker">My Tracker</button>
-<button id="tabTdtTracker">TDT Tracker</button>
-<button id="tabTopPicks">Top Picks</button>
+<button id="tabTracker">Value Tracker</button>
+<button id="tabTdtTracker">TDT Value Tracker</button>
+<button id="tabTdtPicks">TDT Picks</button>
 </div>
 <div class="top-controls">
   <div class="layout-switch" role="group" aria-label="Layout">
@@ -72,12 +72,12 @@
   <table id="betsTable" class="bets-table">
     <thead>
       <tr>
-        <th>Date</th>
         <th>Match</th>
         <th>Market</th>
         <th>Bookie</th>
         <th>Odds</th>
         <th>Value</th>
+        <th>Date</th>
         <th></th>
       </tr>
     </thead>
@@ -104,10 +104,6 @@
 </div>
 </section>
 
-<section id="topPicksSection" style="display:none;">
-<div id="topPicksGrid" class="bets-grid"></div>
-</section>
-
 <section id="trackerSection" style="display:none;">
 
 <div class="bankroll-section">
@@ -123,10 +119,10 @@
 <div class="stat-card" id="profitCard">Profit<br><strong>£<span id="profit">0</span></strong></div>
 <div class="stat-card">ROI<br><strong><span id="roi">0</span>%</strong></div>
 <div class="stat-card">Win Rate<br><strong><span id="winrate">0</span>%</strong></div>
+<div class="stat-card">Total Bets<br><strong><span id="totalBets">0</span></strong></div>
 <div class="stat-card">Won - Lost<br><strong><span id="wonLost">0-0</span></strong></div>
 <div class="stat-card">Staked<br><strong>£<span id="totalStakedCard">0</span></strong></div>
 <div class="stat-card">Avg Odds<br><strong><span id="avgOdds">0</span></strong></div>
-<div class="stat-card">Total Bets<br><strong><span id="totalBets">0</span></strong></div>
 </div>
 
 <div class="chart-tabs">
