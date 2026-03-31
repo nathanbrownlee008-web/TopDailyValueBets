@@ -50,9 +50,8 @@
 
 <div class="tabs">
 <button id="tabBets" class="active">Value Bets</button>
-<button id="tabTracker">Value Tracker</button>
-<button id="tabTdtTracker">TDT Value Tracker</button>
-<button id="tabTdtPicks">TDT Picks</button>
+<button id="tabTracker">My Tracker</button>
+<button id="tabTdtTracker">TDT Tracker</button>
 </div>
 <div class="top-controls">
   <div class="layout-switch" role="group" aria-label="Layout">
@@ -74,6 +73,7 @@
       <tr>
         <th>Match</th>
         <th>Market</th>
+        <th>Bookie</th>
         <th>Odds</th>
         <th>Value</th>
         <th>Date</th>
@@ -118,10 +118,10 @@
 <div class="stat-card" id="profitCard">Profit<br><strong>£<span id="profit">0</span></strong></div>
 <div class="stat-card">ROI<br><strong><span id="roi">0</span>%</strong></div>
 <div class="stat-card">Win Rate<br><strong><span id="winrate">0</span>%</strong></div>
+<div class="stat-card">Total Bets<br><strong><span id="totalBets">0</span></strong></div>
 <div class="stat-card">Won - Lost<br><strong><span id="wonLost">0-0</span></strong></div>
 <div class="stat-card">Staked<br><strong>£<span id="totalStakedCard">0</span></strong></div>
 <div class="stat-card">Avg Odds<br><strong><span id="avgOdds">0</span></strong></div>
-<div class="stat-card">Total Bets<br><strong><span id="totalBets">0</span></strong></div>
 </div>
 
 <div class="chart-tabs">
@@ -222,37 +222,6 @@
     <div id="tdtTrackerTable"></div>
   </div>
 </div>
-
-</section>
-
-
-<section id="tdtPicksSection" style="display:none;">
-
-<div class="section-intro section-intro--tdt-picks">
-  <div class="section-intro__title">TDT Picks</div>
-  <div class="section-intro__text">Official tips from TDT (Top Daily Tips), analysed in depth by our team to highlight our strongest bets.</div>
-</div>
-
-<div class="bets-table-wrap tdt-picks-table-wrap">
-  <table id="tdtPicksTable" class="bets-table tdt-picks-table">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Match</th>
-        <th>Market</th>
-        <th>Bookie</th>
-        <th>Odds</th>
-        <th>Confidence</th>
-        <th>Type</th>
-        <th>Top</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<div id="tdtPicksEmpty" class="card" style="display:none;">No TDT picks yet.</div>
 
 </section>
 
