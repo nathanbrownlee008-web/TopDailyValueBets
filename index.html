@@ -64,10 +64,6 @@
 </header>
 
 <section id="betsSection">
-<div class="section-intro section-intro--bets">
-  <div class="section-intro__title">Value Bets</div>
-  <div class="section-intro__text">Edge-based bets from the value feed. Add the ones you like into Value Tracker.</div>
-</div>
 <!-- Mobile/compact cards -->
 <div id="betsGrid" class="bets-grid"></div>
 
@@ -108,10 +104,6 @@
 </section>
 
 <section id="trackerSection" style="display:none;">
-<div class="section-intro section-intro--tracker">
-  <div class="section-intro__title">Value Tracker</div>
-  <div class="section-intro__text">Your personal tracker for the value bets you choose to add.</div>
-</div>
 
 <div class="bankroll-section">
   <div class="bankroll-row">
@@ -176,9 +168,10 @@
 
 
 <section id="tdtTrackerSection" style="display:none;">
-<div class="section-intro section-intro--tdt">
-  <div class="section-intro__title">TDT Value Tracker</div>
-  <div class="section-intro__text">Official read-only tracker for the TDT value bets record.</div>
+
+<div class="card" style="margin-bottom:16px;">
+  <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Official Tracker</div>
+  <div style="opacity:.85;">Read-only official all-time results for everyone to see.</div>
 </div>
 
 <div class="stats-grid tdt-stats-grid">
@@ -234,28 +227,29 @@
 
 
 <section id="tdtPicksSection" style="display:none;">
+<div class="section-intro section-intro--tdt-picks">
+  <div class="section-intro__title">TDT Picks</div>
+  <div class="section-intro__text">Official tips from TDT (Top Daily Tips), analysed in depth by our team to highlight our strongest bets.</div>
+</div>
 
-<div class="card" style="margin-bottom:16px;">
-  <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Picks</div>
-<div>Official tips from TDT (Top Daily Tips), analysed in depth by our team to highlight our strongest bets.</div>
-
-<div id="tdtPicksGrid" class="bets-grid"></div>
-
-<div class="bets-table-wrap">
-  <table id="tdtPicksTable" class="bets-table">
+<div class="tdt-picks-table-wrap">
+  <table id="tdtPicksTable" class="tdt-picks-table">
     <thead>
       <tr>
+        <th>Date</th>
         <th>Match</th>
         <th>Market</th>
         <th>Bookie</th>
         <th>Odds</th>
-        <th>Date</th>
+        <th>Top</th>
+        <th></th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 </div>
 
+<div id="tdtPicksEmpty" class="card" style="display:none;">No TDT picks yet.</div>
 </section>
 
 
