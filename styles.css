@@ -5775,3 +5775,18 @@ select.result-lost{
     letter-spacing:0;
   }
 }
+/* FORCE 3 TABS PERFECT ROW */
+.tabs {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.tabs button {
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 14px;
+  padding: 10px 6px;
+}
