@@ -215,6 +215,17 @@ function normalizeDateOnly(value){
   if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
   return null;
 }
+function formatValueBetsTableDate(value){
+  if(!value) return '';
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return String(value);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const day = d.getDate();
+  const mod100 = day % 100;
+  const suffix = (mod100 >= 11 && mod100 <= 13) ? 'th' : (day % 10 === 1 ? 'st' : day % 10 === 2 ? 'nd' : day % 10 === 3 ? 'rd' : 'th');
+  return `${months[d.getMonth()]} ${day}${suffix}`;
+}
+
 function isValueBetActiveToday(row){
   const today=toLocalYMD(new Date());
   const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
@@ -682,7 +693,8 @@ async function loadBets(){
     const isAdded = addedKeys.has(key);
     if(!locked) visibleForAlerts.push(row);
 
-    const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
+    const betDate = row.bet_date || row.created_at || '';
+    const betDateLabel = formatValueBetsTableDate(betDate);
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -698,7 +710,7 @@ async function loadBets(){
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
       <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-      <span class="bet-date">${escapeHtml(betDate)}</span>
+      <span class="bet-date">${escapeHtml(betDateLabel)}</span>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
@@ -721,12 +733,12 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
+        <td>${escapeHtml(betDateLabel)}</td>
         <td><b>${escapeHtml(row.match||'')}</b></td>
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
         <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
-        <td>${escapeHtml(betDate)}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
@@ -3116,7 +3128,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(row.market || "—")}
+                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
                     </div>
                   </div>
 
@@ -3153,6 +3165,7 @@ window.forgotVipPassword = forgotVipPassword;
                         <th>Stake</th>
                         <th>Odds</th>
                         <th>Result</th>
+                        <th class="profit-col">Profit</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3161,11 +3174,14 @@ window.forgotVipPassword = forgotVipPassword;
           dayRows.forEach(row=>{
             const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
             const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
+            let p = 0;
+            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+            if(row.result === "lost") p = -Number(row.stake || 0);
             html += `
                       <tr>
                         <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
                         <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(row.market || "—")}</td>
+                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
                         <td>
                           <input 
                             type="number" 
@@ -3187,6 +3203,7 @@ window.forgotVipPassword = forgotVipPassword;
                             <option value="delete">🗑 delete</option>
                           </select>
                         </td>
+                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
                       </tr>
             `;
           });
@@ -3249,24 +3266,4 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
-// ===== FIX: Hide VIP preview if VIP active =====
-(function(){
-  const observer = new MutationObserver(()=>{
-    const vipPromo = document.getElementById('vipPromo');
-    if(!vipPromo) return;
 
-    if(vipActive){
-      vipPromo.style.display = "none";
-    }else{
-      vipPromo.style.display = "";
-    }
-  });
-
-  observer.observe(document.body, { childList:true, subtree:true });
-
-  // also run immediately
-  const vipPromo = document.getElementById('vipPromo');
-  if(vipPromo && vipActive){
-    vipPromo.style.display = "none";
-  }
-})();
