@@ -5798,10 +5798,12 @@ select.result-lost{
   #tabTdtPicks{
     grid-column: auto;
   }
-}\n\n/* ===== Main tabs: 3 core tabs on first row, TDT Picks underneath ===== */
+}
+
+/* ===== Tabs layout: 3 main tabs on top row, TDT Picks below ===== */
 .tabs{
   display:grid !important;
-  grid-template-columns:repeat(3, minmax(0,1fr));
+  grid-template-columns:repeat(3,minmax(0,1fr));
   gap:8px;
   width:100%;
   align-items:stretch;
@@ -5818,14 +5820,14 @@ select.result-lost{
 }
 @media (min-width: 950px){
   .tabs{
-    grid-template-columns:repeat(4, minmax(0,1fr));
+    grid-template-columns:repeat(4,minmax(0,1fr));
   }
   #tabTdtPicks{
     grid-column:auto;
   }
 }
 
-/* ===== Neat section explainer cards ===== */
+/* ===== Section intro cards ===== */
 .section-intro{
   max-width:1200px;
   margin:0 auto 14px;
@@ -5852,10 +5854,6 @@ select.result-lost{
     padding:10px 12px;
     border-radius:14px;
   }
-  .section-intro__title{
-    font-size:13px;
-  }
-  .section-intro__text{
-    font-size:11px;
-  }
-}\n
+  .section-intro__title{font-size:13px;}
+  .section-intro__text{font-size:11px;}
+}
