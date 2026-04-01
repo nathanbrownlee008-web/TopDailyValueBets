@@ -5994,23 +5994,14 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
 .table-match-cell{
   min-width:0;
 }
-.table-match-league{
-  font-size:11px;
-  color:rgba(226,232,240,.74);
-  margin-bottom:4px;
-  line-height:1.15;
-}
+.table-match-league{font-size:11px;color:rgba(226,232,240,.74);margin-bottom:7px;line-height:1.05;transform:translateY(-1px)}
 .table-match-league-text{
   min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-.table-match-name{
-  font-size:13px;
-  color:rgba(240,248,255,.96);
-  line-height:1.2;
-}
+.table-match-name{font-size:13px;color:rgba(240,248,255,.96);line-height:1.18;padding-top:1px}
 
 /* ===== Desktop-only pills for market + bookie ===== */
 @media (min-width: 900px){
@@ -6036,5 +6027,21 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
   .table-market-line{
     font-size:12px;
     color:rgba(240,248,255,.92);
+  }
+}
+
+
+/* ===== Desktop wide value bets match cell spacing ===== */
+@media (min-width: 900px){
+  .bets-table .table-match-cell{
+    min-width:0;
+    vertical-align:middle;
+  }
+  .bets-table .table-match-league{
+    display:block;
+    letter-spacing:.02em;
+  }
+  .bets-table .table-match-name{
+    display:block;
   }
 }
