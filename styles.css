@@ -5819,81 +5819,62 @@ select.result-lost{
 
 
 
-.vip-plan small{
-  display:block;
-  margin-top:4px;
-  font-size:11px;
-  font-weight:700;
-  line-height:1.25;
-  opacity:.88;
-}
 
 
+/* ===== REAL FULL-WIDTH DESKTOP WIDE MODE ===== */
+@media (min-width: 900px){
+  body.layout-wide{
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 24px 28px !important;
+    --app-max: none !important;
+    --app-pad: 24px !important;
+  }
 
-/* ===== FORCE REAL DESKTOP WIDE MODE (safe patch) ===== */
-@media (min-width: 950px){
   body.layout-wide .main-header,
   body.layout-wide #betsSection,
   body.layout-wide #trackerSection,
   body.layout-wide #tdtTrackerSection,
   body.layout-wide #historySection,
   body.layout-wide #tdtHistorySection{
-    max-width: 1440px;
-    margin-left: auto;
-    margin-right: auto;
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
-  body.layout-wide .bets-grid{
-    display:none !important;
+  body.layout-wide .bets-table-wrap,
+  body.layout-wide .tracker-desktop-table-wrap{
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 
-  body.layout-wide .bets-table-wrap{
-    display:block !important;
-    max-width:1440px;
-    margin:0 auto;
-    padding:0 16px;
+  body.layout-wide .bets-table,
+  body.layout-wide .tracker-desktop-table{
+    width: 100% !important;
   }
 
-  body.layout-wide .bets-table{
-    display:table !important;
-    width:100%;
-    table-layout:fixed;
+  body.layout-wide .vip-promo{
+    width: 100% !important;
+    max-width: none !important;
   }
 
-  body.layout-wide .bets-table thead th:nth-child(1),
-  body.layout-wide .bets-table tbody td:nth-child(1){ width:25%; }
-  body.layout-wide .bets-table thead th:nth-child(2),
-  body.layout-wide .bets-table tbody td:nth-child(2){ width:22%; }
-  body.layout-wide .bets-table thead th:nth-child(3),
-  body.layout-wide .bets-table tbody td:nth-child(3){ width:16%; }
-  body.layout-wide .bets-table thead th:nth-child(4),
-  body.layout-wide .bets-table tbody td:nth-child(4){ width:10%; text-align:center; }
-  body.layout-wide .bets-table thead th:nth-child(5),
-  body.layout-wide .bets-table tbody td:nth-child(5){ width:13%; white-space:nowrap; }
-  body.layout-wide .bets-table thead th:nth-child(6),
-  body.layout-wide .bets-table tbody td:nth-child(6){ width:14%; text-align:right; white-space:nowrap; }
-
-  body.layout-wide #trackerTable .tracker-bet-list,
-  body.layout-wide #tdtTrackerTable .tracker-bet-list{
-    display:none !important;
+  body.layout-wide canvas,
+  body.layout-wide #chart,
+  body.layout-wide #marketChart,
+  body.layout-wide #monthlyChart,
+  body.layout-wide #vipPromoChart{
+    width: 100% !important;
+    max-width: none !important;
   }
+}
 
-  body.layout-wide #trackerTable .tracker-desktop-table-wrap,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table-wrap{
-    display:block !important;
-    padding-top:10px;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table{
-    display:table !important;
-    width:100%;
-    border-collapse:collapse;
-    table-layout:fixed;
-    background:transparent;
-  }
-
-  body.layout-wide .top-controls{
-    gap:14px;
+@media (min-width: 1200px){
+  body.layout-wide{
+    padding: 26px 36px !important;
   }
 }
