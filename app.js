@@ -33,7 +33,7 @@ function setVipUI(active, email){
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
-    if(statusEl) statusEl.textContent = '5 day free trial available — unlock VIP';
+    if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
     if(btnEl){
       if(btnTextEl) btnTextEl.textContent = 'Go VIP';
       else btnEl.textContent = 'Go VIP';
@@ -288,7 +288,6 @@ function getBetTitleSizeClass(match){
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
-const installBtnEl = document.getElementById("installBtn");
 
 // VIP UI
 const vipButtonEl = document.getElementById("vipButton");
@@ -505,67 +504,7 @@ function applyLayout(mode){
   if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
 })();
 
-
-
-// ===== SAFE INSTALL BUTTON =====
-let deferredInstallPrompt = null;
-
-function isStandaloneMode(){
-  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-}
-
-function updateInstallButton(){
-  if(!installBtnEl) return;
-  if(isStandaloneMode()){
-    installBtnEl.style.display = 'none';
-    return;
-  }
-  const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
-  installBtnEl.textContent = isIOS ? 'Add to Home' : 'Install App';
-  installBtnEl.style.display = 'inline-flex';
-}
-
-window.addEventListener('beforeinstallprompt', (event) => {
-  event.preventDefault();
-  deferredInstallPrompt = event;
-  updateInstallButton();
-});
-
-window.addEventListener('appinstalled', () => {
-  deferredInstallPrompt = null;
-  updateInstallButton();
-});
-
-if(installBtnEl){
-  installBtnEl.addEventListener('click', async () => {
-    const ua = window.navigator.userAgent || '';
-    const isIOS = /iphone|ipad|ipod/i.test(ua);
-    const isAndroid = /android/i.test(ua);
-
-    if(deferredInstallPrompt){
-      try{
-        await deferredInstallPrompt.prompt();
-        await deferredInstallPrompt.userChoice;
-      }catch(e){}
-      deferredInstallPrompt = null;
-      updateInstallButton();
-      return;
-    }
-
-    if(isIOS){
-      alert('On iPhone, tap Share then "Add to Home Screen".');
-      return;
-    }
-
-    if(isAndroid){
-      alert('On Android, open the browser menu and tap "Install app" or "Add to Home screen".');
-      return;
-    }
-
-    alert('Open your browser menu and choose "Install app" or "Add to Home screen".');
-  });
-}
-
+// (Install App / PWA install button removed for now)
 
 const bankrollElem=document.getElementById("bankroll");
 const profitElem=document.getElementById("profit");
@@ -632,6 +571,7 @@ function formatUnlockLabel(state){
 
 // Top navigation tabs
 const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
+const tabTdtPicksEl = document.getElementById("tabTdtPicks");
 const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
@@ -661,6 +601,7 @@ tabTracker.onclick=()=>{
   switchTab("tracker");
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
+if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>alert("Coming soon — TDT Picks will be added later.");
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -689,7 +630,6 @@ checkVIP().then(async ()=>{
   loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
-  updateInstallButton();
 });
 
 function switchTab(tab){
@@ -783,9 +723,17 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td><b>${escapeHtml(row.match||'')}</b></td>
-        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
-        <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
+        <td class="table-match-cell">${
+          leagueName
+            ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>`
+            : ''
+        }<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
+        <td>${
+          locked
+            ? '<span class="table-lock-copy">Hidden for VIP</span>'
+            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
+        }</td>
+        <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
         <td>${escapeHtml(betDate)}</td>
@@ -3193,7 +3141,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(row.market || "—")}
+                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
                     </div>
                   </div>
 
@@ -3219,6 +3167,63 @@ window.forgotVipPassword = forgotVipPassword;
           });
 
           html += `
+                </div>
+                <div class="tracker-desktop-table-wrap">
+                  <table class="tracker-desktop-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Match</th>
+                        <th>Market</th>
+                        <th>Stake</th>
+                        <th>Odds</th>
+                        <th>Result</th>
+                        <th class="profit-col">Profit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+          `;
+
+          dayRows.forEach(row=>{
+            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
+            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
+            let p = 0;
+            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+            if(row.result === "lost") p = -Number(row.stake || 0);
+            html += `
+                      <tr>
+                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
+                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
+                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
+                        <td>
+                          <input 
+                            type="number" 
+                            value="${Number(row.stake || 0)}" 
+                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
+                        </td>
+                        <td>
+                          <input 
+                            type="number" 
+                            step="0.01" 
+                            value="${Number(row.odds ?? 0)}" 
+                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
+                        </td>
+                        <td>
+                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                            <option value="delete">🗑 delete</option>
+                          </select>
+                        </td>
+                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
+                      </tr>
+            `;
+          });
+
+          html += `
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -3274,11 +3279,24 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
+// ===== FIX: Hide VIP preview if VIP active =====
+(function(){
+  const observer = new MutationObserver(()=>{
+    const vipPromo = document.getElementById('vipPromo');
+    if(!vipPromo) return;
 
+    if(vipActive){
+      vipPromo.style.display = "none";
+    }else{
+      vipPromo.style.display = "";
+    }
+  });
 
+  observer.observe(document.body, { childList:true, subtree:true });
 
-window.addEventListener('focus', updateInstallButton);
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) updateInstallButton();
-});
-document.addEventListener('DOMContentLoaded', updateInstallButton);
+  // also run immediately
+  const vipPromo = document.getElementById('vipPromo');
+  if(vipPromo && vipActive){
+    vipPromo.style.display = "none";
+  }
+})();
