@@ -5926,122 +5926,33 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
   min-width:96px;
 }
 
-
-/* ===== Desktop Value Bets: league + market lines ===== */
-.table-market-wrap{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  min-width:0;
+/* ===== Clean about boxes ===== */
+.section-intro{
+  max-width:1200px;
+  margin:0 auto 14px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 10px 24px rgba(0,0,0,0.16);
 }
-.table-league-line,
-.table-market-line{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  min-width:0;
-}
-.table-league-line{
-  font-size:12px;
-  color:rgba(226,232,240,.78);
-}
-.table-market-line{
-  font-size:13px;
-  color:rgba(240,248,255,.92);
-}
-.table-league-icon,
-.table-market-icon{
-  flex:0 0 auto;
-  line-height:1;
-}
-.table-league-text,
-.table-market-text{
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-
-/* ===== TDT Picks tab: keep visible but mark as later ===== */
-.tab-coming-soon{
-  position:relative;
-}
-.soon-badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  margin-left:6px;
-  padding:2px 7px;
-  border-radius:999px;
-  font-size:10px;
+.section-intro__title{
+  font-size:14px;
   font-weight:800;
-  letter-spacing:.04em;
-  background:rgba(245,158,11,.14);
-  border:1px solid rgba(245,158,11,.28);
-  color:#fcd34d;
+  color:#f8fafc;
+  margin-bottom:4px;
 }
-
-@media (max-width: 700px){
-  .soon-badge{
-    display:block;
-    margin:4px auto 0;
-    width:max-content;
-  }
+.section-intro__text{
+  font-size:12px;
+  line-height:1.45;
+  color:rgba(226,232,240,0.82);
 }
-
-
-/* ===== Desktop Value Bets: league above match, no trophy ===== */
-.table-match-cell{
-  min-width:0;
-}
-.table-match-league{font-size:11px;color:rgba(226,232,240,.74);margin-bottom:7px;line-height:1.05;transform:translateY(-1px)}
-.table-match-league-text{
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.table-match-name{font-size:13px;color:rgba(240,248,255,.96);line-height:1.18;padding-top:1px}
-
-/* ===== Desktop-only pills for market + bookie ===== */
-@media (min-width: 900px){
-  .table-market-pill,
-  .table-bookie-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    padding:6px 10px;
-    border-radius:999px;
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.12);
-    font-weight:700;
-    font-size:12px;
-    line-height:1;
-    white-space:nowrap;
+@media (max-width: 600px){
+  .section-intro{
+    margin-bottom:12px;
+    padding:10px 12px;
+    border-radius:14px;
   }
-
-  .table-market-wrap{
-    display:block;
-  }
-
-  .table-market-line{
-    font-size:12px;
-    color:rgba(240,248,255,.92);
-  }
-}
-
-
-/* ===== Desktop wide value bets match cell spacing ===== */
-@media (min-width: 900px){
-  .bets-table .table-match-cell{
-    min-width:0;
-    vertical-align:middle;
-  }
-  .bets-table .table-match-league{
-    display:block;
-    letter-spacing:.02em;
-  }
-  .bets-table .table-match-name{
-    display:block;
-  }
+  .section-intro__title{font-size:13px;}
+  .section-intro__text{font-size:11px;}
 }
