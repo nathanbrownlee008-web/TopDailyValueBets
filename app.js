@@ -571,7 +571,6 @@ function formatUnlockLabel(state){
 
 // Top navigation tabs
 const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
-const tabTdtPicksEl = document.getElementById("tabTdtPicks");
 const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
@@ -601,7 +600,6 @@ tabTracker.onclick=()=>{
   switchTab("tracker");
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
-if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>alert("Coming soon — TDT Picks will be added later.");
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -723,17 +721,9 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="table-match-cell">${
-          leagueName
-            ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>`
-            : ''
-        }<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
-        <td>${
-          locked
-            ? '<span class="table-lock-copy">Hidden for VIP</span>'
-            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
-        }</td>
-        <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
+        <td><b>${escapeHtml(row.match||'')}</b></td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
+        <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
         <td>${escapeHtml(betDate)}</td>
@@ -3063,14 +3053,11 @@ window.forgotVipPassword = forgotVipPassword;
       weekEntry.days.get(day).push(row);
     });
 
-    const fallbackMonthLabel = months[0]?.label || "";
-    const effectiveMonthLabel = months.some(m => m.label === currentMonthLabel) ? currentMonthLabel : fallbackMonthLabel;
-
     let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
 
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
-      const isCurrentMonth = monthKey === effectiveMonthLabel;
+      const isCurrentMonth = monthKey === currentMonthLabel;
       const monthOpen = isCurrentMonth;
 
       html += `
@@ -3082,15 +3069,9 @@ window.forgotVipPassword = forgotVipPassword;
           <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
       `;
 
-      const weekEntries = Array.from(monthEntry.weeks.entries());
-      const fallbackWeekLabel = weekEntries[0]?.[0] || "";
-      const effectiveWeekLabel = monthKey === effectiveMonthLabel && weekEntries.some(([label]) => label === currentWeekLabel)
-        ? currentWeekLabel
-        : fallbackWeekLabel;
-
-      weekEntries.forEach(([weekLabel, weekEntry], weekIndex)=>{
+      Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
-        const isCurrentWeek = monthKey === effectiveMonthLabel && weekLabel === effectiveWeekLabel;
+        const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
         const weekOpen = isCurrentWeek;
 
         html += `
@@ -3102,15 +3083,9 @@ window.forgotVipPassword = forgotVipPassword;
             <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
         `;
 
-        const dayEntries = Array.from(weekEntry.days.entries());
-        const fallbackDayLabel = dayEntries[0]?.[0] || "";
-        const effectiveDayLabel = isCurrentWeek && dayEntries.some(([label]) => label === currentDayLabel)
-          ? currentDayLabel
-          : fallbackDayLabel;
-
-        dayEntries.forEach(([dayLabel, dayRows], dayIndex)=>{
+        Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
-          const isCurrentDay = isCurrentWeek && dayLabel === effectiveDayLabel;
+          const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
           const dayOpen = isCurrentDay;
 
           html += `
