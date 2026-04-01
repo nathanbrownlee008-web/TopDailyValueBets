@@ -522,6 +522,19 @@ const FREE_VISIBLE_COUNT = 3;
 const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
+function makeTdtPickTrackerRow(row){
+  return {
+    match: row?.match || "",
+    market: row?.market || "",
+    odds: row?.odds ?? "",
+    stake: Number(row?.stake ?? 10),
+    result: row?.result || "pending",
+    bet_date: row?.bet_date || (row?.created_at ? String(row.created_at).slice(0,10) : null),
+    created_at: row?.created_at || new Date().toISOString(),
+    bookie: row?.bookie || null
+  };
+}
+
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
@@ -564,6 +577,17 @@ function teaserCopyForLockedBet(row, state){
   return `VIP only • ${valueText} • market hidden`;
 }
 
+
+function formatTdtPickDate(value){
+  if(!value) return "";
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return String(value);
+  const day = d.getDate();
+  const suffix = (day >= 11 && day <= 13) ? 'th' : (day % 10 === 1) ? 'st' : (day % 10 === 2) ? 'nd' : (day % 10 === 3) ? 'rd' : 'th';
+  const month = d.toLocaleString('en-GB', { month:'short' });
+  return `${day}${suffix} ${month}`;
+}
+
 function formatUnlockLabel(state){
   if(!state?.unlocksAt) return 'VIP only';
   return `Unlocks ${state.unlocksAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
@@ -572,6 +596,8 @@ function formatUnlockLabel(state){
 // Top navigation tabs
 const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
 const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
+const tabTdtPicksEl = document.getElementById("tabTdtPicks");
+const tdtPicksSectionEl = document.getElementById("tdtPicksSection");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
 const tabTdtHistoryEl = document.getElementById("tabTdtHistory");
@@ -600,6 +626,7 @@ tabTracker.onclick=()=>{
   switchTab("tracker");
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
+if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>switchTab("tdtPicks");
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -637,10 +664,12 @@ function switchTab(tab){
   betsSection.style.display=(tab==="bets")?"block":"none";
   trackerSection.style.display=(tab==="tracker")?"block":"none";
   if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
+  if(tdtPicksSectionEl) tdtPicksSectionEl.style.display=(tab==="tdtPicks")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
   tabTracker.classList.toggle("active",tab==="tracker");
   if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
+  if(tabTdtPicksEl) tabTdtPicksEl.classList.toggle("active",tab==="tdtPicks");
 
   if(tab==="tracker"){
     loadTracker();
@@ -649,6 +678,78 @@ function switchTab(tab){
   if(tab==="tdt"){
     loadTdtTracker();
     return;
+  }
+  if(tab==="tdtPicks"){
+    loadTdtPicks();
+    return;
+  }
+}
+
+async function loadTdtPicks(){
+  const grid = document.getElementById("tdtPicksGrid");
+  const table = document.getElementById("tdtPicksTable");
+  const tbody = table ? table.querySelector("tbody") : null;
+
+  if(grid) grid.innerHTML = `<div class="card">Loading TDT picks...</div>`;
+  if(tbody) tbody.innerHTML = "";
+
+  try{
+    const { data, error } = await client
+      .from("tdt_picks")
+      .select("*")
+      .order("created_at", { ascending:false });
+
+    if(error) throw error;
+
+    const rows = data || [];
+    if(!rows.length){
+      if(grid) grid.innerHTML = `<div class="card">No TDT picks yet.</div>`;
+      return;
+    }
+
+    if(grid){
+      grid.innerHTML = rows.map(row=>{
+        const match = row.match || "";
+        const market = row.market || "";
+        const bookie = row.bookie || "";
+        const odds = row.odds ?? "";
+        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
+        return `
+          <div class="card bet-card">
+            <div class="bet-title">${match}</div>
+            <div class="bet-meta">
+              <span class="bet-market">${market}</span>
+              <span class="bet-date">${dateText}</span>
+            </div>
+            ${bookie ? `<div class="bet-bookie">${bookie}</div>` : ``}
+            <div class="bet-footer">
+              <span class="odds-badge"><strong>@ ${odds}</strong></span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    if(tbody){
+      tbody.innerHTML = rows.map(row=>{
+        const match = row.match || "";
+        const market = row.market || "";
+        const bookie = row.bookie || "-";
+        const odds = row.odds ?? "";
+        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
+        return `
+          <tr>
+            <td>${match}</td>
+            <td>${market}</td>
+            <td>${bookie}</td>
+            <td><span class="pill">${odds}</span></td>
+            <td>${dateText}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+  }catch(err){
+    if(grid) grid.innerHTML = `<div class="card">Could not load TDT picks.</div>`;
   }
 }
 
@@ -721,7 +822,15 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td><b>${escapeHtml(row.match||'')}</b></td>
+        <td class="table-match-cell">${
+          locked
+            ? `<b>${escapeHtml(row.match||'')}</b>`
+            : `<div class="table-match-wrap">${
+                leagueName
+                  ? `<div class="table-match-league">🏴 ${escapeHtml(leagueName)}</div>`
+                  : ''
+              }<div class="table-match-name">${escapeHtml(row.match||'')}</div></div>`
+        }</td>
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
         <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
@@ -3116,7 +3225,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
+                      ${trackerEsc(row.market || "—")}
                     </div>
                   </div>
 
@@ -3142,63 +3251,6 @@ window.forgotVipPassword = forgotVipPassword;
           });
 
           html += `
-                </div>
-                <div class="tracker-desktop-table-wrap">
-                  <table class="tracker-desktop-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Match</th>
-                        <th>Market</th>
-                        <th>Stake</th>
-                        <th>Odds</th>
-                        <th>Result</th>
-                        <th class="profit-col">Profit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-          `;
-
-          dayRows.forEach(row=>{
-            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
-            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
-            let p = 0;
-            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
-            if(row.result === "lost") p = -Number(row.stake || 0);
-            html += `
-                      <tr>
-                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
-                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
-                        <td>
-                          <input 
-                            type="number" 
-                            value="${Number(row.stake || 0)}" 
-                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <input 
-                            type="number" 
-                            step="0.01" 
-                            value="${Number(row.odds ?? 0)}" 
-                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                            <option value="delete">🗑 delete</option>
-                          </select>
-                        </td>
-                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-                      </tr>
-            `;
-          });
-
-          html += `
-                    </tbody>
-                  </table>
                 </div>
               </div>
             </div>
@@ -3254,24 +3306,4 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
-// ===== FIX: Hide VIP preview if VIP active =====
-(function(){
-  const observer = new MutationObserver(()=>{
-    const vipPromo = document.getElementById('vipPromo');
-    if(!vipPromo) return;
 
-    if(vipActive){
-      vipPromo.style.display = "none";
-    }else{
-      vipPromo.style.display = "";
-    }
-  });
-
-  observer.observe(document.body, { childList:true, subtree:true });
-
-  // also run immediately
-  const vipPromo = document.getElementById('vipPromo');
-  if(vipPromo && vipActive){
-    vipPromo.style.display = "none";
-  }
-})();

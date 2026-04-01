@@ -5742,191 +5742,87 @@ select.result-lost{
 }
 
 
-/* ===== Desktop-only tracker table (mobile untouched) ===== */
-#trackerTable .tracker-desktop-table-wrap{
-  display:none;
+/* ===== Tabs layout cleanup ===== */
+.tabs{
+  display:grid;
+  gap:8px;
+  grid-template-columns:repeat(2, minmax(0,1fr));
 }
-
-@media (min-width: 950px){
-  body.layout-wide #trackerTable .tracker-bet-list{
-    display:none;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table-wrap{
-    display:block;
-    padding-top:10px;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table{
-    width:100%;
-    border-collapse:collapse;
-    table-layout:fixed;
-    background:transparent;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table thead th{
-    text-align:left;
-    padding:12px 8px;
-    border-bottom:1px solid #334155;
-    font-size:12px;
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    color:rgba(180,205,230,.78);
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table tbody td{
-    padding:12px 8px;
-    border-bottom:1px solid #22314a;
-    vertical-align:middle;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-date{
-    width:9%;
-    white-space:nowrap;
-    color:#cbd5e1;
-    font-size:12px;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-match{
-    width:33%;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    font-weight:800;
-    font-size:14px;
-    line-height:1.15;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-market{
-    width:24%;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    color:#dbe6fb;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table input[type="number"]{
-    width:74px;
-    text-align:center;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table select{
-    width:96px;
-    min-width:96px;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table th.profit-col,
-  body.layout-wide #trackerTable .tracker-desktop-table td.profit-col{
-    width:11%;
-    text-align:right;
-    white-space:nowrap;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table td.profit-col span{
-    font-weight:800;
-  }
-
-  body.layout-wide .bets-table{
-    table-layout:fixed;
-  }
-
-  body.layout-wide .bets-table thead th:nth-child(1),
-  body.layout-wide .bets-table tbody td:nth-child(1){ width:25%; }
-  body.layout-wide .bets-table thead th:nth-child(2),
-  body.layout-wide .bets-table tbody td:nth-child(2){ width:21%; }
-  body.layout-wide .bets-table thead th:nth-child(3),
-  body.layout-wide .bets-table tbody td:nth-child(3){ width:14%; }
-  body.layout-wide .bets-table thead th:nth-child(4),
-  body.layout-wide .bets-table tbody td:nth-child(4){ width:10%; text-align:center; }
-  body.layout-wide .bets-table thead th:nth-child(5),
-  body.layout-wide .bets-table tbody td:nth-child(5){ width:10%; text-align:center; }
-  body.layout-wide .bets-table thead th:nth-child(6),
-  body.layout-wide .bets-table tbody td:nth-child(6){ width:12%; white-space:nowrap; }
-  body.layout-wide .bets-table thead th:nth-child(7),
-  body.layout-wide .bets-table tbody td:nth-child(7){ width:8%; text-align:right; white-space:nowrap; }
-
-  body.layout-wide .bets-table tbody td:nth-child(1){
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  body.layout-wide .bets-table tbody td:nth-child(3){
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-}
-
-/* ===== TRACKER WIDE MODE: force grouped rows even on phone when Wide is on ===== */
-body.layout-wide #trackerTable .tracker-bet-list{
-  display:none !important;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table-wrap{
-  display:block !important;
-  padding-top:10px;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table{
+.tabs button{
+  margin:0;
   width:100%;
-  border-collapse:collapse;
-  table-layout:fixed;
-  background:transparent;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table thead th{
-  text-align:left;
-  padding:12px 8px;
-  border-bottom:1px solid #334155;
+  white-space:nowrap;
   font-size:12px;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:rgba(180,205,230,.78);
+  padding:9px 6px;
+}
+@media (min-width: 760px){
+  .tabs{
+    grid-template-columns:repeat(4, minmax(0,1fr));
+  }
+  .tabs button{
+    font-size:13px;
+  }
 }
 
-body.layout-wide #trackerTable .tracker-desktop-table tbody td{
-  padding:12px 8px;
-  border-bottom:1px solid #22314a;
-  vertical-align:middle;
+/* ===== TDT Picks ===== */
+#tdtPicksSection{
+  margin-top: 8px;
+}
+/* main tabs: 3 on top, TDT Picks below */
+.tabs{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:8px;
+  width:100%;
 }
 
-body.layout-wide #trackerTable .tracker-desktop-date{
-  width:12%;
+.tabs button{
+  margin:0;
+  width:100%;
   white-space:nowrap;
-  color:#cbd5e1;
   font-size:12px;
+  padding:9px 6px;
 }
 
-body.layout-wide #trackerTable .tracker-desktop-match{
-  width:28%;
+/* make TDT Picks sit on its own row */
+#tabTdtPicks{
+  grid-column: 2 / 3; /* centered */
+}
+
+/* desktop can keep all 4 in one row if you want */
+@media (min-width: 950px){
+  .tabs{
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  #tabTdtPicks{
+    grid-column: auto;
+  }
+}
+
+
+/* ===== Tabs layout ===== */
+.tabs{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  width:100%;
+  align-items:stretch;
+}
+.tabs button{
+  margin:0 !important;
+  width:100%;
   white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  font-weight:800;
-  font-size:14px;
-  line-height:1.15;
+  font-size:12px;
+  padding:10px 6px;
+}
+#tabTdtPicks{ grid-column:2 / 3; }
+@media (min-width:950px){
+  .tabs{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+  #tabTdtPicks{ grid-column:auto; }
 }
 
-body.layout-wide #trackerTable .tracker-desktop-market{
-  width:26%;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  color:#dbe6fb;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table input[type="number"]{
-  width:74px;
-  text-align:center;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table select{
-  width:96px;
-  min-width:96px;
-}
-
-/* ===== Clean about boxes ===== */
+/* ===== Section intro ===== */
 .section-intro{
   max-width:1200px;
   margin:0 auto 14px;
@@ -5947,12 +5843,145 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
   line-height:1.45;
   color:rgba(226,232,240,0.82);
 }
-@media (max-width: 600px){
-  .section-intro{
+
+
+/* ===== TDT Picks table ===== */
+.tdt-picks-table-wrap{
+  max-width:1200px;
+  margin:0 auto;
+}
+.tdt-picks-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+.tdt-picks-table thead th{
+  text-align:left;
+  font-size:11px;
+  opacity:.72;
+  padding:8px 6px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.tdt-picks-table td{
+  padding:10px 6px;
+  font-size:13px;
+  border-top:1px solid rgba(255,255,255,0.06);
+  vertical-align:middle;
+}
+.tdt-pick-row:hover{ background:rgba(255,255,255,0.03); }
+.tdt-pick-row.top-pick{ background:rgba(255,140,0,0.06); }
+.tdt-date{ width:72px; white-space:nowrap; }
+.tdt-match{ width:28%; font-weight:700; }
+.tdt-market{ width:24%; }
+.tdt-bookie{ width:16%; font-weight:700; }
+.tdt-odds{ width:68px; font-weight:800; white-space:nowrap; }
+.tdt-top{ width:52px; text-align:center; }
+.tdt-add{ width:86px; text-align:right; white-space:nowrap; }
+
+.tdt-top-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:28px;
+  height:28px;
+  border-radius:999px;
+  background:rgba(255,140,0,0.14);
+  border:1px solid rgba(255,140,0,0.35);
+  font-size:15px;
+}
+.tdt-top-badge--off{
+  background:transparent;
+  border-color:rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.35);
+}
+
+@media (max-width:720px){
+  .tdt-picks-table thead{ display:none; }
+  .tdt-picks-table, .tdt-picks-table tbody, .tdt-picks-table tr, .tdt-picks-table td{
+    display:block;
+    width:100%;
+  }
+  .tdt-picks-table tr{
+    background:rgba(30,41,59,0.70);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:14px;
     margin-bottom:12px;
     padding:10px 12px;
-    border-radius:14px;
   }
-  .section-intro__title{font-size:13px;}
-  .section-intro__text{font-size:11px;}
+  .tdt-picks-table td{
+    border:none;
+    padding:4px 0;
+  }
+  .tdt-picks-table td::before{
+    content:attr(data-label);
+    display:block;
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    opacity:.58;
+    margin-bottom:3px;
+  }
+  .tdt-date{
+    font-size:12px;
+    opacity:.78;
+  }
+  .tdt-match{
+    font-size:15px;
+    font-weight:800;
+  }
+  .tdt-market{
+    font-size:14px;
+  }
+  .tdt-bookie{
+    font-size:13px;
+    font-weight:700;
+  }
+  .tdt-odds{
+    font-size:14px;
+    font-weight:800;
+  }
+  .tdt-top, .tdt-add{
+    width:auto;
+    text-align:left;
+  }
+  .tdt-add .btn{
+    margin-top:4px;
+  }
+}
+
+/* ===== Desktop wide value bets: league above match ===== */
+.table-match-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  min-width:0;
+}
+.table-match-league{
+  font-size:11px;
+  color:rgba(226,232,240,.74);
+  margin-bottom:7px;
+  line-height:1.05;
+  transform:translateY(-1px);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.table-match-name{
+  font-size:13px;
+  color:rgba(240,248,255,.96);
+  line-height:1.18;
+  padding-top:1px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+@media (min-width: 900px){
+  .bets-table .table-match-cell{
+    min-width:0;
+    vertical-align:middle;
+  }
+  .bets-table .table-match-wrap{
+    min-width:0;
+  }
 }
