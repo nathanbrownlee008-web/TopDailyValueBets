@@ -6113,3 +6113,109 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
     box-shadow: none !important;
   }
 }
+
+
+
+
+/* ===== FULL-WIDTH DESKTOP TRACKER/BETS (safe end patch) ===== */
+@media (min-width: 950px){
+  body.layout-wide{
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  body.layout-wide #betsSection,
+  body.layout-wide #trackerSection,
+  body.layout-wide #tdtTrackerSection{
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  body.layout-wide .bets-table-wrap,
+  body.layout-wide #trackerWrapper,
+  body.layout-wide #tdtTrackerWrapper,
+  body.layout-wide #trackerTable,
+  body.layout-wide #tdtTrackerTable,
+  body.layout-wide #trackerTable .tracker-desktop-table-wrap,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-table-wrap,
+  body.layout-wide .tracker-history,
+  body.layout-wide .chart-wrap,
+  body.layout-wide .monthly-breakdown,
+  body.layout-wide .tdt-performance{
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  body.layout-wide .bets-table-wrap{
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  body.layout-wide .bets-table,
+  body.layout-wide #trackerTable .tracker-desktop-table,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-table{
+    width: 100% !important;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-date,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-date{
+    width: 8% !important;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-match,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-match{
+    width: 30% !important;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-market,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-market{
+    width: 22% !important;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table th.profit-col,
+  body.layout-wide #trackerTable .tracker-desktop-table td.profit-col,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-table th.profit-col,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-table td.profit-col{
+    width: 11% !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table input[type="number"],
+  body.layout-wide #tdtTrackerTable .tracker-desktop-table input[type="number"]{
+    width: 78px !important;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table select,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-table select{
+    width: 98px !important;
+    min-width: 98px !important;
+  }
+}
+
+@media (min-width: 1300px){
+  body.layout-wide{
+    padding-left: 22px !important;
+    padding-right: 22px !important;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-date,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-date{
+    width: 7% !important;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-match,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-match{
+    width: 31% !important;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-market,
+  body.layout-wide #tdtTrackerTable .tracker-desktop-market{
+    width: 23% !important;
+  }
+}
