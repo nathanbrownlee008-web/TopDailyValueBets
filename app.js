@@ -538,7 +538,10 @@ window.addEventListener('appinstalled', () => {
 
 if(installBtnEl){
   installBtnEl.addEventListener('click', async () => {
-    const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
+    const ua = window.navigator.userAgent || '';
+    const isIOS = /iphone|ipad|ipod/i.test(ua);
+    const isAndroid = /android/i.test(ua);
+
     if(deferredInstallPrompt){
       try{
         await deferredInstallPrompt.prompt();
@@ -548,9 +551,18 @@ if(installBtnEl){
       updateInstallButton();
       return;
     }
+
     if(isIOS){
       alert('On iPhone, tap Share then "Add to Home Screen".');
+      return;
     }
+
+    if(isAndroid){
+      alert('On Android, open the browser menu and tap "Install app" or "Add to Home screen".');
+      return;
+    }
+
+    alert('Open your browser menu and choose "Install app" or "Add to Home screen".');
   });
 }
 
@@ -677,6 +689,7 @@ checkVIP().then(async ()=>{
   loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
+  updateInstallButton();
 });
 
 function switchTab(tab){
@@ -3262,3 +3275,10 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
+
+
+window.addEventListener('focus', updateInstallButton);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) updateInstallButton();
+});
+document.addEventListener('DOMContentLoaded', updateInstallButton);
