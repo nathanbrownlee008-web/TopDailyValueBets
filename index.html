@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="styles.css?v=1774309616"/>
 <link rel="manifest" href="/manifest.json"/>
-
+<!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
 
@@ -59,7 +59,7 @@
     <button id="btnCompact" class="layout-btn">Compact</button>
     <button id="btnWide" class="layout-btn">Wide</button>
   </div>
-  <button id="installBtn" class="layout-btn install-btn" type="button" style="display:none;">Install App</button>
+  <button id="installBtn" class="layout-btn install-btn" type="button">Install App</button>
 </div>
 </header>
 
@@ -242,8 +242,7 @@
       <button id="vipRestore" class="vip-restore-btn" type="button">Already subscribed? Restore VIP</button>
       <button id="vipForgot" class="vip-forgot-btn" type="button">Forgot VIP password?</button>
     </div>
-    <div class="vip-trial-note">🔔 Push alerts available once enabled in your browser / app.</div>
-<div id="vipError"></div>
+    <div id="vipError"></div>
   </div>
 </div>
 

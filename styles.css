@@ -5742,7 +5742,7 @@ select.result-lost{
 }
 
 
-/* ===== Safe PWA install button + VIP trial note ===== */
+/* ===== Safe install button ===== */
 .top-controls{
   display:flex;
   align-items:center;
@@ -5751,23 +5751,14 @@ select.result-lost{
   flex-wrap:wrap;
 }
 .install-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   min-width:120px;
 }
-.vip-trial-note{
-  margin: 0 0 12px;
-  font-size: 13px;
-  line-height: 1.35;
-  color: rgba(226,232,240,0.84);
-}
-@media (max-width: 600px){
-  .top-controls{
-    gap:10px;
-  }
+@media (max-width:600px){
   .install-btn{
     min-width:110px;
-  }
-  .vip-trial-note{
-    font-size:12px;
   }
 }
 

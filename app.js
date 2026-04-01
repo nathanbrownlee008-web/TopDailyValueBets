@@ -505,61 +505,54 @@ function applyLayout(mode){
   if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
 })();
 
-// (Install App / PWA install button removed for now)
 
 
-// ===== PWA INSTALL UI =====
+// ===== SAFE INSTALL BUTTON =====
 let deferredInstallPrompt = null;
 
-function isStandaloneDisplay(){
+function isStandaloneMode(){
   return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
 }
 
-function updateInstallButtonVisibility(){
+function updateInstallButton(){
   if(!installBtnEl) return;
-  if(isStandaloneDisplay()){
+  if(isStandaloneMode()){
     installBtnEl.style.display = 'none';
     return;
   }
-  if(deferredInstallPrompt){
-    installBtnEl.style.display = 'inline-flex';
-    installBtnEl.textContent = 'Install App';
-    return;
-  }
   const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
-  if(isIOS){
-    installBtnEl.style.display = 'inline-flex';
-    installBtnEl.textContent = 'Add to Home';
-    return;
-  }
-  installBtnEl.style.display = 'none';
+  installBtnEl.textContent = isIOS ? 'Add to Home' : 'Install App';
+  installBtnEl.style.display = 'inline-flex';
 }
 
 window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();
   deferredInstallPrompt = event;
-  updateInstallButtonVisibility();
+  updateInstallButton();
 });
 
 window.addEventListener('appinstalled', () => {
   deferredInstallPrompt = null;
-  updateInstallButtonVisibility();
+  updateInstallButton();
 });
 
 if(installBtnEl){
   installBtnEl.addEventListener('click', async () => {
     const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
-    if(isIOS && !deferredInstallPrompt){
-      alert('On iPhone: tap Share, then "Add to Home Screen".');
+    if(deferredInstallPrompt){
+      try{
+        await deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+      }catch(e){}
+      deferredInstallPrompt = null;
+      updateInstallButton();
       return;
     }
-    if(!deferredInstallPrompt) return;
-    try{
-      await deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
-    }catch(e){}
-    deferredInstallPrompt = null;
-    updateInstallButtonVisibility();
+    if(isIOS){
+      alert('On iPhone, tap Share then "Add to Home Screen".');
+      return;
+    }
+    alert('If install does not pop up automatically, open your browser menu and tap "Add to Home screen" or "Install app".');
   });
 }
 
@@ -686,6 +679,7 @@ checkVIP().then(async ()=>{
   loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
+  updateInstallButton();
 });
 
 function switchTab(tab){
