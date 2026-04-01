@@ -6267,3 +6267,14 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
     white-space: nowrap;
   }
 }
+* {
+  box-sizing: border-box;
+}
+table {
+  table-layout: fixed;
+}
+
+table td, table th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
