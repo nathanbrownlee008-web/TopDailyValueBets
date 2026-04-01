@@ -6278,3 +6278,17 @@ table td, table th {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* ===== DISABLE COMPACT ON DESKTOP ===== */
+@media (min-width: 950px){
+
+  /* hide compact button */
+  #compactBtn {
+    display: none !important;
+  }
+
+  /* make sure wide button looks active */
+  #wideBtn {
+    opacity: 1 !important;
+    pointer-events: none; /* stops clicking */
+  }
+}
