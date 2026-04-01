@@ -215,17 +215,6 @@ function normalizeDateOnly(value){
   if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
   return null;
 }
-
-function formatValueBetShortDate(value){
-  if(!value) return '';
-  const d = new Date(value);
-  if(Number.isNaN(d.getTime())) return String(value);
-  const day = d.getDate();
-  const suffix = (day % 10 === 1 && day !== 11) ? 'st' : (day % 10 === 2 && day !== 12) ? 'nd' : (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
-  const month = d.toLocaleDateString('en-GB', { month:'short' });
-  return `${day}${suffix} ${month}`;
-}
-
 function isValueBetActiveToday(row){
   const today=toLocalYMD(new Date());
   const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
@@ -299,7 +288,7 @@ function getBetTitleSizeClass(match){
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
-const installBtn = document.getElementById("installBtn");
+const installBtnEl = document.getElementById("installBtn");
 
 // VIP UI
 const vipButtonEl = document.getElementById("vipButton");
@@ -518,6 +507,63 @@ function applyLayout(mode){
 
 // (Install App / PWA install button removed for now)
 
+
+// ===== PWA INSTALL UI =====
+let deferredInstallPrompt = null;
+
+function isStandaloneDisplay(){
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+}
+
+function updateInstallButtonVisibility(){
+  if(!installBtnEl) return;
+  if(isStandaloneDisplay()){
+    installBtnEl.style.display = 'none';
+    return;
+  }
+  if(deferredInstallPrompt){
+    installBtnEl.style.display = 'inline-flex';
+    installBtnEl.textContent = 'Install App';
+    return;
+  }
+  const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
+  if(isIOS){
+    installBtnEl.style.display = 'inline-flex';
+    installBtnEl.textContent = 'Add to Home';
+    return;
+  }
+  installBtnEl.style.display = 'none';
+}
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  updateInstallButtonVisibility();
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  updateInstallButtonVisibility();
+});
+
+if(installBtnEl){
+  installBtnEl.addEventListener('click', async () => {
+    const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
+    if(isIOS && !deferredInstallPrompt){
+      alert('On iPhone: tap Share, then "Add to Home Screen".');
+      return;
+    }
+    if(!deferredInstallPrompt) return;
+    try{
+      await deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+    }catch(e){}
+    deferredInstallPrompt = null;
+    updateInstallButtonVisibility();
+  });
+}
+
+
 const bankrollElem=document.getElementById("bankroll");
 const profitElem=document.getElementById("profit");
 const roiElem=document.getElementById("roi");
@@ -695,7 +741,6 @@ async function loadBets(){
     if(!locked) visibleForAlerts.push(row);
 
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
-    const betDateShort = formatValueBetShortDate(row.bet_date || row.created_at);
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -734,13 +779,13 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="bets-date-col">${escapeHtml(betDateShort)}</td>
-        <td class="bets-match-col"><b>${escapeHtml(row.match||'')}</b></td>
-        <td class="bets-market-col">${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
-        <td class="bets-bookie-col">${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
-        <td class="bets-odds-col"><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td class="bets-value-col"><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
-        <td class="bets-action-col">
+        <td><b>${escapeHtml(row.match||'')}</b></td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
+        <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
+        <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
+        <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
+        <td>${escapeHtml(betDate)}</td>
+        <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
       </tr>`;
@@ -3211,30 +3256,3 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
-
-
-// ===== PWA INSTALL =====
-let deferredInstallPrompt = null;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  if(installBtn) installBtn.style.display = 'inline-flex';
-});
-
-window.addEventListener('appinstalled', () => {
-  deferredInstallPrompt = null;
-  if(installBtn) installBtn.style.display = 'none';
-});
-
-if(installBtn){
-  installBtn.addEventListener('click', async () => {
-    if(!deferredInstallPrompt) return;
-    deferredInstallPrompt.prompt();
-    try{
-      await deferredInstallPrompt.userChoice;
-    }catch(e){}
-    deferredInstallPrompt = null;
-    installBtn.style.display = 'none';
-  });
-}
