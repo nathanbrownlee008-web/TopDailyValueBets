@@ -5926,65 +5926,190 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
   min-width:96px;
 }
 
-/* ===== Safe win/loss colour coding for current tracker version ===== */
-/* Mobile/compact grouped cards */
-.tracker-grid-card:has(.result-won){
+
+/* ===== Desktop Value Bets: league + market lines ===== */
+.table-market-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+.table-league-line,
+.table-market-line{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+.table-league-line{
+  font-size:12px;
+  color:rgba(226,232,240,.78);
+}
+.table-market-line{
+  font-size:13px;
+  color:rgba(240,248,255,.92);
+}
+.table-league-icon,
+.table-market-icon{
+  flex:0 0 auto;
+  line-height:1;
+}
+.table-league-text,
+.table-market-text{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* ===== TDT Picks tab: keep visible but mark as later ===== */
+.tab-coming-soon{
+  position:relative;
+}
+.soon-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-left:6px;
+  padding:2px 7px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.04em;
+  background:rgba(245,158,11,.14);
+  border:1px solid rgba(245,158,11,.28);
+  color:#fcd34d;
+}
+
+@media (max-width: 700px){
+  .soon-badge{
+    display:block;
+    margin:4px auto 0;
+    width:max-content;
+  }
+}
+
+
+/* ===== Desktop Value Bets: league above match, no trophy ===== */
+.table-match-cell{
+  min-width:0;
+}
+.table-match-league{font-size:11px;color:rgba(226,232,240,.74);margin-bottom:7px;line-height:1.05;transform:translateY(-1px)}
+.table-match-league-text{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.table-match-name{font-size:13px;color:rgba(240,248,255,.96);line-height:1.18;padding-top:1px}
+
+/* ===== Desktop-only pills for market + bookie ===== */
+@media (min-width: 900px){
+  .table-market-pill,
+  .table-bookie-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);
+    font-weight:700;
+    font-size:12px;
+    line-height:1;
+    white-space:nowrap;
+  }
+
+  .table-market-wrap{
+    display:block;
+  }
+
+  .table-market-line{
+    font-size:12px;
+    color:rgba(240,248,255,.92);
+  }
+}
+
+
+/* ===== Desktop wide value bets match cell spacing ===== */
+@media (min-width: 900px){
+  .bets-table .table-match-cell{
+    min-width:0;
+    vertical-align:middle;
+  }
+  .bets-table .table-match-league{
+    display:block;
+    letter-spacing:.02em;
+  }
+  .bets-table .table-match-name{
+    display:block;
+  }
+}
+
+
+/* ===== ABOUT BOX (SAFE ADD) ===== */
+.about-box{
+  margin-bottom:14px;
+  padding:14px 16px;
+  border-radius:16px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+}
+.about-title{
+  font-weight:800;
+  font-size:15px;
+  margin-bottom:4px;
+}
+.about-text{
+  font-size:13px;
+  opacity:0.75;
+  line-height:1.4;
+}
+
+/* ===== Safe win/loss colour coding (current uploaded files) ===== */
+/* Mobile / compact tracker cards */
+.tracker-grid-card:has(.result-select.result-won){
   background: linear-gradient(145deg,#0f1f3d,#133d2a) !important;
   border: 1px solid rgba(34,197,94,0.35) !important;
   box-shadow:
     0 10px 24px rgba(0,0,0,0.45),
-    0 0 16px rgba(34,197,94,0.12);
+    0 0 16px rgba(34,197,94,0.12) !important;
 }
 
-.tracker-grid-card:has(.result-lost){
+.tracker-grid-card:has(.result-select.result-lost){
   background: linear-gradient(145deg,#0f1f3d,#3a1f24) !important;
   border: 1px solid rgba(239,68,68,0.35) !important;
   box-shadow:
     0 10px 24px rgba(0,0,0,0.45),
-    0 0 16px rgba(239,68,68,0.12);
+    0 0 16px rgba(239,68,68,0.12) !important;
 }
 
 /* Keep pending neutral */
-.tracker-grid-card:has(.result-pending){
+.tracker-grid-card:has(.result-select.result-pending){
   background: linear-gradient(145deg,#0c182f,#101f38) !important;
   border: 1px solid rgba(80,140,255,0.22) !important;
   box-shadow:
-    0 10px 24px rgba(0,0,0,0.45),
-    0 0 14px rgba(80,140,255,0.10);
+    0 10px 24px rgba(0,0,0,0.50),
+    0 0 10px rgba(80,140,255,0.06) !important;
 }
 
-/* Desktop/wide grouped table rows */
-body.layout-wide #trackerTable .tracker-desktop-table tbody tr:has(.result-won){
-  background: rgba(34,197,94,0.08) !important;
-  box-shadow: inset 3px 0 0 rgba(34,197,94,0.55);
-}
-body.layout-wide #trackerTable .tracker-desktop-table tbody tr:has(.result-lost){
-  background: rgba(239,68,68,0.08) !important;
-  box-shadow: inset 3px 0 0 rgba(239,68,68,0.55);
-}
-body.layout-wide #trackerTable .tracker-desktop-table tbody tr:has(.result-pending){
-  background: transparent !important;
-  box-shadow: none !important;
-}
+/* Desktop / wide tracker rows */
+@media (min-width: 950px){
+  body.layout-wide #trackerTable .tracker-desktop-table tbody tr:has(.result-select.result-won),
+  body.layout-wide #tdtTrackerTable .tracker-desktop-table tbody tr:has(.result-select.result-won){
+    background: rgba(34,197,94,0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(34,197,94,0.55);
+  }
 
-/* TDT tracker rows/cards too */
-#tdtTrackerTable .tracker-grid-card:has(.result-won){
-  background: linear-gradient(145deg,#0f1f3d,#133d2a) !important;
-  border: 1px solid rgba(34,197,94,0.35) !important;
-}
-#tdtTrackerTable .tracker-grid-card:has(.result-lost){
-  background: linear-gradient(145deg,#0f1f3d,#3a1f24) !important;
-  border: 1px solid rgba(239,68,68,0.35) !important;
-}
-body.layout-wide #tdtTrackerTable .tracker-desktop-table tbody tr:has(.result-won){
-  background: rgba(34,197,94,0.08) !important;
-  box-shadow: inset 3px 0 0 rgba(34,197,94,0.55);
-}
-body.layout-wide #tdtTrackerTable .tracker-desktop-table tbody tr:has(.result-lost){
-  background: rgba(239,68,68,0.08) !important;
-  box-shadow: inset 3px 0 0 rgba(239,68,68,0.55);
-}
-body.layout-wide #tdtTrackerTable .tracker-desktop-table tbody tr:has(.result-pending){
-  background: transparent !important;
-  box-shadow: none !important;
+  body.layout-wide #trackerTable .tracker-desktop-table tbody tr:has(.result-select.result-lost),
+  body.layout-wide #tdtTrackerTable .tracker-desktop-table tbody tr:has(.result-select.result-lost){
+    background: rgba(239,68,68,0.08) !important;
+    box-shadow: inset 3px 0 0 rgba(239,68,68,0.55);
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table tbody tr:has(.result-select.result-pending),
+  body.layout-wide #tdtTrackerTable .tracker-desktop-table tbody tr:has(.result-select.result-pending){
+    background: transparent !important;
+    box-shadow: none !important;
+  }
 }

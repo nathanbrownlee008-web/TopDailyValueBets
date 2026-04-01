@@ -50,7 +50,7 @@
 
 <div class="tabs">
 <button id="tabBets" class="active">Value Bets</button>
-<button id="tabTracker">Value Tracker</button>
+<button id="tabTracker">My Tracker</button>
 <button id="tabTdtTracker">TDT Tracker</button>
 </div>
 <div class="top-controls">
@@ -63,6 +63,12 @@
 </header>
 
 <section id="betsSection">
+<div class="card about-box">
+  <div class="about-title">Value Bets</div>
+  <div class="about-text">
+    Value bets picked from the feed based on edge and price. Add the ones you want into My Tracker to track your own results.
+  </div>
+</div>
 <!-- Mobile/compact cards -->
 <div id="betsGrid" class="bets-grid"></div>
 
@@ -104,6 +110,12 @@
 </section>
 
 <section id="trackerSection" style="display:none;">
+<div class="card about-box">
+  <div class="about-title">My Tracker</div>
+  <div class="about-text">
+    Track your own bets, bankroll, ROI and performance over time based on what you add.
+  </div>
+</div>
 
 <div class="bankroll-section">
   <div class="bankroll-row">
@@ -168,11 +180,14 @@
 
 
 <section id="tdtTrackerSection" style="display:none;">
-
-<div class="card" style="margin-bottom:16px;">
-  <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Official Tracker</div>
-  <div style="opacity:.85;">Read-only official all-time results for everyone to see.</div>
+<div class="card about-box">
+  <div class="about-title">TDT Tracker</div>
+  <div class="about-text">
+    Official TDT results. Fully transparent, read-only performance showing long-term results.
+  </div>
 </div>
+
+
 
 <div class="stats-grid tdt-stats-grid">
 <div class="stat-card">Total Bets<br><strong><span id="tdtTotalBets">0</span></strong></div>
