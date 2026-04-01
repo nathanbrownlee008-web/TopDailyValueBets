@@ -564,6 +564,17 @@ function teaserCopyForLockedBet(row, state){
   return `VIP only • ${valueText} • market hidden`;
 }
 
+
+function formatTdtPickDate(value){
+  if(!value) return "";
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return String(value);
+  const day = d.getDate();
+  const suffix = (day >= 11 && day <= 13) ? 'th' : (day % 10 === 1) ? 'st' : (day % 10 === 2) ? 'nd' : (day % 10 === 3) ? 'rd' : 'th';
+  const month = d.toLocaleString('en-GB', { month:'short' });
+  return `${day}${suffix} ${month}`;
+}
+
 function formatUnlockLabel(state){
   if(!state?.unlocksAt) return 'VIP only';
   return `Unlocks ${state.unlocksAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
@@ -571,8 +582,9 @@ function formatUnlockLabel(state){
 
 // Top navigation tabs
 const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
-const tabTdtPicksEl = document.getElementById("tabTdtPicks");
 const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
+const tabTdtPicksEl = document.getElementById("tabTdtPicks");
+const tdtPicksSectionEl = document.getElementById("tdtPicksSection");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
 const tabTdtHistoryEl = document.getElementById("tabTdtHistory");
@@ -601,7 +613,7 @@ tabTracker.onclick=()=>{
   switchTab("tracker");
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
-if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>alert("Coming soon — TDT Picks will be added later.");
+if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>switchTab("tdtPicks");
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -639,10 +651,12 @@ function switchTab(tab){
   betsSection.style.display=(tab==="bets")?"block":"none";
   trackerSection.style.display=(tab==="tracker")?"block":"none";
   if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
+  if(tdtPicksSectionEl) tdtPicksSectionEl.style.display=(tab==="tdtPicks")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
   tabTracker.classList.toggle("active",tab==="tracker");
   if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
+  if(tabTdtPicksEl) tabTdtPicksEl.classList.toggle("active",tab==="tdtPicks");
 
   if(tab==="tracker"){
     loadTracker();
@@ -651,6 +665,78 @@ function switchTab(tab){
   if(tab==="tdt"){
     loadTdtTracker();
     return;
+  }
+  if(tab==="tdtPicks"){
+    loadTdtPicks();
+    return;
+  }
+}
+
+async function loadTdtPicks(){
+  const grid = document.getElementById("tdtPicksGrid");
+  const table = document.getElementById("tdtPicksTable");
+  const tbody = table ? table.querySelector("tbody") : null;
+
+  if(grid) grid.innerHTML = `<div class="card">Loading TDT picks...</div>`;
+  if(tbody) tbody.innerHTML = "";
+
+  try{
+    const { data, error } = await client
+      .from("tdt_picks")
+      .select("*")
+      .order("created_at", { ascending:false });
+
+    if(error) throw error;
+
+    const rows = data || [];
+    if(!rows.length){
+      if(grid) grid.innerHTML = `<div class="card">No TDT picks yet.</div>`;
+      return;
+    }
+
+    if(grid){
+      grid.innerHTML = rows.map(row=>{
+        const match = row.match || "";
+        const market = row.market || "";
+        const bookie = row.bookie || "";
+        const odds = row.odds ?? "";
+        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
+        return `
+          <div class="card bet-card">
+            <div class="bet-title">${match}</div>
+            <div class="bet-meta">
+              <span class="bet-market">${market}</span>
+              <span class="bet-date">${dateText}</span>
+            </div>
+            ${bookie ? `<div class="bet-bookie">${bookie}</div>` : ``}
+            <div class="bet-footer">
+              <span class="odds-badge"><strong>@ ${odds}</strong></span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    if(tbody){
+      tbody.innerHTML = rows.map(row=>{
+        const match = row.match || "";
+        const market = row.market || "";
+        const bookie = row.bookie || "-";
+        const odds = row.odds ?? "";
+        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
+        return `
+          <tr>
+            <td>${match}</td>
+            <td>${market}</td>
+            <td>${bookie}</td>
+            <td><span class="pill">${odds}</span></td>
+            <td>${dateText}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+  }catch(err){
+    if(grid) grid.innerHTML = `<div class="card">Could not load TDT picks.</div>`;
   }
 }
 
@@ -723,17 +809,9 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="table-match-cell">${
-          leagueName
-            ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>`
-            : ''
-        }<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
-        <td>${
-          locked
-            ? '<span class="table-lock-copy">Hidden for VIP</span>'
-            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
-        }</td>
-        <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
+        <td><b>${escapeHtml(row.match||'')}</b></td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
+        <td>${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
         <td>${escapeHtml(betDate)}</td>
@@ -922,6 +1000,7 @@ function _renderFilteredTrackerTable(){
 
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
+  autoOpenCurrentTrackerGroups();
 }
 
 let _filtersWired = false;
@@ -954,6 +1033,35 @@ function wireTrackerFilters(){
       _renderFilteredTrackerTable();
     });
   }
+}
+
+function getTodayLocalYMD(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const da = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${da}`;
+}
+
+function getCurrentWeekRangeKeyFromDate(dateStr){
+  const d = new Date(dateStr);
+  if(Number.isNaN(d.getTime())) return '';
+  const day = d.getDay();
+  const diffToMonday = (day + 6) % 7;
+  const monday = new Date(d);
+  monday.setHours(0,0,0,0);
+  monday.setDate(monday.getDate() - diffToMonday);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const sameMonth = monday.getMonth() === sunday.getMonth();
+  const monthLabel = monday.toLocaleDateString('en-GB', { month:'short' });
+  const monthLabelEnd = sunday.toLocaleDateString('en-GB', { month:'short' });
+
+  if(sameMonth){
+    return `Week ${Math.ceil(monday.getDate()/7)} (${monday.getDate()}–${sunday.getDate()} ${monthLabel})`;
+  }
+  return `Week ${Math.ceil(monday.getDate()/7)} (${monday.getDate()} ${monthLabel}–${sunday.getDate()} ${monthLabelEnd})`;
 }
 
 let dailyChart;
@@ -2819,7 +2927,7 @@ window.loadTdtTracker = async function(){
 
         html += `
             <div class="tdt-week-wrap" style="padding:0 0 10px;">
-              <button class="tracker-week-toggle ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" type="button" onclick="toggleTdtDay(this)" style="${weekCurrentStyle}">
+              <button class="tracker-week-toggle ${weekKey === currentWeekKey ? " tracker-week-toggle--current" : ""} ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" type="button" onclick="toggleTdtDay(this)" style="${weekCurrentStyle}">
                 <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
                 <span>${escapeHtml(weekGroup.key)}</span>
                 <span class="tracker-stats">${weekGroup.rows.length} • ${weekGroup.wins}-${weekGroup.losses} • ${weekWinrate}%</span>
@@ -3126,7 +3234,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
+                      ${trackerEsc(row.market || "—")}
                     </div>
                   </div>
 
@@ -3152,63 +3260,6 @@ window.forgotVipPassword = forgotVipPassword;
           });
 
           html += `
-                </div>
-                <div class="tracker-desktop-table-wrap">
-                  <table class="tracker-desktop-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Match</th>
-                        <th>Market</th>
-                        <th>Stake</th>
-                        <th>Odds</th>
-                        <th>Result</th>
-                        <th class="profit-col">Profit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-          `;
-
-          dayRows.forEach(row=>{
-            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
-            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
-            let p = 0;
-            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
-            if(row.result === "lost") p = -Number(row.stake || 0);
-            html += `
-                      <tr>
-                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
-                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
-                        <td>
-                          <input 
-                            type="number" 
-                            value="${Number(row.stake || 0)}" 
-                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <input 
-                            type="number" 
-                            step="0.01" 
-                            value="${Number(row.odds ?? 0)}" 
-                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                            <option value="delete">🗑 delete</option>
-                          </select>
-                        </td>
-                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-                      </tr>
-            `;
-          });
-
-          html += `
-                    </tbody>
-                  </table>
                 </div>
               </div>
             </div>
@@ -3264,24 +3315,35 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
-// ===== FIX: Hide VIP preview if VIP active =====
-(function(){
-  const observer = new MutationObserver(()=>{
-    const vipPromo = document.getElementById('vipPromo');
-    if(!vipPromo) return;
 
-    if(vipActive){
-      vipPromo.style.display = "none";
-    }else{
-      vipPromo.style.display = "";
-    }
+
+
+function autoOpenCurrentTrackerGroups(){
+  const today = getTodayLocalYMD();
+  const currentWeekKey = getCurrentWeekRangeKeyFromDate(today);
+  const currentMonthLabel = new Date().toLocaleDateString('en-GB', { month:'long', year:'numeric' });
+
+  document.querySelectorAll('.tracker-month-toggle').forEach(btn=>{
+    const txt = (btn.textContent || '').trim();
+    const body = btn.nextElementSibling;
+    const isCurrent = txt.includes(currentMonthLabel);
+    btn.classList.toggle('tracker-month-toggle--current', isCurrent);
+    if(body) body.classList.toggle('is-collapsed', !isCurrent);
   });
 
-  observer.observe(document.body, { childList:true, subtree:true });
+  document.querySelectorAll('.tracker-week-toggle').forEach(btn=>{
+    const txt = (btn.textContent || '').trim();
+    const body = btn.nextElementSibling;
+    const isCurrent = txt.includes(currentWeekKey);
+    btn.classList.toggle('tracker-week-toggle--current', isCurrent);
+    if(body) body.classList.toggle('is-collapsed', !isCurrent);
+  });
 
-  // also run immediately
-  const vipPromo = document.getElementById('vipPromo');
-  if(vipPromo && vipActive){
-    vipPromo.style.display = "none";
-  }
-})();
+  document.querySelectorAll('.tracker-day-toggle').forEach(btn=>{
+    const txt = (btn.textContent || '').trim();
+    const body = btn.nextElementSibling;
+    const isCurrent = txt.includes(new Date(today + 'T12:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short' }));
+    btn.classList.toggle('tracker-day-toggle--current', isCurrent);
+    if(body) body.classList.toggle('is-collapsed', !isCurrent);
+  });
+}

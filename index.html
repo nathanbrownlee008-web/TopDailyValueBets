@@ -50,8 +50,9 @@
 
 <div class="tabs">
 <button id="tabBets" class="active">Value Bets</button>
-<button id="tabTracker">My Tracker</button>
-<button id="tabTdtTracker">TDT Tracker</button>
+<button id="tabTracker">Value Tracker</button>
+<button id="tabTdtTracker">TDT Value Tracker</button>
+<button id="tabTdtPicks">TDT Picks</button>
 </div>
 <div class="top-controls">
   <div class="layout-switch" role="group" aria-label="Layout">
@@ -63,12 +64,6 @@
 </header>
 
 <section id="betsSection">
-<div class="card about-box">
-  <div class="about-title">Value Bets</div>
-  <div class="about-text">
-    Value bets picked from the feed based on edge and price. Add the ones you want into My Tracker to track your own results.
-  </div>
-</div>
 <!-- Mobile/compact cards -->
 <div id="betsGrid" class="bets-grid"></div>
 
@@ -79,7 +74,6 @@
       <tr>
         <th>Match</th>
         <th>Market</th>
-        <th>Bookie</th>
         <th>Odds</th>
         <th>Value</th>
         <th>Date</th>
@@ -110,12 +104,6 @@
 </section>
 
 <section id="trackerSection" style="display:none;">
-<div class="card about-box">
-  <div class="about-title">My Tracker</div>
-  <div class="about-text">
-    Track your own bets, bankroll, ROI and performance over time based on what you add.
-  </div>
-</div>
 
 <div class="bankroll-section">
   <div class="bankroll-row">
@@ -130,10 +118,10 @@
 <div class="stat-card" id="profitCard">Profit<br><strong>£<span id="profit">0</span></strong></div>
 <div class="stat-card">ROI<br><strong><span id="roi">0</span>%</strong></div>
 <div class="stat-card">Win Rate<br><strong><span id="winrate">0</span>%</strong></div>
-<div class="stat-card">Total Bets<br><strong><span id="totalBets">0</span></strong></div>
 <div class="stat-card">Won - Lost<br><strong><span id="wonLost">0-0</span></strong></div>
 <div class="stat-card">Staked<br><strong>£<span id="totalStakedCard">0</span></strong></div>
 <div class="stat-card">Avg Odds<br><strong><span id="avgOdds">0</span></strong></div>
+<div class="stat-card">Total Bets<br><strong><span id="totalBets">0</span></strong></div>
 </div>
 
 <div class="chart-tabs">
@@ -180,14 +168,11 @@
 
 
 <section id="tdtTrackerSection" style="display:none;">
-<div class="card about-box">
-  <div class="about-title">TDT Tracker</div>
-  <div class="about-text">
-    Official TDT results. Fully transparent, read-only performance showing long-term results.
-  </div>
+
+<div class="card" style="margin-bottom:16px;">
+  <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Official Tracker</div>
+  <div style="opacity:.85;">Read-only official all-time results for everyone to see.</div>
 </div>
-
-
 
 <div class="stats-grid tdt-stats-grid">
 <div class="stat-card">Total Bets<br><strong><span id="tdtTotalBets">0</span></strong></div>
@@ -236,6 +221,33 @@
   <div id="tdtTrackerWrapper" class="collapsed">
     <div id="tdtTrackerTable"></div>
   </div>
+</div>
+
+</section>
+
+
+<section id="tdtPicksSection" style="display:none;">
+
+<div class="card" style="margin-bottom:16px;">
+  <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Picks</div>
+  <div style="opacity:.85;">Official TDT picks feed, kept separate from Value Bets and trackers.</div>
+</div>
+
+<div id="tdtPicksGrid" class="bets-grid"></div>
+
+<div class="bets-table-wrap">
+  <table id="tdtPicksTable" class="bets-table">
+    <thead>
+      <tr>
+        <th>Match</th>
+        <th>Market</th>
+        <th>Bookie</th>
+        <th>Odds</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 </section>
