@@ -177,7 +177,6 @@ async function startCheckout(plan){
   localStorage.setItem('vip_email', email);
   try{
     await ensureVipPasswordAccount(email, password);
-    if(vipTrialEl) vipTrialEl.disabled=true;
     if(vipMonthlyEl) vipMonthlyEl.disabled=true;
     if(vipYearlyEl) vipYearlyEl.disabled=true;
     if(vipRestoreEl) vipRestoreEl.disabled=true;
@@ -191,7 +190,6 @@ async function startCheckout(plan){
     window.location.href=j.url;
   }catch(err){
     if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
-    if(vipTrialEl) vipTrialEl.disabled=false;
     if(vipMonthlyEl) vipMonthlyEl.disabled=false;
     if(vipYearlyEl) vipYearlyEl.disabled=false;
     if(vipRestoreEl) vipRestoreEl.disabled=false;
@@ -299,7 +297,6 @@ const vipModalEl = document.getElementById("vipModal");
 const vipCloseEl = document.getElementById("vipClose");
 const vipEmailEl = document.getElementById("vipEmail");
 const vipPasswordEl = document.getElementById("vipPassword");
-const vipTrialEl = document.getElementById("vipTrial");
 const vipMonthlyEl = document.getElementById("vipMonthly");
 const vipYearlyEl = document.getElementById("vipYearly");
 const vipRestoreEl = document.getElementById("vipRestore");
@@ -561,7 +558,7 @@ if(installBtnEl){
     }
 
     if(isAndroid){
-      alert('On Android, open the browser menu and tap "Install app". If Chrome still does not show it, refresh once and try again.');
+      alert('On Android, open the browser menu and tap "Install app" or "Add to Home screen".');
       return;
     }
 
@@ -669,8 +666,7 @@ if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
 if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
 if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
-if(vipTrialEl) vipTrialEl.addEventListener('click',()=>startCheckout('trial'));
-if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly_intro'));
+if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
 if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
 if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
 if(vipForgotEl) vipForgotEl.addEventListener('click', forgotVipPassword);
@@ -693,7 +689,6 @@ checkVIP().then(async ()=>{
   loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
-  updateInstallButton();
   updateInstallButton();
 });
 
