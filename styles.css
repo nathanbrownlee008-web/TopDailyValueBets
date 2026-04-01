@@ -6113,3 +6113,50 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
     box-shadow: none !important;
   }
 }
+
+/* ===== Safe wide-mode match-name room fix ===== */
+@media (min-width: 950px){
+  body.layout-wide #trackerTable .tracker-desktop-date{
+    width:8%;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-match{
+    width:31%;
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+    line-height:1.2;
+    word-break:break-word;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-market{
+    width:22%;
+  }
+
+  body.layout-wide #trackerTable .tracker-desktop-table tbody td{
+    padding-top:14px;
+    padding-bottom:14px;
+  }
+
+  body.layout-wide #tdtTrackerTable .tracker-desktop-date{
+    width:8%;
+  }
+
+  body.layout-wide #tdtTrackerTable .tracker-desktop-match{
+    width:31%;
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+    line-height:1.2;
+    word-break:break-word;
+  }
+
+  body.layout-wide #tdtTrackerTable .tracker-desktop-market{
+    width:22%;
+  }
+
+  body.layout-wide #tdtTrackerTable .tracker-desktop-table tbody td{
+    padding-top:14px;
+    padding-bottom:14px;
+  }
+}
