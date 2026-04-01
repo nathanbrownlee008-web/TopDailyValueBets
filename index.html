@@ -20,7 +20,7 @@
 .vip-modal__close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);width:38px;height:38px;border-radius:999px;font-size:20px;line-height:1;}
 .vip-modal__sub{opacity:.82;line-height:1.45;margin:0 0 16px;}
 #vipEmail,#vipPassword{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;margin:0 0 14px;font-size:15px;}
-.vip-modal__plans{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.vip-modal__plans{display:grid;grid-template-columns:1fr;gap:10px;}
 .vip-plan{padding:14px 12px;border-radius:16px;font-weight:900;font-size:15px;}
 #vipMonthly{background:linear-gradient(180deg,#f7d95a,#d8a800);color:#111827;}
 #vipYearly{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.38);color:#ecfdf5;}
@@ -237,12 +237,13 @@
     <input id="vipEmail" type="email" placeholder="Enter your email" autocomplete="email" />
     <input id="vipPassword" type="password" placeholder="Create or enter your VIP password" autocomplete="current-password" />
     <div class="vip-modal__plans">
-      <button id="vipMonthly" class="vip-plan" type="button">£5 first month<br><small>After the separate 5-day free trial, then £12/month</small></button>
-      <button id="vipYearly" class="vip-plan" type="button">£80 / year<br><small>Yearly option</small></button>
-      <button id="vipRestore" class="vip-restore-btn" type="button">Already subscribed? Restore VIP</button>
-      <button id="vipForgot" class="vip-forgot-btn" type="button">Forgot VIP password?</button>
-    </div>
-    <div id="vipError"></div>
+  <button id="vipTrial" class="vip-plan vip-plan--trial" type="button">5 day free trial</button>
+  <button id="vipMonthly" class="vip-plan" type="button">£5 first month<br><small>then £12 each month after</small></button>
+  <button id="vipYearly" class="vip-plan" type="button">£80 / year</button>
+  <button id="vipRestore" class="vip-restore-btn" type="button">Restore VIP</button>
+  <button id="vipForgot" class="vip-forgot-btn" type="button">Forgot password?</button>
+</div>
+<div id="vipError"></div>
   </div>
 </div>
 
