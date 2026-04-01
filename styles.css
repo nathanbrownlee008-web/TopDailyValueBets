@@ -6278,17 +6278,63 @@ table td, table th {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* ===== DISABLE COMPACT ON DESKTOP ===== */
-@media (min-width: 950px){
 
-  /* hide compact button */
-  #compactBtn {
-    display: none !important;
+
+
+/* ===== Desktop: force Wide only + Date-first Value Bets table ===== */
+@media (min-width: 950px){
+  #btnCompact{
+    display:none !important;
   }
 
-  /* make sure wide button looks active */
-  #wideBtn {
-    opacity: 1 !important;
-    pointer-events: none; /* stops clicking */
+  #btnWide{
+    opacity:1 !important;
+    pointer-events:none !important;
+  }
+
+  body.layout-wide .bets-table thead th:nth-child(1),
+  body.layout-wide .bets-table tbody td:nth-child(1){
+    width: 11% !important;
+    white-space: nowrap !important;
+  }
+
+  body.layout-wide .bets-table thead th:nth-child(2),
+  body.layout-wide .bets-table tbody td:nth-child(2){
+    width: 25% !important;
+  }
+
+  body.layout-wide .bets-table thead th:nth-child(3),
+  body.layout-wide .bets-table tbody td:nth-child(3){
+    width: 19% !important;
+  }
+
+  body.layout-wide .bets-table thead th:nth-child(4),
+  body.layout-wide .bets-table tbody td:nth-child(4){
+    width: 16% !important;
+  }
+
+  body.layout-wide .bets-table thead th:nth-child(5),
+  body.layout-wide .bets-table tbody td:nth-child(5){
+    width: 10% !important;
+    text-align:center !important;
+  }
+
+  body.layout-wide .bets-table thead th:nth-child(6),
+  body.layout-wide .bets-table tbody td:nth-child(6){
+    width: 11% !important;
+    white-space:nowrap !important;
+  }
+
+  body.layout-wide .bets-table thead th:nth-child(7),
+  body.layout-wide .bets-table tbody td:nth-child(7){
+    width: 8% !important;
+    text-align:right !important;
+    white-space:nowrap !important;
+  }
+
+  .table-date-cell{
+    color: rgba(226,232,240,.84);
+    font-weight: 700;
+    white-space: nowrap;
   }
 }
