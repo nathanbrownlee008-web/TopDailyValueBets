@@ -550,9 +550,7 @@ if(installBtnEl){
     }
     if(isIOS){
       alert('On iPhone, tap Share then "Add to Home Screen".');
-      return;
     }
-    alert('If install does not pop up automatically, open your browser menu and tap "Add to Home screen" or "Install app".');
   });
 }
 
@@ -679,7 +677,6 @@ checkVIP().then(async ()=>{
   loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
-  updateInstallButton();
 });
 
 function switchTab(tab){
@@ -3105,11 +3102,14 @@ window.forgotVipPassword = forgotVipPassword;
       weekEntry.days.get(day).push(row);
     });
 
+    const fallbackMonthLabel = months[0]?.label || "";
+    const effectiveMonthLabel = months.some(m => m.label === currentMonthLabel) ? currentMonthLabel : fallbackMonthLabel;
+
     let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
 
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
-      const isCurrentMonth = monthKey === currentMonthLabel;
+      const isCurrentMonth = monthKey === effectiveMonthLabel;
       const monthOpen = isCurrentMonth;
 
       html += `
@@ -3121,9 +3121,15 @@ window.forgotVipPassword = forgotVipPassword;
           <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
       `;
 
-      Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
+      const weekEntries = Array.from(monthEntry.weeks.entries());
+      const fallbackWeekLabel = weekEntries[0]?.[0] || "";
+      const effectiveWeekLabel = monthKey === effectiveMonthLabel && weekEntries.some(([label]) => label === currentWeekLabel)
+        ? currentWeekLabel
+        : fallbackWeekLabel;
+
+      weekEntries.forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
-        const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
+        const isCurrentWeek = monthKey === effectiveMonthLabel && weekLabel === effectiveWeekLabel;
         const weekOpen = isCurrentWeek;
 
         html += `
@@ -3135,9 +3141,15 @@ window.forgotVipPassword = forgotVipPassword;
             <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
         `;
 
-        Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
+        const dayEntries = Array.from(weekEntry.days.entries());
+        const fallbackDayLabel = dayEntries[0]?.[0] || "";
+        const effectiveDayLabel = isCurrentWeek && dayEntries.some(([label]) => label === currentDayLabel)
+          ? currentDayLabel
+          : fallbackDayLabel;
+
+        dayEntries.forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
-          const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
+          const isCurrentDay = isCurrentWeek && dayLabel === effectiveDayLabel;
           const dayOpen = isCurrentDay;
 
           html += `
