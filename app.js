@@ -215,6 +215,17 @@ function normalizeDateOnly(value){
   if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
   return null;
 }
+
+function formatValueBetShortDate(value){
+  if(!value) return '';
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return String(value);
+  const day = d.getDate();
+  const suffix = (day % 10 === 1 && day !== 11) ? 'st' : (day % 10 === 2 && day !== 12) ? 'nd' : (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
+  const month = d.toLocaleDateString('en-GB', { month:'short' });
+  return `${day}${suffix} ${month}`;
+}
+
 function isValueBetActiveToday(row){
   const today=toLocalYMD(new Date());
   const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
@@ -288,6 +299,7 @@ function getBetTitleSizeClass(match){
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
+const installBtn = document.getElementById("installBtn");
 
 // VIP UI
 const vipButtonEl = document.getElementById("vipButton");
@@ -571,7 +583,6 @@ function formatUnlockLabel(state){
 
 // Top navigation tabs
 const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
-const tabTdtPicksEl = document.getElementById("tabTdtPicks");
 const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
@@ -601,7 +612,6 @@ tabTracker.onclick=()=>{
   switchTab("tracker");
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
-if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>alert("Coming soon — TDT Picks will be added later.");
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -685,6 +695,7 @@ async function loadBets(){
     if(!locked) visibleForAlerts.push(row);
 
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
+    const betDateShort = formatValueBetShortDate(row.bet_date || row.created_at);
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -723,21 +734,13 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="table-match-cell">${
-          leagueName
-            ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>`
-            : ''
-        }<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
-        <td>${
-          locked
-            ? '<span class="table-lock-copy">Hidden for VIP</span>'
-            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
-        }</td>
-        <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
-        <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
-        <td>${escapeHtml(betDate)}</td>
-        <td>
+        <td class="bets-date-col">${escapeHtml(betDateShort)}</td>
+        <td class="bets-match-col"><b>${escapeHtml(row.match||'')}</b></td>
+        <td class="bets-market-col">${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : escapeHtml(row.market||'')}</td>
+        <td class="bets-bookie-col">${locked ? '—' : escapeHtml(row.bookie||'—')}</td>
+        <td class="bets-odds-col"><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
+        <td class="bets-value-col"><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
+        <td class="bets-action-col">
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
       </tr>`;
@@ -3063,14 +3066,11 @@ window.forgotVipPassword = forgotVipPassword;
       weekEntry.days.get(day).push(row);
     });
 
-    const fallbackMonthLabel = months[0]?.label || "";
-    const effectiveMonthLabel = months.some(m => m.label === currentMonthLabel) ? currentMonthLabel : fallbackMonthLabel;
-
     let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
 
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
-      const isCurrentMonth = monthKey === effectiveMonthLabel;
+      const isCurrentMonth = monthKey === currentMonthLabel;
       const monthOpen = isCurrentMonth;
 
       html += `
@@ -3082,15 +3082,9 @@ window.forgotVipPassword = forgotVipPassword;
           <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
       `;
 
-      const weekEntries = Array.from(monthEntry.weeks.entries());
-      const fallbackWeekLabel = weekEntries[0]?.[0] || "";
-      const effectiveWeekLabel = monthKey === effectiveMonthLabel && weekEntries.some(([label]) => label === currentWeekLabel)
-        ? currentWeekLabel
-        : fallbackWeekLabel;
-
-      weekEntries.forEach(([weekLabel, weekEntry], weekIndex)=>{
+      Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
-        const isCurrentWeek = monthKey === effectiveMonthLabel && weekLabel === effectiveWeekLabel;
+        const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
         const weekOpen = isCurrentWeek;
 
         html += `
@@ -3102,15 +3096,9 @@ window.forgotVipPassword = forgotVipPassword;
             <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
         `;
 
-        const dayEntries = Array.from(weekEntry.days.entries());
-        const fallbackDayLabel = dayEntries[0]?.[0] || "";
-        const effectiveDayLabel = isCurrentWeek && dayEntries.some(([label]) => label === currentDayLabel)
-          ? currentDayLabel
-          : fallbackDayLabel;
-
-        dayEntries.forEach(([dayLabel, dayRows], dayIndex)=>{
+        Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
-          const isCurrentDay = isCurrentWeek && dayLabel === effectiveDayLabel;
+          const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
           const dayOpen = isCurrentDay;
 
           html += `
@@ -3141,7 +3129,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
+                      ${trackerEsc(row.market || "—")}
                     </div>
                   </div>
 
@@ -3167,63 +3155,6 @@ window.forgotVipPassword = forgotVipPassword;
           });
 
           html += `
-                </div>
-                <div class="tracker-desktop-table-wrap">
-                  <table class="tracker-desktop-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Match</th>
-                        <th>Market</th>
-                        <th>Stake</th>
-                        <th>Odds</th>
-                        <th>Result</th>
-                        <th class="profit-col">Profit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-          `;
-
-          dayRows.forEach(row=>{
-            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
-            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
-            let p = 0;
-            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
-            if(row.result === "lost") p = -Number(row.stake || 0);
-            html += `
-                      <tr>
-                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
-                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
-                        <td>
-                          <input 
-                            type="number" 
-                            value="${Number(row.stake || 0)}" 
-                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <input 
-                            type="number" 
-                            step="0.01" 
-                            value="${Number(row.odds ?? 0)}" 
-                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                            <option value="delete">🗑 delete</option>
-                          </select>
-                        </td>
-                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-                      </tr>
-            `;
-          });
-
-          html += `
-                    </tbody>
-                  </table>
                 </div>
               </div>
             </div>
@@ -3279,67 +3210,31 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
-// ===== FIX: Hide VIP preview if VIP active =====
-(function(){
-  const observer = new MutationObserver(()=>{
-    const vipPromo = document.getElementById('vipPromo');
-    if(!vipPromo) return;
 
-    if(vipActive){
-      vipPromo.style.display = "none";
-    }else{
-      vipPromo.style.display = "";
-    }
-  });
-
-  observer.observe(document.body, { childList:true, subtree:true });
-
-  // also run immediately
-  const vipPromo = document.getElementById('vipPromo');
-  if(vipPromo && vipActive){
-    vipPromo.style.display = "none";
-  }
-})();
 
 
 // ===== PWA INSTALL =====
-let deferredPrompt;
+let deferredInstallPrompt = null;
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
-  deferredPrompt = e;
-  const btn = document.getElementById('installBtn');
-  if(btn) btn.style.display = "inline-block";
-});
-document.getElementById('installBtn')?.addEventListener('click', async () => {
-  if(!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
+  deferredInstallPrompt = e;
+  if(installBtn) installBtn.style.display = 'inline-flex';
 });
 
-// ===== SIMPLE PUSH =====
-async function toggleBetAlerts(){
-  const enabled = localStorage.getItem("tdt_notifications") === "true";
-  if(enabled){
-    localStorage.setItem("tdt_notifications", "false");
-    updateBetAlertUI();
-    return;
-  }
-  if("Notification" in window){
-    const permission = await Notification.requestPermission();
-    if(permission === "granted"){
-      localStorage.setItem("tdt_notifications", "true");
-      updateBetAlertUI();
-      new Notification("Notifications enabled 🔔", {
-        body: "You’ll get alerts for new bets"
-      });
-    }
-  }
-}
-function updateBetAlertUI(){
-  const enabled = localStorage.getItem("tdt_notifications") === "true";
-  const status = document.getElementById("notifyStatus");
-  if(status){
-    status.textContent = enabled ? "Alerts ON" : "Alerts off";
-  }
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  if(installBtn) installBtn.style.display = 'none';
+});
+
+if(installBtn){
+  installBtn.addEventListener('click', async () => {
+    if(!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    try{
+      await deferredInstallPrompt.userChoice;
+    }catch(e){}
+    deferredInstallPrompt = null;
+    installBtn.style.display = 'none';
+  });
 }

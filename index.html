@@ -6,9 +6,9 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css
-<link rel="manifest" href="manifest.json">?v=1774309616"/>
-<!-- PWA manifest removed for now (Install App feature disabled) -->
+<link rel="stylesheet" href="styles.css?v=1774309616"/>
+<link rel="manifest" href="manifest.json"/>
+
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
 
@@ -59,17 +59,11 @@
     <button id="btnCompact" class="layout-btn">Compact</button>
     <button id="btnWide" class="layout-btn">Wide</button>
   </div>
-  <button id="installBtn" class="layout-btn" style="display:none;">Install App</button>
+  <button id="installBtn" class="layout-btn" type="button" style="display:none;">Install App</button>
 </div>
 </header>
 
 <section id="betsSection">
-<div class="card about-box">
-  <div class="about-title">Value Bets</div>
-  <div class="about-text">
-    Value bets picked from the feed based on edge and price. Add the ones you want into My Tracker to track your own results.
-  </div>
-</div>
 <!-- Mobile/compact cards -->
 <div id="betsGrid" class="bets-grid"></div>
 
@@ -78,12 +72,12 @@
   <table id="betsTable" class="bets-table">
     <thead>
       <tr>
+        <th>Date</th>
         <th>Match</th>
         <th>Market</th>
         <th>Bookie</th>
         <th>Odds</th>
         <th>Value</th>
-        <th>Date</th>
         <th></th>
       </tr>
     </thead>
@@ -111,12 +105,6 @@
 </section>
 
 <section id="trackerSection" style="display:none;">
-<div class="card about-box">
-  <div class="about-title">My Tracker</div>
-  <div class="about-text">
-    Track your own bets, bankroll, ROI and performance over time based on what you add.
-  </div>
-</div>
 
 <div class="bankroll-section">
   <div class="bankroll-row">
@@ -131,10 +119,10 @@
 <div class="stat-card" id="profitCard">Profit<br><strong>£<span id="profit">0</span></strong></div>
 <div class="stat-card">ROI<br><strong><span id="roi">0</span>%</strong></div>
 <div class="stat-card">Win Rate<br><strong><span id="winrate">0</span>%</strong></div>
-<div class="stat-card">Total Bets<br><strong><span id="totalBets">0</span></strong></div>
 <div class="stat-card">Won - Lost<br><strong><span id="wonLost">0-0</span></strong></div>
 <div class="stat-card">Staked<br><strong>£<span id="totalStakedCard">0</span></strong></div>
 <div class="stat-card">Avg Odds<br><strong><span id="avgOdds">0</span></strong></div>
+<div class="stat-card">Total Bets<br><strong><span id="totalBets">0</span></strong></div>
 </div>
 
 <div class="chart-tabs">
@@ -181,14 +169,11 @@
 
 
 <section id="tdtTrackerSection" style="display:none;">
-<div class="card about-box">
-  <div class="about-title">TDT Tracker</div>
-  <div class="about-text">
-    Official TDT results. Fully transparent, read-only performance showing long-term results.
-  </div>
+
+<div class="card" style="margin-bottom:16px;">
+  <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Official Tracker</div>
+  <div style="opacity:.85;">Read-only official all-time results for everyone to see.</div>
 </div>
-
-
 
 <div class="stats-grid tdt-stats-grid">
 <div class="stat-card">Total Bets<br><strong><span id="tdtTotalBets">0</span></strong></div>
@@ -249,7 +234,7 @@
       <div class="vip-modal__title">Unlock VIP</div>
       <button id="vipClose" class="vip-modal__close" type="button">×</button>
     </div>
-    <p class="vip-modal__sub">Start with a <strong>5 day free trial</strong> for all new users. Get instant bets, full markets, and tracker access.</p>
+    <p class="vip-modal__sub"><strong>5 day free trial</strong> for all new users. Get instant bets, full markets, and tracker access.</p>
     <input id="vipEmail" type="email" placeholder="Enter your email" autocomplete="email" />
     <input id="vipPassword" type="password" placeholder="Create or enter your VIP password" autocomplete="current-password" />
     <div class="vip-modal__plans">
