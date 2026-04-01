@@ -3300,3 +3300,8 @@ window.forgotVipPassword = forgotVipPassword;
     vipPromo.style.display = "none";
   }
 })();
+// FORCE WIDE ON DESKTOP
+if (window.innerWidth >= 950) {
+  document.body.classList.add('layout-wide');
+  document.body.classList.remove('layout-compact');
+}
