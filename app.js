@@ -33,7 +33,7 @@ function setVipUI(active, email){
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
-    if(statusEl) statusEl.textContent = '5 day free trial available — unlock VIP';
+    if(statusEl) statusEl.textContent = '5-day free trial — tap Go VIP to start';
     if(btnEl){
       if(btnTextEl) btnTextEl.textContent = 'Go VIP';
       else btnEl.textContent = 'Go VIP';
