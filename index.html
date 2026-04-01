@@ -6,7 +6,8 @@
 <title>Top Daily Tips</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="styles.css?v=1774309616"/>
+<link rel="stylesheet" href="styles.css
+<link rel="manifest" href="manifest.json">?v=1774309616"/>
 <!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -58,7 +59,7 @@
     <button id="btnCompact" class="layout-btn">Compact</button>
     <button id="btnWide" class="layout-btn">Wide</button>
   </div>
-  <!-- Install App button removed for now -->
+  <button id="installBtn" class="layout-btn" style="display:none;">Install App</button>
 </div>
 </header>
 
@@ -248,7 +249,7 @@
       <div class="vip-modal__title">Unlock VIP</div>
       <button id="vipClose" class="vip-modal__close" type="button">×</button>
     </div>
-    <p class="vip-modal__sub">Get instant bets, full markets, and tracker access.</p>
+    <p class="vip-modal__sub">Start with a <strong>5 day free trial</strong> for all new users. Get instant bets, full markets, and tracker access.</p>
     <input id="vipEmail" type="email" placeholder="Enter your email" autocomplete="email" />
     <input id="vipPassword" type="password" placeholder="Create or enter your VIP password" autocomplete="current-password" />
     <div class="vip-modal__plans">

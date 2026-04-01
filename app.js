@@ -33,7 +33,7 @@ function setVipUI(active, email){
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
   }else{
     if(titleEl) titleEl.textContent = 'VIP Access';
-    if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
+    if(statusEl) statusEl.textContent = '5 day free trial available — unlock VIP';
     if(btnEl){
       if(btnTextEl) btnTextEl.textContent = 'Go VIP';
       else btnEl.textContent = 'Go VIP';
@@ -3300,3 +3300,46 @@ window.forgotVipPassword = forgotVipPassword;
     vipPromo.style.display = "none";
   }
 })();
+
+
+// ===== PWA INSTALL =====
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if(btn) btn.style.display = "inline-block";
+});
+document.getElementById('installBtn')?.addEventListener('click', async () => {
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+});
+
+// ===== SIMPLE PUSH =====
+async function toggleBetAlerts(){
+  const enabled = localStorage.getItem("tdt_notifications") === "true";
+  if(enabled){
+    localStorage.setItem("tdt_notifications", "false");
+    updateBetAlertUI();
+    return;
+  }
+  if("Notification" in window){
+    const permission = await Notification.requestPermission();
+    if(permission === "granted"){
+      localStorage.setItem("tdt_notifications", "true");
+      updateBetAlertUI();
+      new Notification("Notifications enabled 🔔", {
+        body: "You’ll get alerts for new bets"
+      });
+    }
+  }
+}
+function updateBetAlertUI(){
+  const enabled = localStorage.getItem("tdt_notifications") === "true";
+  const status = document.getElementById("notifyStatus");
+  if(status){
+    status.textContent = enabled ? "Alerts ON" : "Alerts off";
+  }
+}
