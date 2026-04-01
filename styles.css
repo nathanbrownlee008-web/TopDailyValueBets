@@ -6219,3 +6219,51 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
     width: 23% !important;
   }
 }
+/* ===== TRUE FULL SCREEN DESKTOP FIX ===== */
+@media (min-width: 950px){
+
+  html, body {
+    width: 100% !important;
+    max-width: none !important;
+    overflow-x: hidden !important;
+  }
+
+  /* REMOVE ALL CENTER CONTAINERS */
+  .container,
+  .app-container,
+  .main-container,
+  .content,
+  .wrapper {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* MAIN SECTIONS FULL WIDTH */
+  #betsSection,
+  #trackerSection,
+  #tdtTrackerSection {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  /* TABLE FULL WIDTH */
+  .bets-table-wrap,
+  .tracker-table,
+  table {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* FORCE ROW LAYOUT */
+  table tr {
+    display: table-row !important;
+  }
+
+  table td, table th {
+    white-space: nowrap;
+  }
+}
