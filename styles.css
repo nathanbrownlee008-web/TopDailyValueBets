@@ -6237,8 +6237,8 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
     max-width: none !important;
     width: 100% !important;
     margin: 0 !important;
-    padding-left: 20px !important;
-    padding-right: 20px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
   }
 
   /* MAIN SECTIONS FULL WIDTH */
