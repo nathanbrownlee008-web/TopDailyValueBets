@@ -289,21 +289,6 @@ function getBetTitleSizeClass(match){
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
 
-function forceDesktopWideMode(){
-  if(window.innerWidth >= 950){
-    applyLayout("wide");
-    if(btnCompact) btnCompact.style.display = "none";
-    if(btnWide){
-      btnWide.disabled = true;
-      btnWide.classList.add("active");
-    }
-  }else{
-    if(btnCompact) btnCompact.style.display = "";
-    if(btnWide) btnWide.disabled = false;
-  }
-}
-
-
 // VIP UI
 const vipButtonEl = document.getElementById("vipButton");
 const vipStatusEl = document.getElementById("vipStatus");
@@ -510,17 +495,12 @@ function applyLayout(mode){
 (function initLayoutMode(){
   const saved = localStorage.getItem("layout_mode");
   if(saved === "wide" || saved === "compact"){
-    applyLayout(window.innerWidth >= 950 ? "wide" : saved);
+    applyLayout(saved);
   }else{
     // Default: compact on small screens, wide on desktop
     applyLayout(window.innerWidth >= 950 ? "wide" : "compact");
   }
-
-  if(btnCompact) btnCompact.addEventListener("click", ()=>{
-    if(window.innerWidth >= 950) return;
-    applyLayout("compact");
-  });
-
+  if(btnCompact) btnCompact.addEventListener("click", ()=>applyLayout("compact"));
   if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
 })();
 
@@ -650,7 +630,6 @@ checkVIP().then(async ()=>{
   loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
-  forceDesktopWideMode();
 });
 
 function switchTab(tab){
@@ -744,7 +723,6 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="table-date-cell">${escapeHtml(betDate)}</td>
         <td class="table-match-cell">${
           leagueName
             ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>`
@@ -758,6 +736,7 @@ async function loadBets(){
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
+        <td>${escapeHtml(betDate)}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
@@ -3321,7 +3300,3 @@ window.forgotVipPassword = forgotVipPassword;
     vipPromo.style.display = "none";
   }
 })();
-
-
-window.addEventListener("resize", forceDesktopWideMode);
-window.addEventListener("load", forceDesktopWideMode);
