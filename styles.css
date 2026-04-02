@@ -6483,3 +6483,180 @@ table td, table th {
   body.layout-wide .bets-table thead th:nth-child(7),
   body.layout-wide .bets-table tbody td:nth-child(7){ width:8% !important; text-align:right !important; white-space:nowrap !important; }
 }
+
+
+
+/* ===== OLD PROJECT STYLE DESKTOP VALUE BETS ===== */
+@media (min-width: 950px){
+  #btnCompact{display:none !important;}
+  #btnWide{pointer-events:none !important; opacity:1 !important;}
+
+  body.layout-wide #betsSection{
+    width:100% !important;
+    max-width:none !important;
+  }
+
+  body.layout-wide .bets-table-wrap{
+    display:none !important;
+  }
+
+  body.layout-wide .bets-grid{
+    display:block !important;
+    width:100% !important;
+  }
+
+  body.layout-wide .bet-lock-wrap{
+    margin-bottom:12px;
+  }
+
+  body.layout-wide .bet-card--pro{
+    background: linear-gradient(180deg, rgba(8,18,40,.95), rgba(7,16,34,.95)) !important;
+    border: 1px solid rgba(255,255,255,.10) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,.22);
+    padding: 16px 18px !important;
+  }
+
+  body.layout-wide .bet-card--pro .bet-teaser,
+  body.layout-wide .bet-card--pro .bet-details,
+  body.layout-wide .bet-card--pro .bet-footer{
+    display:none !important;
+  }
+
+  body.layout-wide .bet-card__top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:14px;
+  }
+
+  body.layout-wide .bet-card__head{
+    min-width:0;
+    flex:1;
+  }
+
+  body.layout-wide .bet-card--pro .bet-title{
+    margin:0;
+    font-size:18px !important;
+    line-height:1.08 !important;
+    font-weight:900 !important;
+    color:#f8fbff !important;
+    letter-spacing:-.01em;
+  }
+
+  body.layout-wide .bet-card__meta-line{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    align-items:center;
+    margin-top:6px;
+    color:#aab9d1;
+    font-size:12px;
+    line-height:1.2;
+  }
+
+  body.layout-wide .bet-card__league{color:#cdd8ea; font-weight:600;}
+  body.layout-wide .bet-card__dot{opacity:.6;}
+  body.layout-wide .bet-card__best{color:#ffcb66; font-weight:800;}
+
+  body.layout-wide .bet-card__actions{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    flex-shrink:0;
+  }
+
+  body.layout-wide .bet-btn--desktop{
+    min-width:88px;
+    padding:8px 14px !important;
+    border-radius:14px !important;
+    border:1px solid rgba(255,255,255,.18) !important;
+    background: rgba(255,255,255,.05) !important;
+    color:#eaf2ff !important;
+    font-weight:800 !important;
+  }
+  body.layout-wide .bet-btn--desktop.added{
+    background: rgba(255,255,255,.10) !important;
+  }
+
+  body.layout-wide .bet-prob-chip{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:64px;
+    padding:7px 12px;
+    border-radius:999px;
+    font-weight:900;
+    font-size:14px;
+    border:1px solid rgba(34,197,94,.85);
+    color:#effff5;
+    background:rgba(34,197,94,.18);
+    box-shadow:0 0 0 2px rgba(34,197,94,.12) inset;
+  }
+  body.layout-wide .bet-prob-chip.value-medium{
+    border-color: rgba(255,214,70,.70);
+    background: rgba(255,214,70,.14);
+    color:#fff7d0;
+    box-shadow:none;
+  }
+  body.layout-wide .bet-prob-chip.value-low{
+    border-color: rgba(248,113,113,.45);
+    background: rgba(248,113,113,.14);
+    color:#ffe4e4;
+    box-shadow:none;
+  }
+
+  body.layout-wide .bet-card__grid{
+    display:grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap:12px 18px;
+  }
+
+  body.layout-wide .bet-info__k{
+    font-size:11px;
+    color:#92a2bd;
+    margin-bottom:4px;
+  }
+
+  body.layout-wide .bet-info__v{
+    font-size:15px;
+    color:#eef4ff;
+    font-weight:700;
+    line-height:1.15;
+    word-break:break-word;
+  }
+
+  body.layout-wide .vip-teaser-line{
+    margin-top:12px;
+  }
+}
+
+/* slightly tighter fallback for desktop-site mode on phone */
+@media (min-width: 950px) and (max-width: 1199px){
+  body.layout-wide .bet-card--pro{
+    padding: 14px 14px !important;
+  }
+  body.layout-wide .bet-card--pro .bet-title{
+    font-size:16px !important;
+  }
+  body.layout-wide .bet-card__meta-line{
+    font-size:11px;
+  }
+  body.layout-wide .bet-card__grid{
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap:10px 14px;
+  }
+  body.layout-wide .bet-info__v{
+    font-size:14px;
+  }
+  body.layout-wide .bet-btn--desktop{
+    min-width:74px;
+    padding:7px 10px !important;
+  }
+  body.layout-wide .bet-prob-chip{
+    min-width:58px;
+    font-size:13px;
+    padding:6px 10px;
+  }
+}

@@ -720,25 +720,43 @@ async function loadBets(){
 
     betsGrid.innerHTML += `
 <div class="bet-lock-wrap">
-  <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
-    <div class="bet-teaser">
-      <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-      <span class="bet-date">${escapeHtml(betDate)}</span>
-      ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
-      <div class="bet-meta bet-meta--market-row">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
-      </div>
-      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
-    </div>
-    <div class="bet-details">
-      <div class="bet-footer">
-        <div class="bet-left">
-          ${!locked && row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)} @ ${escapeHtml(String(row.odds ?? ''))}</div>` : ``}
-          <span class="stat-chip${valueClass}"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
+  <div class="card bet-card bet-card--pro ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
+    <div class="bet-card__top">
+      <div class="bet-card__head">
+        <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
+        <div class="bet-card__meta-line">
+          ${leagueName ? `<span class="bet-card__league">${escapeHtml(leagueName)}</span>` : ``}
+          <span class="bet-card__dot">•</span>
+          <span class="bet-card__date">${escapeHtml(betDate)}</span>
+          ${valNum != null && !Number.isNaN(valNum) && valNum >= 6 ? `<span class="bet-card__best">🔥 Best</span>` : ``}
         </div>
-        <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
+      </div>
+      <div class="bet-card__actions">
+        <button class="bet-btn bet-btn--desktop ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? '✓ Added' : 'Add')}</button>
+        <span class="bet-prob-chip${valueClass}">${valTxt}</span>
       </div>
     </div>
+
+    <div class="bet-card__grid">
+      <div class="bet-info">
+        <div class="bet-info__k">Market</div>
+        <div class="bet-info__v">${locked ? '🔒 Hidden market' : `${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}`}</div>
+      </div>
+      <div class="bet-info">
+        <div class="bet-info__k">Bookie</div>
+        <div class="bet-info__v">${locked ? '—' : escapeHtml(row.bookie || '—')}</div>
+      </div>
+      <div class="bet-info">
+        <div class="bet-info__k">Odds</div>
+        <div class="bet-info__v">${escapeHtml(String(row.odds ?? ''))}</div>
+      </div>
+      <div class="bet-info">
+        <div class="bet-info__k">Value</div>
+        <div class="bet-info__v">${valTxt}</div>
+      </div>
+    </div>
+
+    ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
   </div>
   ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 Unlock VIP</button>' : ''}
 </div>`;
