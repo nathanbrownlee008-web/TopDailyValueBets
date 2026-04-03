@@ -6483,3 +6483,68 @@ table td, table th {
   body.layout-wide .bets-table thead th:nth-child(7),
   body.layout-wide .bets-table tbody td:nth-child(7){ width:8% !important; text-align:right !important; white-space:nowrap !important; }
 }
+
+
+
+/* ===== Value Bets filters ===== */
+.value-filters{
+  max-width:1200px;
+  margin:0 auto 14px;
+  padding:14px 14px 12px;
+}
+.value-filters__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+.value-filters__title{
+  font-size:15px;
+  font-weight:800;
+  color:#f8fafc;
+}
+.value-filters__clear{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.10);
+  color:#e2e8f0;
+  padding:8px 12px;
+  border-radius:12px;
+  font-weight:700;
+}
+.value-filters__grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+.value-filters__field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.value-filters__field label{
+  font-size:12px;
+  font-weight:700;
+  color:rgba(226,232,240,0.82);
+}
+.value-filters__field input,
+.value-filters__field select{
+  width:100%;
+  box-sizing:border-box;
+  background:#111827;
+  border:1px solid rgba(255,255,255,0.10);
+  color:#fff;
+  padding:12px 14px;
+  border-radius:14px;
+  font-size:15px;
+}
+@media (min-width: 700px){
+  .value-filters__grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 950px){
+  .value-filters__grid{
+    grid-template-columns:repeat(4, minmax(0, 1fr));
+  }
+}

@@ -544,6 +544,100 @@ const FREE_VISIBLE_COUNT = 3;
 const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
+const valueFilterSearchEl = document.getElementById("valueFilterSearch");
+const valueFilterLeagueEl = document.getElementById("valueFilterLeague");
+const valueFilterMarketEl = document.getElementById("valueFilterMarket");
+const valueFilterBookieEl = document.getElementById("valueFilterBookie");
+const valueFiltersClearEl = document.getElementById("valueFiltersClear");
+
+let valueBetsAllRows = [];
+let valueFiltersWired = false;
+
+function normalizeFilterText(value){
+  return String(value || "").trim().toLowerCase();
+}
+
+function getBetLeagueName(row){
+  return row?.league || row?.competition || row?.league_name || row?.tournament || '';
+}
+
+function getValueFilterState(){
+  return {
+    search: normalizeFilterText(valueFilterSearchEl?.value || ''),
+    league: normalizeFilterText(valueFilterLeagueEl?.value || ''),
+    market: normalizeFilterText(valueFilterMarketEl?.value || ''),
+    bookie: normalizeFilterText(valueFilterBookieEl?.value || '')
+  };
+}
+
+function uniqueSortedFilterValues(rows, getter){
+  const map = new Map();
+  (rows || []).forEach(row => {
+    const raw = String(getter(row) || '').trim();
+    if(!raw) return;
+    const key = raw.toLowerCase();
+    if(!map.has(key)) map.set(key, raw);
+  });
+  return Array.from(map.values()).sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:'base' }));
+}
+
+function fillValueFilterOptions(selectEl, values, currentValue){
+  if(!selectEl) return;
+  const existing = String(currentValue || '');
+  const first = selectEl.querySelector('option') ? selectEl.querySelector('option').outerHTML : '<option value="">All</option>';
+  selectEl.innerHTML = first + values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  selectEl.value = values.find(v => v.toLowerCase() === existing.toLowerCase()) || '';
+}
+
+function refreshValueFilterOptions(rows){
+  const state = getValueFilterState();
+  fillValueFilterOptions(valueFilterLeagueEl, uniqueSortedFilterValues(rows, getBetLeagueName), state.league);
+  fillValueFilterOptions(valueFilterMarketEl, uniqueSortedFilterValues(rows, r => r.market), state.market);
+  fillValueFilterOptions(valueFilterBookieEl, uniqueSortedFilterValues(rows, r => r.bookie), state.bookie);
+}
+
+function applyValueBetFilters(rows){
+  const state = getValueFilterState();
+  return (rows || []).filter(row => {
+    const match = normalizeFilterText(row.match);
+    const market = normalizeFilterText(row.market);
+    const league = normalizeFilterText(getBetLeagueName(row));
+    const bookie = normalizeFilterText(row.bookie);
+
+    if(state.search){
+      const hay = `${match} ${market} ${league} ${bookie}`;
+      if(!hay.includes(state.search)) return false;
+    }
+    if(state.league && league !== state.league) return false;
+    if(state.market && market !== state.market) return false;
+    if(state.bookie && bookie !== state.bookie) return false;
+    return true;
+  });
+}
+
+function wireValueBetFilters(){
+  if(valueFiltersWired) return;
+  valueFiltersWired = true;
+
+  const rerender = ()=>loadBets();
+
+  if(valueFilterSearchEl) valueFilterSearchEl.addEventListener('input', rerender);
+  if(valueFilterLeagueEl) valueFilterLeagueEl.addEventListener('change', rerender);
+  if(valueFilterMarketEl) valueFilterMarketEl.addEventListener('change', rerender);
+  if(valueFilterBookieEl) valueFilterBookieEl.addEventListener('change', rerender);
+
+  if(valueFiltersClearEl){
+    valueFiltersClearEl.addEventListener('click', ()=>{
+      if(valueFilterSearchEl) valueFilterSearchEl.value = '';
+      if(valueFilterLeagueEl) valueFilterLeagueEl.value = '';
+      if(valueFilterMarketEl) valueFilterMarketEl.value = '';
+      if(valueFilterBookieEl) valueFilterBookieEl.value = '';
+      loadBets();
+    });
+  }
+}
+
+
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
@@ -648,6 +742,7 @@ checkVIP().then(async ()=>{
   refreshAdminBadgeUI();
   try{ await readTrackerRows(); }catch(e){}
   forceDesktopWideMode();
+  wireValueBetFilters();
   // re-render bets so blur/limits apply
   loadBets();
   loadVipPromoProof();
@@ -692,15 +787,28 @@ async function loadBets(){
   if(betsTbody) betsTbody.innerHTML = "";
 
   const active=(data||[]).filter(isValueBetActiveToday);
+  valueBetsAllRows = active.slice();
+  refreshValueFilterOptions(active);
+
   if(!active.length){
     betsGrid.innerHTML = `<div class="card">No bets for today.</div>`;
+    if(betsTbody) betsTbody.innerHTML = "";
+    notifyForNewVisibleBets([]);
+    return;
+  }
+
+  const filtered = applyValueBetFilters(active);
+
+  if(!filtered.length){
+    betsGrid.innerHTML = `<div class="card">No bets match those filters.</div>`;
+    if(betsTbody) betsTbody.innerHTML = "";
     notifyForNewVisibleBets([]);
     return;
   }
 
   const visibleForAlerts = [];
 
-  (active || []).forEach((row, idx)=>{
+  (filtered || []).forEach((row, idx)=>{
     const state = getBetPublicState(row, idx);
     const locked = !!state.locked;
     const key = makeBetKey(row);
