@@ -285,46 +285,6 @@ function getBetTitleSizeClass(match){
   if(len >= 24) return " bet-title--small";
   return "";
 }
-
-
-function getValueBetMarketIconSvg(market){
-  const m = String(market || "").toLowerCase();
-  const wrap = (inner, cls='is-default') =>
-    `<span class="vb-svg-icon ${cls}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">${inner}</svg></span>`;
-
-  if(m.includes("throw")){
-    return wrap('<path d="M7 8L3 12L7 16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 8L21 12L17 16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12H20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', 'is-throw');
-  }
-  if(m.includes("corner")){
-    return wrap('<path d="M6 20V5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M8 6C11 5 13 8 16 7C17.3 6.6 18.2 5.8 19 5V12C18.2 12.8 17.3 13.6 16 14C13 15 11 12 8 13V6Z" fill="currentColor"/>', 'is-corner');
-  }
-  if(m.includes("card") || m.includes("booking")){
-    return wrap('<rect x="6" y="4" width="12" height="16" rx="2.5" fill="currentColor"/>', 'is-card');
-  }
-  if(m.includes("btts") || m.includes("both teams to score")){
-    return wrap('<path d="M12 3L18.5 7V17L12 21L5.5 17V7L12 3Z" stroke="currentColor" stroke-width="2"/><path d="M9 12.5L11 14.5L15.5 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>', 'is-btts');
-  }
-  if(m.includes("shot on target") || m.includes("shots on target") || m.includes("sot")){
-    return wrap('<circle cx="12" cy="12" r="7.5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/>', 'is-sot');
-  }
-  if(m.includes("foul")){
-    return wrap('<path d="M12 3L21 19H3L12 3Z" stroke="currentColor" stroke-width="2"/><path d="M12 9V13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="16.3" r="1.2" fill="currentColor"/>', 'is-foul');
-  }
-  if(m.includes("offside")){
-    return wrap('<path d="M4 6V18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M6 7H18L14 11H6V7Z" fill="currentColor"/><path d="M8 17L17 8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', 'is-offside');
-  }
-  if(m.includes("asian handicap") || m.includes("handicap")){
-    return wrap('<path d="M12 4L5 8V12C5 16.5 8 19.6 12 20.5C16 19.6 19 16.5 19 12V8L12 4Z" stroke="currentColor" stroke-width="2"/><path d="M8 13H16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M12 9V17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', 'is-handicap');
-  }
-  if(m.includes("match winner") || m.includes("to win") || m.includes("1x2") || m == "home" || m == "away" || m == "draw"){
-    return wrap('<path d="M8 5H16V8C16 10.2 14.2 12 12 12C9.8 12 8 10.2 8 8V5Z" stroke="currentColor" stroke-width="2"/><path d="M6 5H8V7C8 8.7 6.7 10 5 10H4V8C4 6.3 5.3 5 7 5H6Z" fill="currentColor"/><path d="M16 5H18C19.7 5 21 6.3 21 8V10H20C18.3 10 17 8.7 17 7V5H16Z" fill="currentColor"/><path d="M12 12V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 20H15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', 'is-winner');
-  }
-  if(m.includes("goal") || m.includes("fhg") || m.includes("fgh")){
-    return wrap('<circle cx="12" cy="12" r="7.5" stroke="currentColor" stroke-width="2"/><path d="M12 7.5L15 9.3L14.4 12.8L9.6 12.8L9 9.3L12 7.5Z" fill="currentColor"/>', 'is-goal');
-  }
-  return wrap('<circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="7.5" stroke="currentColor" stroke-width="2" opacity="0.55"/>', 'is-default');
-}
-
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -584,6 +544,124 @@ const FREE_VISIBLE_COUNT = 3;
 const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
+const valueFilterSearchEl = document.getElementById("valueFilterSearch");
+const valueFilterLeagueEl = document.getElementById("valueFilterLeague");
+const valueFilterMarketEl = document.getElementById("valueFilterMarket");
+const valueFilterBookieEl = document.getElementById("valueFilterBookie");
+const valueFiltersClearEl = document.getElementById("valueFiltersClear");
+const valueFiltersToggleEl = document.getElementById("valueFiltersToggle");
+const valueFiltersContentEl = document.getElementById("valueFiltersContent");
+const valueFiltersArrowEl = document.getElementById("valueFiltersArrow");
+const valueFiltersSummaryEl = document.getElementById("valueFiltersSummary");
+
+let valueBetsAllRows = [];
+let valueFiltersWired = false;
+let valueFiltersOpen = false;
+
+function normalizeFilterText(value){
+  return String(value || "").trim().toLowerCase();
+}
+function getBetLeagueName(row){
+  return row?.league || row?.competition || row?.league_name || row?.tournament || '';
+}
+function getValueFilterState(){
+  return {
+    search: normalizeFilterText(valueFilterSearchEl?.value || ''),
+    league: normalizeFilterText(valueFilterLeagueEl?.value || ''),
+    market: normalizeFilterText(valueFilterMarketEl?.value || ''),
+    bookie: normalizeFilterText(valueFilterBookieEl?.value || '')
+  };
+}
+function uniqueSortedFilterValues(rows, getter){
+  const map = new Map();
+  (rows || []).forEach(row => {
+    const raw = String(getter(row) || '').trim();
+    if(!raw) return;
+    const key = raw.toLowerCase();
+    if(!map.has(key)) map.set(key, raw);
+  });
+  return Array.from(map.values()).sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:'base' }));
+}
+function fillValueFilterOptions(selectEl, values, currentValue){
+  if(!selectEl) return;
+  const current = String(currentValue || '');
+  const first = selectEl.querySelector('option') ? selectEl.querySelector('option').outerHTML : '<option value="">All</option>';
+  selectEl.innerHTML = first + values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  const match = values.find(v => v.toLowerCase() === current.toLowerCase());
+  selectEl.value = match || '';
+}
+function buildValueFiltersSummary(){
+  const state = getValueFilterState();
+  const parts = [];
+  if(state.search) parts.push(`Search: ${valueFilterSearchEl?.value || ''}`);
+  if(state.league) parts.push(valueFilterLeagueEl?.value || '');
+  if(state.market) parts.push(valueFilterMarketEl?.value || '');
+  if(state.bookie) parts.push(valueFilterBookieEl?.value || '');
+  return parts.length ? parts.join(' • ') : 'All bets';
+}
+function setValueFiltersOpen(open){
+  valueFiltersOpen = !!open;
+  if(valueFiltersContentEl){
+    valueFiltersContentEl.classList.toggle('is-collapsed', !valueFiltersOpen);
+    valueFiltersContentEl.classList.toggle('is-expanded', valueFiltersOpen);
+  }
+  if(valueFiltersToggleEl) valueFiltersToggleEl.setAttribute('aria-expanded', valueFiltersOpen ? 'true' : 'false');
+  if(valueFiltersArrowEl) valueFiltersArrowEl.textContent = valueFiltersOpen ? '▲' : '▼';
+}
+function syncValueFiltersUi(){
+  if(valueFiltersSummaryEl) valueFiltersSummaryEl.textContent = buildValueFiltersSummary();
+}
+function initValueFiltersCollapse(){
+  setValueFiltersOpen(window.innerWidth >= 950);
+}
+function refreshValueFilterOptions(rows){
+  const state = getValueFilterState();
+  fillValueFilterOptions(valueFilterLeagueEl, uniqueSortedFilterValues(rows, getBetLeagueName), state.league);
+  fillValueFilterOptions(valueFilterMarketEl, uniqueSortedFilterValues(rows, r => r.market), state.market);
+  fillValueFilterOptions(valueFilterBookieEl, uniqueSortedFilterValues(rows, r => r.bookie), state.bookie);
+  syncValueFiltersUi();
+}
+function applyValueBetFilters(rows){
+  const state = getValueFilterState();
+  return (rows || []).filter(row => {
+    const match = normalizeFilterText(row.match);
+    const market = normalizeFilterText(row.market);
+    const league = normalizeFilterText(getBetLeagueName(row));
+    const bookie = normalizeFilterText(row.bookie);
+    if(state.search){
+      const hay = `${match} ${market} ${league} ${bookie}`;
+      if(!hay.includes(state.search)) return false;
+    }
+    if(state.league && league !== state.league) return false;
+    if(state.market && market !== state.market) return false;
+    if(state.bookie && bookie !== state.bookie) return false;
+    return true;
+  });
+}
+function wireValueBetFilters(){
+  if(valueFiltersWired) return;
+  valueFiltersWired = true;
+  const rerender = ()=>{ syncValueFiltersUi(); loadBets(); };
+  if(valueFiltersToggleEl) valueFiltersToggleEl.addEventListener('click', ()=>setValueFiltersOpen(!valueFiltersOpen));
+  if(valueFilterSearchEl) valueFilterSearchEl.addEventListener('input', rerender);
+  if(valueFilterLeagueEl) valueFilterLeagueEl.addEventListener('change', rerender);
+  if(valueFilterMarketEl) valueFilterMarketEl.addEventListener('change', rerender);
+  if(valueFilterBookieEl) valueFilterBookieEl.addEventListener('change', rerender);
+  if(valueFiltersClearEl){
+    valueFiltersClearEl.addEventListener('click', ()=>{
+      if(valueFilterSearchEl) valueFilterSearchEl.value = '';
+      if(valueFilterLeagueEl) valueFilterLeagueEl.value = '';
+      if(valueFilterMarketEl) valueFilterMarketEl.value = '';
+      if(valueFilterBookieEl) valueFilterBookieEl.value = '';
+      syncValueFiltersUi();
+      loadBets();
+    });
+  }
+  initValueFiltersCollapse();
+  syncValueFiltersUi();
+}
+
+
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
@@ -688,6 +766,7 @@ checkVIP().then(async ()=>{
   refreshAdminBadgeUI();
   try{ await readTrackerRows(); }catch(e){}
   forceDesktopWideMode();
+  wireValueBetFilters();
   // re-render bets so blur/limits apply
   loadBets();
   loadVipPromoProof();
@@ -732,15 +811,27 @@ async function loadBets(){
   if(betsTbody) betsTbody.innerHTML = "";
 
   const active=(data||[]).filter(isValueBetActiveToday);
+  valueBetsAllRows = active.slice();
+  refreshValueFilterOptions(active);
   if(!active.length){
     betsGrid.innerHTML = `<div class="card">No bets for today.</div>`;
+    if(betsTbody) betsTbody.innerHTML = "";
+    notifyForNewVisibleBets([]);
+    return;
+  }
+
+  const filtered = applyValueBetFilters(active);
+
+  if(!filtered.length){
+    betsGrid.innerHTML = `<div class="card">No bets match those filters.</div>`;
+    if(betsTbody) betsTbody.innerHTML = "";
     notifyForNewVisibleBets([]);
     return;
   }
 
   const visibleForAlerts = [];
 
-  (active || []).forEach((row, idx)=>{
+  (filtered || []).forEach((row, idx)=>{
     const state = getBetPublicState(row, idx);
     const locked = !!state.locked;
     const key = makeBetKey(row);
@@ -766,7 +857,7 @@ async function loadBets(){
       <span class="bet-date">${escapeHtml(betDate)}</span>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getValueBetMarketIconSvg(row.market)}<span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
@@ -795,7 +886,7 @@ async function loadBets(){
         <td>${
           locked
             ? '<span class="table-lock-copy">Hidden for VIP</span>'
-            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${getValueBetMarketIconSvg(row.market||'')}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
+            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
         }</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
@@ -3367,3 +3458,5 @@ window.forgotVipPassword = forgotVipPassword;
 
 window.addEventListener("resize", forceDesktopWideMode);
 window.addEventListener("load", forceDesktopWideMode);
+
+window.addEventListener('resize', ()=>{ if(window.innerWidth >= 950 && !valueFiltersOpen) setValueFiltersOpen(true); });
