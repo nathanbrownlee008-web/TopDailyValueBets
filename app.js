@@ -628,6 +628,7 @@ tabTracker.onclick=()=>{
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
 if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>switchTab("tdtPicks");
+if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>switchTab("tdtPicks");
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
