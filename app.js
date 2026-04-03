@@ -595,6 +595,10 @@ function formatUnlockLabel(state){
 const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
 const tabTdtPicksEl = document.getElementById("tabTdtPicks");
 const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
+const tdtPicksSectionEl = document.getElementById("tdtPicksSection");
+const tdtPicksListEl = document.getElementById("tdtPicksList");
+const tdtPicksCountEl = document.getElementById("tdtPicksCount");
+const tdtPicksStatusEl = document.getElementById("tdtPicksStatus");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
 const tabTdtHistoryEl = document.getElementById("tabTdtHistory");
@@ -623,7 +627,7 @@ tabTracker.onclick=()=>{
   switchTab("tracker");
 };
 if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
-if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>alert("Coming soon — TDT Picks will be added later.");
+if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>switchTab("tdtPicks");
 
 // VIP events
 if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
@@ -662,10 +666,12 @@ function switchTab(tab){
   betsSection.style.display=(tab==="bets")?"block":"none";
   trackerSection.style.display=(tab==="tracker")?"block":"none";
   if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
+  if(tdtPicksSectionEl) tdtPicksSectionEl.style.display=(tab==="tdtPicks")?"block":"none";
 
   tabBets.classList.toggle("active",tab==="bets");
   tabTracker.classList.toggle("active",tab==="tracker");
   if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
+  if(tabTdtPicksEl) tabTdtPicksEl.classList.toggle("active",tab==="tdtPicks");
 
   if(tab==="tracker"){
     loadTracker();
@@ -675,6 +681,106 @@ function switchTab(tab){
     loadTdtTracker();
     return;
   }
+  if(tab==="tdtPicks"){
+    loadTdtPicks();
+    return;
+  }
+}
+
+
+
+async function fetchTdtPicksRows(){
+  const attempts = [
+    () => client.from("tdt_picks_feed").select("*").order("created_at",{ascending:false}),
+    () => client.from("tdt_picks").select("*").order("created_at",{ascending:false})
+  ];
+
+  for(const run of attempts){
+    try{
+      const res = await run();
+      if(!res.error && Array.isArray(res.data)) return res.data;
+    }catch(e){}
+  }
+  return [];
+}
+
+function renderTdtPickCard(row){
+  const match = row.match || row.fixture || [row.home_team || row.home, row.away_team || row.away].filter(Boolean).join(" vs ") || "TDT Pick";
+  const league = row.league || row.competition || row.league_name || row.tournament || "";
+  const dateText = formatTdtPickDate(row.bet_date || row.created_at || row.match_date || row.date);
+  const market = row.market || row.pick || row.selection || "";
+  const bookie = row.bookie || row.bookmaker || "";
+  const oddsRaw = row.odds ?? row.price ?? row.decimal_odds;
+  const odds = (oddsRaw != null && oddsRaw !== "") ? String(oddsRaw) : "—";
+  const confRaw = row.confidence ?? row.confidence_pct ?? row.probability_pct ?? row.probability;
+  const confNum = confRaw != null && confRaw !== "" && !Number.isNaN(Number(confRaw))
+    ? (Number(confRaw) <= 1 ? Math.round(Number(confRaw) * 100) : Math.round(Number(confRaw)))
+    : null;
+  const confText = confNum != null ? `${confNum}%` : "TDT";
+  const added = false;
+
+  return `
+  <div class="tdt-pick-card">
+    <div class="tdt-pick-card__top">
+      <div class="tdt-pick-card__left">
+        <div class="tdt-pick-card__title">${escapeHtml(match)}</div>
+        <div class="tdt-pick-card__sub">
+          ${league ? `${escapeHtml(league)} • ` : ''}${escapeHtml(String((row.bet_date || row.created_at || row.match_date || row.date) ? (row.bet_date || row.created_at || row.match_date || row.date) : ''))}${(row.strength || row.pick_type || row.tag) ? ` • ${escapeHtml(String(row.strength || row.pick_type || row.tag))}` : ''}
+        </div>
+      </div>
+      <div class="tdt-pick-card__actions">
+        <button class="tdt-pick-add" type="button" disabled>Official</button>
+        <span class="tdt-pick-chip">${escapeHtml(confText)}</span>
+      </div>
+    </div>
+
+    <div class="tdt-pick-card__grid">
+      <div class="tdt-pick-cell">
+        <div class="tdt-pick-cell__k">League</div>
+        <div class="tdt-pick-cell__v">${escapeHtml(league || '—')}</div>
+      </div>
+      <div class="tdt-pick-cell">
+        <div class="tdt-pick-cell__k">DateUTC (date)</div>
+        <div class="tdt-pick-cell__v">${escapeHtml(String(row.bet_date || row.created_at || row.match_date || row.date || '—'))}</div>
+      </div>
+      <div class="tdt-pick-cell">
+        <div class="tdt-pick-cell__k">Market</div>
+        <div class="tdt-pick-cell__v">${escapeHtml(market || '—')}</div>
+      </div>
+      <div class="tdt-pick-cell">
+        <div class="tdt-pick-cell__k">Bookie</div>
+        <div class="tdt-pick-cell__v">${escapeHtml(bookie || '—')}</div>
+      </div>
+      <div class="tdt-pick-cell">
+        <div class="tdt-pick-cell__k">Odds</div>
+        <div class="tdt-pick-cell__v">${escapeHtml(odds)}</div>
+      </div>
+      <div class="tdt-pick-cell">
+        <div class="tdt-pick-cell__k">Pick Date</div>
+        <div class="tdt-pick-cell__v">${escapeHtml(dateText || '—')}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadTdtPicks(){
+  if(!tdtPicksListEl) return;
+  tdtPicksListEl.innerHTML = `<div class="card">Loading TDT picks...</div>`;
+  if(tdtPicksCountEl) tdtPicksCountEl.textContent = "Loading TDT picks...";
+  if(tdtPicksStatusEl) tdtPicksStatusEl.textContent = "Official tips from TDT (Top Daily Tips).";
+
+  const rows = await fetchTdtPicksRows();
+
+  if(!rows.length){
+    tdtPicksListEl.innerHTML = `<div class="card">No TDT picks added yet.</div>`;
+    if(tdtPicksCountEl) tdtPicksCountEl.textContent = "0 TDT picks";
+    if(tdtPicksStatusEl) tdtPicksStatusEl.textContent = "Add rows to tdt_picks_feed or tdt_picks to show official picks here.";
+    return;
+  }
+
+  tdtPicksListEl.innerHTML = rows.map(renderTdtPickCard).join("");
+  if(tdtPicksCountEl) tdtPicksCountEl.textContent = `${rows.length} TDT pick${rows.length === 1 ? '' : 's'}`;
+  if(tdtPicksStatusEl) tdtPicksStatusEl.textContent = "Official TDT picks feed shown in the old dashboard-style layout.";
 }
 
 
