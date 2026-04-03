@@ -1,1378 +1,3369 @@
 
-const $ = (id) => document.getElementById(id);
+const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
+const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
+const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const DATASETS = [{"name": "Over 2.5", "slug": "over25", "columns": ["Rank", "League", "DateUTC (date)", "Home", "Away", "P(Over2.5)", "Pick", "Strength", "Model xG Total", "Model xG Home", "Model xG Away", "Home GF/Home", "Home GA/Home", "Away GF/Away", "Away GA/Away"], "rows": [{"Rank": 1, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 17:45", "Home": "N.E.C. Nijmegen", "Away": "PEC Zwolle", "P(Over2.5)": 0.9537974974053253, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 6.403581215744893, "Model xG Home": 4.823611111111111, "Model xG Away": 1.579970104633782, "Home GF/Home": 2.875, "Home GA/Home": 1.5, "Away GF/Away": 1.555555555555556, "Away GA/Away": 3.0}, {"Rank": 2, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 19:00", "Home": "PSV", "Away": "Excelsior Rotterdam", "P(Over2.5)": 0.9216732967082053, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 5.67168066529053, "Model xG Home": 4.414153439153439, "Model xG Away": 1.257527226137092, "Home GF/Home": 3.25, "Home GA/Home": 1.625, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 3, "League": "SerieA", "DateUTC (date)": "2026-01-23 19:45", "Home": "Inter", "Away": "Pisa", "P(Over2.5)": 0.8906496195604142, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 5.192459189046867, "Model xG Home": 4.408888888888889, "Model xG Away": 0.7835703001579778, "Home GF/Home": 2.666666666666667, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 1.333333333333333, "Away GA/Away": 2.0}, {"Rank": 4, "League": "LaLiga", "DateUTC (date)": "2026-01-18 20:00", "Home": "Real Sociedad", "Away": "FC Barcelona", "P(Over2.5)": 0.8728604553975208, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.970723784324321, "Model xG Home": 1.468789013732834, "Model xG Away": 3.501934770591487, "Home GF/Home": 1.444444444444444, "Home GA/Home": 1.555555555555556, "Away GF/Away": 2.5, "Away GA/Away": 1.5}, {"Rank": 5, "League": "EPL", "DateUTC (date)": "2026-01-19 20:00", "Home": "Brighton", "Away": "Bournemouth", "P(Over2.5)": 0.8695373350414999, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.93239546420978, "Model xG Home": 3.301807228915663, "Model xG Away": 1.630588235294118, "Home GF/Home": 1.8, "Home GA/Home": 1.1, "Away GF/Away": 1.8, "Away GA/Away": 2.9}, {"Rank": 6, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "TSG Hoffenheim", "Away": "Bayer 04 Leverkusen", "P(Over2.5)": 0.8607336143081639, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.834874056099813, "Model xG Home": 2.515527950310559, "Model xG Away": 2.319346105789254, "Home GF/Home": 2.142857142857143, "Home GA/Home": 1.571428571428571, "Away GF/Away": 2.142857142857143, "Away GA/Away": 2.0}, {"Rank": 7, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "FC Bayern München", "Away": "FC Augsburg", "P(Over2.5)": 0.8588174260710755, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.81436969197617, "Model xG Home": 4.223990683229814, "Model xG Away": 0.5903790087463556, "Home GF/Home": 3.875, "Home GA/Home": 0.75, "Away GF/Away": 1.142857142857143, "Away GA/Away": 1.857142857142857}, {"Rank": 8, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 13:30", "Home": "Telstar", "Away": "Ajax", "P(Over2.5)": 0.8560674269051484, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.785365803022755, "Model xG Home": 1.747685185185185, "Model xG Away": 3.037680617837569, "Home GF/Home": 1.666666666666667, "Home GA/Home": 2.111111111111111, "Away GF/Away": 2.125, "Away GA/Away": 1.875}, {"Rank": 9, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 19:00", "Home": "PSV", "Away": "NAC Breda", "P(Over2.5)": 0.8371462944954728, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.597979467696396, "Model xG Home": 3.635185185185185, "Model xG Away": 0.9627942825112108, "Home GF/Home": 3.25, "Home GA/Home": 1.625, "Away GF/Away": 0.875, "Away GA/Away": 2.0}, {"Rank": 10, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 19:30", "Home": "1. FC Köln", "Away": "FC Bayern München", "P(Over2.5)": 0.8319095027783121, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.549463086032993, "Model xG Home": 0.8385093167701864, "Model xG Away": 3.710953769262807, "Home GF/Home": 2.0, "Home GA/Home": 1.571428571428571, "Away GF/Away": 3.428571428571428, "Away GA/Away": 0.7142857142857143}, {"Rank": 11, "League": "Bundesliga", "DateUTC (date)": "2026-01-16 19:30", "Home": "SV Werder Bremen", "Away": "Eintracht Frankfurt", "P(Over2.5)": 0.8169364307142526, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.417575104575992, "Model xG Home": 1.760869565217391, "Model xG Away": 2.6567055393586, "Home GF/Home": 1.142857142857143, "Home GA/Home": 1.714285714285714, "Away GF/Away": 2.25, "Away GA/Away": 2.625}, {"Rank": 12, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 15:30", "Home": "AZ", "Away": "FC Volendam", "P(Over2.5)": 0.8054318080248133, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.322346786248132, "Model xG Home": 3.415476190476191, "Model xG Away": 0.906870595771941, "Home GF/Home": 2.571428571428572, "Home GA/Home": 2.142857142857143, "Away GF/Away": 0.625, "Away GA/Away": 2.375}, {"Rank": 13, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 13:30", "Home": "Heracles Almelo", "Away": "FC Twente", "P(Over2.5)": 0.8030101403519133, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.302910646072081, "Model xG Home": 1.537962962962963, "Model xG Away": 2.764947683109118, "Home GF/Home": 2.25, "Home GA/Home": 2.625, "Away GF/Away": 1.555555555555556, "Away GA/Away": 1.222222222222222}, {"Rank": 14, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 19:30", "Home": "RB Leipzig", "Away": "Sport-Club Freiburg", "P(Over2.5)": 0.7893983648144463, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.197252503485867, "Model xG Home": 3.385481366459627, "Model xG Away": 0.811771137026239, "Home GF/Home": 2.714285714285714, "Home GA/Home": 0.8571428571428571, "Away GF/Away": 1.375, "Away GA/Away": 2.125}, {"Rank": 15, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 11:15", "Home": "sc Heerenveen", "Away": "Feyenoord", "P(Over2.5)": 0.7819915781351126, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.142131446188341, "Model xG Home": 1.1796875, "Model xG Away": 2.962443946188341, "Home GF/Home": 1.875, "Home GA/Home": 1.75, "Away GF/Away": 2.5, "Away GA/Away": 1.125}, {"Rank": 16, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 17:45", "Home": "FC Twente", "Away": "PEC Zwolle", "P(Over2.5)": 0.7364408433489533, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.833308420528152, "Model xG Home": 2.516666666666667, "Model xG Away": 1.316641753861485, "Home GF/Home": 1.5, "Home GA/Home": 1.25, "Away GF/Away": 1.555555555555556, "Away GA/Away": 3.0}, {"Rank": 17, "League": "Ligue1", "DateUTC (date)": "2026-01-18 14:00", "Home": "RC Strasbourg Alsace", "Away": "FC Metz", "P(Over2.5)": 0.7277251022706517, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.779187148876404, "Model xG Home": 3.25390625, "Model xG Away": 0.5252808988764045, "Home GF/Home": 1.75, "Home GA/Home": 0.5, "Away GF/Away": 1.222222222222222, "Away GA/Away": 3.111111111111111}, {"Rank": 18, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "1. FC Köln", "Away": "1. FSV Mainz 05", "P(Over2.5)": 0.7233467845837657, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.752512540064828, "Model xG Home": 2.515527950310559, "Model xG Away": 1.236984589754269, "Home GF/Home": 2.0, "Home GA/Home": 1.571428571428571, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.142857142857143}, {"Rank": 19, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 17:30", "Home": "VfB Stuttgart", "Away": "Eintracht Frankfurt", "P(Over2.5)": 0.7232811660921891, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.752115287108632, "Model xG Home": 1.980978260869565, "Model xG Away": 1.771137026239067, "Home GF/Home": 1.285714285714286, "Home GA/Home": 1.142857142857143, "Away GF/Away": 2.25, "Away GA/Away": 2.625}, {"Rank": 20, "League": "SerieA", "DateUTC (date)": "2026-01-14 19:45", "Home": "Inter", "Away": "Lecce", "P(Over2.5)": 0.7225054944123834, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.747424960505529, "Model xG Home": 3.306666666666667, "Model xG Away": 0.4407582938388625, "Home GF/Home": 2.666666666666667, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 0.75, "Away GA/Away": 1.5}, {"Rank": 21, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 19:00", "Home": "Fortuna Sittard", "Away": "PSV", "P(Over2.5)": 0.7161412170288751, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.709322720273282, "Model xG Home": 0.8837677183356195, "Model xG Away": 2.825555001937663, "Home GF/Home": 1.777777777777778, "Home GA/Home": 1.444444444444444, "Away GF/Away": 2.888888888888889, "Away GA/Away": 0.8888888888888888}, {"Rank": 22, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 16:30", "Home": "FC Bayern München", "Away": "VfL Wolfsburg", "P(Over2.5)": 0.7081271642653908, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.66227500316897, "Model xG Home": 2.924301242236025, "Model xG Away": 0.7379737609329445, "Home GF/Home": 3.875, "Home GA/Home": 0.75, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.285714285714286}, {"Rank": 23, "League": "LaLiga", "DateUTC (date)": "2026-01-17 20:00", "Home": "Real Betis", "Away": "Villarreal CF", "P(Over2.5)": 0.7009225723172856, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.620820678132434, "Model xG Home": 1.694756554307116, "Model xG Away": 1.926064123825318, "Home GF/Home": 2.0, "Home GA/Home": 1.222222222222222, "Away GF/Away": 1.75, "Away GA/Away": 1.25}, {"Rank": 24, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 19:30", "Home": "Hamburger SV", "Away": "Bayer 04 Leverkusen", "P(Over2.5)": 0.6915558949584784, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.568049657751299, "Model xG Home": 1.907608695652174, "Model xG Away": 1.660440962099125, "Home GF/Home": 1.625, "Home GA/Home": 1.125, "Away GF/Away": 2.142857142857143, "Away GA/Away": 2.0}, {"Rank": 25, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "VfL Wolfsburg", "Away": "1. FC Heidenheim 1846", "P(Over2.5)": 0.6763397944325307, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.484840442388135, "Model xG Home": 2.316381987577639, "Model xG Away": 1.168458454810495, "Home GF/Home": 1.625, "Home GA/Home": 2.375, "Away GF/Away": 0.7142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 26, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Liverpool", "Away": "Burnley", "P(Over2.5)": 0.6707687118000814, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.455102763997166, "Model xG Home": 2.466867469879519, "Model xG Away": 0.9882352941176471, "Home GF/Home": 1.5, "Home GA/Home": 1.0, "Away GF/Away": 1.2, "Away GA/Away": 2.6}, {"Rank": 27, "League": "Ligue1", "DateUTC (date)": "2026-01-17 18:00", "Home": "Toulouse FC", "Away": "OGC Nice", "P(Over2.5)": 0.6657970138722127, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.428875526685393, "Model xG Home": 2.091796875, "Model xG Away": 1.337078651685393, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.555555555555556, "Away GF/Away": 1.0, "Away GA/Away": 2.25}, {"Rank": 28, "League": "Ligue1", "DateUTC (date)": "2026-01-16 20:00", "Home": "Paris Saint-Germain", "Away": "LOSC Lille", "P(Over2.5)": 0.6597353802945721, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.397281260972612, "Model xG Home": 2.4840087890625, "Model xG Away": 0.9132724719101123, "Home GF/Home": 2.375, "Home GA/Home": 0.5, "Away GF/Away": 2.125, "Away GA/Away": 1.75}, {"Rank": 29, "League": "SerieA", "DateUTC (date)": "2026-01-10 14:00", "Home": "Udinese", "Away": "Pisa", "P(Over2.5)": 0.6507263800803963, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.351068983675618, "Model xG Home": 1.653333333333333, "Model xG Away": 1.697735650342285, "Home GF/Home": 1.0, "Home GA/Home": 1.444444444444444, "Away GF/Away": 1.333333333333333, "Away GA/Away": 2.0}, {"Rank": 30, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 17:30", "Home": "Bayer 04 Leverkusen", "Away": "VfB Stuttgart", "P(Over2.5)": 0.649393448335099, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.344304569653949, "Model xG Home": 2.311141304347826, "Model xG Away": 1.033163265306122, "Home GF/Home": 2.25, "Home GA/Home": 0.75, "Away GF/Away": 2.0, "Away GA/Away": 1.75}, {"Rank": 31, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 11:15", "Home": "sc Heerenveen", "Away": "FC Groningen", "P(Over2.5)": 0.6472246150404992, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.333337225959143, "Model xG Home": 1.703993055555556, "Model xG Away": 1.629344170403587, "Home GF/Home": 1.875, "Home GA/Home": 1.75, "Away GF/Away": 1.375, "Away GA/Away": 1.625}, {"Rank": 32, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "Bayer 04 Leverkusen", "Away": "SV Werder Bremen", "P(Over2.5)": 0.6379624116344654, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.287031388642413, "Model xG Home": 2.641304347826087, "Model xG Away": 0.6457270408163265, "Home GF/Home": 2.25, "Home GA/Home": 0.75, "Away GF/Away": 1.25, "Away GA/Away": 2.0}, {"Rank": 33, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 15:45", "Home": "Feyenoord", "Away": "Sparta Rotterdam", "P(Over2.5)": 0.627805154501184, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.237197124877742, "Model xG Home": 2.221502057613169, "Model xG Away": 1.015695067264574, "Home GF/Home": 2.444444444444445, "Home GA/Home": 1.333333333333333, "Away GF/Away": 1.125, "Away GA/Away": 1.625}, {"Rank": 34, "League": "SerieA", "DateUTC (date)": "2026-01-17 17:00", "Home": "Napoli", "Away": "Sassuolo", "P(Over2.5)": 0.6192809280373421, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.196096190977707, "Model xG Home": 2.020740740740741, "Model xG Away": 1.175355450236967, "Home GF/Home": 2.0, "Home GA/Home": 1.0, "Away GF/Away": 1.333333333333333, "Away GA/Away": 1.222222222222222}, {"Rank": 35, "League": "Ligue1", "DateUTC (date)": "2026-01-24 20:05", "Home": "Olympique de Marseille", "Away": "RC Lens", "P(Over2.5)": 0.6170640125945348, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.185510299625468, "Model xG Home": 1.59375, "Model xG Away": 1.591760299625468, "Home GF/Home": 2.666666666666667, "Home GA/Home": 1.111111111111111, "Away GF/Away": 1.666666666666667, "Away GA/Away": 1.0}, {"Rank": 36, "League": "LaLiga", "DateUTC (date)": "2026-01-23 20:00", "Home": "Levante UD", "Away": "Elche CF", "P(Over2.5)": 0.6168781371724782, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.184624629660686, "Model xG Home": 1.271067415730337, "Model xG Away": 1.913557213930348, "Home GF/Home": 1.0, "Home GA/Home": 2.428571428571428, "Away GF/Away": 0.875, "Away GA/Away": 1.875}, {"Rank": 37, "League": "SerieA", "DateUTC (date)": "2026-01-24 17:00", "Home": "Fiorentina", "Away": "Cagliari", "P(Over2.5)": 0.6159226638686193, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.180076531507811, "Model xG Home": 1.671703703703704, "Model xG Away": 1.508372827804107, "Home GF/Home": 1.444444444444444, "Home GA/Home": 1.555555555555556, "Away GF/Away": 1.1, "Away GA/Away": 1.4}, {"Rank": 38, "League": "EPL", "DateUTC (date)": "2026-01-17 12:30", "Home": "Man Utd", "Away": "Man City", "P(Over2.5)": 0.6157947971211379, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.179468462083629, "Model xG Home": 1.252409638554217, "Model xG Away": 1.927058823529412, "Home GF/Home": 1.8, "Home GA/Home": 1.3, "Away GF/Away": 1.8, "Away GA/Away": 1.1}, {"Rank": 39, "League": "Bundesliga", "DateUTC (date)": "2026-01-18 16:30", "Home": "FC Augsburg", "Away": "Sport-Club Freiburg", "P(Over2.5)": 0.6156841302013528, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.178942297027507, "Model xG Home": 1.403192934782609, "Model xG Away": 1.775749362244898, "Home GF/Home": 1.125, "Home GA/Home": 1.875, "Away GF/Away": 1.375, "Away GA/Away": 2.125}, {"Rank": 40, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 17:30", "Home": "RB Leipzig", "Away": "FC Bayern München", "P(Over2.5)": 0.6121374315572818, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.162133531318472, "Model xG Home": 1.137976929902396, "Model xG Away": 2.024156601416076, "Home GF/Home": 2.714285714285714, "Home GA/Home": 0.8571428571428571, "Away GF/Away": 3.428571428571428, "Away GA/Away": 0.7142857142857143}, {"Rank": 41, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "1. FC Union Berlin", "Away": "1. FSV Mainz 05", "P(Over2.5)": 0.6044877266115423, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.126227975662315, "Model xG Home": 2.043866459627329, "Model xG Away": 1.082361516034985, "Home GF/Home": 1.625, "Home GA/Home": 1.375, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.142857142857143}, {"Rank": 42, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "FC St. Pauli", "Away": "RB Leipzig", "P(Over2.5)": 0.6030410660332376, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.11948995436684, "Model xG Home": 1.090062111801242, "Model xG Away": 2.029427842565597, "Home GF/Home": 1.142857142857143, "Home GA/Home": 2.142857142857143, "Away GF/Away": 1.375, "Away GA/Away": 1.625}, {"Rank": 43, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Leeds", "Away": "Fulham", "P(Over2.5)": 0.6016851241726725, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.113189227498228, "Model xG Home": 1.935542168674699, "Model xG Away": 1.17764705882353, "Home GF/Home": 1.8, "Home GA/Home": 1.3, "Away GF/Away": 1.1, "Away GA/Away": 1.7}, {"Rank": 44, "League": "SerieA", "DateUTC (date)": "2026-01-17 14:00", "Home": "Udinese", "Away": "Inter", "P(Over2.5)": 0.5967366506041718, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.09031420045638, "Model xG Home": 0.8266666666666667, "Model xG Away": 2.263647533789714, "Home GF/Home": 1.0, "Home GA/Home": 1.444444444444444, "Away GF/Away": 1.777777777777778, "Away GA/Away": 1.0}, {"Rank": 45, "League": "SerieA", "DateUTC (date)": "2026-01-15 17:30", "Home": "Hellas Verona", "Away": "Bologna", "P(Over2.5)": 0.5917049951842576, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.067242408285062, "Model xG Home": 1.01037037037037, "Model xG Away": 2.056872037914692, "Home GF/Home": 1.0, "Home GA/Home": 1.5, "Away GF/Away": 1.555555555555556, "Away GA/Away": 1.222222222222222}, {"Rank": 46, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "Sport-Club Freiburg", "Away": "Hamburger SV", "P(Over2.5)": 0.5907225475270323, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.06275917643011, "Model xG Home": 2.683229813664596, "Model xG Away": 0.3795293627655144, "Home GF/Home": 2.0, "Home GA/Home": 1.285714285714286, "Away GF/Away": 0.4285714285714285, "Away GA/Away": 2.285714285714286}, {"Rank": 47, "League": "LaLiga", "DateUTC (date)": "2026-01-11 15:15", "Home": "Levante UD", "Away": "RCD Espanyol de Barcelona", "P(Over2.5)": 0.588678248423297, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.053452640489367, "Model xG Home": 0.5931647940074907, "Model xG Away": 2.460287846481876, "Home GF/Home": 1.0, "Home GA/Home": 2.428571428571428, "Away GF/Away": 1.125, "Away GA/Away": 0.875}, {"Rank": 48, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 20:00", "Home": "FC Twente", "Away": "Excelsior Rotterdam", "P(Over2.5)": 0.5778464814094825, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.004630222791658, "Model xG Home": 2.037301587301587, "Model xG Away": 0.9673286354900703, "Home GF/Home": 1.5, "Home GA/Home": 1.25, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 49, "League": "LaLiga", "DateUTC (date)": "2026-01-12 20:00", "Home": "Sevilla FC", "Away": "Celta", "P(Over2.5)": 0.5737427587368322, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.986340923348303, "Model xG Home": 0.9227007906783189, "Model xG Away": 2.063640132669984, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.666666666666667, "Away GF/Away": 1.375, "Away GA/Away": 0.875}, {"Rank": 50, "League": "SerieA", "DateUTC (date)": "2026-01-11 14:00", "Home": "Fiorentina", "Away": "Milan", "P(Over2.5)": 0.5710894377863267, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.974574337370545, "Model xG Home": 0.7462962962962962, "Model xG Away": 2.228278041074249, "Home GF/Home": 1.444444444444444, "Home GA/Home": 1.555555555555556, "Away GF/Away": 1.625, "Away GA/Away": 0.625}, {"Rank": 51, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "1. FC Heidenheim 1846", "Away": "RB Leipzig", "P(Over2.5)": 0.569222062726682, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.966320291703638, "Model xG Home": 0.9538043478260869, "Model xG Away": 2.012515943877551, "Home GF/Home": 1.0, "Home GA/Home": 2.125, "Away GF/Away": 1.375, "Away GA/Away": 1.625}, {"Rank": 52, "League": "Ligue1", "DateUTC (date)": "2026-01-23 19:00", "Home": "AJ Auxerre", "Away": "Paris Saint-Germain", "P(Over2.5)": 0.5569822316685503, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.912755539950063, "Model xG Home": 0.8116319444444445, "Model xG Away": 2.101123595505618, "Home GF/Home": 1.111111111111111, "Home GA/Home": 1.222222222222222, "Away GF/Away": 2.0, "Away GA/Away": 1.222222222222222}, {"Rank": 53, "League": "LaLiga", "DateUTC (date)": "2026-01-24 20:00", "Home": "Villarreal CF", "Away": "Real Madrid", "P(Over2.5)": 0.5441996681972561, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.857758647461817, "Model xG Home": 1.657095297544736, "Model xG Away": 1.200663349917081, "Home GF/Home": 2.222222222222222, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 2.0, "Away GA/Away": 1.1}, {"Rank": 54, "League": "Ligue1", "DateUTC (date)": "2026-01-18 16:15", "Home": "FC Nantes", "Away": "Paris FC", "P(Over2.5)": 0.5431376222985861, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.853230337078652, "Model xG Home": 1.0625, "Model xG Away": 1.790730337078652, "Home GF/Home": 1.0, "Home GA/Home": 1.875, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.777777777777778}, {"Rank": 55, "League": "EPL", "DateUTC (date)": "2026-01-24 15:00", "Home": "Fulham", "Away": "Brighton", "P(Over2.5)": 0.5397220004313172, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.838708260362793, "Model xG Home": 1.688489495170766, "Model xG Away": 1.150218765192027, "Home GF/Home": 1.727272727272727, "Home GA/Home": 1.181818181818182, "Away GF/Away": 1.181818181818182, "Away GA/Away": 1.545454545454545}, {"Rank": 56, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "SV Werder Bremen", "Away": "TSG Hoffenheim", "P(Over2.5)": 0.5355335461136961, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.820984915705413, "Model xG Home": 0.7546583850931676, "Model xG Away": 2.066326530612245, "Home GF/Home": 1.142857142857143, "Home GA/Home": 1.714285714285714, "Away GF/Away": 1.75, "Away GA/Away": 1.125}, {"Rank": 57, "League": "Ligue1", "DateUTC (date)": "2026-01-18 19:45", "Home": "Olympique Lyonnais", "Away": "Stade Brestois 29", "P(Over2.5)": 0.5345989438081472, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.817042661516854, "Model xG Home": 2.091796875, "Model xG Away": 0.7252457865168539, "Home GF/Home": 1.75, "Home GA/Home": 0.75, "Away GF/Away": 1.125, "Away GA/Away": 2.0}, {"Rank": 58, "League": "EPL", "DateUTC (date)": "2026-01-24 15:00", "Home": "Man City", "Away": "Wolves", "P(Over2.5)": 0.5335958836417255, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.812816653097563, "Model xG Home": 2.540575525241462, "Model xG Away": 0.2722411278561012, "Home GF/Home": 2.454545454545455, "Home GA/Home": 0.7272727272727273, "Away GF/Away": 0.4545454545454545, "Away GA/Away": 1.636363636363636}, {"Rank": 59, "League": "LaLiga", "DateUTC (date)": "2026-01-24 17:30", "Home": "Sevilla FC", "Away": "Athletic Club", "P(Over2.5)": 0.5323723052140578, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.807668551403062, "Model xG Home": 1.6403569612059, "Model xG Away": 1.167311590197162, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.666666666666667, "Away GF/Away": 0.7777777777777778, "Away GA/Away": 1.555555555555556}, {"Rank": 60, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 19:30", "Home": "TSG Hoffenheim", "Away": "Borussia Mönchengladbach", "P(Over2.5)": 0.5314980140119296, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.803994712348115, "Model xG Home": 1.257763975155279, "Model xG Away": 1.546230737192836, "Home GF/Home": 2.142857142857143, "Home GA/Home": 1.571428571428571, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.0}, {"Rank": 61, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Chelsea", "Away": "Brentford", "P(Over2.5)": 0.5293273652463676, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.794890148830617, "Model xG Home": 1.707831325301205, "Model xG Away": 1.087058823529412, "Home GF/Home": 1.5, "Home GA/Home": 1.1, "Away GF/Away": 1.2, "Away GA/Away": 1.8}, {"Rank": 62, "League": "Ligue1", "DateUTC (date)": "2026-01-18 16:15", "Home": "Stade Rennais FC", "Away": "Havre Athletic Club", "P(Over2.5)": 0.5264953281153546, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.783046765273876, "Model xG Home": 2.353271484375, "Model xG Away": 0.4297752808988764, "Home GF/Home": 2.25, "Home GA/Home": 1.0, "Away GF/Away": 0.5, "Away GA/Away": 1.75}, {"Rank": 63, "League": "EPL", "DateUTC (date)": "2026-01-24 17:30", "Home": "Bournemouth", "Away": "Liverpool", "P(Over2.5)": 0.5253464546888551, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.778253509907398, "Model xG Home": 1.505526237180125, "Model xG Away": 1.272727272727273, "Home GF/Home": 1.454545454545455, "Home GA/Home": 1.0, "Away GF/Away": 1.545454545454545, "Away GA/Away": 1.636363636363636}, {"Rank": 64, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 15:30", "Home": "Ajax", "Away": "Go Ahead Eagles", "P(Over2.5)": 0.5244186073447513, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.774387098857702, "Model xG Home": 1.918569958847737, "Model xG Away": 0.8558171400099651, "Home GF/Home": 1.625, "Home GA/Home": 0.875, "Away GF/Away": 1.444444444444444, "Away GA/Away": 2.111111111111111}, {"Rank": 65, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 13:30", "Home": "Go Ahead Eagles", "Away": "Fortuna Sittard", "P(Over2.5)": 0.5233181278928954, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.769806718153131, "Model xG Home": 1.817592592592593, "Model xG Away": 0.9522141255605381, "Home GF/Home": 1.625, "Home GA/Home": 1.25, "Away GF/Away": 1.125, "Away GA/Away": 2.0}, {"Rank": 66, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 14:30", "Home": "Borussia Mönchengladbach", "Away": "FC Augsburg", "P(Over2.5)": 0.5216326222872749, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.762802636582583, "Model xG Home": 1.090062111801242, "Model xG Away": 1.672740524781341, "Home GF/Home": 1.0, "Home GA/Home": 2.125, "Away GF/Away": 1.142857142857143, "Away GA/Away": 1.857142857142857}, {"Rank": 67, "League": "LaLiga", "DateUTC (date)": "2026-01-16 20:00", "Home": "RCD Espanyol de Barcelona", "Away": "Girona FC", "P(Over2.5)": 0.5173881914769395, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.745224563822585, "Model xG Home": 1.664627548897212, "Model xG Away": 1.080597014925373, "Home GF/Home": 1.3, "Home GA/Home": 1.2, "Away GF/Away": 1.0, "Away GA/Away": 1.888888888888889}, {"Rank": 68, "League": "LaLiga", "DateUTC (date)": "2026-01-17 17:30", "Home": "CA Osasuna", "Away": "Real Oviedo", "P(Over2.5)": 0.5147812431381736, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.734469558160095, "Model xG Home": 2.134137883201554, "Model xG Away": 0.6003316749585407, "Home GF/Home": 1.666666666666667, "Home GA/Home": 1.0, "Away GF/Away": 0.6666666666666666, "Away GA/Away": 1.888888888888889}, {"Rank": 69, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 20:00", "Home": "NAC Breda", "Away": "N.E.C. Nijmegen", "P(Over2.5)": 0.5132834993546715, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.72830463747255, "Model xG Home": 1.056378600823045, "Model xG Away": 1.671926036649505, "Home GF/Home": 1.0, "Home GA/Home": 1.111111111111111, "Away GF/Away": 2.222222222222222, "Away GA/Away": 1.888888888888889}, {"Rank": 70, "League": "SerieA", "DateUTC (date)": "2026-01-19 17:30", "Home": "Cremonese", "Away": "Hellas Verona", "P(Over2.5)": 0.5088165622285163, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.709977883096366, "Model xG Home": 1.818666666666667, "Model xG Away": 0.8913112164296997, "Home GF/Home": 1.222222222222222, "Home GA/Home": 1.444444444444444, "Away GF/Away": 0.7, "Away GA/Away": 1.8}, {"Rank": 71, "League": "SerieA", "DateUTC (date)": "2026-01-18 11:30", "Home": "Parma", "Away": "Genoa", "P(Over2.5)": 0.5024561062051641, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.684032999824469, "Model xG Home": 1.028740740740741, "Model xG Away": 1.655292259083728, "Home GF/Home": 0.7, "Home GA/Home": 1.3, "Away GF/Away": 1.444444444444444, "Away GA/Away": 1.777777777777778}, {"Rank": 72, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "Eintracht Frankfurt", "Away": "TSG Hoffenheim", "P(Over2.5)": 0.5018900767801617, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.681732475598935, "Model xG Home": 1.131987577639751, "Model xG Away": 1.549744897959183, "Home GF/Home": 1.714285714285714, "Home GA/Home": 1.285714285714286, "Away GF/Away": 1.75, "Away GA/Away": 1.125}, {"Rank": 73, "League": "LaLiga", "DateUTC (date)": "2026-01-17 13:00", "Home": "Real Madrid", "Away": "Levante UD", "P(Over2.5)": 0.5011086012362441, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.678558518270073, "Model xG Home": 1.89812734082397, "Model xG Away": 0.7804311774461029, "Home GF/Home": 2.333333333333333, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 1.3, "Away GA/Away": 1.2}, {"Rank": 74, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 19:30", "Home": "Borussia Dortmund", "Away": "SV Werder Bremen", "P(Over2.5)": 0.4995181393593232, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.672106730891114, "Model xG Home": 2.180124223602485, "Model xG Away": 0.4919825072886296, "Home GF/Home": 1.857142857142857, "Home GA/Home": 0.5714285714285714, "Away GF/Away": 1.25, "Away GA/Away": 2.0}, {"Rank": 75, "League": "EPL", "DateUTC (date)": "2026-01-18 14:00", "Home": "Wolves", "Away": "Newcastle", "P(Over2.5)": 0.4948310715021889, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.653153791637137, "Model xG Home": 0.7590361445783133, "Model xG Away": 1.894117647058823, "Home GF/Home": 1.0, "Home GA/Home": 2.3, "Away GF/Away": 1.0, "Away GA/Away": 1.2}, {"Rank": 76, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 13:30", "Home": "FC Volendam", "Away": "FC Utrecht", "P(Over2.5)": 0.4942916022580214, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.65097805827751, "Model xG Home": 1.522427983539095, "Model xG Away": 1.128550074738415, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.333333333333333, "Away GF/Away": 1.25, "Away GA/Away": 1.75}, {"Rank": 77, "League": "EPL", "DateUTC (date)": "2026-01-17 17:30", "Home": "Nott'm Forest", "Away": "Arsenal", "P(Over2.5)": 0.4923439274027428, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.643132530120482, "Model xG Home": 0.683132530120482, "Model xG Away": 1.96, "Home GF/Home": 1.2, "Home GA/Home": 1.7, "Away GF/Away": 1.4, "Away GA/Away": 0.9}, {"Rank": 78, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 15:45", "Home": "Sparta Rotterdam", "Away": "Heracles Almelo", "P(Over2.5)": 0.4898242036257301, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.633004853383528, "Model xG Home": 1.429218106995885, "Model xG Away": 1.203786746387643, "Home GF/Home": 1.0, "Home GA/Home": 2.0, "Away GF/Away": 0.8888888888888888, "Away GA/Away": 2.555555555555555}, {"Rank": 79, "League": "EPL", "DateUTC (date)": "2026-01-24 15:00", "Home": "Burnley", "Away": "Spurs", "P(Over2.5)": 0.4870183036907267, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.621755861559998, "Model xG Home": 0.7841282485313152, "Model xG Away": 1.837627613028683, "Home GF/Home": 0.9090909090909091, "Home GA/Home": 1.363636363636364, "Away GF/Away": 1.636363636363636, "Away GA/Away": 1.363636363636364}, {"Rank": 80, "League": "Ligue1", "DateUTC (date)": "2026-01-17 16:00", "Home": "RC Lens", "Away": "AJ Auxerre", "P(Over2.5)": 0.4829534612294378, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.605512640449438, "Model xG Home": 2.390625, "Model xG Away": 0.2148876404494382, "Home GF/Home": 2.0, "Home GA/Home": 0.5, "Away GF/Away": 0.5, "Away GA/Away": 2.0}, {"Rank": 81, "League": "LaLiga", "DateUTC (date)": "2026-01-19 20:00", "Home": "Elche CF", "Away": "Sevilla FC", "P(Over2.5)": 0.4798413797487324, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.593118055167359, "Model xG Home": 1.792675821889305, "Model xG Away": 0.8004422332780543, "Home GF/Home": 1.7, "Home GA/Home": 0.8, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.555555555555556}, {"Rank": 82, "League": "SerieA", "DateUTC (date)": "2026-01-18 19:45", "Home": "Milan", "Away": "Lecce", "P(Over2.5)": 0.4762917834504591, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.579023696682465, "Model xG Home": 1.984, "Model xG Away": 0.5950236966824645, "Home GF/Home": 1.6, "Home GA/Home": 0.9, "Away GF/Away": 0.75, "Away GA/Away": 1.5}, {"Rank": 83, "League": "Ligue1", "DateUTC (date)": "2026-01-24 16:00", "Home": "Stade Rennais FC", "Away": "FC Lorient", "P(Over2.5)": 0.4735479058731977, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.568159124824438, "Model xG Home": 2.353271484375, "Model xG Away": 0.2148876404494382, "Home GF/Home": 2.25, "Home GA/Home": 1.0, "Away GF/Away": 0.25, "Away GA/Away": 1.75}, {"Rank": 84, "League": "LaLiga", "DateUTC (date)": "2026-01-18 15:15", "Home": "Atlético de Madrid", "Away": "Deportivo Alavés", "P(Over2.5)": 0.4666985352729258, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.541151141918374, "Model xG Home": 2.278506034124012, "Model xG Away": 0.2626451077943616, "Home GF/Home": 2.444444444444445, "Home GA/Home": 0.7777777777777778, "Away GF/Away": 0.375, "Away GA/Away": 1.375}, {"Rank": 85, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 15:30", "Home": "Ajax", "Away": "FC Volendam", "P(Over2.5)": 0.4635266313700916, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.528696696977246, "Model xG Home": 2.158391203703704, "Model xG Away": 0.3703054932735426, "Home GF/Home": 1.625, "Home GA/Home": 0.875, "Away GF/Away": 0.625, "Away GA/Away": 2.375}, {"Rank": 86, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 17:30", "Home": "1. FC Union Berlin", "Away": "Borussia Dortmund", "P(Over2.5)": 0.4543353398600418, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.492787128438332, "Model xG Home": 0.9538043478260869, "Model xG Away": 1.538982780612245, "Home GF/Home": 1.625, "Home GA/Home": 1.375, "Away GF/Away": 1.625, "Away GA/Away": 1.0}, {"Rank": 87, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 20:00", "Home": "FC Groningen", "Away": "NAC Breda", "P(Over2.5)": 0.4499734007679475, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.475835097990367, "Model xG Home": 1.957407407407407, "Model xG Away": 0.5184276905829597, "Home GF/Home": 1.75, "Home GA/Home": 0.875, "Away GF/Away": 0.875, "Away GA/Away": 2.0}, {"Rank": 88, "League": "LaLiga", "DateUTC (date)": "2026-01-18 17:30", "Home": "Celta", "Away": "Rayo Vallecano", "P(Over2.5)": 0.4468213624090138, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.46361954273576, "Model xG Home": 1.410037453183521, "Model xG Away": 1.053582089552239, "Home GF/Home": 1.3, "Home GA/Home": 1.3, "Away GF/Away": 0.9, "Away GA/Away": 1.6}, {"Rank": 89, "League": "Ligue1", "DateUTC (date)": "2026-01-24 18:00", "Home": "Havre Athletic Club", "Away": "AS Monaco", "P(Over2.5)": 0.4417611141785764, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.444067108497191, "Model xG Home": 1.36962890625, "Model xG Away": 1.074438202247191, "Home GF/Home": 1.222222222222222, "Home GA/Home": 1.0, "Away GF/Away": 1.25, "Away GA/Away": 1.875}, {"Rank": 90, "League": "Bundesliga", "DateUTC (date)": "2026-01-15 19:30", "Home": "FC Augsburg", "Away": "1. FC Union Berlin", "P(Over2.5)": 0.4364036600619952, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.423441659272404, "Model xG Home": 1.131987577639751, "Model xG Away": 1.291454081632653, "Home GF/Home": 1.125, "Home GA/Home": 1.875, "Away GF/Away": 1.0, "Away GA/Away": 1.714285714285714}, {"Rank": 91, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "1. FC Heidenheim 1846", "Away": "1. FC Köln", "P(Over2.5)": 0.4348442725950641, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.41745230700976, "Model xG Home": 0.9538043478260869, "Model xG Away": 1.463647959183673, "Home GF/Home": 1.0, "Home GA/Home": 2.125, "Away GF/Away": 1.0, "Away GA/Away": 1.625}, {"Rank": 92, "League": "SerieA", "DateUTC (date)": "2026-01-18 17:00", "Home": "Torino", "Away": "Roma", "P(Over2.5)": 0.4255647379187255, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.381936176935229, "Model xG Home": 0.6365333333333333, "Model xG Away": 1.745402843601896, "Home GF/Home": 1.1, "Home GA/Home": 1.8, "Away GF/Away": 1.1, "Away GA/Away": 0.7}, {"Rank": 93, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 17:30", "Home": "VfL Wolfsburg", "Away": "FC St. Pauli", "P(Over2.5)": 0.4129257255165628, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.333882126220053, "Model xG Home": 1.31148097826087, "Model xG Away": 1.022401147959184, "Home GF/Home": 1.625, "Home GA/Home": 2.375, "Away GF/Away": 0.625, "Away GA/Away": 1.375}, {"Rank": 94, "League": "Ligue1", "DateUTC (date)": "2026-01-16 18:00", "Home": "AS Monaco", "Away": "FC Lorient", "P(Over2.5)": 0.4128860992913437, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.33373200491573, "Model xG Home": 1.9755859375, "Model xG Away": 0.3581460674157304, "Home GF/Home": 1.888888888888889, "Home GA/Home": 1.666666666666667, "Away GF/Away": 0.25, "Away GA/Away": 1.75}, {"Rank": 95, "League": "LaLiga", "DateUTC (date)": "2026-01-10 15:15", "Home": "Villarreal CF", "Away": "Deportivo Alavés", "P(Over2.5)": 0.4030310921744074, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.296493500040373, "Model xG Home": 2.07136912193092, "Model xG Away": 0.2251243781094527, "Home GF/Home": 2.222222222222222, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 0.375, "Away GA/Away": 1.375}, {"Rank": 96, "League": "SerieA", "DateUTC (date)": "2026-01-17 19:45", "Home": "Cagliari", "Away": "Juventus", "P(Over2.5)": 0.3940670500258446, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.262776900122871, "Model xG Home": 0.7348148148148148, "Model xG Away": 1.527962085308057, "Home GF/Home": 1.111111111111111, "Home GA/Home": 1.444444444444444, "Away GF/Away": 1.2, "Away GA/Away": 0.8}, {"Rank": 97, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Spurs", "Away": "West Ham", "P(Over2.5)": 0.3921747825157673, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.255676824946847, "Model xG Home": 1.366265060240964, "Model xG Away": 0.8894117647058825, "Home GF/Home": 1.2, "Home GA/Home": 1.2, "Away GF/Away": 0.9, "Away GA/Away": 1.8}, {"Rank": 98, "League": "SerieA", "DateUTC (date)": "2026-01-11 19:45", "Home": "Inter", "Away": "Napoli", "P(Over2.5)": 0.3902136501467264, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.248324381253291, "Model xG Home": 1.543111111111111, "Model xG Away": 0.7052132701421799, "Home GF/Home": 2.666666666666667, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 1.2, "Away GA/Away": 0.7}, {"Rank": 99, "League": "SerieA", "DateUTC (date)": "2026-01-19 19:45", "Home": "Lazio", "Away": "Como", "P(Over2.5)": 0.3844395699926364, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.226710900473933, "Model xG Home": 1.116, "Model xG Away": 1.110710900473934, "Home GF/Home": 1.5, "Home GA/Home": 0.9, "Away GF/Away": 1.4, "Away GA/Away": 0.9}, {"Rank": 100, "League": "LaLiga", "DateUTC (date)": "2026-01-17 15:15", "Home": "RCD Mallorca", "Away": "Athletic Club", "P(Over2.5)": 0.3833669330385209, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.22270117024808, "Model xG Home": 1.28885189809035, "Model xG Away": 0.9338492721577298, "Home GF/Home": 1.222222222222222, "Home GA/Home": 1.333333333333333, "Away GF/Away": 0.7777777777777778, "Away GA/Away": 1.555555555555556}, {"Rank": 101, "League": "SerieA", "DateUTC (date)": "2026-01-14 17:30", "Home": "Napoli", "Away": "Parma", "P(Over2.5)": 0.3784340019239607, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.204281200631911, "Model xG Home": 1.653333333333333, "Model xG Away": 0.5509478672985781, "Home GF/Home": 2.0, "Home GA/Home": 1.0, "Away GF/Away": 0.625, "Away GA/Away": 1.0}, {"Rank": 102, "League": "SerieA", "DateUTC (date)": "2026-01-10 19:45", "Home": "Atalanta", "Away": "Torino", "P(Over2.5)": 0.3784077484495729, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.204183254344391, "Model xG Home": 1.322666666666666, "Model xG Away": 0.881516587677725, "Home GF/Home": 1.2, "Home GA/Home": 0.9, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.333333333333333}, {"Rank": 103, "League": "LaLiga", "DateUTC (date)": "2026-01-10 20:00", "Home": "Valencia CF", "Away": "Elche CF", "P(Over2.5)": 0.3682542599994461, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.1663654263017, "Model xG Home": 1.55352684144819, "Model xG Away": 0.6128385848535103, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.7777777777777778, "Away GF/Away": 0.875, "Away GA/Away": 1.875}, {"Rank": 104, "League": "Bundesliga", "DateUTC (date)": "2026-01-23 19:30", "Home": "FC St. Pauli", "Away": "Hamburger SV", "P(Over2.5)": 0.3681084293431981, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.165823117179436, "Model xG Home": 1.533274179236912, "Model xG Away": 0.6325489379425239, "Home GF/Home": 1.142857142857143, "Home GA/Home": 2.142857142857143, "Away GF/Away": 0.4285714285714285, "Away GA/Away": 2.285714285714286}, {"Rank": 105, "League": "SerieA", "DateUTC (date)": "2026-01-18 14:00", "Home": "Bologna", "Away": "Fiorentina", "P(Over2.5)": 0.367911764261015, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.165091802703177, "Model xG Home": 1.616592592592593, "Model xG Away": 0.5484992101105843, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.8888888888888888, "Away GF/Away": 0.7, "Away GA/Away": 1.6}, {"Rank": 106, "League": "SerieA", "DateUTC (date)": "2026-01-12 19:45", "Home": "Juventus", "Away": "Cremonese", "P(Over2.5)": 0.3457741921644079, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.082991047919958, "Model xG Home": 1.377777777777778, "Model xG Away": 0.7052132701421799, "Home GF/Home": 1.666666666666667, "Home GA/Home": 0.8888888888888888, "Away GF/Away": 0.9, "Away GA/Away": 1.0}, {"Rank": 107, "League": "Bundesliga", "DateUTC (date)": "2026-01-18 14:30", "Home": "VfB Stuttgart", "Away": "1. FC Union Berlin", "P(Over2.5)": 0.3452015917235729, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.080872100392952, "Model xG Home": 1.293700088731145, "Model xG Away": 0.7871720116618075, "Home GF/Home": 1.285714285714286, "Home GA/Home": 1.142857142857143, "Away GF/Away": 1.0, "Away GA/Away": 1.714285714285714}, {"Rank": 108, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "Hamburger SV", "Away": "Borussia Mönchengladbach", "P(Over2.5)": 0.3397658939235096, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.060764989225504, "Model xG Home": 0.9538043478260869, "Model xG Away": 1.106960641399417, "Home GF/Home": 1.625, "Home GA/Home": 1.125, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.0}, {"Rank": 109, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 17:45", "Home": "PEC Zwolle", "Away": "AZ", "P(Over2.5)": 0.3373133827470375, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.051697069515953, "Model xG Home": 0.7068415637860082, "Model xG Away": 1.344855505729945, "Home GF/Home": 0.875, "Home GA/Home": 1.375, "Away GF/Away": 1.444444444444444, "Away GA/Away": 1.444444444444444}, {"Rank": 110, "League": "SerieA", "DateUTC (date)": "2026-01-10 14:00", "Home": "Como", "Away": "Bologna", "P(Over2.5)": 0.3313818206391281, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.029773565034229, "Model xG Home": 1.515555555555556, "Model xG Away": 0.514218009478673, "Home GF/Home": 1.5, "Home GA/Home": 0.375, "Away GF/Away": 1.555555555555556, "Away GA/Away": 1.222222222222222}, {"Rank": 111, "League": "SerieA", "DateUTC (date)": "2026-01-24 14:00", "Home": "Como", "Away": "Torino", "P(Over2.5)": 0.3289078379234534, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.020631911532385, "Model xG Home": 1.653333333333333, "Model xG Away": 0.3672985781990521, "Home GF/Home": 1.5, "Home GA/Home": 0.375, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.333333333333333}, {"Rank": 112, "League": "SerieA", "DateUTC (date)": "2026-01-12 17:30", "Home": "Genoa", "Away": "Cagliari", "P(Over2.5)": 0.3111370247311676, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.954968720379147, "Model xG Home": 0.6943999999999999, "Model xG Away": 1.260568720379147, "Home GF/Home": 0.6, "Home GA/Home": 1.3, "Away GF/Away": 1.1, "Away GA/Away": 1.4}, {"Rank": 113, "League": "Ligue1", "DateUTC (date)": "2026-01-17 20:05", "Home": "Angers SCO", "Away": "Olympique de Marseille", "P(Over2.5)": 0.2996780258070169, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.91258394048455, "Model xG Home": 0.784423828125, "Model xG Away": 1.12816011235955, "Home GF/Home": 1.5, "Home GA/Home": 0.875, "Away GF/Away": 1.5, "Away GA/Away": 0.875}, {"Rank": 114, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Sunderland", "Away": "Crystal Palace", "P(Over2.5)": 0.2973167767414751, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.903841247342311, "Model xG Home": 1.113253012048193, "Model xG Away": 0.7905882352941177, "Home GF/Home": 1.6, "Home GA/Home": 0.8, "Away GF/Away": 1.2, "Away GA/Away": 1.1}, {"Rank": 115, "League": "LaLiga", "DateUTC (date)": "2026-01-18 13:00", "Home": "Getafe CF", "Away": "Valencia CF", "P(Over2.5)": 0.296335569153156, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.90020714157055, "Model xG Home": 1.449958385351644, "Model xG Away": 0.4502487562189055, "Home GF/Home": 0.875, "Home GA/Home": 0.75, "Away GF/Away": 0.6666666666666666, "Away GA/Away": 2.444444444444445}, {"Rank": 116, "League": "SerieA", "DateUTC (date)": "2026-01-10 17:00", "Home": "Roma", "Away": "Sassuolo", "P(Over2.5)": 0.293006622968822, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.887872369473212, "Model xG Home": 1.234897119341564, "Model xG Away": 0.6529752501316481, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.5555555555555556, "Away GF/Away": 1.333333333333333, "Away GA/Away": 1.222222222222222}, {"Rank": 117, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "1. FSV Mainz 05", "Away": "VfL Wolfsburg", "P(Over2.5)": 0.2759786019358272, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.824613385726962, "Model xG Home": 0.4716614906832298, "Model xG Away": 1.352951895043732, "Home GF/Home": 0.625, "Home GA/Home": 1.375, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.285714285714286}, {"Rank": 118, "League": "EPL", "DateUTC (date)": "2026-01-24 12:30", "Home": "West Ham", "Away": "Sunderland", "P(Over2.5)": 0.2699580576086515, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.802162466101646, "Model xG Home": 0.9514089415513294, "Model xG Away": 0.8507535245503162, "Home GF/Home": 1.181818181818182, "Home GA/Home": 2.272727272727273, "Away GF/Away": 0.4545454545454545, "Away GA/Away": 1.272727272727273}, {"Rank": 119, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "Borussia Dortmund", "Away": "FC St. Pauli", "P(Over2.5)": 0.2546542354430004, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.744826657371023, "Model xG Home": 1.498835403726708, "Model xG Away": 0.2459912536443148, "Home GF/Home": 1.857142857142857, "Home GA/Home": 0.5714285714285714, "Away GF/Away": 0.625, "Away GA/Away": 1.375}, {"Rank": 120, "League": "EPL", "DateUTC (date)": "2026-01-18 16:30", "Home": "Aston Villa", "Away": "Everton", "P(Over2.5)": 0.2511130754305138, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.731495393338058, "Model xG Home": 1.13855421686747, "Model xG Away": 0.5929411764705883, "Home GF/Home": 1.8, "Home GA/Home": 0.8, "Away GF/Away": 0.9, "Away GA/Away": 1.0}, {"Rank": 121, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 19:30", "Home": "1. FSV Mainz 05", "Away": "1. FC Heidenheim 1846", "P(Over2.5)": 0.2082501554958072, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.567392096590189, "Model xG Home": 0.890916149068323, "Model xG Away": 0.6764759475218659, "Home GF/Home": 0.625, "Home GA/Home": 1.375, "Away GF/Away": 0.7142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 122, "League": "LaLiga", "DateUTC (date)": "2026-01-24 15:15", "Home": "Valencia CF", "Away": "RCD Espanyol de Barcelona", "P(Over2.5)": 0.1944018975184532, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.512914516058907, "Model xG Home": 0.7249791926758221, "Model xG Away": 0.7879353233830846, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.7777777777777778, "Away GF/Away": 1.125, "Away GA/Away": 0.875}, {"Rank": 123, "League": "LaLiga", "DateUTC (date)": "2026-01-10 13:00", "Home": "Real Oviedo", "Away": "Real Betis", "P(Over2.5)": 0.1763714773393688, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.440496228801892, "Model xG Home": 0.2175983724048643, "Model xG Away": 1.222897856397027, "Home GF/Home": 0.2222222222222222, "Home GA/Home": 1.111111111111111, "Away GF/Away": 1.222222222222222, "Away GA/Away": 1.444444444444444}, {"Rank": 124, "League": "SerieA", "DateUTC (date)": "2026-01-11 17:00", "Home": "Hellas Verona", "Away": "Lazio", "P(Over2.5)": 0.1611057853676232, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.377560119361067, "Model xG Home": 0.642962962962963, "Model xG Away": 0.7345971563981042, "Home GF/Home": 1.0, "Home GA/Home": 1.5, "Away GF/Away": 0.5555555555555556, "Away GA/Away": 0.7777777777777778}, {"Rank": 125, "League": "LaLiga", "DateUTC (date)": "2026-01-10 17:30", "Home": "Girona FC", "Away": "CA Osasuna", "P(Over2.5)": 0.1594000095331825, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.370420059502736, "Model xG Home": 0.8034401442641144, "Model xG Away": 0.5669799152386217, "Home GF/Home": 0.8888888888888888, "Home GA/Home": 1.888888888888889, "Away GF/Away": 0.3333333333333333, "Away GA/Away": 1.333333333333333}, {"Rank": 126, "League": "SerieA", "DateUTC (date)": "2026-01-15 19:45", "Home": "Como", "Away": "Milan", "P(Over2.5)": 0.1457002202598113, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.312174170616114, "Model xG Home": 0.775, "Model xG Away": 0.5371741706161137, "Home GF/Home": 1.5, "Home GA/Home": 0.375, "Away GF/Away": 1.625, "Away GA/Away": 0.625}, {"Rank": 127, "League": "LaLiga", "DateUTC (date)": "2026-01-11 13:00", "Home": "Rayo Vallecano", "Away": "RCD Mallorca", "P(Over2.5)": 0.1357999808868848, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.268959509568264, "Model xG Home": 0.7061485642946318, "Model xG Away": 0.5628109452736318, "Home GF/Home": 0.625, "Home GA/Home": 0.625, "Away GF/Away": 1.0, "Away GA/Away": 1.666666666666667}, {"Rank": 128, "League": "SerieA", "DateUTC (date)": "2026-01-11 11:30", "Home": "Lecce", "Away": "Parma", "P(Over2.5)": 0.1231763335688444, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.212232227488152, "Model xG Home": 0.4959999999999999, "Model xG Away": 0.7162322274881516, "Home GF/Home": 0.6, "Home GA/Home": 1.3, "Away GF/Away": 0.625, "Away GA/Away": 1.0}, {"Rank": 129, "League": "SerieA", "DateUTC (date)": "2026-01-16 19:45", "Home": "Pisa", "Away": "Atalanta", "P(Over2.5)": 0.1139161425090396, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.169261014569071, "Model xG Home": 0.09185185185185185, "Model xG Away": 1.07740916271722, "Home GF/Home": 0.1, "Home GA/Home": 1.0, "Away GF/Away": 1.222222222222222, "Away GA/Away": 1.111111111111111}, {"Rank": 130, "League": "SerieA", "DateUTC (date)": "2026-01-24 19:45", "Home": "Lecce", "Away": "Lazio", "P(Over2.5)": 0.08447283319169885, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.022428646656135, "Model xG Home": 0.3857777777777778, "Model xG Away": 0.6366508688783571, "Home GF/Home": 0.6, "Home GA/Home": 1.3, "Away GF/Away": 0.5555555555555556, "Away GA/Away": 0.7777777777777778}, {"Rank": 131, "League": "Eredivisie", "DateUTC (date)": "2026-01-16 19:00", "Home": "Excelsior Rotterdam", "Away": "Telstar", "P(Over2.5)": 0.0743946054065805, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 0.9673485393714591, "Model xG Home": 0.497119341563786, "Model xG Away": 0.4702291978076731, "Home GF/Home": 0.8888888888888888, "Home GA/Home": 1.111111111111111, "Away GF/Away": 0.625, "Away GA/Away": 1.0}, {"Rank": 132, "League": "LaLiga", "DateUTC (date)": "2026-01-24 13:00", "Home": "Rayo Vallecano", "Away": "CA Osasuna", "P(Over2.5)": 0.04084126583013403, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 0.7525224998602492, "Model xG Home": 0.5649188514357053, "Model xG Away": 0.1876036484245439, "Home GF/Home": 0.625, "Home GA/Home": 0.625, "Away GF/Away": 0.3333333333333333, "Away GA/Away": 1.333333333333333}, {"Rank": 133, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 00:00", "Home": "M'gladbach", "Away": "Augsburg", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 134, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Bayern Munich", "Away": "Wolfsburg", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 135, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "Levadeiakos", "Away": "Volos NFC", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 136, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "OFI Crete", "Away": "Asteras Tripolis", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 137, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "Aris", "Away": "AEK", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 138, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "Panathinaikos", "Away": "Panserraikos", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 139, "League": "SerieA", "DateUTC (date)": "2026-01-11 00:00", "Home": "Verona", "Away": "Lazio", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 140, "League": "SerieB", "DateUTC (date)": "2026-01-11 00:00", "Home": "Mantova", "Away": "Palermo", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 141, "League": "SerieB", "DateUTC (date)": "2026-01-11 00:00", "Home": "Padova", "Away": "Modena", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 142, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 00:00", "Home": "Heerenveen", "Away": "Feyenoord", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 143, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 00:00", "Home": "Go Ahead Eagles", "Away": "For Sittard", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 144, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 00:00", "Home": "Sparta Rotterdam", "Away": "Heracles", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 145, "League": "PrimeiraLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Nacional", "Away": "Santa Clara", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 146, "League": "PrimeiraLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Moreirense", "Away": "Tondela", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 147, "League": "ScotPrem", "DateUTC (date)": "2026-01-11 00:00", "Home": "Dundee", "Away": "Hearts", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 148, "League": "ScotPrem", "DateUTC (date)": "2026-01-11 00:00", "Home": "Aberdeen", "Away": "Rangers", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 149, "League": "LaLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Vallecano", "Away": "Mallorca", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 150, "League": "LaLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Levante", "Away": "Espanol", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 151, "League": "LaLiga", "DateUTC (date)": "2026-01-12 00:00", "Home": "Sevilla", "Away": "Celta", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 152, "League": "LaLiga2", "DateUTC (date)": "2026-01-11 00:00", "Home": "Leganes", "Away": "Valladolid", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 153, "League": "LaLiga2", "DateUTC (date)": "2026-01-11 00:00", "Home": "Granada", "Away": "Castellon", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 154, "League": "LaLiga2", "DateUTC (date)": "2026-01-11 00:00", "Home": "Malaga", "Away": "Ceuta", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 155, "League": "LaLiga2", "DateUTC (date)": "2026-01-12 00:00", "Home": "Huesca", "Away": "Cordoba", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 156, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "Club Leon", "Away": "Cruz Azul", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 157, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "Santos Laguna", "Away": "Necaxa", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 158, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "Monterrey", "Away": "Toluca", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 159, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "UNAM Pumas", "Away": "Queretaro", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 160, "League": "LigaMX", "DateUTC (date)": "2026-01-12 00:00", "Home": "Atl. San Luis", "Away": "Tigres UANL", "P(Over2.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}], "probCol": "P(Over2.5)"}, {"name": "BTTS Yes", "slug": "btts-yes", "columns": ["Rank", "League", "DateUTC (date)", "Home", "Away", "P(BTTS)", "Pick", "Strength", "Model xG Total", "Model xG Home", "Model xG Away", "Home GF/Home", "Home GA/Home", "Away GF/Away", "Away GA/Away"], "rows": [{"Rank": 1, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 17:45", "Home": "N.E.C. Nijmegen", "Away": "PEC Zwolle", "P(BTTS)": 0.7876366519151745, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 6.403581215744893, "Model xG Home": 4.823611111111111, "Model xG Away": 1.579970104633782, "Home GF/Home": 2.875, "Home GA/Home": 1.5, "Away GF/Away": 1.555555555555556, "Away GA/Away": 3.0}, {"Rank": 2, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 19:00", "Home": "PSV", "Away": "Excelsior Rotterdam", "P(BTTS)": 0.7069809715043932, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 5.67168066529053, "Model xG Home": 4.414153439153439, "Model xG Away": 1.257527226137092, "Home GF/Home": 3.25, "Home GA/Home": 1.625, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 3, "League": "SerieA", "DateUTC (date)": "2026-01-23 19:45", "Home": "Inter", "Away": "Pisa", "P(BTTS)": 0.5366173470047677, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 5.192459189046867, "Model xG Home": 4.408888888888889, "Model xG Away": 0.7835703001579778, "Home GF/Home": 2.666666666666667, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 1.333333333333333, "Away GA/Away": 2.0}, {"Rank": 4, "League": "LaLiga", "DateUTC (date)": "2026-01-18 20:00", "Home": "Real Sociedad", "Away": "FC Barcelona", "P(BTTS)": 0.7465950191639518, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.970723784324321, "Model xG Home": 1.468789013732834, "Model xG Away": 3.501934770591487, "Home GF/Home": 1.444444444444444, "Home GA/Home": 1.555555555555556, "Away GF/Away": 2.5, "Away GA/Away": 1.5}, {"Rank": 5, "League": "EPL", "DateUTC (date)": "2026-01-19 20:00", "Home": "Brighton", "Away": "Bournemouth", "P(BTTS)": 0.7745782865711802, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.93239546420978, "Model xG Home": 3.301807228915663, "Model xG Away": 1.630588235294118, "Home GF/Home": 1.8, "Home GA/Home": 1.1, "Away GF/Away": 1.8, "Away GA/Away": 2.9}, {"Rank": 6, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "TSG Hoffenheim", "Away": "Bayer 04 Leverkusen", "P(BTTS)": 0.8287895902028505, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.834874056099813, "Model xG Home": 2.515527950310559, "Model xG Away": 2.319346105789254, "Home GF/Home": 2.142857142857143, "Home GA/Home": 1.571428571428571, "Away GF/Away": 2.142857142857143, "Away GA/Away": 2.0}, {"Rank": 7, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "FC Bayern München", "Away": "FC Augsburg", "P(BTTS)": 0.4393550003244436, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 4.81436969197617, "Model xG Home": 4.223990683229814, "Model xG Away": 0.5903790087463556, "Home GF/Home": 3.875, "Home GA/Home": 0.75, "Away GF/Away": 1.142857142857143, "Away GA/Away": 1.857142857142857}, {"Rank": 8, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 13:30", "Home": "Telstar", "Away": "Ajax", "P(BTTS)": 0.7862284388142772, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.785365803022755, "Model xG Home": 1.747685185185185, "Model xG Away": 3.037680617837569, "Home GF/Home": 1.666666666666667, "Home GA/Home": 2.111111111111111, "Away GF/Away": 2.125, "Away GA/Away": 1.875}, {"Rank": 9, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 19:00", "Home": "PSV", "Away": "NAC Breda", "P(BTTS)": 0.6018686489043629, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 4.597979467696396, "Model xG Home": 3.635185185185185, "Model xG Away": 0.9627942825112108, "Home GF/Home": 3.25, "Home GA/Home": 1.625, "Away GF/Away": 0.875, "Away GA/Away": 2.0}, {"Rank": 10, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 19:30", "Home": "1. FC Köln", "Away": "FC Bayern München", "P(BTTS)": 0.5537641441300243, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 4.549463086032993, "Model xG Home": 0.8385093167701864, "Model xG Away": 3.710953769262807, "Home GF/Home": 2.0, "Home GA/Home": 1.571428571428571, "Away GF/Away": 3.428571428571428, "Away GA/Away": 0.7142857142857143}, {"Rank": 11, "League": "Bundesliga", "DateUTC (date)": "2026-01-16 19:30", "Home": "SV Werder Bremen", "Away": "Eintracht Frankfurt", "P(BTTS)": 0.7699890814135671, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.417575104575992, "Model xG Home": 1.760869565217391, "Model xG Away": 2.6567055393586, "Home GF/Home": 1.142857142857143, "Home GA/Home": 1.714285714285714, "Away GF/Away": 2.25, "Away GA/Away": 2.625}, {"Rank": 12, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 15:30", "Home": "AZ", "Away": "FC Volendam", "P(BTTS)": 0.5766220950632078, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 4.322346786248132, "Model xG Home": 3.415476190476191, "Model xG Away": 0.906870595771941, "Home GF/Home": 2.571428571428572, "Home GA/Home": 2.142857142857143, "Away GF/Away": 0.625, "Away GA/Away": 2.375}, {"Rank": 13, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 13:30", "Home": "Heracles Almelo", "Away": "FC Twente", "P(BTTS)": 0.7357314802489171, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.302910646072081, "Model xG Home": 1.537962962962963, "Model xG Away": 2.764947683109118, "Home GF/Home": 2.25, "Home GA/Home": 2.625, "Away GF/Away": 1.555555555555556, "Away GA/Away": 1.222222222222222}, {"Rank": 14, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 19:30", "Home": "RB Leipzig", "Away": "Sport-Club Freiburg", "P(BTTS)": 0.5371046360947987, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 4.197252503485867, "Model xG Home": 3.385481366459627, "Model xG Away": 0.811771137026239, "Home GF/Home": 2.714285714285714, "Home GA/Home": 0.8571428571428571, "Away GF/Away": 1.375, "Away GA/Away": 2.125}, {"Rank": 15, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 11:15", "Home": "sc Heerenveen", "Away": "Feyenoord", "P(BTTS)": 0.6568217415790575, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.142131446188341, "Model xG Home": 1.1796875, "Model xG Away": 2.962443946188341, "Home GF/Home": 1.875, "Home GA/Home": 1.75, "Away GF/Away": 2.5, "Away GA/Away": 1.125}, {"Rank": 16, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 17:45", "Home": "FC Twente", "Away": "PEC Zwolle", "P(BTTS)": 0.672875740738888, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.833308420528152, "Model xG Home": 2.516666666666667, "Model xG Away": 1.316641753861485, "Home GF/Home": 1.5, "Home GA/Home": 1.25, "Away GF/Away": 1.555555555555556, "Away GA/Away": 3.0}, {"Rank": 17, "League": "Ligue1", "DateUTC (date)": "2026-01-18 14:00", "Home": "RC Strasbourg Alsace", "Away": "FC Metz", "P(BTTS)": 0.3928289884304476, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 3.779187148876404, "Model xG Home": 3.25390625, "Model xG Away": 0.5252808988764045, "Home GF/Home": 1.75, "Home GA/Home": 0.5, "Away GF/Away": 1.222222222222222, "Away GA/Away": 3.111111111111111}, {"Rank": 18, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "1. FC Köln", "Away": "1. FSV Mainz 05", "P(BTTS)": 0.6523803518326784, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.752512540064828, "Model xG Home": 2.515527950310559, "Model xG Away": 1.236984589754269, "Home GF/Home": 2.0, "Home GA/Home": 1.571428571428571, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.142857142857143}, {"Rank": 19, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 17:30", "Home": "VfB Stuttgart", "Away": "Eintracht Frankfurt", "P(BTTS)": 0.7153943902140193, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.752115287108632, "Model xG Home": 1.980978260869565, "Model xG Away": 1.771137026239067, "Home GF/Home": 1.285714285714286, "Home GA/Home": 1.142857142857143, "Away GF/Away": 2.25, "Away GA/Away": 2.625}, {"Rank": 20, "League": "SerieA", "DateUTC (date)": "2026-01-14 19:45", "Home": "Inter", "Away": "Lecce", "P(BTTS)": 0.34339204824251707, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 3.747424960505529, "Model xG Home": 3.306666666666667, "Model xG Away": 0.4407582938388625, "Home GF/Home": 2.666666666666667, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 0.75, "Away GA/Away": 1.5}, {"Rank": 21, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 19:00", "Home": "Fortuna Sittard", "Away": "PSV", "P(BTTS)": 0.5519952906014445, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.709322720273282, "Model xG Home": 0.8837677183356195, "Model xG Away": 2.825555001937663, "Home GF/Home": 1.777777777777778, "Home GA/Home": 1.444444444444444, "Away GF/Away": 2.888888888888889, "Away GA/Away": 0.8888888888888888}, {"Rank": 22, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 16:30", "Home": "FC Bayern München", "Away": "VfL Wolfsburg", "P(BTTS)": 0.49389019161378556, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 3.66227500316897, "Model xG Home": 2.924301242236025, "Model xG Away": 0.7379737609329445, "Home GF/Home": 3.875, "Home GA/Home": 0.75, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.285714285714286}, {"Rank": 23, "League": "LaLiga", "DateUTC (date)": "2026-01-17 20:00", "Home": "Real Betis", "Away": "Villarreal CF", "P(BTTS)": 0.6973961650917868, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.620820678132434, "Model xG Home": 1.694756554307116, "Model xG Away": 1.926064123825318, "Home GF/Home": 2.0, "Home GA/Home": 1.222222222222222, "Away GF/Away": 1.75, "Away GA/Away": 1.25}, {"Rank": 24, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 19:30", "Home": "Hamburger SV", "Away": "Bayer 04 Leverkusen", "P(BTTS)": 0.6897207507229982, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.568049657751299, "Model xG Home": 1.907608695652174, "Model xG Away": 1.660440962099125, "Home GF/Home": 1.625, "Home GA/Home": 1.125, "Away GF/Away": 2.142857142857143, "Away GA/Away": 2.0}, {"Rank": 25, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "VfL Wolfsburg", "Away": "1. FC Heidenheim 1846", "P(BTTS)": 0.6211831103319674, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.484840442388135, "Model xG Home": 2.316381987577639, "Model xG Away": 1.168458454810495, "Home GF/Home": 1.625, "Home GA/Home": 2.375, "Away GF/Away": 0.7142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 26, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Liverpool", "Away": "Burnley", "P(BTTS)": 0.5745008259120402, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.455102763997166, "Model xG Home": 2.466867469879519, "Model xG Away": 0.9882352941176471, "Home GF/Home": 1.5, "Home GA/Home": 1.0, "Away GF/Away": 1.2, "Away GA/Away": 2.6}, {"Rank": 27, "League": "Ligue1", "DateUTC (date)": "2026-01-17 18:00", "Home": "Toulouse FC", "Away": "OGC Nice", "P(BTTS)": 0.6463465650497858, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.428875526685393, "Model xG Home": 2.091796875, "Model xG Away": 1.337078651685393, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.555555555555556, "Away GF/Away": 1.0, "Away GA/Away": 2.25}, {"Rank": 28, "League": "Ligue1", "DateUTC (date)": "2026-01-16 20:00", "Home": "Paris Saint-Germain", "Away": "LOSC Lille", "P(BTTS)": 0.5488468101646825, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 3.397281260972612, "Model xG Home": 2.4840087890625, "Model xG Away": 0.9132724719101123, "Home GF/Home": 2.375, "Home GA/Home": 0.5, "Away GF/Away": 2.125, "Away GA/Away": 1.75}, {"Rank": 29, "League": "SerieA", "DateUTC (date)": "2026-01-10 14:00", "Home": "Udinese", "Away": "Pisa", "P(BTTS)": 0.660538409403371, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.351068983675618, "Model xG Home": 1.653333333333333, "Model xG Away": 1.697735650342285, "Home GF/Home": 1.0, "Home GA/Home": 1.444444444444444, "Away GF/Away": 1.333333333333333, "Away GA/Away": 2.0}, {"Rank": 30, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 17:30", "Home": "Bayer 04 Leverkusen", "Away": "VfB Stuttgart", "P(BTTS)": 0.5802572787199735, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.344304569653949, "Model xG Home": 2.311141304347826, "Model xG Away": 1.033163265306122, "Home GF/Home": 2.25, "Home GA/Home": 0.75, "Away GF/Away": 2.0, "Away GA/Away": 1.75}, {"Rank": 31, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 11:15", "Home": "sc Heerenveen", "Away": "FC Groningen", "P(BTTS)": 0.6576602287428894, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.333337225959143, "Model xG Home": 1.703993055555556, "Model xG Away": 1.629344170403587, "Home GF/Home": 1.875, "Home GA/Home": 1.75, "Away GF/Away": 1.375, "Away GA/Away": 1.625}, {"Rank": 32, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "Bayer 04 Leverkusen", "Away": "SV Werder Bremen", "P(BTTS)": 0.4418151259390136, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 3.287031388642413, "Model xG Home": 2.641304347826087, "Model xG Away": 0.6457270408163265, "Home GF/Home": 2.25, "Home GA/Home": 0.75, "Away GF/Away": 1.25, "Away GA/Away": 2.0}, {"Rank": 33, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 15:45", "Home": "Feyenoord", "Away": "Sparta Rotterdam", "P(BTTS)": 0.5686771031541449, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.237197124877742, "Model xG Home": 2.221502057613169, "Model xG Away": 1.015695067264574, "Home GF/Home": 2.444444444444445, "Home GA/Home": 1.333333333333333, "Away GF/Away": 1.125, "Away GA/Away": 1.625}, {"Rank": 34, "League": "SerieA", "DateUTC (date)": "2026-01-17 17:00", "Home": "Napoli", "Away": "Sassuolo", "P(BTTS)": 0.5996551752724512, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.196096190977707, "Model xG Home": 2.020740740740741, "Model xG Away": 1.175355450236967, "Home GF/Home": 2.0, "Home GA/Home": 1.0, "Away GF/Away": 1.333333333333333, "Away GA/Away": 1.222222222222222}, {"Rank": 35, "League": "Ligue1", "DateUTC (date)": "2026-01-24 20:05", "Home": "Olympique de Marseille", "Away": "RC Lens", "P(BTTS)": 0.6346278558142698, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.185510299625468, "Model xG Home": 1.59375, "Model xG Away": 1.591760299625468, "Home GF/Home": 2.666666666666667, "Home GA/Home": 1.111111111111111, "Away GF/Away": 1.666666666666667, "Away GA/Away": 1.0}, {"Rank": 36, "League": "LaLiga", "DateUTC (date)": "2026-01-23 20:00", "Home": "Levante UD", "Away": "Elche CF", "P(BTTS)": 0.613307194506213, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.184624629660686, "Model xG Home": 1.271067415730337, "Model xG Away": 1.913557213930348, "Home GF/Home": 1.0, "Home GA/Home": 2.428571428571428, "Away GF/Away": 0.875, "Away GA/Away": 1.875}, {"Rank": 37, "League": "SerieA", "DateUTC (date)": "2026-01-24 17:00", "Home": "Fiorentina", "Away": "Cagliari", "P(BTTS)": 0.6323861220232906, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.180076531507811, "Model xG Home": 1.671703703703704, "Model xG Away": 1.508372827804107, "Home GF/Home": 1.444444444444444, "Home GA/Home": 1.555555555555556, "Away GF/Away": 1.1, "Away GA/Away": 1.4}, {"Rank": 38, "League": "EPL", "DateUTC (date)": "2026-01-17 12:30", "Home": "Man Utd", "Away": "Man City", "P(BTTS)": 0.6102167770172917, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.179468462083629, "Model xG Home": 1.252409638554217, "Model xG Away": 1.927058823529412, "Home GF/Home": 1.8, "Home GA/Home": 1.3, "Away GF/Away": 1.8, "Away GA/Away": 1.1}, {"Rank": 39, "League": "Bundesliga", "DateUTC (date)": "2026-01-18 16:30", "Home": "FC Augsburg", "Away": "Sport-Club Freiburg", "P(BTTS)": 0.6264623194977579, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.178942297027507, "Model xG Home": 1.403192934782609, "Model xG Away": 1.775749362244898, "Home GF/Home": 1.125, "Home GA/Home": 1.875, "Away GF/Away": 1.375, "Away GA/Away": 2.125}, {"Rank": 40, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 17:30", "Home": "RB Leipzig", "Away": "FC Bayern München", "P(BTTS)": 0.5897634143209276, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.162133531318472, "Model xG Home": 1.137976929902396, "Model xG Away": 2.024156601416076, "Home GF/Home": 2.714285714285714, "Home GA/Home": 0.8571428571428571, "Away GF/Away": 3.428571428571428, "Away GA/Away": 0.7142857142857143}, {"Rank": 41, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "1. FC Union Berlin", "Away": "1. FSV Mainz 05", "P(BTTS)": 0.5755615709109255, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.126227975662315, "Model xG Home": 2.043866459627329, "Model xG Away": 1.082361516034985, "Home GF/Home": 1.625, "Home GA/Home": 1.375, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.142857142857143}, {"Rank": 42, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "FC St. Pauli", "Away": "RB Leipzig", "P(BTTS)": 0.5765733977473437, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.11948995436684, "Model xG Home": 1.090062111801242, "Model xG Away": 2.029427842565597, "Home GF/Home": 1.142857142857143, "Home GA/Home": 2.142857142857143, "Away GF/Away": 1.375, "Away GA/Away": 1.625}, {"Rank": 43, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Leeds", "Away": "Fulham", "P(BTTS)": 0.5921103529323464, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.113189227498228, "Model xG Home": 1.935542168674699, "Model xG Away": 1.17764705882353, "Home GF/Home": 1.8, "Home GA/Home": 1.3, "Away GF/Away": 1.1, "Away GA/Away": 1.7}, {"Rank": 44, "League": "SerieA", "DateUTC (date)": "2026-01-17 14:00", "Home": "Udinese", "Away": "Inter", "P(BTTS)": 0.5040118946249411, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 3.09031420045638, "Model xG Home": 0.8266666666666667, "Model xG Away": 2.263647533789714, "Home GF/Home": 1.0, "Home GA/Home": 1.444444444444444, "Away GF/Away": 1.777777777777778, "Away GA/Away": 1.0}, {"Rank": 45, "League": "SerieA", "DateUTC (date)": "2026-01-15 17:30", "Home": "Hellas Verona", "Away": "Bologna", "P(BTTS)": 0.5546119682364148, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 3.067242408285062, "Model xG Home": 1.01037037037037, "Model xG Away": 2.056872037914692, "Home GF/Home": 1.0, "Home GA/Home": 1.5, "Away GF/Away": 1.555555555555556, "Away GA/Away": 1.222222222222222}, {"Rank": 46, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "Sport-Club Freiburg", "Away": "Hamburger SV", "P(BTTS)": 0.2942331013352332, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 3.06275917643011, "Model xG Home": 2.683229813664596, "Model xG Away": 0.3795293627655144, "Home GF/Home": 2.0, "Home GA/Home": 1.285714285714286, "Away GF/Away": 0.4285714285714285, "Away GA/Away": 2.285714285714286}, {"Rank": 47, "League": "LaLiga", "DateUTC (date)": "2026-01-11 15:15", "Home": "Levante UD", "Away": "RCD Espanyol de Barcelona", "P(BTTS)": 0.4092096044582182, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 3.053452640489367, "Model xG Home": 0.5931647940074907, "Model xG Away": 2.460287846481876, "Home GF/Home": 1.0, "Home GA/Home": 2.428571428571428, "Away GF/Away": 1.125, "Away GA/Away": 0.875}, {"Rank": 48, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 20:00", "Home": "FC Twente", "Away": "Excelsior Rotterdam", "P(BTTS)": 0.5390799593044036, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 3.004630222791658, "Model xG Home": 2.037301587301587, "Model xG Away": 0.9673286354900703, "Home GF/Home": 1.5, "Home GA/Home": 1.25, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 49, "League": "LaLiga", "DateUTC (date)": "2026-01-12 20:00", "Home": "Sevilla FC", "Away": "Celta", "P(BTTS)": 0.5260367387169866, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.986340923348303, "Model xG Home": 0.9227007906783189, "Model xG Away": 2.063640132669984, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.666666666666667, "Away GF/Away": 1.375, "Away GA/Away": 0.875}, {"Rank": 50, "League": "SerieA", "DateUTC (date)": "2026-01-11 14:00", "Home": "Fiorentina", "Away": "Milan", "P(BTTS)": 0.46923611610759736, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.974574337370545, "Model xG Home": 0.7462962962962962, "Model xG Away": 2.228278041074249, "Home GF/Home": 1.444444444444444, "Home GA/Home": 1.555555555555556, "Away GF/Away": 1.625, "Away GA/Away": 0.625}, {"Rank": 51, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "1. FC Heidenheim 1846", "Away": "RB Leipzig", "P(BTTS)": 0.5325679277043405, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.966320291703638, "Model xG Home": 0.9538043478260869, "Model xG Away": 2.012515943877551, "Home GF/Home": 1.0, "Home GA/Home": 2.125, "Away GF/Away": 1.375, "Away GA/Away": 1.625}, {"Rank": 52, "League": "Ligue1", "DateUTC (date)": "2026-01-23 19:00", "Home": "AJ Auxerre", "Away": "Paris Saint-Germain", "P(BTTS)": 0.4878742377827208, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.912755539950063, "Model xG Home": 0.8116319444444445, "Model xG Away": 2.101123595505618, "Home GF/Home": 1.111111111111111, "Home GA/Home": 1.222222222222222, "Away GF/Away": 2.0, "Away GA/Away": 1.222222222222222}, {"Rank": 53, "League": "LaLiga", "DateUTC (date)": "2026-01-24 20:00", "Home": "Villarreal CF", "Away": "Real Madrid", "P(BTTS)": 0.5657107025232984, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.857758647461817, "Model xG Home": 1.657095297544736, "Model xG Away": 1.200663349917081, "Home GF/Home": 2.222222222222222, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 2.0, "Away GA/Away": 1.1}, {"Rank": 54, "League": "Ligue1", "DateUTC (date)": "2026-01-18 16:15", "Home": "FC Nantes", "Away": "Paris FC", "P(BTTS)": 0.5452287361423603, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.853230337078652, "Model xG Home": 1.0625, "Model xG Away": 1.790730337078652, "Home GF/Home": 1.0, "Home GA/Home": 1.875, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.777777777777778}, {"Rank": 55, "League": "EPL", "DateUTC (date)": "2026-01-24 15:00", "Home": "Fulham", "Away": "Brighton", "P(BTTS)": 0.5571352253933906, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.838708260362793, "Model xG Home": 1.688489495170766, "Model xG Away": 1.150218765192027, "Home GF/Home": 1.727272727272727, "Home GA/Home": 1.181818181818182, "Away GF/Away": 1.181818181818182, "Away GA/Away": 1.545454545454545}, {"Rank": 56, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "SV Werder Bremen", "Away": "TSG Hoffenheim", "P(BTTS)": 0.46272588623559546, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.820984915705413, "Model xG Home": 0.7546583850931676, "Model xG Away": 2.066326530612245, "Home GF/Home": 1.142857142857143, "Home GA/Home": 1.714285714285714, "Away GF/Away": 1.75, "Away GA/Away": 1.125}, {"Rank": 57, "League": "Ligue1", "DateUTC (date)": "2026-01-18 19:45", "Home": "Olympique Lyonnais", "Away": "Stade Brestois 29", "P(BTTS)": 0.4521118503782526, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.817042661516854, "Model xG Home": 2.091796875, "Model xG Away": 0.7252457865168539, "Home GF/Home": 1.75, "Home GA/Home": 0.75, "Away GF/Away": 1.125, "Away GA/Away": 2.0}, {"Rank": 58, "League": "EPL", "DateUTC (date)": "2026-01-24 15:00", "Home": "Man City", "Away": "Wolves", "P(BTTS)": 0.21954405221184667, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.812816653097563, "Model xG Home": 2.540575525241462, "Model xG Away": 0.2722411278561012, "Home GF/Home": 2.454545454545455, "Home GA/Home": 0.7272727272727273, "Away GF/Away": 0.4545454545454545, "Away GA/Away": 1.636363636363636}, {"Rank": 59, "League": "LaLiga", "DateUTC (date)": "2026-01-24 17:30", "Home": "Sevilla FC", "Away": "Athletic Club", "P(BTTS)": 0.5552322522986546, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.807668551403062, "Model xG Home": 1.6403569612059, "Model xG Away": 1.167311590197162, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.666666666666667, "Away GF/Away": 0.7777777777777778, "Away GA/Away": 1.555555555555556}, {"Rank": 60, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 19:30", "Home": "TSG Hoffenheim", "Away": "Borussia Mönchengladbach", "P(BTTS)": 0.5632291330237384, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.803994712348115, "Model xG Home": 1.257763975155279, "Model xG Away": 1.546230737192836, "Home GF/Home": 2.142857142857143, "Home GA/Home": 1.571428571428571, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.0}, {"Rank": 61, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Chelsea", "Away": "Brentford", "P(BTTS)": 0.5426563095318183, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.794890148830617, "Model xG Home": 1.707831325301205, "Model xG Away": 1.087058823529412, "Home GF/Home": 1.5, "Home GA/Home": 1.1, "Away GF/Away": 1.2, "Away GA/Away": 1.8}, {"Rank": 62, "League": "Ligue1", "DateUTC (date)": "2026-01-18 16:15", "Home": "Stade Rennais FC", "Away": "Havre Athletic Club", "P(BTTS)": 0.31613681200668153, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.783046765273876, "Model xG Home": 2.353271484375, "Model xG Away": 0.4297752808988764, "Home GF/Home": 2.25, "Home GA/Home": 1.0, "Away GF/Away": 0.5, "Away GA/Away": 1.75}, {"Rank": 63, "League": "EPL", "DateUTC (date)": "2026-01-24 17:30", "Home": "Bournemouth", "Away": "Liverpool", "P(BTTS)": 0.5601797000520495, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.778253509907398, "Model xG Home": 1.505526237180125, "Model xG Away": 1.272727272727273, "Home GF/Home": 1.454545454545455, "Home GA/Home": 1.0, "Away GF/Away": 1.545454545454545, "Away GA/Away": 1.636363636363636}, {"Rank": 64, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 15:30", "Home": "Ajax", "Away": "Go Ahead Eagles", "P(BTTS)": 0.4906351192532823, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.774387098857702, "Model xG Home": 1.918569958847737, "Model xG Away": 0.8558171400099651, "Home GF/Home": 1.625, "Home GA/Home": 0.875, "Away GF/Away": 1.444444444444444, "Away GA/Away": 2.111111111111111}, {"Rank": 65, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 13:30", "Home": "Go Ahead Eagles", "Away": "Fortuna Sittard", "P(BTTS)": 0.5143721569775347, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.769806718153131, "Model xG Home": 1.817592592592593, "Model xG Away": 0.9522141255605381, "Home GF/Home": 1.625, "Home GA/Home": 1.25, "Away GF/Away": 1.125, "Away GA/Away": 2.0}, {"Rank": 66, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 14:30", "Home": "Borussia Mönchengladbach", "Away": "FC Augsburg", "P(BTTS)": 0.5391871453726115, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.762802636582583, "Model xG Home": 1.090062111801242, "Model xG Away": 1.672740524781341, "Home GF/Home": 1.0, "Home GA/Home": 2.125, "Away GF/Away": 1.142857142857143, "Away GA/Away": 1.857142857142857}, {"Rank": 67, "League": "LaLiga", "DateUTC (date)": "2026-01-16 20:00", "Home": "RCD Espanyol de Barcelona", "Away": "Girona FC", "P(BTTS)": 0.5355798967892778, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.745224563822585, "Model xG Home": 1.664627548897212, "Model xG Away": 1.080597014925373, "Home GF/Home": 1.3, "Home GA/Home": 1.2, "Away GF/Away": 1.0, "Away GA/Away": 1.888888888888889}, {"Rank": 68, "League": "LaLiga", "DateUTC (date)": "2026-01-17 17:30", "Home": "CA Osasuna", "Away": "Real Oviedo", "P(BTTS)": 0.3979522245512967, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.734469558160095, "Model xG Home": 2.134137883201554, "Model xG Away": 0.6003316749585407, "Home GF/Home": 1.666666666666667, "Home GA/Home": 1.0, "Away GF/Away": 0.6666666666666666, "Away GA/Away": 1.888888888888889}, {"Rank": 69, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 20:00", "Home": "NAC Breda", "Away": "N.E.C. Nijmegen", "P(BTTS)": 0.529732370295717, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.72830463747255, "Model xG Home": 1.056378600823045, "Model xG Away": 1.671926036649505, "Home GF/Home": 1.0, "Home GA/Home": 1.111111111111111, "Away GF/Away": 2.222222222222222, "Away GA/Away": 1.888888888888889}, {"Rank": 70, "League": "SerieA", "DateUTC (date)": "2026-01-19 17:30", "Home": "Cremonese", "Away": "Hellas Verona", "P(BTTS)": 0.49417870191804825, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.709977883096366, "Model xG Home": 1.818666666666667, "Model xG Away": 0.8913112164296997, "Home GF/Home": 1.222222222222222, "Home GA/Home": 1.444444444444444, "Away GF/Away": 0.7, "Away GA/Away": 1.8}, {"Rank": 71, "League": "SerieA", "DateUTC (date)": "2026-01-18 11:30", "Home": "Parma", "Away": "Genoa", "P(BTTS)": 0.5197941722652328, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.684032999824469, "Model xG Home": 1.028740740740741, "Model xG Away": 1.655292259083728, "Home GF/Home": 0.7, "Home GA/Home": 1.3, "Away GF/Away": 1.444444444444444, "Away GA/Away": 1.777777777777778}, {"Rank": 72, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "Eintracht Frankfurt", "Away": "TSG Hoffenheim", "P(BTTS)": 0.5337505069855254, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.681732475598935, "Model xG Home": 1.131987577639751, "Model xG Away": 1.549744897959183, "Home GF/Home": 1.714285714285714, "Home GA/Home": 1.285714285714286, "Away GF/Away": 1.75, "Away GA/Away": 1.125}, {"Rank": 73, "League": "LaLiga", "DateUTC (date)": "2026-01-17 13:00", "Home": "Real Madrid", "Away": "Levante UD", "P(BTTS)": 0.4606046856861242, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.678558518270073, "Model xG Home": 1.89812734082397, "Model xG Away": 0.7804311774461029, "Home GF/Home": 2.333333333333333, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 1.3, "Away GA/Away": 1.2}, {"Rank": 74, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 19:30", "Home": "Borussia Dortmund", "Away": "SV Werder Bremen", "P(BTTS)": 0.34466593298322357, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.672106730891114, "Model xG Home": 2.180124223602485, "Model xG Away": 0.4919825072886296, "Home GF/Home": 1.857142857142857, "Home GA/Home": 0.5714285714285714, "Away GF/Away": 1.25, "Away GA/Away": 2.0}, {"Rank": 75, "League": "EPL", "DateUTC (date)": "2026-01-18 14:00", "Home": "Wolves", "Away": "Newcastle", "P(BTTS)": 0.4518603103095071, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.653153791637137, "Model xG Home": 0.7590361445783133, "Model xG Away": 1.894117647058823, "Home GF/Home": 1.0, "Home GA/Home": 2.3, "Away GF/Away": 1.0, "Away GA/Away": 1.2}, {"Rank": 76, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 13:30", "Home": "FC Volendam", "Away": "FC Utrecht", "P(BTTS)": 0.5288986733849962, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.65097805827751, "Model xG Home": 1.522427983539095, "Model xG Away": 1.128550074738415, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.333333333333333, "Away GF/Away": 1.25, "Away GA/Away": 1.75}, {"Rank": 77, "League": "EPL", "DateUTC (date)": "2026-01-17 17:30", "Home": "Nott'm Forest", "Away": "Arsenal", "P(BTTS)": 0.4252471746329862, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.643132530120482, "Model xG Home": 0.683132530120482, "Model xG Away": 1.96, "Home GF/Home": 1.2, "Home GA/Home": 1.7, "Away GF/Away": 1.4, "Away GA/Away": 0.9}, {"Rank": 78, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 15:45", "Home": "Sparta Rotterdam", "Away": "Heracles Almelo", "P(BTTS)": 0.5323102701444007, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 2.633004853383528, "Model xG Home": 1.429218106995885, "Model xG Away": 1.203786746387643, "Home GF/Home": 1.0, "Home GA/Home": 2.0, "Away GF/Away": 0.8888888888888888, "Away GA/Away": 2.555555555555555}, {"Rank": 79, "League": "EPL", "DateUTC (date)": "2026-01-24 15:00", "Home": "Burnley", "Away": "Spurs", "P(BTTS)": 0.4569629952879661, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.621755861559998, "Model xG Home": 0.7841282485313152, "Model xG Away": 1.837627613028683, "Home GF/Home": 0.9090909090909091, "Home GA/Home": 1.363636363636364, "Away GF/Away": 1.636363636363636, "Away GA/Away": 1.363636363636364}, {"Rank": 80, "League": "Ligue1", "DateUTC (date)": "2026-01-17 16:00", "Home": "RC Lens", "Away": "AJ Auxerre", "P(BTTS)": 0.17566076004912887, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.605512640449438, "Model xG Home": 2.390625, "Model xG Away": 0.2148876404494382, "Home GF/Home": 2.0, "Home GA/Home": 0.5, "Away GF/Away": 0.5, "Away GA/Away": 2.0}, {"Rank": 81, "League": "LaLiga", "DateUTC (date)": "2026-01-19 20:00", "Home": "Elche CF", "Away": "Sevilla FC", "P(BTTS)": 0.45914217676076163, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.593118055167359, "Model xG Home": 1.792675821889305, "Model xG Away": 0.8004422332780543, "Home GF/Home": 1.7, "Home GA/Home": 0.8, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.555555555555556}, {"Rank": 82, "League": "SerieA", "DateUTC (date)": "2026-01-18 19:45", "Home": "Milan", "Away": "Lecce", "P(BTTS)": 0.38678045929480853, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.579023696682465, "Model xG Home": 1.984, "Model xG Away": 0.5950236966824645, "Home GF/Home": 1.6, "Home GA/Home": 0.9, "Away GF/Away": 0.75, "Away GA/Away": 1.5}, {"Rank": 83, "League": "Ligue1", "DateUTC (date)": "2026-01-24 16:00", "Home": "Stade Rennais FC", "Away": "FC Lorient", "P(BTTS)": 0.17498682638448518, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.568159124824438, "Model xG Home": 2.353271484375, "Model xG Away": 0.2148876404494382, "Home GF/Home": 2.25, "Home GA/Home": 1.0, "Away GF/Away": 0.25, "Away GA/Away": 1.75}, {"Rank": 84, "League": "LaLiga", "DateUTC (date)": "2026-01-18 15:15", "Home": "Atlético de Madrid", "Away": "Deportivo Alavés", "P(BTTS)": 0.2073237693378902, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.541151141918374, "Model xG Home": 2.278506034124012, "Model xG Away": 0.2626451077943616, "Home GF/Home": 2.444444444444445, "Home GA/Home": 0.7777777777777778, "Away GF/Away": 0.375, "Away GA/Away": 1.375}, {"Rank": 85, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 15:30", "Home": "Ajax", "Away": "FC Volendam", "P(BTTS)": 0.2737287546481058, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.528696696977246, "Model xG Home": 2.158391203703704, "Model xG Away": 0.3703054932735426, "Home GF/Home": 1.625, "Home GA/Home": 0.875, "Away GF/Away": 0.625, "Away GA/Away": 2.375}, {"Rank": 86, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 17:30", "Home": "1. FC Union Berlin", "Away": "Borussia Dortmund", "P(BTTS)": 0.4828074013847078, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.492787128438332, "Model xG Home": 0.9538043478260869, "Model xG Away": 1.538982780612245, "Home GF/Home": 1.625, "Home GA/Home": 1.375, "Away GF/Away": 1.625, "Away GA/Away": 1.0}, {"Rank": 87, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 20:00", "Home": "FC Groningen", "Away": "NAC Breda", "P(BTTS)": 0.3474125985449441, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.475835097990367, "Model xG Home": 1.957407407407407, "Model xG Away": 0.5184276905829597, "Home GF/Home": 1.75, "Home GA/Home": 0.875, "Away GF/Away": 0.875, "Away GA/Away": 2.0}, {"Rank": 88, "League": "LaLiga", "DateUTC (date)": "2026-01-18 17:30", "Home": "Celta", "Away": "Rayo Vallecano", "P(BTTS)": 0.49230565193313547, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.46361954273576, "Model xG Home": 1.410037453183521, "Model xG Away": 1.053582089552239, "Home GF/Home": 1.3, "Home GA/Home": 1.3, "Away GF/Away": 0.9, "Away GA/Away": 1.6}, {"Rank": 89, "League": "Ligue1", "DateUTC (date)": "2026-01-24 18:00", "Home": "Havre Athletic Club", "Away": "AS Monaco", "P(BTTS)": 0.49111625468730524, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.444067108497191, "Model xG Home": 1.36962890625, "Model xG Away": 1.074438202247191, "Home GF/Home": 1.222222222222222, "Home GA/Home": 1.0, "Away GF/Away": 1.25, "Away GA/Away": 1.875}, {"Rank": 90, "League": "Bundesliga", "DateUTC (date)": "2026-01-15 19:30", "Home": "FC Augsburg", "Away": "1. FC Union Berlin", "P(BTTS)": 0.49135345742854597, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.423441659272404, "Model xG Home": 1.131987577639751, "Model xG Away": 1.291454081632653, "Home GF/Home": 1.125, "Home GA/Home": 1.875, "Away GF/Away": 1.0, "Away GA/Away": 1.714285714285714}, {"Rank": 91, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "1. FC Heidenheim 1846", "Away": "1. FC Köln", "P(BTTS)": 0.47248530041341796, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.41745230700976, "Model xG Home": 0.9538043478260869, "Model xG Away": 1.463647959183673, "Home GF/Home": 1.0, "Home GA/Home": 2.125, "Away GF/Away": 1.0, "Away GA/Away": 1.625}, {"Rank": 92, "League": "SerieA", "DateUTC (date)": "2026-01-18 17:00", "Home": "Torino", "Away": "Roma", "P(BTTS)": 0.3886733648422574, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.381936176935229, "Model xG Home": 0.6365333333333333, "Model xG Away": 1.745402843601896, "Home GF/Home": 1.1, "Home GA/Home": 1.8, "Away GF/Away": 1.1, "Away GA/Away": 0.7}, {"Rank": 93, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 17:30", "Home": "VfL Wolfsburg", "Away": "FC St. Pauli", "P(BTTS)": 0.4677678733957091, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.333882126220053, "Model xG Home": 1.31148097826087, "Model xG Away": 1.022401147959184, "Home GF/Home": 1.625, "Home GA/Home": 2.375, "Away GF/Away": 0.625, "Away GA/Away": 1.375}, {"Rank": 94, "League": "Ligue1", "DateUTC (date)": "2026-01-16 18:00", "Home": "AS Monaco", "Away": "FC Lorient", "P(BTTS)": 0.25928231433365767, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.33373200491573, "Model xG Home": 1.9755859375, "Model xG Away": 0.3581460674157304, "Home GF/Home": 1.888888888888889, "Home GA/Home": 1.666666666666667, "Away GF/Away": 0.25, "Away GA/Away": 1.75}, {"Rank": 95, "League": "LaLiga", "DateUTC (date)": "2026-01-10 15:15", "Home": "Villarreal CF", "Away": "Deportivo Alavés", "P(BTTS)": 0.17618097524851106, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.296493500040373, "Model xG Home": 2.07136912193092, "Model xG Away": 0.2251243781094527, "Home GF/Home": 2.222222222222222, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 0.375, "Away GA/Away": 1.375}, {"Rank": 96, "League": "SerieA", "DateUTC (date)": "2026-01-17 19:45", "Home": "Cagliari", "Away": "Juventus", "P(BTTS)": 0.4074894528503681, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.262776900122871, "Model xG Home": 0.7348148148148148, "Model xG Away": 1.527962085308057, "Home GF/Home": 1.111111111111111, "Home GA/Home": 1.444444444444444, "Away GF/Away": 1.2, "Away GA/Away": 0.8}, {"Rank": 97, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Spurs", "Away": "West Ham", "P(BTTS)": 0.4388473923844199, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.255676824946847, "Model xG Home": 1.366265060240964, "Model xG Away": 0.8894117647058825, "Home GF/Home": 1.2, "Home GA/Home": 1.2, "Away GF/Away": 0.9, "Away GA/Away": 1.8}, {"Rank": 98, "League": "SerieA", "DateUTC (date)": "2026-01-11 19:45", "Home": "Inter", "Away": "Napoli", "P(BTTS)": 0.3978576002153074, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.248324381253291, "Model xG Home": 1.543111111111111, "Model xG Away": 0.7052132701421799, "Home GF/Home": 2.666666666666667, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 1.2, "Away GA/Away": 0.7}, {"Rank": 99, "League": "SerieA", "DateUTC (date)": "2026-01-19 19:45", "Home": "Lazio", "Away": "Como", "P(BTTS)": 0.4509703958796233, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.226710900473933, "Model xG Home": 1.116, "Model xG Away": 1.110710900473934, "Home GF/Home": 1.5, "Home GA/Home": 0.9, "Away GF/Away": 1.4, "Away GA/Away": 0.9}, {"Rank": 100, "League": "LaLiga", "DateUTC (date)": "2026-01-17 15:15", "Home": "RCD Mallorca", "Away": "Athletic Club", "P(BTTS)": 0.4396912444617751, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.22270117024808, "Model xG Home": 1.28885189809035, "Model xG Away": 0.9338492721577298, "Home GF/Home": 1.222222222222222, "Home GA/Home": 1.333333333333333, "Away GF/Away": 0.7777777777777778, "Away GA/Away": 1.555555555555556}, {"Rank": 101, "League": "SerieA", "DateUTC (date)": "2026-01-14 17:30", "Home": "Napoli", "Away": "Parma", "P(BTTS)": 0.3425157961614129, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.204281200631911, "Model xG Home": 1.653333333333333, "Model xG Away": 0.5509478672985781, "Home GF/Home": 2.0, "Home GA/Home": 1.0, "Away GF/Away": 0.625, "Away GA/Away": 1.0}, {"Rank": 102, "League": "SerieA", "DateUTC (date)": "2026-01-10 19:45", "Home": "Atalanta", "Away": "Torino", "P(BTTS)": 0.4297623847973599, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.204183254344391, "Model xG Home": 1.322666666666666, "Model xG Away": 0.881516587677725, "Home GF/Home": 1.2, "Home GA/Home": 0.9, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.333333333333333}, {"Rank": 103, "League": "LaLiga", "DateUTC (date)": "2026-01-10 20:00", "Home": "Valencia CF", "Away": "Elche CF", "P(BTTS)": 0.3612819230794229, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.1663654263017, "Model xG Home": 1.55352684144819, "Model xG Away": 0.6128385848535103, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.7777777777777778, "Away GF/Away": 0.875, "Away GA/Away": 1.875}, {"Rank": 104, "League": "Bundesliga", "DateUTC (date)": "2026-01-23 19:30", "Home": "FC St. Pauli", "Away": "Hamburger SV", "P(BTTS)": 0.3675916844590041, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.165823117179436, "Model xG Home": 1.533274179236912, "Model xG Away": 0.6325489379425239, "Home GF/Home": 1.142857142857143, "Home GA/Home": 2.142857142857143, "Away GF/Away": 0.4285714285714285, "Away GA/Away": 2.285714285714286}, {"Rank": 105, "League": "SerieA", "DateUTC (date)": "2026-01-18 14:00", "Home": "Bologna", "Away": "Fiorentina", "P(BTTS)": 0.3383488890997519, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.165091802703177, "Model xG Home": 1.616592592592593, "Model xG Away": 0.5484992101105843, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.8888888888888888, "Away GF/Away": 0.7, "Away GA/Away": 1.6}, {"Rank": 106, "League": "SerieA", "DateUTC (date)": "2026-01-12 19:45", "Home": "Juventus", "Away": "Cremonese", "P(BTTS)": 0.37841565318678194, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.082991047919958, "Model xG Home": 1.377777777777778, "Model xG Away": 0.7052132701421799, "Home GF/Home": 1.666666666666667, "Home GA/Home": 0.8888888888888888, "Away GF/Away": 0.9, "Away GA/Away": 1.0}, {"Rank": 107, "League": "Bundesliga", "DateUTC (date)": "2026-01-18 14:30", "Home": "VfB Stuttgart", "Away": "1. FC Union Berlin", "P(BTTS)": 0.3954370896431151, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.080872100392952, "Model xG Home": 1.293700088731145, "Model xG Away": 0.7871720116618075, "Home GF/Home": 1.285714285714286, "Home GA/Home": 1.142857142857143, "Away GF/Away": 1.0, "Away GA/Away": 1.714285714285714}, {"Rank": 108, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "Hamburger SV", "Away": "Borussia Mönchengladbach", "P(BTTS)": 0.4115218523999026, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.060764989225504, "Model xG Home": 0.9538043478260869, "Model xG Away": 1.106960641399417, "Home GF/Home": 1.625, "Home GA/Home": 1.125, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.0}, {"Rank": 109, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 17:45", "Home": "PEC Zwolle", "Away": "AZ", "P(BTTS)": 0.37473978057406626, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.051697069515953, "Model xG Home": 0.7068415637860082, "Model xG Away": 1.344855505729945, "Home GF/Home": 0.875, "Home GA/Home": 1.375, "Away GF/Away": 1.444444444444444, "Away GA/Away": 1.444444444444444}, {"Rank": 110, "League": "SerieA", "DateUTC (date)": "2026-01-10 14:00", "Home": "Como", "Away": "Bologna", "P(BTTS)": 0.31371114320981064, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.029773565034229, "Model xG Home": 1.515555555555556, "Model xG Away": 0.514218009478673, "Home GF/Home": 1.5, "Home GA/Home": 0.375, "Away GF/Away": 1.555555555555556, "Away GA/Away": 1.222222222222222}, {"Rank": 111, "League": "SerieA", "DateUTC (date)": "2026-01-24 14:00", "Home": "Como", "Away": "Torino", "P(BTTS)": 0.24855803895684356, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 2.020631911532385, "Model xG Home": 1.653333333333333, "Model xG Away": 0.3672985781990521, "Home GF/Home": 1.5, "Home GA/Home": 0.375, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.333333333333333}, {"Rank": 112, "League": "SerieA", "DateUTC (date)": "2026-01-12 17:30", "Home": "Genoa", "Away": "Cagliari", "P(BTTS)": 0.3587021698027352, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.954968720379147, "Model xG Home": 0.6943999999999999, "Model xG Away": 1.260568720379147, "Home GF/Home": 0.6, "Home GA/Home": 1.3, "Away GF/Away": 1.1, "Away GA/Away": 1.4}, {"Rank": 113, "League": "Ligue1", "DateUTC (date)": "2026-01-17 20:05", "Home": "Angers SCO", "Away": "Olympique de Marseille", "P(BTTS)": 0.3676875203402744, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.91258394048455, "Model xG Home": 0.784423828125, "Model xG Away": 1.12816011235955, "Home GF/Home": 1.5, "Home GA/Home": 0.875, "Away GF/Away": 1.5, "Away GA/Away": 0.875}, {"Rank": 114, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Sunderland", "Away": "Crystal Palace", "P(BTTS)": 0.36692864132002545, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.903841247342311, "Model xG Home": 1.113253012048193, "Model xG Away": 0.7905882352941177, "Home GF/Home": 1.6, "Home GA/Home": 0.8, "Away GF/Away": 1.2, "Away GA/Away": 1.1}, {"Rank": 115, "League": "LaLiga", "DateUTC (date)": "2026-01-18 13:00", "Home": "Getafe CF", "Away": "Valencia CF", "P(BTTS)": 0.2774880333153961, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.90020714157055, "Model xG Home": 1.449958385351644, "Model xG Away": 0.4502487562189055, "Home GF/Home": 0.875, "Home GA/Home": 0.75, "Away GF/Away": 0.6666666666666666, "Away GA/Away": 2.444444444444445}, {"Rank": 116, "League": "SerieA", "DateUTC (date)": "2026-01-10 17:00", "Home": "Roma", "Away": "Sassuolo", "P(BTTS)": 0.3400340225197852, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.887872369473212, "Model xG Home": 1.234897119341564, "Model xG Away": 0.6529752501316481, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.5555555555555556, "Away GF/Away": 1.333333333333333, "Away GA/Away": 1.222222222222222}, {"Rank": 117, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "1. FSV Mainz 05", "Away": "VfL Wolfsburg", "P(BTTS)": 0.2788391512237633, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.824613385726962, "Model xG Home": 0.4716614906832298, "Model xG Away": 1.352951895043732, "Home GF/Home": 0.625, "Home GA/Home": 1.375, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.285714285714286}, {"Rank": 118, "League": "EPL", "DateUTC (date)": "2026-01-24 12:30", "Home": "West Ham", "Away": "Sunderland", "P(BTTS)": 0.35165232393450013, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.802162466101646, "Model xG Home": 0.9514089415513294, "Model xG Away": 0.8507535245503162, "Home GF/Home": 1.181818181818182, "Home GA/Home": 2.272727272727273, "Away GF/Away": 0.4545454545454545, "Away GA/Away": 1.272727272727273}, {"Rank": 119, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "Borussia Dortmund", "Away": "FC St. Pauli", "P(BTTS)": 0.16935603301290086, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.744826657371023, "Model xG Home": 1.498835403726708, "Model xG Away": 0.2459912536443148, "Home GF/Home": 1.857142857142857, "Home GA/Home": 0.5714285714285714, "Away GF/Away": 0.625, "Away GA/Away": 1.375}, {"Rank": 120, "League": "EPL", "DateUTC (date)": "2026-01-18 16:30", "Home": "Aston Villa", "Away": "Everton", "P(BTTS)": 0.30403844735744784, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.731495393338058, "Model xG Home": 1.13855421686747, "Model xG Away": 0.5929411764705883, "Home GF/Home": 1.8, "Home GA/Home": 0.8, "Away GF/Away": 0.9, "Away GA/Away": 1.0}, {"Rank": 121, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 19:30", "Home": "1. FSV Mainz 05", "Away": "1. FC Heidenheim 1846", "P(BTTS)": 0.2899032622789814, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.567392096590189, "Model xG Home": 0.890916149068323, "Model xG Away": 0.6764759475218659, "Home GF/Home": 0.625, "Home GA/Home": 1.375, "Away GF/Away": 0.7142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 122, "League": "LaLiga", "DateUTC (date)": "2026-01-24 15:15", "Home": "Valencia CF", "Away": "RCD Espanyol de Barcelona", "P(BTTS)": 0.2811496170308642, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.512914516058907, "Model xG Home": 0.7249791926758221, "Model xG Away": 0.7879353233830846, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.7777777777777778, "Away GF/Away": 1.125, "Away GA/Away": 0.875}, {"Rank": 123, "League": "LaLiga", "DateUTC (date)": "2026-01-10 13:00", "Home": "Real Oviedo", "Away": "Real Betis", "P(BTTS)": 0.13798588126528194, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.440496228801892, "Model xG Home": 0.2175983724048643, "Model xG Away": 1.222897856397027, "Home GF/Home": 0.2222222222222222, "Home GA/Home": 1.111111111111111, "Away GF/Away": 1.222222222222222, "Away GA/Away": 1.444444444444444}, {"Rank": 124, "League": "SerieA", "DateUTC (date)": "2026-01-11 17:00", "Home": "Hellas Verona", "Away": "Lazio", "P(BTTS)": 0.24676207211641563, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.377560119361067, "Model xG Home": 0.642962962962963, "Model xG Away": 0.7345971563981042, "Home GF/Home": 1.0, "Home GA/Home": 1.5, "Away GF/Away": 0.5555555555555556, "Away GA/Away": 0.7777777777777778}, {"Rank": 125, "League": "LaLiga", "DateUTC (date)": "2026-01-10 17:30", "Home": "Girona FC", "Away": "CA Osasuna", "P(BTTS)": 0.2389784233889557, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.370420059502736, "Model xG Home": 0.8034401442641144, "Model xG Away": 0.5669799152386217, "Home GF/Home": 0.8888888888888888, "Home GA/Home": 1.888888888888889, "Away GF/Away": 0.3333333333333333, "Away GA/Away": 1.333333333333333}, {"Rank": 126, "League": "SerieA", "DateUTC (date)": "2026-01-15 19:45", "Home": "Como", "Away": "Milan", "P(BTTS)": 0.22413294939232595, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.312174170616114, "Model xG Home": 0.775, "Model xG Away": 0.5371741706161137, "Home GF/Home": 1.5, "Home GA/Home": 0.375, "Away GF/Away": 1.625, "Away GA/Away": 0.625}, {"Rank": 127, "League": "LaLiga", "DateUTC (date)": "2026-01-11 13:00", "Home": "Rayo Vallecano", "Away": "RCD Mallorca", "P(BTTS)": 0.21797691088717447, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.268959509568264, "Model xG Home": 0.7061485642946318, "Model xG Away": 0.5628109452736318, "Home GF/Home": 0.625, "Home GA/Home": 0.625, "Away GF/Away": 1.0, "Away GA/Away": 1.666666666666667}, {"Rank": 128, "League": "SerieA", "DateUTC (date)": "2026-01-11 11:30", "Home": "Lecce", "Away": "Parma", "P(BTTS)": 0.1999810495074935, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.212232227488152, "Model xG Home": 0.4959999999999999, "Model xG Away": 0.7162322274881516, "Home GF/Home": 0.6, "Home GA/Home": 1.3, "Away GF/Away": 0.625, "Away GA/Away": 1.0}, {"Rank": 129, "League": "SerieA", "DateUTC (date)": "2026-01-16 19:45", "Home": "Pisa", "Away": "Atalanta", "P(BTTS)": 0.05787959330030371, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.169261014569071, "Model xG Home": 0.09185185185185185, "Model xG Away": 1.07740916271722, "Home GF/Home": 0.1, "Home GA/Home": 1.0, "Away GF/Away": 1.222222222222222, "Away GA/Away": 1.111111111111111}, {"Rank": 130, "League": "SerieA", "DateUTC (date)": "2026-01-24 19:45", "Home": "Lecce", "Away": "Lazio", "P(BTTS)": 0.15073728643739898, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.022428646656135, "Model xG Home": 0.3857777777777778, "Model xG Away": 0.6366508688783571, "Home GF/Home": 0.6, "Home GA/Home": 1.3, "Away GF/Away": 0.5555555555555556, "Away GA/Away": 0.7777777777777778}, {"Rank": 131, "League": "Eredivisie", "DateUTC (date)": "2026-01-16 19:00", "Home": "Excelsior Rotterdam", "Away": "Telstar", "P(BTTS)": 0.14695007366064605, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 0.9673485393714591, "Model xG Home": 0.497119341563786, "Model xG Away": 0.4702291978076731, "Home GF/Home": 0.8888888888888888, "Home GA/Home": 1.111111111111111, "Away GF/Away": 0.625, "Away GA/Away": 1.0}, {"Rank": 132, "League": "LaLiga", "DateUTC (date)": "2026-01-24 13:00", "Home": "Rayo Vallecano", "Away": "CA Osasuna", "P(BTTS)": 0.07382704444017035, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 0.7525224998602492, "Model xG Home": 0.5649188514357053, "Model xG Away": 0.1876036484245439, "Home GF/Home": 0.625, "Home GA/Home": 0.625, "Away GF/Away": 0.3333333333333333, "Away GA/Away": 1.333333333333333}, {"Rank": 133, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 00:00", "Home": "M'gladbach", "Away": "Augsburg", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 134, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Bayern Munich", "Away": "Wolfsburg", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 135, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "Levadeiakos", "Away": "Volos NFC", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 136, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "OFI Crete", "Away": "Asteras Tripolis", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 137, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "Aris", "Away": "AEK", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 138, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "Panathinaikos", "Away": "Panserraikos", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 139, "League": "SerieA", "DateUTC (date)": "2026-01-11 00:00", "Home": "Verona", "Away": "Lazio", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 140, "League": "SerieB", "DateUTC (date)": "2026-01-11 00:00", "Home": "Mantova", "Away": "Palermo", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 141, "League": "SerieB", "DateUTC (date)": "2026-01-11 00:00", "Home": "Padova", "Away": "Modena", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 142, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 00:00", "Home": "Heerenveen", "Away": "Feyenoord", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 143, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 00:00", "Home": "Go Ahead Eagles", "Away": "For Sittard", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 144, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 00:00", "Home": "Sparta Rotterdam", "Away": "Heracles", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 145, "League": "PrimeiraLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Nacional", "Away": "Santa Clara", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 146, "League": "PrimeiraLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Moreirense", "Away": "Tondela", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 147, "League": "ScotPrem", "DateUTC (date)": "2026-01-11 00:00", "Home": "Dundee", "Away": "Hearts", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 148, "League": "ScotPrem", "DateUTC (date)": "2026-01-11 00:00", "Home": "Aberdeen", "Away": "Rangers", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 149, "League": "LaLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Vallecano", "Away": "Mallorca", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 150, "League": "LaLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Levante", "Away": "Espanol", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 151, "League": "LaLiga", "DateUTC (date)": "2026-01-12 00:00", "Home": "Sevilla", "Away": "Celta", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 152, "League": "LaLiga2", "DateUTC (date)": "2026-01-11 00:00", "Home": "Leganes", "Away": "Valladolid", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 153, "League": "LaLiga2", "DateUTC (date)": "2026-01-11 00:00", "Home": "Granada", "Away": "Castellon", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 154, "League": "LaLiga2", "DateUTC (date)": "2026-01-11 00:00", "Home": "Malaga", "Away": "Ceuta", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 155, "League": "LaLiga2", "DateUTC (date)": "2026-01-12 00:00", "Home": "Huesca", "Away": "Cordoba", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 156, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "Club Leon", "Away": "Cruz Azul", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 157, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "Santos Laguna", "Away": "Necaxa", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 158, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "Monterrey", "Away": "Toluca", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 159, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "UNAM Pumas", "Away": "Queretaro", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 160, "League": "LigaMX", "DateUTC (date)": "2026-01-12 00:00", "Home": "Atl. San Luis", "Away": "Tigres UANL", "P(BTTS)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}], "probCol": "P(BTTS)"}, {"name": "Over 1.5", "slug": "over15", "columns": ["Rank", "League", "DateUTC (date)", "Home", "Away", "P(Over1.5)", "Pick", "Strength", "Model xG Total", "Model xG Home", "Model xG Away", "Home GF/Home", "Home GA/Home", "Away GF/Away", "Away GA/Away"], "rows": [{"Rank": 1, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 17:45", "Home": "N.E.C. Nijmegen", "Away": "PEC Zwolle", "P(Over1.5)": 0.9877425012268206, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 6.403581215744893, "Model xG Home": 4.823611111111111, "Model xG Away": 1.579970104633782, "Home GF/Home": 2.875, "Home GA/Home": 1.5, "Away GF/Away": 1.555555555555556, "Away GA/Away": 3.0}, {"Rank": 2, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 19:00", "Home": "PSV", "Away": "Excelsior Rotterdam", "P(Over1.5)": 0.9770355718694226, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 5.67168066529053, "Model xG Home": 4.414153439153439, "Model xG Away": 1.257527226137092, "Home GF/Home": 3.25, "Home GA/Home": 1.625, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 3, "League": "SerieA", "DateUTC (date)": "2026-01-23 19:45", "Home": "Inter", "Away": "Pisa", "P(Over1.5)": 0.9655803238518678, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 5.192459189046867, "Model xG Home": 4.408888888888889, "Model xG Away": 0.7835703001579778, "Home GF/Home": 2.666666666666667, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 1.333333333333333, "Away GA/Away": 2.0}, {"Rank": 4, "League": "LaLiga", "DateUTC (date)": "2026-01-18 20:00", "Home": "Real Sociedad", "Away": "FC Barcelona", "P(Over1.5)": 0.9585743749621942, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.970723784324321, "Model xG Home": 1.468789013732834, "Model xG Away": 3.501934770591487, "Home GF/Home": 1.444444444444444, "Home GA/Home": 1.555555555555556, "Away GF/Away": 2.5, "Away GA/Away": 1.5}, {"Rank": 5, "League": "EPL", "DateUTC (date)": "2026-01-19 20:00", "Home": "Brighton", "Away": "Bournemouth", "P(Over1.5)": 0.9572320964981047, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.93239546420978, "Model xG Home": 3.301807228915663, "Model xG Away": 1.630588235294118, "Home GF/Home": 1.8, "Home GA/Home": 1.1, "Away GF/Away": 1.8, "Away GA/Away": 2.9}, {"Rank": 6, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "TSG Hoffenheim", "Away": "Bayer 04 Leverkusen", "P(Over1.5)": 0.953626234335617, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.834874056099813, "Model xG Home": 2.515527950310559, "Model xG Away": 2.319346105789254, "Home GF/Home": 2.142857142857143, "Home GA/Home": 1.571428571428571, "Away GF/Away": 2.142857142857143, "Away GA/Away": 2.0}, {"Rank": 7, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "FC Bayern München", "Away": "FC Augsburg", "P(Over1.5)": 0.9528318925952545, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.81436969197617, "Model xG Home": 4.223990683229814, "Model xG Away": 0.5903790087463556, "Home GF/Home": 3.875, "Home GA/Home": 0.75, "Away GF/Away": 1.142857142857143, "Away GA/Away": 1.857142857142857}, {"Rank": 8, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 13:30", "Home": "Telstar", "Away": "Ajax", "P(Over1.5)": 0.9516860147891485, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.785365803022755, "Model xG Home": 1.747685185185185, "Model xG Away": 3.037680617837569, "Home GF/Home": 1.666666666666667, "Home GA/Home": 2.111111111111111, "Away GF/Away": 2.125, "Away GA/Away": 1.875}, {"Rank": 9, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 19:00", "Home": "PSV", "Away": "NAC Breda", "P(Over1.5)": 0.9436162196566464, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.597979467696396, "Model xG Home": 3.635185185185185, "Model xG Away": 0.9627942825112108, "Home GF/Home": 3.25, "Home GA/Home": 1.625, "Away GF/Away": 0.875, "Away GA/Away": 2.0}, {"Rank": 10, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 19:30", "Home": "1. FC Köln", "Away": "FC Bayern München", "P(Over1.5)": 0.9413261950194816, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.549463086032993, "Model xG Home": 0.8385093167701864, "Model xG Away": 3.710953769262807, "Home GF/Home": 2.0, "Home GA/Home": 1.571428571428571, "Away GF/Away": 3.428571428571428, "Away GA/Away": 0.7142857142857143}, {"Rank": 11, "League": "Bundesliga", "DateUTC (date)": "2026-01-16 19:30", "Home": "SV Werder Bremen", "Away": "Eintracht Frankfurt", "P(Over1.5)": 0.9346453565871302, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.417575104575992, "Model xG Home": 1.760869565217391, "Model xG Away": 2.6567055393586, "Home GF/Home": 1.142857142857143, "Home GA/Home": 1.714285714285714, "Away GF/Away": 2.25, "Away GA/Away": 2.625}, {"Rank": 12, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 15:30", "Home": "AZ", "Away": "FC Volendam", "P(Over1.5)": 0.929379333799218, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.322346786248132, "Model xG Home": 3.415476190476191, "Model xG Away": 0.906870595771941, "Home GF/Home": 2.571428571428572, "Home GA/Home": 2.142857142857143, "Away GF/Away": 0.625, "Away GA/Away": 2.375}, {"Rank": 13, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 13:30", "Home": "Heracles Almelo", "Away": "FC Twente", "P(Over1.5)": 0.9282562687683562, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.302910646072081, "Model xG Home": 1.537962962962963, "Model xG Away": 2.764947683109118, "Home GF/Home": 2.25, "Home GA/Home": 2.625, "Away GF/Away": 1.555555555555556, "Away GA/Away": 1.222222222222222}, {"Rank": 14, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 19:30", "Home": "RB Leipzig", "Away": "Sport-Club Freiburg", "P(Over1.5)": 0.9218497780639938, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.197252503485867, "Model xG Home": 3.385481366459627, "Model xG Away": 0.811771137026239, "Home GF/Home": 2.714285714285714, "Home GA/Home": 0.8571428571428571, "Away GF/Away": 1.375, "Away GA/Away": 2.125}, {"Rank": 15, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 11:15", "Home": "sc Heerenveen", "Away": "Feyenoord", "P(Over1.5)": 0.9182969359730662, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 4.142131446188341, "Model xG Home": 1.1796875, "Model xG Away": 2.962443946188341, "Home GF/Home": 1.875, "Home GA/Home": 1.75, "Away GF/Away": 2.5, "Away GA/Away": 1.125}, {"Rank": 16, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 17:45", "Home": "FC Twente", "Away": "PEC Zwolle", "P(Over1.5)": 0.89541730848762, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.833308420528152, "Model xG Home": 2.516666666666667, "Model xG Away": 1.316641753861485, "Home GF/Home": 1.5, "Home GA/Home": 1.25, "Away GF/Away": 1.555555555555556, "Away GA/Away": 3.0}, {"Rank": 17, "League": "Ligue1", "DateUTC (date)": "2026-01-18 14:00", "Home": "RC Strasbourg Alsace", "Away": "FC Metz", "P(Over1.5)": 0.8908373895414279, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.779187148876404, "Model xG Home": 3.25390625, "Model xG Away": 0.5252808988764045, "Home GF/Home": 1.75, "Home GA/Home": 0.5, "Away GF/Away": 1.222222222222222, "Away GA/Away": 3.111111111111111}, {"Rank": 18, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "1. FC Köln", "Away": "1. FSV Mainz 05", "P(Over1.5)": 0.8885120879495941, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.752512540064828, "Model xG Home": 2.515527950310559, "Model xG Away": 1.236984589754269, "Home GF/Home": 2.0, "Home GA/Home": 1.571428571428571, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.142857142857143}, {"Rank": 19, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 17:30", "Home": "VfB Stuttgart", "Away": "Eintracht Frankfurt", "P(Over1.5)": 0.8884771130017318, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.752115287108632, "Model xG Home": 1.980978260869565, "Model xG Away": 1.771137026239067, "Home GF/Home": 1.285714285714286, "Home GA/Home": 1.142857142857143, "Away GF/Away": 2.25, "Away GA/Away": 2.625}, {"Rank": 20, "League": "SerieA", "DateUTC (date)": "2026-01-14 19:45", "Home": "Inter", "Away": "Lecce", "P(Over1.5)": 0.8880633959298645, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.747424960505529, "Model xG Home": 3.306666666666667, "Model xG Away": 0.4407582938388625, "Home GF/Home": 2.666666666666667, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 0.75, "Away GA/Away": 1.5}, {"Rank": 21, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 19:00", "Home": "Fortuna Sittard", "Away": "PSV", "P(Over1.5)": 0.8846493453110561, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.709322720273282, "Model xG Home": 0.8837677183356195, "Model xG Away": 2.825555001937663, "Home GF/Home": 1.777777777777778, "Home GA/Home": 1.444444444444444, "Away GF/Away": 2.888888888888889, "Away GA/Away": 0.8888888888888888}, {"Rank": 22, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 16:30", "Home": "FC Bayern München", "Away": "VfL Wolfsburg", "P(Over1.5)": 0.8803005757123081, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.66227500316897, "Model xG Home": 2.924301242236025, "Model xG Away": 0.7379737609329445, "Home GF/Home": 3.875, "Home GA/Home": 0.75, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.285714285714286}, {"Rank": 23, "League": "LaLiga", "DateUTC (date)": "2026-01-17 20:00", "Home": "Real Betis", "Away": "Villarreal CF", "P(Over1.5)": 0.8763435784216832, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.620820678132434, "Model xG Home": 1.694756554307116, "Model xG Away": 1.926064123825318, "Home GF/Home": 2.0, "Home GA/Home": 1.222222222222222, "Away GF/Away": 1.75, "Away GA/Away": 1.25}, {"Rank": 24, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 19:30", "Home": "Hamburger SV", "Away": "Bayer 04 Leverkusen", "P(Over1.5)": 0.8711315696255787, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.568049657751299, "Model xG Home": 1.907608695652174, "Model xG Away": 1.660440962099125, "Home GF/Home": 1.625, "Home GA/Home": 1.125, "Away GF/Away": 2.142857142857143, "Away GA/Away": 2.0}, {"Rank": 25, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "VfL Wolfsburg", "Away": "1. FC Heidenheim 1846", "P(Over1.5)": 0.862500847199225, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.484840442388135, "Model xG Home": 2.316381987577639, "Model xG Away": 1.168458454810495, "Home GF/Home": 1.625, "Home GA/Home": 2.375, "Away GF/Away": 0.7142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 26, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Liverpool", "Away": "Burnley", "P(Over1.5)": 0.8592897737442587, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.455102763997166, "Model xG Home": 2.466867469879519, "Model xG Away": 0.9882352941176471, "Home GF/Home": 1.5, "Home GA/Home": 1.0, "Away GF/Away": 1.2, "Away GA/Away": 2.6}, {"Rank": 27, "League": "Ligue1", "DateUTC (date)": "2026-01-17 18:00", "Home": "Toulouse FC", "Away": "OGC Nice", "P(Over1.5)": 0.8564008880094562, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.428875526685393, "Model xG Home": 2.091796875, "Model xG Away": 1.337078651685393, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.555555555555556, "Away GF/Away": 1.0, "Away GA/Away": 2.25}, {"Rank": 28, "League": "Ligue1", "DateUTC (date)": "2026-01-16 20:00", "Home": "Paris Saint-Germain", "Away": "LOSC Lille", "P(Over1.5)": 0.8528488230829969, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.397281260972612, "Model xG Home": 2.4840087890625, "Model xG Away": 0.9132724719101123, "Home GF/Home": 2.375, "Home GA/Home": 0.5, "Away GF/Away": 2.125, "Away GA/Away": 1.75}, {"Rank": 29, "League": "SerieA", "DateUTC (date)": "2026-01-10 14:00", "Home": "Udinese", "Away": "Pisa", "P(Over1.5)": 0.8475086529791345, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.351068983675618, "Model xG Home": 1.653333333333333, "Model xG Away": 1.697735650342285, "Home GF/Home": 1.0, "Home GA/Home": 1.444444444444444, "Away GF/Away": 1.333333333333333, "Away GA/Away": 2.0}, {"Rank": 30, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 17:30", "Home": "Bayer 04 Leverkusen", "Away": "VfB Stuttgart", "P(Over1.5)": 0.846712322319221, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.344304569653949, "Model xG Home": 2.311141304347826, "Model xG Away": 1.033163265306122, "Home GF/Home": 2.25, "Home GA/Home": 0.75, "Away GF/Away": 2.0, "Away GA/Away": 1.75}, {"Rank": 31, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 11:15", "Home": "sc Heerenveen", "Away": "FC Groningen", "P(Over1.5)": 0.8454131583796332, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.333337225959143, "Model xG Home": 1.703993055555556, "Model xG Away": 1.629344170403587, "Home GF/Home": 1.875, "Home GA/Home": 1.75, "Away GF/Away": 1.375, "Away GA/Away": 1.625}, {"Rank": 32, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "Bayer 04 Leverkusen", "Away": "SV Werder Bremen", "P(Over1.5)": 0.8398167616317133, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.287031388642413, "Model xG Home": 2.641304347826087, "Model xG Away": 0.6457270408163265, "Home GF/Home": 2.25, "Home GA/Home": 0.75, "Away GF/Away": 1.25, "Away GA/Away": 2.0}, {"Rank": 33, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 15:45", "Home": "Feyenoord", "Away": "Sparta Rotterdam", "P(Over1.5)": 0.8335890803215857, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.237197124877742, "Model xG Home": 2.221502057613169, "Model xG Away": 1.015695067264574, "Home GF/Home": 2.444444444444445, "Home GA/Home": 1.333333333333333, "Away GF/Away": 1.125, "Away GA/Away": 1.625}, {"Rank": 34, "League": "SerieA", "DateUTC (date)": "2026-01-17 17:00", "Home": "Napoli", "Away": "Sassuolo", "P(Over1.5)": 0.8282888503296089, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.196096190977707, "Model xG Home": 2.020740740740741, "Model xG Away": 1.175355450236967, "Home GF/Home": 2.0, "Home GA/Home": 1.0, "Away GF/Away": 1.333333333333333, "Away GA/Away": 1.222222222222222}, {"Rank": 35, "League": "Ligue1", "DateUTC (date)": "2026-01-24 20:05", "Home": "Olympique de Marseille", "Away": "RC Lens", "P(Over1.5)": 0.826899281793315, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.185510299625468, "Model xG Home": 1.59375, "Model xG Away": 1.591760299625468, "Home GF/Home": 2.666666666666667, "Home GA/Home": 1.111111111111111, "Away GF/Away": 1.666666666666667, "Away GA/Away": 1.0}, {"Rank": 36, "League": "LaLiga", "DateUTC (date)": "2026-01-23 20:00", "Home": "Levante UD", "Away": "Elche CF", "P(Over1.5)": 0.8267825650036478, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.184624629660686, "Model xG Home": 1.271067415730337, "Model xG Away": 1.913557213930348, "Home GF/Home": 1.0, "Home GA/Home": 2.428571428571428, "Away GF/Away": 0.875, "Away GA/Away": 1.875}, {"Rank": 37, "League": "SerieA", "DateUTC (date)": "2026-01-24 17:00", "Home": "Fiorentina", "Away": "Cagliari", "P(Over1.5)": 0.8261820820369977, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.180076531507811, "Model xG Home": 1.671703703703704, "Model xG Away": 1.508372827804107, "Home GF/Home": 1.444444444444444, "Home GA/Home": 1.555555555555556, "Away GF/Away": 1.1, "Away GA/Away": 1.4}, {"Rank": 38, "League": "EPL", "DateUTC (date)": "2026-01-17 12:30", "Home": "Man Utd", "Away": "Man City", "P(Over1.5)": 0.8261016569446619, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.179468462083629, "Model xG Home": 1.252409638554217, "Model xG Away": 1.927058823529412, "Home GF/Home": 1.8, "Home GA/Home": 1.3, "Away GF/Away": 1.8, "Away GA/Away": 1.1}, {"Rank": 39, "League": "Bundesliga", "DateUTC (date)": "2026-01-18 16:30", "Home": "FC Augsburg", "Away": "Sport-Club Freiburg", "P(Over1.5)": 0.8260320377114742, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.178942297027507, "Model xG Home": 1.403192934782609, "Model xG Away": 1.775749362244898, "Home GF/Home": 1.125, "Home GA/Home": 1.875, "Away GF/Away": 1.375, "Away GA/Away": 2.125}, {"Rank": 40, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 17:30", "Home": "RB Leipzig", "Away": "FC Bayern München", "P(Over1.5)": 0.8237947412204982, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.162133531318472, "Model xG Home": 1.137976929902396, "Model xG Away": 2.024156601416076, "Home GF/Home": 2.714285714285714, "Home GA/Home": 0.8571428571428571, "Away GF/Away": 3.428571428571428, "Away GA/Away": 0.7142857142857143}, {"Rank": 41, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "1. FC Union Berlin", "Away": "1. FSV Mainz 05", "P(Over1.5)": 0.8189286830654285, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.126227975662315, "Model xG Home": 2.043866459627329, "Model xG Away": 1.082361516034985, "Home GF/Home": 1.625, "Home GA/Home": 1.375, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.142857142857143}, {"Rank": 42, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "FC St. Pauli", "Away": "RB Leipzig", "P(Over1.5)": 0.8180021847599102, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.11948995436684, "Model xG Home": 1.090062111801242, "Model xG Away": 2.029427842565597, "Home GF/Home": 1.142857142857143, "Home GA/Home": 2.142857142857143, "Away GF/Away": 1.375, "Away GA/Away": 1.625}, {"Rank": 43, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Leeds", "Away": "Fulham", "P(Over1.5)": 0.8171319696896038, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.113189227498228, "Model xG Home": 1.935542168674699, "Model xG Away": 1.17764705882353, "Home GF/Home": 1.8, "Home GA/Home": 1.3, "Away GF/Away": 1.1, "Away GA/Away": 1.7}, {"Rank": 44, "League": "SerieA", "DateUTC (date)": "2026-01-17 14:00", "Home": "Udinese", "Away": "Inter", "P(Over1.5)": 0.8139411787018278, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.09031420045638, "Model xG Home": 0.8266666666666667, "Model xG Away": 2.263647533789714, "Home GF/Home": 1.0, "Home GA/Home": 1.444444444444444, "Away GF/Away": 1.777777777777778, "Away GA/Away": 1.0}, {"Rank": 45, "League": "SerieA", "DateUTC (date)": "2026-01-15 17:30", "Home": "Hellas Verona", "Away": "Bologna", "P(Over1.5)": 0.81067254168313, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.067242408285062, "Model xG Home": 1.01037037037037, "Model xG Away": 2.056872037914692, "Home GF/Home": 1.0, "Home GA/Home": 1.5, "Away GF/Away": 1.555555555555556, "Away GA/Away": 1.222222222222222}, {"Rank": 46, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "Sport-Club Freiburg", "Away": "Hamburger SV", "P(Over1.5)": 0.8100314664694513, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.06275917643011, "Model xG Home": 2.683229813664596, "Model xG Away": 0.3795293627655144, "Home GF/Home": 2.0, "Home GA/Home": 1.285714285714286, "Away GF/Away": 0.4285714285714285, "Away GA/Away": 2.285714285714286}, {"Rank": 47, "League": "LaLiga", "DateUTC (date)": "2026-01-11 15:15", "Home": "Levante UD", "Away": "RCD Espanyol de Barcelona", "P(Over1.5)": 0.8086944935770288, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.053452640489367, "Model xG Home": 0.5931647940074907, "Model xG Away": 2.460287846481876, "Home GF/Home": 1.0, "Home GA/Home": 2.428571428571428, "Away GF/Away": 1.125, "Away GA/Away": 0.875}, {"Rank": 48, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 20:00", "Home": "FC Twente", "Away": "Excelsior Rotterdam", "P(Over1.5)": 0.8015422356251856, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 3.004630222791658, "Model xG Home": 2.037301587301587, "Model xG Away": 0.9673286354900703, "Home GF/Home": 1.5, "Home GA/Home": 1.25, "Away GF/Away": 1.142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 49, "League": "LaLiga", "DateUTC (date)": "2026-01-12 20:00", "Home": "Sevilla FC", "Away": "Celta", "P(Over1.5)": 0.7988022804413745, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.986340923348303, "Model xG Home": 0.9227007906783189, "Model xG Away": 2.063640132669984, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.666666666666667, "Away GF/Away": 1.375, "Away GA/Away": 0.875}, {"Rank": 50, "League": "SerieA", "DateUTC (date)": "2026-01-11 14:00", "Home": "Fiorentina", "Away": "Milan", "P(Over1.5)": 0.7970217969689141, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.974574337370545, "Model xG Home": 0.7462962962962962, "Model xG Away": 2.228278041074249, "Home GF/Home": 1.444444444444444, "Home GA/Home": 1.555555555555556, "Away GF/Away": 1.625, "Away GA/Away": 0.625}, {"Rank": 51, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "1. FC Heidenheim 1846", "Away": "RB Leipzig", "P(Over1.5)": 0.7957644931156598, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.966320291703638, "Model xG Home": 0.9538043478260869, "Model xG Away": 2.012515943877551, "Home GF/Home": 1.0, "Home GA/Home": 2.125, "Away GF/Away": 1.375, "Away GA/Away": 1.625}, {"Rank": 52, "League": "Ligue1", "DateUTC (date)": "2026-01-23 19:00", "Home": "AJ Auxerre", "Away": "Paris Saint-Germain", "P(Over1.5)": 0.7874363216090415, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.912755539950063, "Model xG Home": 0.8116319444444445, "Model xG Away": 2.101123595505618, "Home GF/Home": 1.111111111111111, "Home GA/Home": 1.222222222222222, "Away GF/Away": 2.0, "Away GA/Away": 1.222222222222222}, {"Rank": 53, "League": "LaLiga", "DateUTC (date)": "2026-01-24 20:00", "Home": "Villarreal CF", "Away": "Real Madrid", "P(Over1.5)": 0.7785752096067751, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.857758647461817, "Model xG Home": 1.657095297544736, "Model xG Away": 1.200663349917081, "Home GF/Home": 2.222222222222222, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 2.0, "Away GA/Away": 1.1}, {"Rank": 54, "League": "Ligue1", "DateUTC (date)": "2026-01-18 16:15", "Home": "FC Nantes", "Away": "Paris FC", "P(Over1.5)": 0.7778313480342683, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.853230337078652, "Model xG Home": 1.0625, "Model xG Away": 1.790730337078652, "Home GF/Home": 1.0, "Home GA/Home": 1.875, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.777777777777778}, {"Rank": 55, "League": "EPL", "DateUTC (date)": "2026-01-24 15:00", "Home": "Fulham", "Away": "Brighton", "P(Over1.5)": 0.7754310160633143, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.838708260362793, "Model xG Home": 1.688489495170766, "Model xG Away": 1.150218765192027, "Home GF/Home": 1.727272727272727, "Home GA/Home": 1.181818181818182, "Away GF/Away": 1.181818181818182, "Away GA/Away": 1.545454545454545}, {"Rank": 56, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "SV Werder Bremen", "Away": "TSG Hoffenheim", "P(Over1.5)": 0.7724707995003623, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.820984915705413, "Model xG Home": 0.7546583850931676, "Model xG Away": 2.066326530612245, "Home GF/Home": 1.142857142857143, "Home GA/Home": 1.714285714285714, "Away GF/Away": 1.75, "Away GA/Away": 1.125}, {"Rank": 57, "League": "Ligue1", "DateUTC (date)": "2026-01-18 19:45", "Home": "Olympique Lyonnais", "Away": "Stade Brestois 29", "P(Over1.5)": 0.7718077289000079, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.817042661516854, "Model xG Home": 2.091796875, "Model xG Away": 0.7252457865168539, "Home GF/Home": 1.75, "Home GA/Home": 0.75, "Away GF/Away": 1.125, "Away GA/Away": 2.0}, {"Rank": 58, "League": "EPL", "DateUTC (date)": "2026-01-24 15:00", "Home": "Man City", "Away": "Wolves", "P(Over1.5)": 0.7710950570890138, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.812816653097563, "Model xG Home": 2.540575525241462, "Model xG Away": 0.2722411278561012, "Home GF/Home": 2.454545454545455, "Home GA/Home": 0.7272727272727273, "Away GF/Away": 0.4545454545454545, "Away GA/Away": 1.636363636363636}, {"Rank": 59, "League": "LaLiga", "DateUTC (date)": "2026-01-24 17:30", "Home": "Sevilla FC", "Away": "Athletic Club", "P(Over1.5)": 0.7702242575031557, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.807668551403062, "Model xG Home": 1.6403569612059, "Model xG Away": 1.167311590197162, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.666666666666667, "Away GF/Away": 0.7777777777777778, "Away GA/Away": 1.555555555555556}, {"Rank": 60, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 19:30", "Home": "TSG Hoffenheim", "Away": "Borussia Mönchengladbach", "P(Over1.5)": 0.7696010615723953, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.803994712348115, "Model xG Home": 1.257763975155279, "Model xG Away": 1.546230737192836, "Home GF/Home": 2.142857142857143, "Home GA/Home": 1.571428571428571, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.0}, {"Rank": 61, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Chelsea", "Away": "Brentford", "P(Over1.5)": 0.7680502869004671, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.794890148830617, "Model xG Home": 1.707831325301205, "Model xG Away": 1.087058823529412, "Home GF/Home": 1.5, "Home GA/Home": 1.1, "Away GF/Away": 1.2, "Away GA/Away": 1.8}, {"Rank": 62, "League": "Ligue1", "DateUTC (date)": "2026-01-18 16:15", "Home": "Stade Rennais FC", "Away": "Havre Athletic Club", "P(Over1.5)": 0.766019396420251, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.783046765273876, "Model xG Home": 2.353271484375, "Model xG Away": 0.4297752808988764, "Home GF/Home": 2.25, "Home GA/Home": 1.0, "Away GF/Away": 0.5, "Away GA/Away": 1.75}, {"Rank": 63, "League": "EPL", "DateUTC (date)": "2026-01-24 17:30", "Home": "Bournemouth", "Away": "Liverpool", "P(Over1.5)": 0.7651930616595153, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.778253509907398, "Model xG Home": 1.505526237180125, "Model xG Away": 1.272727272727273, "Home GF/Home": 1.454545454545455, "Home GA/Home": 1.0, "Away GF/Away": 1.545454545454545, "Away GA/Away": 1.636363636363636}, {"Rank": 64, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 15:30", "Home": "Ajax", "Away": "Go Ahead Eagles", "P(Over1.5)": 0.7645246606763765, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.774387098857702, "Model xG Home": 1.918569958847737, "Model xG Away": 0.8558171400099651, "Home GF/Home": 1.625, "Home GA/Home": 0.875, "Away GF/Away": 1.444444444444444, "Away GA/Away": 2.111111111111111}, {"Rank": 65, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 13:30", "Home": "Go Ahead Eagles", "Away": "Fortuna Sittard", "P(Over1.5)": 0.763730691394737, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.769806718153131, "Model xG Home": 1.817592592592593, "Model xG Away": 0.9522141255605381, "Home GF/Home": 1.625, "Home GA/Home": 1.25, "Away GF/Away": 1.125, "Away GA/Away": 2.0}, {"Rank": 66, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 14:30", "Home": "Borussia Mönchengladbach", "Away": "FC Augsburg", "P(Over1.5)": 0.7625120930170171, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.762802636582583, "Model xG Home": 1.090062111801242, "Model xG Away": 1.672740524781341, "Home GF/Home": 1.0, "Home GA/Home": 2.125, "Away GF/Away": 1.142857142857143, "Away GA/Away": 1.857142857142857}, {"Rank": 67, "League": "LaLiga", "DateUTC (date)": "2026-01-16 20:00", "Home": "RCD Espanyol de Barcelona", "Away": "Girona FC", "P(Over1.5)": 0.7594297145679809, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.745224563822585, "Model xG Home": 1.664627548897212, "Model xG Away": 1.080597014925373, "Home GF/Home": 1.3, "Home GA/Home": 1.2, "Away GF/Away": 1.0, "Away GA/Away": 1.888888888888889}, {"Rank": 68, "League": "LaLiga", "DateUTC (date)": "2026-01-17 17:30", "Home": "CA Osasuna", "Away": "Real Oviedo", "P(Over1.5)": 0.7575267220980633, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.734469558160095, "Model xG Home": 2.134137883201554, "Model xG Away": 0.6003316749585407, "Home GF/Home": 1.666666666666667, "Home GA/Home": 1.0, "Away GF/Away": 0.6666666666666666, "Away GA/Away": 1.888888888888889}, {"Rank": 69, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 20:00", "Home": "NAC Breda", "Away": "N.E.C. Nijmegen", "P(Over1.5)": 0.7564300303215098, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.72830463747255, "Model xG Home": 1.056378600823045, "Model xG Away": 1.671926036649505, "Home GF/Home": 1.0, "Home GA/Home": 1.111111111111111, "Away GF/Away": 2.222222222222222, "Away GA/Away": 1.888888888888889}, {"Rank": 70, "League": "SerieA", "DateUTC (date)": "2026-01-19 17:30", "Home": "Cremonese", "Away": "Hellas Verona", "P(Over1.5)": 0.7531444590555942, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.709977883096366, "Model xG Home": 1.818666666666667, "Model xG Away": 0.8913112164296997, "Home GF/Home": 1.222222222222222, "Home GA/Home": 1.444444444444444, "Away GF/Away": 0.7, "Away GA/Away": 1.8}, {"Rank": 71, "League": "SerieA", "DateUTC (date)": "2026-01-18 11:30", "Home": "Parma", "Away": "Genoa", "P(Over1.5)": 0.7484277171718594, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.684032999824469, "Model xG Home": 1.028740740740741, "Model xG Away": 1.655292259083728, "Home GF/Home": 0.7, "Home GA/Home": 1.3, "Away GF/Away": 1.444444444444444, "Away GA/Away": 1.777777777777778}, {"Rank": 72, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "Eintracht Frankfurt", "Away": "TSG Hoffenheim", "P(Over1.5)": 0.7480057609861399, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.681732475598935, "Model xG Home": 1.131987577639751, "Model xG Away": 1.549744897959183, "Home GF/Home": 1.714285714285714, "Home GA/Home": 1.285714285714286, "Away GF/Away": 1.75, "Away GA/Away": 1.125}, {"Rank": 73, "League": "LaLiga", "DateUTC (date)": "2026-01-17 13:00", "Home": "Real Madrid", "Away": "Levante UD", "P(Over1.5)": 0.7474226018268619, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.678558518270073, "Model xG Home": 1.89812734082397, "Model xG Away": 0.7804311774461029, "Home GF/Home": 2.333333333333333, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 1.3, "Away GA/Away": 1.2}, {"Rank": 74, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 19:30", "Home": "Borussia Dortmund", "Away": "SV Werder Bremen", "P(Over1.5)": 0.7462336183310013, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.672106730891114, "Model xG Home": 2.180124223602485, "Model xG Away": 0.4919825072886296, "Home GF/Home": 1.857142857142857, "Home GA/Home": 0.5714285714285714, "Away GF/Away": 1.25, "Away GA/Away": 2.0}, {"Rank": 75, "League": "EPL", "DateUTC (date)": "2026-01-18 14:00", "Home": "Wolves", "Away": "Newcastle", "P(Over1.5)": 0.7427129637142121, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.653153791637137, "Model xG Home": 0.7590361445783133, "Model xG Away": 1.894117647058823, "Home GF/Home": 1.0, "Home GA/Home": 2.3, "Away GF/Away": 1.0, "Away GA/Away": 1.2}, {"Rank": 76, "League": "Eredivisie", "DateUTC (date)": "2026-01-18 13:30", "Home": "FC Volendam", "Away": "FC Utrecht", "P(Over1.5)": 0.742306134239064, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.65097805827751, "Model xG Home": 1.522427983539095, "Model xG Away": 1.128550074738415, "Home GF/Home": 1.555555555555556, "Home GA/Home": 1.333333333333333, "Away GF/Away": 1.25, "Away GA/Away": 1.75}, {"Rank": 77, "League": "EPL", "DateUTC (date)": "2026-01-17 17:30", "Home": "Nott'm Forest", "Away": "Arsenal", "P(Over1.5)": 0.7408345539453757, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.643132530120482, "Model xG Home": 0.683132530120482, "Model xG Away": 1.96, "Home GF/Home": 1.2, "Home GA/Home": 1.7, "Away GF/Away": 1.4, "Away GA/Away": 0.9}, {"Rank": 78, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 15:45", "Home": "Sparta Rotterdam", "Away": "Heracles Almelo", "P(Over1.5)": 0.7389242709764516, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.633004853383528, "Model xG Home": 1.429218106995885, "Model xG Away": 1.203786746387643, "Home GF/Home": 1.0, "Home GA/Home": 2.0, "Away GF/Away": 0.8888888888888888, "Away GA/Away": 2.555555555555555}, {"Rank": 79, "League": "EPL", "DateUTC (date)": "2026-01-24 15:00", "Home": "Burnley", "Away": "Spurs", "P(Over1.5)": 0.736788373977525, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.621755861559998, "Model xG Home": 0.7841282485313152, "Model xG Away": 1.837627613028683, "Home GF/Home": 0.9090909090909091, "Home GA/Home": 1.363636363636364, "Away GF/Away": 1.636363636363636, "Away GA/Away": 1.363636363636364}, {"Rank": 80, "League": "Ligue1", "DateUTC (date)": "2026-01-17 16:00", "Home": "RC Lens", "Away": "AJ Auxerre", "P(Over1.5)": 0.733677867163955, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.605512640449438, "Model xG Home": 2.390625, "Model xG Away": 0.2148876404494382, "Home GF/Home": 2.0, "Home GA/Home": 0.5, "Away GF/Away": 0.5, "Away GA/Away": 2.0}, {"Rank": 81, "League": "LaLiga", "DateUTC (date)": "2026-01-19 20:00", "Home": "Elche CF", "Away": "Sevilla FC", "P(Over1.5)": 0.7312833205275386, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.593118055167359, "Model xG Home": 1.792675821889305, "Model xG Away": 0.8004422332780543, "Home GF/Home": 1.7, "Home GA/Home": 0.8, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.555555555555556}, {"Rank": 82, "League": "SerieA", "DateUTC (date)": "2026-01-18 19:45", "Home": "Milan", "Away": "Lecce", "P(Over1.5)": 0.72853814423166, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.579023696682465, "Model xG Home": 1.984, "Model xG Away": 0.5950236966824645, "Home GF/Home": 1.6, "Home GA/Home": 0.9, "Away GF/Away": 0.75, "Away GA/Away": 1.5}, {"Rank": 83, "League": "Ligue1", "DateUTC (date)": "2026-01-24 16:00", "Home": "Stade Rennais FC", "Away": "FC Lorient", "P(Over1.5)": 0.7264058057584957, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.568159124824438, "Model xG Home": 2.353271484375, "Model xG Away": 0.2148876404494382, "Home GF/Home": 2.25, "Home GA/Home": 1.0, "Away GF/Away": 0.25, "Away GA/Away": 1.75}, {"Rank": 84, "League": "LaLiga", "DateUTC (date)": "2026-01-18 15:15", "Home": "Atlético de Madrid", "Away": "Deportivo Alavés", "P(Over1.5)": 0.7210434617842661, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.541151141918374, "Model xG Home": 2.278506034124012, "Model xG Away": 0.2626451077943616, "Home GF/Home": 2.444444444444445, "Home GA/Home": 0.7777777777777778, "Away GF/Away": 0.375, "Away GA/Away": 1.375}, {"Rank": 85, "League": "Eredivisie", "DateUTC (date)": "2026-01-24 15:30", "Home": "Ajax", "Away": "FC Volendam", "P(Over1.5)": 0.7185408906639625, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.528696696977246, "Model xG Home": 2.158391203703704, "Model xG Away": 0.3703054932735426, "Home GF/Home": 1.625, "Home GA/Home": 0.875, "Away GF/Away": 0.625, "Away GA/Away": 2.375}, {"Rank": 86, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 17:30", "Home": "1. FC Union Berlin", "Away": "Borussia Dortmund", "P(Over1.5)": 0.7112191279877618, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.492787128438332, "Model xG Home": 0.9538043478260869, "Model xG Away": 1.538982780612245, "Home GF/Home": 1.625, "Home GA/Home": 1.375, "Away GF/Away": 1.625, "Away GA/Away": 1.0}, {"Rank": 87, "League": "Eredivisie", "DateUTC (date)": "2026-01-10 20:00", "Home": "FC Groningen", "Away": "NAC Breda", "P(Over1.5)": 0.707707519324138, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.475835097990367, "Model xG Home": 1.957407407407407, "Model xG Away": 0.5184276905829597, "Home GF/Home": 1.75, "Home GA/Home": 0.875, "Away GF/Away": 0.875, "Away GA/Away": 2.0}, {"Rank": 88, "League": "LaLiga", "DateUTC (date)": "2026-01-18 17:30", "Home": "Celta", "Away": "Rayo Vallecano", "P(Over1.5)": 0.7051549721037447, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.46361954273576, "Model xG Home": 1.410037453183521, "Model xG Away": 1.053582089552239, "Home GF/Home": 1.3, "Home GA/Home": 1.3, "Away GF/Away": 0.9, "Away GA/Away": 1.6}, {"Rank": 89, "League": "Ligue1", "DateUTC (date)": "2026-01-24 18:00", "Home": "Havre Athletic Club", "Away": "AS Monaco", "P(Over1.5)": 0.7010305953747643, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.444067108497191, "Model xG Home": 1.36962890625, "Model xG Away": 1.074438202247191, "Home GF/Home": 1.222222222222222, "Home GA/Home": 1.0, "Away GF/Away": 1.25, "Away GA/Away": 1.875}, {"Rank": 90, "League": "Bundesliga", "DateUTC (date)": "2026-01-15 19:30", "Home": "FC Augsburg", "Away": "1. FC Union Berlin", "P(Over1.5)": 0.6966279324557997, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.423441659272404, "Model xG Home": 1.131987577639751, "Model xG Away": 1.291454081632653, "Home GF/Home": 1.125, "Home GA/Home": 1.875, "Away GF/Away": 1.0, "Away GA/Away": 1.714285714285714}, {"Rank": 91, "League": "Bundesliga", "DateUTC (date)": "2026-01-10 14:30", "Home": "1. FC Heidenheim 1846", "Away": "1. FC Köln", "P(Over1.5)": 0.6953394195422582, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.41745230700976, "Model xG Home": 0.9538043478260869, "Model xG Away": 1.463647959183673, "Home GF/Home": 1.0, "Home GA/Home": 2.125, "Away GF/Away": 1.0, "Away GA/Away": 1.625}, {"Rank": 92, "League": "SerieA", "DateUTC (date)": "2026-01-18 17:00", "Home": "Torino", "Away": "Roma", "P(Over1.5)": 0.6876052910794082, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.381936176935229, "Model xG Home": 0.6365333333333333, "Model xG Away": 1.745402843601896, "Home GF/Home": 1.1, "Home GA/Home": 1.8, "Away GF/Away": 1.1, "Away GA/Away": 0.7}, {"Rank": 93, "League": "Bundesliga", "DateUTC (date)": "2026-01-14 17:30", "Home": "VfL Wolfsburg", "Away": "FC St. Pauli", "P(Over1.5)": 0.6768842618770161, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.333882126220053, "Model xG Home": 1.31148097826087, "Model xG Away": 1.022401147959184, "Home GF/Home": 1.625, "Home GA/Home": 2.375, "Away GF/Away": 0.625, "Away GA/Away": 1.375}, {"Rank": 94, "League": "Ligue1", "DateUTC (date)": "2026-01-16 18:00", "Home": "AS Monaco", "Away": "FC Lorient", "P(Over1.5)": 0.6768503034356163, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.33373200491573, "Model xG Home": 1.9755859375, "Model xG Away": 0.3581460674157304, "Home GF/Home": 1.888888888888889, "Home GA/Home": 1.666666666666667, "Away GF/Away": 0.25, "Away GA/Away": 1.75}, {"Rank": 95, "League": "LaLiga", "DateUTC (date)": "2026-01-10 15:15", "Home": "Villarreal CF", "Away": "Deportivo Alavés", "P(Over1.5)": 0.6683364316677551, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.296493500040373, "Model xG Home": 2.07136912193092, "Model xG Away": 0.2251243781094527, "Home GF/Home": 2.222222222222222, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 0.375, "Away GA/Away": 1.375}, {"Rank": 96, "League": "SerieA", "DateUTC (date)": "2026-01-17 19:45", "Home": "Cagliari", "Away": "Juventus", "P(Over1.5)": 0.6604717950327738, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.262776900122871, "Model xG Home": 0.7348148148148148, "Model xG Away": 1.527962085308057, "Home GF/Home": 1.111111111111111, "Home GA/Home": 1.444444444444444, "Away GF/Away": 1.2, "Away GA/Away": 0.8}, {"Rank": 97, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Spurs", "Away": "West Ham", "P(Over1.5)": 0.6587966472177313, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.255676824946847, "Model xG Home": 1.366265060240964, "Model xG Away": 0.8894117647058825, "Home GF/Home": 1.2, "Home GA/Home": 1.2, "Away GF/Away": 0.9, "Away GA/Away": 1.8}, {"Rank": 98, "League": "SerieA", "DateUTC (date)": "2026-01-11 19:45", "Home": "Inter", "Away": "Napoli", "P(Over1.5)": 0.6570549651352786, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.248324381253291, "Model xG Home": 1.543111111111111, "Model xG Away": 0.7052132701421799, "Home GF/Home": 2.666666666666667, "Home GA/Home": 0.6666666666666666, "Away GF/Away": 1.2, "Away GA/Away": 0.7}, {"Rank": 99, "League": "SerieA", "DateUTC (date)": "2026-01-19 19:45", "Home": "Lazio", "Away": "Como", "P(Over1.5)": 0.6518937671991545, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.226710900473933, "Model xG Home": 1.116, "Model xG Away": 1.110710900473934, "Home GF/Home": 1.5, "Home GA/Home": 0.9, "Away GF/Away": 1.4, "Away GA/Away": 0.9}, {"Rank": 100, "League": "LaLiga", "DateUTC (date)": "2026-01-17 15:15", "Home": "RCD Mallorca", "Away": "Athletic Club", "P(Over1.5)": 0.6509294714291176, "Pick": "🔥 Best", "Strength": "Best", "Model xG Total": 2.22270117024808, "Model xG Home": 1.28885189809035, "Model xG Away": 0.9338492721577298, "Home GF/Home": 1.222222222222222, "Home GA/Home": 1.333333333333333, "Away GF/Away": 0.7777777777777778, "Away GA/Away": 1.555555555555556}, {"Rank": 101, "League": "SerieA", "DateUTC (date)": "2026-01-14 17:30", "Home": "Napoli", "Away": "Parma", "P(Over1.5)": 0.6464722902198032, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.204281200631911, "Model xG Home": 1.653333333333333, "Model xG Away": 0.5509478672985781, "Home GF/Home": 2.0, "Home GA/Home": 1.0, "Away GF/Away": 0.625, "Away GA/Away": 1.0}, {"Rank": 102, "League": "SerieA", "DateUTC (date)": "2026-01-10 19:45", "Home": "Atalanta", "Away": "Torino", "P(Over1.5)": 0.646448469250247, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.204183254344391, "Model xG Home": 1.322666666666666, "Model xG Away": 0.881516587677725, "Home GF/Home": 1.2, "Home GA/Home": 0.9, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.333333333333333}, {"Rank": 103, "League": "LaLiga", "DateUTC (date)": "2026-01-10 20:00", "Home": "Valencia CF", "Away": "Elche CF", "P(Over1.5)": 0.6371555501716152, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.1663654263017, "Model xG Home": 1.55352684144819, "Model xG Away": 0.6128385848535103, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.7777777777777778, "Away GF/Away": 0.875, "Away GA/Away": 1.875}, {"Rank": 104, "League": "Bundesliga", "DateUTC (date)": "2026-01-23 19:30", "Home": "FC St. Pauli", "Away": "Hamburger SV", "P(Over1.5)": 0.6370209016855926, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.165823117179436, "Model xG Home": 1.533274179236912, "Model xG Away": 0.6325489379425239, "Home GF/Home": 1.142857142857143, "Home GA/Home": 2.142857142857143, "Away GF/Away": 0.4285714285714285, "Away GA/Away": 2.285714285714286}, {"Rank": 105, "League": "SerieA", "DateUTC (date)": "2026-01-18 14:00", "Home": "Bologna", "Away": "Fiorentina", "P(Over1.5)": 0.6368392633131013, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.165091802703177, "Model xG Home": 1.616592592592593, "Model xG Away": 0.5484992101105843, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.8888888888888888, "Away GF/Away": 0.7, "Away GA/Away": 1.6}, {"Rank": 106, "League": "SerieA", "DateUTC (date)": "2026-01-12 19:45", "Home": "Juventus", "Away": "Cremonese", "P(Over1.5)": 0.6159915812134329, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.082991047919958, "Model xG Home": 1.377777777777778, "Model xG Away": 0.7052132701421799, "Home GF/Home": 1.666666666666667, "Home GA/Home": 0.8888888888888888, "Away GF/Away": 0.9, "Away GA/Away": 1.0}, {"Rank": 107, "League": "Bundesliga", "DateUTC (date)": "2026-01-18 14:30", "Home": "VfB Stuttgart", "Away": "1. FC Union Berlin", "P(Over1.5)": 0.6154415146296688, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.080872100392952, "Model xG Home": 1.293700088731145, "Model xG Away": 0.7871720116618075, "Home GF/Home": 1.285714285714286, "Home GA/Home": 1.142857142857143, "Away GF/Away": 1.0, "Away GA/Away": 1.714285714285714}, {"Rank": 108, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "Hamburger SV", "Away": "Borussia Mönchengladbach", "P(Over1.5)": 0.6101916644734897, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.060764989225504, "Model xG Home": 0.9538043478260869, "Model xG Away": 1.106960641399417, "Home GF/Home": 1.625, "Home GA/Home": 1.125, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.0}, {"Rank": 109, "League": "Eredivisie", "DateUTC (date)": "2026-01-17 17:45", "Home": "PEC Zwolle", "Away": "AZ", "P(Over1.5)": 0.6078062171773331, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.051697069515953, "Model xG Home": 0.7068415637860082, "Model xG Away": 1.344855505729945, "Home GF/Home": 0.875, "Home GA/Home": 1.375, "Away GF/Away": 1.444444444444444, "Away GA/Away": 1.444444444444444}, {"Rank": 110, "League": "SerieA", "DateUTC (date)": "2026-01-10 14:00", "Home": "Como", "Away": "Bologna", "P(Over1.5)": 0.6019929973749811, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.029773565034229, "Model xG Home": 1.515555555555556, "Model xG Away": 0.514218009478673, "Home GF/Home": 1.5, "Home GA/Home": 0.375, "Away GF/Away": 1.555555555555556, "Away GA/Away": 1.222222222222222}, {"Rank": 111, "League": "SerieA", "DateUTC (date)": "2026-01-24 14:00", "Home": "Como", "Away": "Torino", "P(Over1.5)": 0.599549798009764, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 2.020631911532385, "Model xG Home": 1.653333333333333, "Model xG Away": 0.3672985781990521, "Home GF/Home": 1.5, "Home GA/Home": 0.375, "Away GF/Away": 1.111111111111111, "Away GA/Away": 1.333333333333333}, {"Rank": 112, "League": "SerieA", "DateUTC (date)": "2026-01-12 17:30", "Home": "Genoa", "Away": "Cagliari", "P(Over1.5)": 0.5816683144001236, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 1.954968720379147, "Model xG Home": 0.6943999999999999, "Model xG Away": 1.260568720379147, "Home GF/Home": 0.6, "Home GA/Home": 1.3, "Away GF/Away": 1.1, "Away GA/Away": 1.4}, {"Rank": 113, "League": "Ligue1", "DateUTC (date)": "2026-01-17 20:05", "Home": "Angers SCO", "Away": "Olympique de Marseille", "P(Over1.5)": 0.569816450142989, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 1.91258394048455, "Model xG Home": 0.784423828125, "Model xG Away": 1.12816011235955, "Home GF/Home": 1.5, "Home GA/Home": 0.875, "Away GF/Away": 1.5, "Away GA/Away": 0.875}, {"Rank": 114, "League": "EPL", "DateUTC (date)": "2026-01-17 15:00", "Home": "Sunderland", "Away": "Crystal Palace", "P(Over1.5)": 0.5673416181201847, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 1.903841247342311, "Model xG Home": 1.113253012048193, "Model xG Away": 0.7905882352941177, "Home GF/Home": 1.6, "Home GA/Home": 0.8, "Away GF/Away": 1.2, "Away GA/Away": 1.1}, {"Rank": 115, "League": "LaLiga", "DateUTC (date)": "2026-01-18 13:00", "Home": "Getafe CF", "Away": "Valencia CF", "P(Over1.5)": 0.566309866935913, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 1.90020714157055, "Model xG Home": 1.449958385351644, "Model xG Away": 0.4502487562189055, "Home GF/Home": 0.875, "Home GA/Home": 0.75, "Away GF/Away": 0.6666666666666666, "Away GA/Away": 2.444444444444445}, {"Rank": 116, "League": "SerieA", "DateUTC (date)": "2026-01-10 17:00", "Home": "Roma", "Away": "Sassuolo", "P(Over1.5)": 0.562794674930653, "Pick": "💪 Strong", "Strength": "Strong", "Model xG Total": 1.887872369473212, "Model xG Home": 1.234897119341564, "Model xG Away": 0.6529752501316481, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.5555555555555556, "Away GF/Away": 1.333333333333333, "Away GA/Away": 1.222222222222222}, {"Rank": 117, "League": "Bundesliga", "DateUTC (date)": "2026-01-24 14:30", "Home": "1. FSV Mainz 05", "Away": "VfL Wolfsburg", "P(Over1.5)": 0.5444463948913452, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 1.824613385726962, "Model xG Home": 0.4716614906832298, "Model xG Away": 1.352951895043732, "Home GF/Home": 0.625, "Home GA/Home": 1.375, "Away GF/Away": 1.428571428571429, "Away GA/Away": 1.285714285714286}, {"Rank": 118, "League": "EPL", "DateUTC (date)": "2026-01-24 12:30", "Home": "West Ham", "Away": "Sunderland", "P(Over1.5)": 0.5378062195681663, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 1.802162466101646, "Model xG Home": 0.9514089415513294, "Model xG Away": 0.8507535245503162, "Home GF/Home": 1.181818181818182, "Home GA/Home": 2.272727272727273, "Away GF/Away": 0.4545454545454545, "Away GA/Away": 1.272727272727273}, {"Rank": 119, "League": "Bundesliga", "DateUTC (date)": "2026-01-17 14:30", "Home": "Borussia Dortmund", "Away": "FC St. Pauli", "P(Over1.5)": 0.5205466762108226, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 1.744826657371023, "Model xG Home": 1.498835403726708, "Model xG Away": 0.2459912536443148, "Home GF/Home": 1.857142857142857, "Home GA/Home": 0.5714285714285714, "Away GF/Away": 0.625, "Away GA/Away": 1.375}, {"Rank": 120, "League": "EPL", "DateUTC (date)": "2026-01-18 16:30", "Home": "Aston Villa", "Away": "Everton", "P(Over1.5)": 0.5164720562249888, "Pick": "👍 Lean", "Strength": "Lean", "Model xG Total": 1.731495393338058, "Model xG Home": 1.13855421686747, "Model xG Away": 0.5929411764705883, "Home GF/Home": 1.8, "Home GA/Home": 0.8, "Away GF/Away": 0.9, "Away GA/Away": 1.0}, {"Rank": 121, "League": "Bundesliga", "DateUTC (date)": "2026-01-13 19:30", "Home": "1. FSV Mainz 05", "Away": "1. FC Heidenheim 1846", "P(Over1.5)": 0.4644716564146023, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.567392096590189, "Model xG Home": 0.890916149068323, "Model xG Away": 0.6764759475218659, "Home GF/Home": 0.625, "Home GA/Home": 1.375, "Away GF/Away": 0.7142857142857143, "Away GA/Away": 2.428571428571428}, {"Rank": 122, "League": "LaLiga", "DateUTC (date)": "2026-01-24 15:15", "Home": "Valencia CF", "Away": "RCD Espanyol de Barcelona", "P(Over1.5)": 0.4464876833434588, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.512914516058907, "Model xG Home": 0.7249791926758221, "Model xG Away": 0.7879353233830846, "Home GF/Home": 1.222222222222222, "Home GA/Home": 0.7777777777777778, "Away GF/Away": 1.125, "Away GA/Away": 0.875}, {"Rank": 123, "League": "LaLiga", "DateUTC (date)": "2026-01-10 13:00", "Home": "Real Oviedo", "Away": "Real Betis", "P(Over1.5)": 0.4220655573217933, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.440496228801892, "Model xG Home": 0.2175983724048643, "Model xG Away": 1.222897856397027, "Home GF/Home": 0.2222222222222222, "Home GA/Home": 1.111111111111111, "Away GF/Away": 1.222222222222222, "Away GA/Away": 1.444444444444444}, {"Rank": 124, "League": "SerieA", "DateUTC (date)": "2026-01-11 17:00", "Home": "Hellas Verona", "Away": "Lazio", "P(Over1.5)": 0.40039568567790107, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.377560119361067, "Model xG Home": 0.642962962962963, "Model xG Away": 0.7345971563981042, "Home GF/Home": 1.0, "Home GA/Home": 1.5, "Away GF/Away": 0.5555555555555556, "Away GA/Away": 0.7777777777777778}, {"Rank": 125, "League": "LaLiga", "DateUTC (date)": "2026-01-10 17:30", "Home": "Girona FC", "Away": "CA Osasuna", "P(Over1.5)": 0.3979127314220178, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.370420059502736, "Model xG Home": 0.8034401442641144, "Model xG Away": 0.5669799152386217, "Home GF/Home": 0.8888888888888888, "Home GA/Home": 1.888888888888889, "Away GF/Away": 0.3333333333333333, "Away GA/Away": 1.333333333333333}, {"Rank": 126, "League": "SerieA", "DateUTC (date)": "2026-01-15 19:45", "Home": "Como", "Away": "Milan", "P(Over1.5)": 0.37748396337712464, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.312174170616114, "Model xG Home": 0.775, "Model xG Away": 0.5371741706161137, "Home GF/Home": 1.5, "Home GA/Home": 0.375, "Away GF/Away": 1.625, "Away GA/Away": 0.625}, {"Rank": 127, "League": "LaLiga", "DateUTC (date)": "2026-01-11 13:00", "Home": "Rayo Vallecano", "Away": "RCD Mallorca", "P(Over1.5)": 0.36214108023545244, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.268959509568264, "Model xG Home": 0.7061485642946318, "Model xG Away": 0.5628109452736318, "Home GF/Home": 0.625, "Home GA/Home": 0.625, "Away GF/Away": 1.0, "Away GA/Away": 1.666666666666667}, {"Rank": 128, "League": "SerieA", "DateUTC (date)": "2026-01-11 11:30", "Home": "Lecce", "Away": "Parma", "P(Over1.5)": 0.34178928544600595, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.212232227488152, "Model xG Home": 0.4959999999999999, "Model xG Away": 0.7162322274881516, "Home GF/Home": 0.6, "Home GA/Home": 1.3, "Away GF/Away": 0.625, "Away GA/Away": 1.0}, {"Rank": 129, "League": "SerieA", "DateUTC (date)": "2026-01-16 19:45", "Home": "Pisa", "Away": "Atalanta", "P(Over1.5)": 0.32623537578650774, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.169261014569071, "Model xG Home": 0.09185185185185185, "Model xG Away": 1.07740916271722, "Home GF/Home": 0.1, "Home GA/Home": 1.0, "Away GF/Away": 1.222222222222222, "Away GA/Away": 1.111111111111111}, {"Rank": 130, "League": "SerieA", "DateUTC (date)": "2026-01-24 19:45", "Home": "Lecce", "Away": "Lazio", "P(Over1.5)": 0.27249147158824116, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 1.022428646656135, "Model xG Home": 0.3857777777777778, "Model xG Away": 0.6366508688783571, "Home GF/Home": 0.6, "Home GA/Home": 1.3, "Away GF/Away": 0.5555555555555556, "Away GA/Away": 0.7777777777777778}, {"Rank": 131, "League": "Eredivisie", "DateUTC (date)": "2026-01-16 19:00", "Home": "Excelsior Rotterdam", "Away": "Telstar", "P(Over1.5)": 0.25223148608865875, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 0.9673485393714591, "Model xG Home": 0.497119341563786, "Model xG Away": 0.4702291978076731, "Home GF/Home": 0.8888888888888888, "Home GA/Home": 1.111111111111111, "Away GF/Away": 0.625, "Away GA/Away": 1.0}, {"Rank": 132, "League": "LaLiga", "DateUTC (date)": "2026-01-24 13:00", "Home": "Rayo Vallecano", "Away": "CA Osasuna", "P(Over1.5)": 0.17425256525680433, "Pick": "🚫 Avoid", "Strength": "Avoid", "Model xG Total": 0.7525224998602492, "Model xG Home": 0.5649188514357053, "Model xG Away": 0.1876036484245439, "Home GF/Home": 0.625, "Home GA/Home": 0.625, "Away GF/Away": 0.3333333333333333, "Away GA/Away": 1.333333333333333}, {"Rank": 133, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 00:00", "Home": "M'gladbach", "Away": "Augsburg", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 134, "League": "Bundesliga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Bayern Munich", "Away": "Wolfsburg", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 135, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "Levadeiakos", "Away": "Volos NFC", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 136, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "OFI Crete", "Away": "Asteras Tripolis", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 137, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "Aris", "Away": "AEK", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 138, "League": "GreeceSL", "DateUTC (date)": "2026-01-11 00:00", "Home": "Panathinaikos", "Away": "Panserraikos", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 139, "League": "SerieA", "DateUTC (date)": "2026-01-11 00:00", "Home": "Verona", "Away": "Lazio", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 140, "League": "SerieB", "DateUTC (date)": "2026-01-11 00:00", "Home": "Mantova", "Away": "Palermo", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 141, "League": "SerieB", "DateUTC (date)": "2026-01-11 00:00", "Home": "Padova", "Away": "Modena", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 142, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 00:00", "Home": "Heerenveen", "Away": "Feyenoord", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 143, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 00:00", "Home": "Go Ahead Eagles", "Away": "For Sittard", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 144, "League": "Eredivisie", "DateUTC (date)": "2026-01-11 00:00", "Home": "Sparta Rotterdam", "Away": "Heracles", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 145, "League": "PrimeiraLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Nacional", "Away": "Santa Clara", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 146, "League": "PrimeiraLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Moreirense", "Away": "Tondela", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 147, "League": "ScotPrem", "DateUTC (date)": "2026-01-11 00:00", "Home": "Dundee", "Away": "Hearts", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 148, "League": "ScotPrem", "DateUTC (date)": "2026-01-11 00:00", "Home": "Aberdeen", "Away": "Rangers", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 149, "League": "LaLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Vallecano", "Away": "Mallorca", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 150, "League": "LaLiga", "DateUTC (date)": "2026-01-11 00:00", "Home": "Levante", "Away": "Espanol", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 151, "League": "LaLiga", "DateUTC (date)": "2026-01-12 00:00", "Home": "Sevilla", "Away": "Celta", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 152, "League": "LaLiga2", "DateUTC (date)": "2026-01-11 00:00", "Home": "Leganes", "Away": "Valladolid", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 153, "League": "LaLiga2", "DateUTC (date)": "2026-01-11 00:00", "Home": "Granada", "Away": "Castellon", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 154, "League": "LaLiga2", "DateUTC (date)": "2026-01-11 00:00", "Home": "Malaga", "Away": "Ceuta", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 155, "League": "LaLiga2", "DateUTC (date)": "2026-01-12 00:00", "Home": "Huesca", "Away": "Cordoba", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 156, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "Club Leon", "Away": "Cruz Azul", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 157, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "Santos Laguna", "Away": "Necaxa", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 158, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "Monterrey", "Away": "Toluca", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 159, "League": "LigaMX", "DateUTC (date)": "2026-01-11 00:00", "Home": "UNAM Pumas", "Away": "Queretaro", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}, {"Rank": 160, "League": "LigaMX", "DateUTC (date)": "2026-01-12 00:00", "Home": "Atl. San Luis", "Away": "Tigres UANL", "P(Over1.5)": null, "Pick": "", "Strength": "", "Model xG Total": null, "Model xG Home": null, "Model xG Away": null, "Home GF/Home": null, "Home GA/Home": null, "Away GF/Away": null, "Away GA/Away": null}], "probCol": "P(Over1.5)"}];
+// =========================
+// VIP
+// =========================
 
-const state = {
-  datasets: [...DATASETS, {slug:"tracker", name:"Tracker", rows:[], columns:[], probCol:null}, {slug:"acca Tracker", name:"Acca Tracker", rows:[], columns:[], probCol:null}],
-  current: null,
-  raw: [],
-  filtered: [],
-  columnsAll: [],
-  columns: [],
-  sortKey: null,
-  sortDir: "asc",
-  compact: true
-};
+function normalizeVipEmail(email){
+  return String(email || "").trim().toLowerCase();
+}
 
 
-// ---- Tracker (local) ----
-const TRACKER_KEY = "picks_tracker_v1";
-const BANKROLL_KEY = "picks_bankroll_v1";
-const TRACKER_FILTER_KEY = "picks_tracker_filter_v1";
-const ACCAS_KEY = "picks_accas_v1";
-const ACCA_BANKROLL_KEY = "picks_acca_bankroll_v1";
-const DEFAULT_STAKE = 1;
-const DEFAULT_ODDS = 2.0;
+function setVipUI(active, email){
+  vipActive = !!active;
 
-const CURRENCY = "£";
-function money(n){
-  const v = Number(n);
-  if(!Number.isFinite(v)) return CURRENCY + "0.00";
-  const sign = v < 0 ? "-" : "";
-  return sign + CURRENCY + Math.abs(v).toFixed(2);
-}
+  const titleEl = document.getElementById('vipTitle');
+  const statusEl = document.getElementById('vipStatus');
+  const btnEl = document.getElementById('vipButton');
+  const btnTextEl = btnEl ? btnEl.querySelector('.vip-button__text') : null;
 
-function loadTracker(){
-  try{
-    const raw = localStorage.getItem(TRACKER_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
-  }catch(e){ return []; }
-}
-function saveTracker(){
-  try{ localStorage.setItem(TRACKER_KEY, JSON.stringify(state.tracker || [])); }catch(e){}
-}
-
-function loadBankroll(){
-  try{
-    const raw = localStorage.getItem(BANKROLL_KEY);
-    const v = raw ? JSON.parse(raw) : null;
-    if(v && typeof v.start === "number") return v;
-  }catch(e){}
-  return { start: 100, updatedAt: Date.now() };
-}
-function saveBankroll(obj){
-  try{ localStorage.setItem(BANKROLL_KEY, JSON.stringify(obj)); }
-  catch(e){}
-}
-
-function loadTrackerFilter(){
-  try{
-    const raw = localStorage.getItem(TRACKER_FILTER_KEY);
-    const v = raw ? JSON.parse(raw) : null;
-    if(v && typeof v === "object") return v;
-  }catch(e){}
-  return { status: "all", range: "all", league: "all", q: "" };
-}
-function saveTrackerFilter(obj){
-  try{ localStorage.setItem(TRACKER_FILTER_KEY, JSON.stringify(obj)); }catch(e){}
-}
-function inRange(t, range){
-  if(range === "all") return true;
-  const ts = (t.updatedAt || t.createdAt || 0);
-  const d = new Date(ts);
-  const now = new Date();
-  if(range === "today"){
-    return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
-  }
-  if(range === "7d"){
-    return (now.getTime() - ts) <= 7*24*60*60*1000;
-  }
-  return true;
-}
-function normStr(s){ return (s||"").toString().trim().toLowerCase(); }
-function matchQ(t, q){
-  if(!q) return true;
-  const hay = [
-    t.market, t.league, t.date, t.home, t.away, t.pick
-  ].map(normStr).join(" ");
-  return hay.includes(normStr(q));
-}
-function downloadText(filename, text, mime="text/plain"){
-  const blob = new Blob([text], {type: mime});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 800);
-}
-function trackerToCsv(arr){
-  const cols = ["status","market","league","date","home","away","prob","pick","stake","odds","profit","createdAt","updatedAt"];
-  const esc = (v)=>{
-    const s = (v===null||v===undefined) ? "" : String(v);
-    if(/[",\n\r]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
-    return s;
-  };
-  const lines = [];
-  lines.push(cols.join(","));
-  for(const t of arr){
-    const row = {
-      status: t.status||"",
-      market: t.market||"",
-      league: t.league||"",
-      date: t.date||"",
-      home: t.home||"",
-      away: t.away||"",
-      prob: (typeof t.prob==="number") ? Math.round(t.prob*100)+"%" : "",
-      pick: t.pick||"",
-      stake: (typeof t.stake==="number") ? t.stake : "",
-      odds: (typeof t.odds==="number") ? t.odds : "",
-      profit: (typeof betProfit==="function") ? money(betProfit(t)) : "",
-      createdAt: t.createdAt ? new Date(t.createdAt).toISOString() : "",
-      updatedAt: t.updatedAt ? new Date(t.updatedAt).toISOString() : ""
-    };
-    lines.push(cols.map(c=>esc(row[c])).join(","));
-  }
-  return lines.join("\n");
-}
-function betSlipLine(t){
-  const prob = (typeof t.prob==="number") ? (Math.round(t.prob*100)+"%") : "";
-  const so = ((typeof t.stake==="number" && isFinite(t.stake)) ? ("Stake "+t.stake) : "") +
-             ((typeof t.odds==="number" && isFinite(t.odds)) ? (" @"+t.odds) : "");
-  return `${t.home} vs ${t.away} — ${t.market}${t.pick ? (" • "+t.pick):""}${prob ? (" • "+prob):""}${so ? (" • "+so):""}${t.league?(" • "+t.league):""}${t.date?(" • "+t.date+" UTC"):""}`;
-}
-async function copyText(text){
-  try{
-    await navigator.clipboard.writeText(text);
-    return true;
-  }catch(e){
-    try{
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      ta.remove();
-      return true;
-    }catch(e2){ return false; }
+  if(active){
+    if(titleEl) titleEl.textContent = 'VIP Access';
+    if(statusEl) statusEl.textContent = email ? `Access unlocked for ${email}` : 'Access unlocked';
+    if(btnEl){
+      if(btnTextEl) btnTextEl.textContent = 'VIP Access Active';
+      else btnEl.textContent = 'VIP Access Active';
+      btnEl.disabled = true;
+      btnEl.style.pointerEvents = "none";
+      btnEl.style.cursor = "default";
+    }
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.remove('tab--locked');
+  }else{
+    if(titleEl) titleEl.textContent = 'VIP Access';
+    if(statusEl) statusEl.textContent = 'VIP locked — subscribe to unlock';
+    if(btnEl){
+      if(btnTextEl) btnTextEl.textContent = 'Go VIP';
+      else btnEl.textContent = 'Go VIP';
+      btnEl.disabled = false;
+      btnEl.style.pointerEvents = "";
+      btnEl.style.cursor = "pointer";
+    }
+    if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
   }
 }
 
-function uid(){
-  return "t_" + Math.random().toString(36).slice(2,10) + "_" + Date.now().toString(36);
+function openVipModal(){
+  if(!vipModalEl) return;
+  if(vipErrorEl) vipErrorEl.textContent="";
+  const saved=(localStorage.getItem('vip_email')||"").trim();
+  if(vipEmailEl && !vipEmailEl.value) vipEmailEl.value=saved;
+  if(vipPasswordEl && !vipPasswordEl.value) vipPasswordEl.value="";
+  vipModalEl.style.display="flex";
 }
-function normPickLabel(row){
-  return row.Pick || row.Strength || "";
+
+function closeVipModal(){
+  if(!vipModalEl) return;
+  vipModalEl.style.display="none";
 }
-function inferProb(row){
-  const pCol = state.current?.probCol;
-  const v = pCol ? row[pCol] : null;
-  return (typeof v === "number" && isFinite(v)) ? v : null;
-}
-function addToTracker(row){
-  state.tracker = state.tracker || loadTracker();
-  const home = row.Home || "";
-  const away = row.Away || "";
-  const league = row.League || "";
-  const date = row["DateUTC (date)"] || row.Date || "";
-  const market = state.current?.name || "";
-  const prob = inferProb(row);
-  const pick = normPickLabel(row);
-  const key = `${market}||${league}||${date}||${home}||${away}`;
-  // prevent duplicates
-  if(state.tracker.some(x => x.key === key)) return false;
-  state.tracker.unshift({
-    id: uid(),
-    key,
-    status: "pending",
-    stake: DEFAULT_STAKE,
-    odds: DEFAULT_ODDS,
-    createdAt: Date.now(),
-    market, league, date, home, away,
-    prob, pick
+
+async function ensureVipPasswordAccount(email, password){
+  const cleanEmail = normalizeVipEmail(email);
+  const cleanPassword = String(password || "");
+  if(!cleanEmail || !cleanEmail.includes("@")) throw new Error("Enter a valid email.");
+  if(cleanPassword.length < 6) throw new Error("Use at least 6 characters for your VIP password.");
+
+  const signIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+  if(!signIn.error) return true;
+
+  const signUp = await client.auth.signUp({
+    email: cleanEmail,
+    password: cleanPassword,
+    options: { emailRedirectTo: window.location.origin }
   });
-  saveTracker();
-  return true;
-}
-function setTrackerStatus(id, status){
-  const t = (state.tracker||[]).find(x=>x.id===id);
-  if(!t) return;
-  t.status = status;
-  t.updatedAt = Date.now();
-  saveTracker();
-}
-function removeTracker(id){
-  state.tracker = (state.tracker||[]).filter(x=>x.id!==id);
-  saveTracker();
+  if(!signUp.error) return true;
+
+  const msg = String(signUp.error?.message || "").toLowerCase();
+  if(msg.includes("already") || msg.includes("exists") || msg.includes("registered") || msg.includes("user already")){
+    const secondSignIn = await client.auth.signInWithPassword({ email: cleanEmail, password: cleanPassword });
+    if(!secondSignIn.error) return true;
+    throw new Error("Wrong VIP password for that email.");
+  }
+
+  throw signUp.error;
 }
 
+async function forgotVipPassword(){
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your email first.";
+    return;
+  }
+  try{
+    if(vipErrorEl) vipErrorEl.textContent = "Sending reset email...";
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/reset-password.html"
+    });
+    if(error) throw error;
+    if(vipErrorEl) vipErrorEl.textContent = "Password reset email sent.";
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent = err?.message || "Could not send reset email.";
+  }
+}
 
-function drawBankrollChart(canvas, points){
-  if(!canvas || !canvas.getContext) return;
-  const ctx = canvas.getContext("2d");
-  const w = canvas.width, h = canvas.height;
-  ctx.clearRect(0,0,w,h);
+async function restoreVipAccess(){
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
 
-  if(!points || points.length < 2){
-    ctx.globalAlpha = 0.7;
-    ctx.fillText("No settled bets yet", 10, 20);
-    ctx.globalAlpha = 1;
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter the same email you used for VIP.";
+    return;
+  }
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent = "Enter your VIP password.";
     return;
   }
 
-  const min = Math.min(...points);
-  const max = Math.max(...points);
-  const pad = 10;
-  const rng = (max-min) || 1;
+  localStorage.setItem("vip_email", email);
 
-  // axes baseline
-  ctx.globalAlpha = 0.25;
-  ctx.beginPath();
-  ctx.moveTo(pad, h-pad);
-  ctx.lineTo(w-pad, h-pad);
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+  try{
+    if(vipErrorEl) vipErrorEl.textContent = "";
+    if(vipRestoreEl) vipRestoreEl.disabled = true;
 
-  ctx.beginPath();
-  for(let i=0;i<points.length;i++){
-    const x = pad + (i*( (w-2*pad) / (points.length-1) ));
-    const y = pad + ((max-points[i]) * ((h-2*pad)/rng));
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    const signIn = await client.auth.signInWithPassword({ email, password });
+    if(signIn.error){
+      throw new Error("No VIP account found for this email, or the password is wrong.");
+    }
+
+    const active = await forceVipRefreshNow(email);
+
+    if(active) return;
+    if(vipErrorEl) vipErrorEl.textContent = "No active VIP subscription found for this email.";
+  }catch(e){
+    if(vipErrorEl) vipErrorEl.textContent = e?.message || "Could not restore VIP right now.";
+  }finally{
+    if(vipRestoreEl) vipRestoreEl.disabled = false;
   }
-  ctx.stroke();
-
-  // last point label
-  const last = points[points.length-1];
-  ctx.globalAlpha = 0.8;
-  ctx.fillText((money(last)), w-pad-40, pad+12);
-  ctx.globalAlpha = 1;
 }
 
-function betProfit(t){
-  const stake = (typeof t.stake === "number" && isFinite(t.stake)) ? t.stake : 0;
-  const odds  = (typeof t.odds  === "number" && isFinite(t.odds))  ? t.odds  : 0;
-  if(t.status === "won") return stake * Math.max(0, (odds - 1));
-  if(t.status === "lost") return -stake;
-  return 0;
+
+async function checkVIP(){
+  const email=(localStorage.getItem('vip_email')||"").trim();
+  if(!email){
+    vipActive=false;
+    setVipUI(false,"");
+    return false;
+  }
+  try{
+    const r=await fetch(`/api/verify-subscription?email=${encodeURIComponent(email)}`);
+    const j=await r.json();
+    vipActive=!!j.active;
+    setVipUI(vipActive,email);
+    return vipActive;
+  }catch(e){
+    vipActive=false;
+    if(vipStatusEl) vipStatusEl.textContent="VIP status check failed";
+    setVipUI(false,email);
+    return false;
+  }
 }
 
-function marketKey(name){
-  return (name||"").toString().trim().toLowerCase();
+async function startCheckout(plan){
+  if(vipErrorEl) vipErrorEl.textContent="";
+  const email = normalizeVipEmail(vipEmailEl?.value || "");
+  const password = String(vipPasswordEl?.value || "").trim();
+
+  if(!email || !email.includes("@")){
+    if(vipErrorEl) vipErrorEl.textContent="Enter a valid email.";
+    return;
+  }
+  if(password.length < 6){
+    if(vipErrorEl) vipErrorEl.textContent="Create a VIP password with at least 6 characters.";
+    return;
+  }
+
+  localStorage.setItem('vip_email', email);
+  try{
+    await ensureVipPasswordAccount(email, password);
+    if(vipMonthlyEl) vipMonthlyEl.disabled=true;
+    if(vipYearlyEl) vipYearlyEl.disabled=true;
+    if(vipRestoreEl) vipRestoreEl.disabled=true;
+    const r=await fetch('/api/create-checkout-session',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,plan})
+    });
+    const j=await r.json();
+    if(!r.ok || !j.url) throw new Error(j.error||'Checkout failed');
+    window.location.href=j.url;
+  }catch(err){
+    if(vipErrorEl) vipErrorEl.textContent=err?.message||'Something went wrong.';
+    if(vipMonthlyEl) vipMonthlyEl.disabled=false;
+    if(vipYearlyEl) vipYearlyEl.disabled=false;
+    if(vipRestoreEl) vipRestoreEl.disabled=false;
+  }
 }
-function leaguePerfByMarket(marketName){
-  const key = marketKey(marketName);
-  const arr = (state.tracker||[]).filter(x=> (marketKey(x.market)===key) && (x.status==="won"||x.status==="lost"));
-  const map = new Map();
-  arr.forEach(t=>{
-    const league = t.league || "Unknown";
-    if(!map.has(league)) map.set(league, {league, staked:0, profit:0, bets:0, won:0, lost:0});
-    const o = map.get(league);
-    const stake = (typeof t.stake==="number" && isFinite(t.stake)) ? t.stake : 0;
-    o.staked += stake;
-    const p = (typeof betProfit==="function") ? betProfit(t) : 0;
-    o.profit += p;
-    o.bets += 1;
-    if(t.status==="won") o.won += 1; else if(t.status==="lost") o.lost += 1;
-  });
-  const out = Array.from(map.values()).map(o=>{
-    const roi = o.staked ? (o.profit/o.staked) : 0;
-    const winp = (o.won+o.lost) ? Math.round((o.won/(o.won+o.lost))*100) : 0;
-    return {...o, roi, winp};
-  });
-  out.sort((a,b)=>b.roi - a.roi);
+
+function pad2(n){return String(n).padStart(2,'0');}
+function toLocalYMD(d=new Date()){
+  const yr=d.getFullYear();
+  const mo=pad2(d.getMonth()+1);
+  const da=pad2(d.getDate());
+  return `${yr}-${mo}-${da}`;
+}
+function normalizeDateOnly(value){
+  if(!value) return null;
+  if(typeof value==='string'){
+    if(/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    const dt=new Date(value);
+    if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
+    return null;
+  }
+  const dt=new Date(value);
+  if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
+  return null;
+}
+function isValueBetActiveToday(row){
+  const today=toLocalYMD(new Date());
+  const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
+  const end=normalizeDateOnly(row.bet_end_date) || start;
+  if(!start) return false;
+  return today >= start && today <= end;
+}
+
+
+
+async function forceVipRefreshNow(emailFromInput){
+  const email = normalizeVipEmail(emailFromInput || (vipEmailEl?.value || "") || (localStorage.getItem('vip_email') || ""));
+  if(!email || !email.includes("@")) return false;
+  localStorage.setItem('vip_email', email);
+  const active = await checkVIP();
+  if(active){
+    closeVipModal();
+    await loadBets();
+    refreshAdminBadgeUI();
+    return true;
+  }
+  return false;
+}
+
+async function pollVipAfterCheckout(){
+  const email = normalizeVipEmail((localStorage.getItem('vip_email') || ""));
+  if(!email) return false;
+  if(vipStatusEl) vipStatusEl.textContent = 'Finalising VIP payment...';
+  for(let i=0;i<20;i++){
+    const active = await forceVipRefreshNow(email);
+    if(active){
+      try{
+        const url = new URL(window.location.href);
+        url.searchParams.delete('vip');
+        url.searchParams.delete('session_id');
+        window.history.replaceState({}, '', url.toString());
+      }catch(e){}
+      return true;
+    }
+    await new Promise(r=>setTimeout(r,3000));
+  }
+  if(vipStatusEl) vipStatusEl.textContent = 'Tap Restore VIP to unlock.';
+  return false;
+}
+
+function shouldTryVipFinalize(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('vip') === 'success' || params.has('session_id')) return true;
+  }catch(e){}
+  return false;
+}
+
+
+
+function getMarketIcon(market){
+  if(!market) return "";
+  const m = market.toLowerCase();
+  if(m.includes("goal")) return "⚽";
+  if(m.includes("btts")) return "🥅";
+  if(m.includes("corner")) return "🚩";
+  if(m.includes("card")) return "🟨";
+  return "⚽";
+}
+function getBetTitleSizeClass(match){
+  const len = String(match || "").trim().length;
+  if(len >= 30) return " bet-title--tiny";
+  if(len >= 24) return " bet-title--small";
+  return "";
+}
+
+
+function getValueBetMarketIconSvg(market){
+  const m = String(market || "").toLowerCase();
+  const wrap = (inner, cls='is-default') =>
+    `<span class="vb-svg-icon ${cls}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">${inner}</svg></span>`;
+
+  if(m.includes("throw")){
+    return wrap('<path d="M7 8L3 12L7 16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 8L21 12L17 16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12H20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', 'is-throw');
+  }
+  if(m.includes("corner")){
+    return wrap('<path d="M6 20V5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M8 6C11 5 13 8 16 7C17.3 6.6 18.2 5.8 19 5V12C18.2 12.8 17.3 13.6 16 14C13 15 11 12 8 13V6Z" fill="currentColor"/>', 'is-corner');
+  }
+  if(m.includes("card") || m.includes("booking")){
+    return wrap('<rect x="6" y="4" width="12" height="16" rx="2.5" fill="currentColor"/>', 'is-card');
+  }
+  if(m.includes("btts") || m.includes("both teams to score")){
+    return wrap('<path d="M12 3L18.5 7V17L12 21L5.5 17V7L12 3Z" stroke="currentColor" stroke-width="2"/><path d="M9 12.5L11 14.5L15.5 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>', 'is-btts');
+  }
+  if(m.includes("shot on target") || m.includes("shots on target") || m.includes("sot")){
+    return wrap('<circle cx="12" cy="12" r="7.5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/>', 'is-sot');
+  }
+  if(m.includes("foul")){
+    return wrap('<path d="M12 3L21 19H3L12 3Z" stroke="currentColor" stroke-width="2"/><path d="M12 9V13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="16.3" r="1.2" fill="currentColor"/>', 'is-foul');
+  }
+  if(m.includes("offside")){
+    return wrap('<path d="M4 6V18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M6 7H18L14 11H6V7Z" fill="currentColor"/><path d="M8 17L17 8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', 'is-offside');
+  }
+  if(m.includes("asian handicap") || m.includes("handicap")){
+    return wrap('<path d="M12 4L5 8V12C5 16.5 8 19.6 12 20.5C16 19.6 19 16.5 19 12V8L12 4Z" stroke="currentColor" stroke-width="2"/><path d="M8 13H16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M12 9V17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', 'is-handicap');
+  }
+  if(m.includes("match winner") || m.includes("to win") || m.includes("1x2") || m == "home" || m == "away" || m == "draw"){
+    return wrap('<path d="M8 5H16V8C16 10.2 14.2 12 12 12C9.8 12 8 10.2 8 8V5Z" stroke="currentColor" stroke-width="2"/><path d="M6 5H8V7C8 8.7 6.7 10 5 10H4V8C4 6.3 5.3 5 7 5H6Z" fill="currentColor"/><path d="M16 5H18C19.7 5 21 6.3 21 8V10H20C18.3 10 17 8.7 17 7V5H16Z" fill="currentColor"/><path d="M12 12V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 20H15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', 'is-winner');
+  }
+  if(m.includes("goal") || m.includes("fhg") || m.includes("fgh")){
+    return wrap('<circle cx="12" cy="12" r="7.5" stroke="currentColor" stroke-width="2"/><path d="M12 7.5L15 9.3L14.4 12.8L9.6 12.8L9 9.3L12 7.5Z" fill="currentColor"/>', 'is-goal');
+  }
+  return wrap('<circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="7.5" stroke="currentColor" stroke-width="2" opacity="0.55"/>', 'is-default');
+}
+
+// ===== Layout Mode (Compact / Wide) =====
+const btnCompact = document.getElementById("btnCompact");
+const btnWide = document.getElementById("btnWide");
+
+function forceDesktopWideMode(){
+  const isDesktopViewport = window.innerWidth >= 950;
+  if(isDesktopViewport){
+    applyLayout("wide");
+    if(btnCompact) btnCompact.style.display = "none";
+    if(btnWide){
+      btnWide.disabled = true;
+      btnWide.classList.add("active");
+    }
+  }else{
+    if(btnCompact) btnCompact.style.display = "";
+    if(btnWide) btnWide.disabled = false;
+  }
+}
+
+
+// VIP UI
+const vipButtonEl = document.getElementById("vipButton");
+const vipStatusEl = document.getElementById("vipStatus");
+const vipModalEl = document.getElementById("vipModal");
+const vipCloseEl = document.getElementById("vipClose");
+const vipEmailEl = document.getElementById("vipEmail");
+const vipPasswordEl = document.getElementById("vipPassword");
+const vipMonthlyEl = document.getElementById("vipMonthly");
+const vipYearlyEl = document.getElementById("vipYearly");
+const vipRestoreEl = document.getElementById("vipRestore");
+const vipForgotEl = document.getElementById("vipForgot");
+const vipErrorEl = document.getElementById("vipError");
+
+
+let vipActive = false;
+const ADMIN_SYNC_EMAIL = "nathanbrownlee40@gmail.com";
+let tdtRowsCache = [];
+let tdtSortKey = 'date';
+let tdtSortDir = 'asc';
+let tdtAllCollapsed = false;
+
+function getTdtTodayKey(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const d = String(now.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+function currentVipEmail(){
+  return ((localStorage.getItem('vip_email')||'').trim().toLowerCase());
+}
+function isAdminSyncEnabled(){
+  return currentVipEmail() === ADMIN_SYNC_EMAIL;
+}
+function refreshAdminBadgeUI(){
+  const badges = document.querySelectorAll('[data-admin-badge="1"]');
+  badges.forEach(el=>{ el.style.display = isAdminSyncEnabled() ? "inline-flex" : "none"; });
+}
+function makeSyncId(){
+  return `sync_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+async function upsertTdtMirror(row){
+  if(!isAdminSyncEnabled() || !row) return;
+  if(!row.sync_id) row.sync_id = makeSyncId();
+  const payload = {
+    sync_id: row.sync_id,
+    match: row.match || "",
+    market: row.market || "",
+    odds: Number(row.odds || 0),
+    stake: Number(row.stake || 0),
+    result: row.result || "pending",
+    profit: row.result === "won" ? Number(row.stake || 0) * (Number(row.odds || 0) - 1)
+           : row.result === "lost" ? -Number(row.stake || 0)
+           : 0,
+    bet_date: row.bet_date || null,
+    created_at: row.created_at || new Date().toISOString(),
+    bookie: row.bookie || null
+  };
+  const { data: existing, error: checkErr } = await client.from("tdt_tracker").select("id").eq("sync_id", row.sync_id).limit(1);
+  if(checkErr) throw checkErr;
+  if(existing && existing.length){
+    const { error } = await client.from("tdt_tracker").update(payload).eq("sync_id", row.sync_id);
+    if(error) throw error;
+  }else{
+    const { error } = await client.from("tdt_tracker").insert([payload]);
+    if(error) throw error;
+  }
+}
+async function deleteTdtMirror(syncId){
+  if(!isAdminSyncEnabled() || !syncId) return;
+  const { error } = await client.from("tdt_tracker").delete().eq("sync_id", syncId);
+  if(error) throw error;
+}
+
+
+function trackerStorageKey(){
+  const email = ((localStorage.getItem('vip_email')||'').trim().toLowerCase() || 'guest');
+  return `tdt_tracker_${email}`;
+}
+
+function readTrackerRowsLocal(){
+  try{
+    const raw = localStorage.getItem(trackerStorageKey());
+    const rows = raw ? JSON.parse(raw) : [];
+    const safeRows = Array.isArray(rows) ? rows : [];
+    return safeRows.map(normalizeTrackerRow);
+  }catch(e){
+    return [];
+  }
+}
+
+function writeTrackerRowsLocal(rows){
+  localStorage.setItem(trackerStorageKey(), JSON.stringify(rows || []));
+}
+
+function normalizeTrackerRow(row){
+  const out = { ...(row || {}) };
+  if(!out.id) out.id = makeLocalTrackerId();
+  if(!out.created_at && out.bet_date){
+    out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
+  }
+  if(!out.created_at){
+    out.created_at = new Date().toISOString();
+  }
+  if(out.stake == null) out.stake = 10;
+  if(!out.result) out.result = "pending";
   return out;
 }
-function drawLeagueBarChart(canvas, items){
-  if(!canvas || !canvas.getContext) return;
-  const ctx = canvas.getContext("2d");
-  const w = canvas.width, h = canvas.height;
-  ctx.clearRect(0,0,w,h);
-  ctx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-  ctx.textBaseline = "middle";
 
-  if(!items || !items.length){
-    ctx.globalAlpha = 0.8;
-    ctx.fillStyle = "rgba(255,255,255,.85)";
-    ctx.fillText("No settled bets yet", 10, 16);
-    ctx.globalAlpha = 1;
-    return;
+function makeLocalTrackerId(){
+  return `trk_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+
+async function currentAuthUserId(){
+  try{
+    const { data, error } = await client.auth.getUser();
+    if(error) return null;
+    return data?.user?.id || null;
+  }catch(e){
+    return null;
   }
-  const topN = items.slice(0, 8);
-  const rois = topN.map(x=>x.roi);
-  const min = Math.min(...rois, 0);
-  const max = Math.max(...rois, 0.01);
-  const padL = 10, padR = 10, padT = 18, padB = 10;
-  const rowH = (h - padT - padB) / topN.length;
-  const zeroX = padL + ((0 - min) / (max - min)) * (w - padL - padR);
+}
 
-  ctx.globalAlpha = 0.25;
-  ctx.strokeStyle = "rgba(255,255,255,.8)";
-  ctx.beginPath();
-  ctx.moveTo(zeroX, padT);
-  ctx.lineTo(zeroX, h-padB);
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+async function readTrackerRows(){
+  const localRows = readTrackerRowsLocal();
 
-  topN.forEach((x,i)=>{
-    const y = padT + i*rowH + rowH/2;
-    const barW = ((x.roi - 0) / (max - min)) * (w - padL - padR);
-    const x0 = zeroX;
-    const x1 = zeroX + barW;
+  const userId = await currentAuthUserId();
+  if(!userId) return localRows;
 
-    const good = x.roi >= 0;
-    ctx.fillStyle = good ? "#39ff14" : "#ff2d2d";
+  try{
+    const { data, error } = await client
+      .from("personal_tracker")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true });
 
-    const bx = good ? x0 : x1;
-    const bw = abs(barW);
-    const by = y - (rowH*0.28);
-    const bh = rowH*0.56;
-    ctx.globalAlpha = 0.85;
-    ctx.fillRect(bx, by, bw, bh);
-    ctx.globalAlpha = 1;
+    if(error) throw error;
 
-    ctx.fillStyle = "rgba(255,255,255,0.92)";
-    const name = (x.league.length>18) ? x.league.slice(0,18)+"…" : x.league;
-    ctx.fillText(name, padL, y);
-    const label = (x.roi*100).toFixed(1) + "%";
-    ctx.fillText(label, w - padR - ctx.measureText(label).width, y);
+    const cloudRows = (data || []).map(normalizeTrackerRow);
+    if(cloudRows.length){
+      writeTrackerRowsLocal(cloudRows);
+      return cloudRows;
+    }
+
+    // first-time cloud seed from local backup
+    if(localRows.length){
+      const seedRows = localRows.map(r => ({ ...normalizeTrackerRow(r), user_id: userId }));
+      const { error: seedError } = await client.from("personal_tracker").upsert(seedRows, { onConflict: "id" });
+      if(seedError) throw seedError;
+      writeTrackerRowsLocal(localRows);
+      return localRows;
+    }
+
+    return [];
+  }catch(e){
+    console.error("readTrackerRows cloud fallback", e);
+    return localRows;
+  }
+}
+
+async function upsertTrackerRow(row){
+  const safeRow = normalizeTrackerRow(row);
+  const userId = await currentAuthUserId();
+
+  // Always keep browser backup too
+  const localRows = readTrackerRowsLocal();
+  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
+  writeTrackerRowsLocal(nextLocal);
+
+  if(!userId) return safeRow;
+
+  const payload = { ...safeRow, user_id: userId };
+  const { error } = await client.from("personal_tracker").upsert([payload], { onConflict: "id" });
+  if(error) throw error;
+  return safeRow;
+}
+
+async function deleteTrackerRowById(id){
+  const localRows = readTrackerRowsLocal().filter(r => String(r.id) !== String(id));
+  writeTrackerRowsLocal(localRows);
+
+  const userId = await currentAuthUserId();
+  if(!userId) return;
+
+  const { error } = await client
+    .from("personal_tracker")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id);
+
+  if(error) throw error;
+}
+
+
+function applyLayout(mode){
+  document.body.classList.remove("layout-compact","layout-wide");
+  document.body.classList.add(mode === "wide" ? "layout-wide" : "layout-compact");
+  localStorage.setItem("layout_mode", mode);
+  if(btnCompact) btnCompact.classList.toggle("active", mode !== "wide");
+  if(btnWide) btnWide.classList.toggle("active", mode === "wide");
+}
+
+(function initLayoutMode(){
+  const saved = localStorage.getItem("layout_mode");
+  const isDesktopViewport = window.innerWidth >= 950;
+
+  if(saved === "wide" || saved === "compact"){
+    applyLayout(isDesktopViewport ? "wide" : saved);
+  }else{
+    applyLayout(isDesktopViewport ? "wide" : "compact");
+  }
+
+  if(btnCompact) btnCompact.addEventListener("click", ()=>{
+    if(window.innerWidth >= 950) return;
+    applyLayout("compact");
   });
 
-  ctx.fillStyle = "#39ff14";
-  ctx.fillText("Good", padL, 10);
-  const m = ctx.measureText("Good").width;
-  ctx.fillStyle = "#ff2d2d";
-  ctx.fillText("Bad", padL + m + 14, 10);
+  if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
+})();
 
-  function abs(v){ return v<0 ? -v : v; }
+// (Install App / PWA install button removed for now)
+
+const bankrollElem=document.getElementById("bankroll");
+const profitElem=document.getElementById("profit");
+const roiElem=document.getElementById("roi");
+const winrateElem=document.getElementById("winrate");
+const winsElem=document.getElementById("wins");
+const lossesElem=document.getElementById("losses");
+const avgOddsElem=document.getElementById("avgOdds");
+const profitCard=document.getElementById("profitCard");
+
+// Track which feed items have been added to the tracker (prevents duplicate clicks + changes button UI)
+const addedKeys = new Set();
+
+const FREE_VISIBLE_COUNT = 3;
+const FREE_DELAY_MINUTES = 10;
+const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
+
+function makeBetKey(row){
+  const match = (row?.match ?? "").toString().trim();
+  const market = (row?.market ?? "").toString().trim();
+  const odds = (row?.odds ?? "").toString().trim();
+  const dateKey = (row?.bet_date ?? row?.created_at ?? "").toString().trim();
+  return `k:${match}|${market}|${odds}|${dateKey}`;
 }
 
-function trackerFinance(){
-  const arr = state.tracker || [];
-  const decided = arr.filter(x=>x.status==="won" || x.status==="lost" || x.status==="void");
-  const staked = decided.reduce((s,t)=> s + (((typeof t.stake==="number" && isFinite(t.stake))?t.stake:0)), 0);
-  const profit = decided.reduce((s,t)=> s + betProfit(t), 0);
-  const roi = staked ? (profit / staked) : 0;
-  return { profit, staked, roi, decidedCount: decided.length };
+function getBetPublicState(row, idx){
+  if(vipActive){
+    return { locked:false, reason:"vip", unlocksAt:null, minutesLeft:0 };
+  }
+
+  if(idx >= FREE_VISIBLE_COUNT){
+    return { locked:true, reason:"vip-limit", unlocksAt:null, minutesLeft:0 };
+  }
+
+  const createdRaw = row?.created_at || row?.bet_date;
+  const createdAt = createdRaw ? new Date(createdRaw) : null;
+  if(!createdAt || Number.isNaN(createdAt.getTime())){
+    return { locked:false, reason:"public", unlocksAt:null, minutesLeft:0 };
+  }
+
+  const unlocksAt = new Date(createdAt.getTime() + FREE_DELAY_MINUTES * 60 * 1000);
+  const remainingMs = unlocksAt.getTime() - Date.now();
+  const minutesLeft = Math.max(1, Math.ceil(remainingMs / 60000));
+  if(remainingMs > 0){
+    return { locked:true, reason:"delay", unlocksAt, minutesLeft };
+  }
+
+  return { locked:false, reason:"public", unlocksAt:null, minutesLeft:0 };
 }
 
-function trackerStats(){
-  const arr = state.tracker || [];
-  const won = arr.filter(x=>x.status==="won").length;
-  const lost = arr.filter(x=>x.status==="lost").length;
-  const pending = arr.filter(x=>x.status==="pending").length;
-  const voided = arr.filter(x=>x.status==="void").length;
-  const decided = won + lost;
-  const winp = decided ? Math.round((won/decided)*100) : 0;
-  return {total: arr.length, won, lost, pending, voided, winp};
+function teaserCopyForLockedBet(row, state){
+  const valueRaw = row?.value_pct ?? row?.value_percent ?? row?.value_percentage ?? row?.value;
+  const valueText = valueRaw != null ? `${Number(valueRaw).toFixed(1)}% value` : 'High-value edge';
+  if(state?.reason === 'delay'){
+    return `Free unlock in ${state.minutesLeft} min • ${valueText}`;
+  }
+  return `VIP only • ${valueText} • market hidden`;
+}
+
+function formatUnlockLabel(state){
+  if(!state?.unlocksAt) return 'VIP only';
+  return `Unlocks ${state.unlocksAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+}
+
+// Top navigation tabs
+const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
+const tabTdtPicksEl = document.getElementById("tabTdtPicks");
+const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
+const tabHistoryEl = document.getElementById("tabHistory");
+const historySectionEl = document.getElementById("historySection");
+const tabTdtHistoryEl = document.getElementById("tabTdtHistory");
+const tdtHistorySectionEl = document.getElementById("tdtHistorySection");
+const tdtHistoryListEl = document.getElementById("tdtHistoryList");
+const tdtHistoryBreakdownEl = document.getElementById("tdtHistoryBreakdown");
+const tdtHistoryDailyBtn = document.getElementById("tdtHistoryDailyBtn");
+const tdtHistoryWeeklyBtn = document.getElementById("tdtHistoryWeeklyBtn");
+const tdtHistoryMonthlyBtn = document.getElementById("tdtHistoryMonthlyBtn");
+const historyDaySelectEl = document.getElementById("historyDaySelect");
+const historyListEl = document.getElementById("historyList");
+
+const historySummaryEl = document.getElementById("historySummary");
+const historyRefreshEl = document.getElementById("historyRefresh");
+
+let currentTopTab = "bets"; // 'bets' | 'tracker' | 'tdt' | 'history'
+let trackerRowsCache = [];
+let historyMode = "personal";
+
+tabBets.onclick=()=>switchTab("bets");
+tabTracker.onclick=()=>{
+  if(!vipActive){
+    openVipModal();
+    return;
+  }
+  switchTab("tracker");
+};
+if(tabTdtTrackerEl) tabTdtTrackerEl.onclick=()=>switchTab("tdt");
+if(tabTdtPicksEl) tabTdtPicksEl.onclick=()=>alert("Coming soon — TDT Picks will be added later.");
+
+// VIP events
+if(vipButtonEl) vipButtonEl.addEventListener('click',()=>{ if(!vipActive) openVipModal(); });
+if(vipCloseEl) vipCloseEl.addEventListener('click',closeVipModal);
+if(vipModalEl) vipModalEl.addEventListener('click',(e)=>{ if(e.target===vipModalEl) closeVipModal(); });
+if(vipMonthlyEl) vipMonthlyEl.addEventListener('click',()=>startCheckout('monthly'));
+if(vipYearlyEl) vipYearlyEl.addEventListener('click',()=>startCheckout('yearly'));
+if(vipRestoreEl) vipRestoreEl.addEventListener('click', restoreVipAccess);
+if(vipForgotEl) vipForgotEl.addEventListener('click', forgotVipPassword);
+const vipPromoBtnEl = document.getElementById('vipPromoBtn');
+if(vipPromoBtnEl) vipPromoBtnEl.addEventListener('click', openVipModal);
+const notifyToggleBtnEl = document.getElementById('notifyToggleBtn');
+if(notifyToggleBtnEl) notifyToggleBtnEl.addEventListener('click', toggleBetAlerts);
+
+// On load: check VIP status (if email saved), then render.
+checkVIP().then(async ()=>{
+  // ensure tabs reflect VIP lock
+  setVipUI(vipActive,(localStorage.getItem('vip_email')||'').trim());
+  if(!vipActive && shouldTryVipFinalize()){
+    await pollVipAfterCheckout();
+  }
+  refreshAdminBadgeUI();
+  try{ await readTrackerRows(); }catch(e){}
+  forceDesktopWideMode();
+  // re-render bets so blur/limits apply
+  loadBets();
+  loadVipPromoProof();
+  updateBetAlertUI();
+  registerServiceWorker();
+});
+
+function switchTab(tab){
+  currentTopTab = tab;
+  initChartTabs();
+
+  betsSection.style.display=(tab==="bets")?"block":"none";
+  trackerSection.style.display=(tab==="tracker")?"block":"none";
+  if(tdtTrackerSectionEl) tdtTrackerSectionEl.style.display=(tab==="tdt")?"block":"none";
+
+  tabBets.classList.toggle("active",tab==="bets");
+  tabTracker.classList.toggle("active",tab==="tracker");
+  if(tabTdtTrackerEl) tabTdtTrackerEl.classList.toggle("active",tab==="tdt");
+
+  if(tab==="tracker"){
+    loadTracker();
+    return;
+  }
+  if(tab==="tdt"){
+    loadTdtTracker();
+    return;
+  }
 }
 
 
-const probClass = (v) => {
-  if(v < 0.50) return "avoid";
-  if(v < 0.55) return "prob-low";
-  if(v < 0.65) return "prob-mid";
-  return "prob-high";
+async function loadBets(){
+  addedKeys.clear();
+  try{
+    const localRows = await readTrackerRows();
+    localRows.forEach(r => addedKeys.add(makeBetKey(r)));
+  }catch(e){}
+
+  const {data} = await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
+  betsGrid.innerHTML="";
+  const betsTable=document.getElementById('betsTable');
+  const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
+  if(betsTbody) betsTbody.innerHTML = "";
+
+  const active=(data||[]).filter(isValueBetActiveToday);
+  if(!active.length){
+    betsGrid.innerHTML = `<div class="card">No bets for today.</div>`;
+    notifyForNewVisibleBets([]);
+    return;
+  }
+
+  const visibleForAlerts = [];
+
+  (active || []).forEach((row, idx)=>{
+    const state = getBetPublicState(row, idx);
+    const locked = !!state.locked;
+    const key = makeBetKey(row);
+    const isAdded = addedKeys.has(key);
+    if(!locked) visibleForAlerts.push(row);
+
+    const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
+    const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
+    const valNum = val != null ? Number(val) : null;
+    const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
+    const valueClass = valNum != null && !Number.isNaN(valNum)
+      ? (valNum >= 6 ? ' value-high' : (valNum >= 3 ? ' value-medium' : ' value-low'))
+      : '';
+    const teaser = teaserCopyForLockedBet(row, state);
+    const unlockLabel = formatUnlockLabel(state);
+    const leagueName = row.league || row.competition || row.league_name || row.tournament || '';
+
+    betsGrid.innerHTML += `
+<div class="bet-lock-wrap">
+  <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
+    <div class="bet-teaser">
+      <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
+      <span class="bet-date">${escapeHtml(betDate)}</span>
+      ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
+      <div class="bet-meta bet-meta--market-row">
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getValueBetMarketIconSvg(row.market)}<span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
+      </div>
+      ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
+    </div>
+    <div class="bet-details">
+      <div class="bet-footer">
+        <div class="bet-left">
+          ${!locked && row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)} @ ${escapeHtml(String(row.odds ?? ''))}</div>` : ``}
+          <span class="stat-chip${valueClass}"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
+        </div>
+        <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
+      </div>
+    </div>
+  </div>
+  ${locked ? '<button class="vip-overlay" type="button" data-open-vip="1">🔒 Unlock VIP</button>' : ''}
+</div>`;
+
+    if(betsTbody){
+      betsTbody.innerHTML += `
+      <tr class="${locked ? 'bet-row--locked' : ''}">
+        <td class="table-date-cell">${escapeHtml(betDate)}</td>
+        <td class="table-match-cell">${
+          leagueName
+            ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>`
+            : ''
+        }<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
+        <td>${
+          locked
+            ? '<span class="table-lock-copy">Hidden for VIP</span>'
+            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${getValueBetMarketIconSvg(row.market||'')}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
+        }</td>
+        <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
+        <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
+        <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
+        <td>
+          <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
+        </td>
+      </tr>`;
+    }
+  });
+
+  document.querySelectorAll('[data-open-vip="1"]').forEach(el=>{
+    el.addEventListener('click', openVipModal);
+  });
+
+  notifyForNewVisibleBets(visibleForAlerts);
+}
+
+
+async function addToTracker(btn, row){
+  const key = makeBetKey(row);
+  if(addedKeys.has(key)) return;
+
+  if(!vipActive){
+    openVipModal();
+    return;
+  }
+
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = 'Adding…';
+  }
+
+  const newRow = {
+    id: makeLocalTrackerId(),
+    sync_id: isAdminSyncEnabled() ? makeSyncId() : null,
+    match: row.match,
+    market: row.market,
+    odds: Number(row.odds),
+    stake: 10,
+    result: "pending",
+    created_at: new Date().toISOString(),
+    bet_date: row.bet_date || null,
+    bookie: row.bookie || null
+  };
+
+  try{
+    await upsertTrackerRow(newRow);
+  }catch(e){
+    console.error(e);
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = 'Add';
+    }
+    alert('Could not save tracker bet right now.');
+    return;
+  }
+
+  if(isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(newRow); }catch(e){ console.error(e); }
+  }
+
+  addedKeys.add(key);
+  if(btn){
+    btn.textContent = 'Added';
+    btn.classList.add('added', 'flash');
+    setTimeout(()=>btn.classList.remove('flash'), 700);
+    btn.disabled = true;
+  }
+  loadTracker();
+}
+
+
+// ===== Insights (dropdown) =====
+const insightStore = {
+  bestMarket: { label: "Best Market", value: "—" },
+  worstMarket: { label: "Worst Market", value: "—" },
+  bestMonth:  { label: "Best Month",  value: "—" },
+  worstMonth: { label: "Worst Month", value: "—" },
 };
 
-function normalizeStr(v){ return (v ?? "").toString().toLowerCase(); }
-
-function parseDateOnly(s){
-  if(!s) return null;
-  const t = String(s).replace(" ", "T");
-  const d = new Date(t + (t.length === 16 ? ":00" : "") + "Z");
-  if(Number.isNaN(+d)) return null;
-  return d;
+function setInsight(key, value){
+  if(!insightStore[key]) return;
+  insightStore[key].value = value;
+  const hidden = document.getElementById(key);
+  if(hidden) hidden.textContent = value;
 }
 
-function formatNum(v, digits=3){
-  if(v === null || v === undefined || v === "") return "";
-  const n = Number(v);
-  if(Number.isNaN(n)) return String(v);
-  return n.toFixed(digits).replace(/\.0+$/,"").replace(/(\.\d*[1-9])0+$/,"$1");
+function updateInsightUI(){
+  const sel = document.getElementById("insightSelect");
+  const labelEl = document.getElementById("insightLabel");
+  const valueEl = document.getElementById("insightValue");
+  if(!sel || !labelEl || !valueEl) return;
+  const key = sel.value || "bestMarket";
+  labelEl.textContent = insightStore[key]?.label || "Insights";
+  valueEl.textContent = insightStore[key]?.value || "—";
 }
 
-function setSelectOptions(sel, values, placeholder){
-  sel.innerHTML = "";
-  const opt0 = document.createElement("option");
-  opt0.value = "";
-  opt0.textContent = placeholder;
-  sel.appendChild(opt0);
-  [...values].sort((a,b)=>a.localeCompare(b)).forEach(v=>{
-    const o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
-    sel.appendChild(o);
-  });
-}
-
-function inferPrimaryCols(cols){
-  const want = ["Rank","DateUTC (date)","League","Home","Away", state.current?.probCol, "Pick","Strength","Model xG Total"];
-  const chosen = [];
-  want.forEach(k=>{ if(k && cols.includes(k) && !chosen.includes(k)) chosen.push(k); });
-  if(chosen.length < 6){
-    chosen.push(...cols.slice(0, Math.min(10, cols.length)).filter(c=>!chosen.includes(c)));
+document.addEventListener("change", (e)=>{
+  if(e.target && e.target.id === "insightSelect"){
+    updateInsightUI();
   }
-  return chosen.slice(0, 10);
+});
+
+
+// ===== Tracker Filters (Bet Results) =====
+let trackerAllRows = [];
+
+function _rowGameDateISO(row){
+  const raw = row.match_date_date || row.match_date || row.bet_date || row.created_at;
+  if(!raw) return "";
+  const d = new Date(raw);
+  if(isNaN(d.getTime())) return "";
+  return d.toISOString().slice(0,10); // YYYY-MM-DD
 }
 
-function buildTabs(){
-  const tabs = $("tabs");
-  tabs.innerHTML = "";
-  state.datasets.forEach(d=>{
-    const b = document.createElement("button");
-    b.className = "tab";
-    b.textContent = d.name;
-    b.setAttribute("aria-selected", state.current?.slug === d.slug ? "true" : "false");
-    b.addEventListener("click", ()=> loadDataset(d.slug));
-    tabs.appendChild(b);
-  });
-}
+function _applyTrackerFilters(rows){
+  const dateEl = document.getElementById("filterDate");
+  const marketEl = document.getElementById("filterMarket");
+  const dateVal = dateEl ? (dateEl.value || "") : "";
+  const marketVal = marketEl ? (marketEl.value || "").trim().toLowerCase() : "";
 
-function buildHead(){
-  const thead = $("tbl").querySelector("thead");
-  thead.innerHTML = "";
-  const tr = document.createElement("tr");
-  state.columns.forEach(key=>{
-    const th = document.createElement("th");
-    const arrow = (state.sortKey === key) ? (state.sortDir === "asc" ? " ▲" : " ▼") : "";
-    th.textContent = key + arrow;
-    th.addEventListener("click", ()=>{
-      if(state.sortKey === key) state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
-      else { state.sortKey = key; state.sortDir = "asc"; }
-      render();
-    });
-    tr.appendChild(th);
-  });
-  thead.appendChild(tr);
-}
-
-function sortData(rows){
-  const key = state.sortKey;
-  if(!key) return rows;
-  const dir = state.sortDir === "asc" ? 1 : -1;
-  rows.sort((a,b)=>{
-    const av = a[key];
-    const bv = b[key];
-    if(String(key).toLowerCase().includes("date")){
-      const ad = parseDateOnly(av);
-      const bd = parseDateOnly(bv);
-      return dir * ((ad?.getTime() ?? 0) - (bd?.getTime() ?? 0));
+  return (rows || []).filter(r=>{
+    // date filter
+    if(dateVal){
+      const iso = _rowGameDateISO(r);
+      if(iso !== dateVal) return false;
     }
-    const an = Number(av), bn = Number(bv);
-    if(Number.isFinite(an) && Number.isFinite(bn)) return dir * (an - bn);
-    return dir * String(av ?? "").localeCompare(String(bv ?? ""));
-  });
-  return rows;
-}
-
-function applyFilters(){
-  const q = normalizeStr($("q").value);
-  const league = $("league").value;
-  const pick = $("pick").value;
-  const pminPct = $("pmin").value ? Number($("pmin").value) : null;
-  const dfrom = $("dfrom").value ? new Date($("dfrom").value + "T00:00:00Z") : null;
-  const dto = $("dto").value ? new Date($("dto").value + "T23:59:59Z") : null;
-
-  const pCol = state.current?.probCol;
-  const dateKey = ("DateUTC (date)" in (state.raw[0]||{})) ? "DateUTC (date)" : null;
-
-  const rows = state.raw.filter(r=>{
-    if(league && r.League !== league) return false;
-    if(pick && (r.Pick ?? "") !== pick) return false;
-    if(pCol && pminPct !== null && typeof r[pCol] === "number" && (r[pCol]*100) < pminPct) return false;
-    if((dfrom || dto) && dateKey){
-      const d = parseDateOnly(r[dateKey]);
-      if(!d) return false;
-      if(dfrom && d < dfrom) return false;
-      if(dto && d > dto) return false;
-    }
-    if(q){
-      const hay = [r.League, r.Home, r.Away, r.Pick, r[dateKey]].map(normalizeStr).join(" ");
-      if(!hay.includes(q)) return false;
+    // market filter (matches market OR match text)
+    if(marketVal){
+      const m = (r.market || "").toLowerCase();
+      const match = (r.match || "").toLowerCase();
+      if(!m.includes(marketVal) && !match.includes(marketVal)) return false;
     }
     return true;
   });
-
-  state.filtered = sortData(rows);
 }
 
-function cellHTML(key, v){
-  const kl = String(key).toLowerCase();
-  if(kl.startsWith("p(") && typeof v === "number"){
-    return `<span class="badge mono ${probClass(v)}">${Math.round(v*100)}%</span>`;
-  }
-  if(Number.isFinite(Number(v)) && v !== "" && v !== null && v !== undefined){
-    const n = (typeof v === "number") ? v : Number(v);
-    return `<span class="mono">${formatNum(n,3)}</span>`;
-  }
-  return (v ?? "").toString();
-}
+function _buildTrackerTableHTML(rows){
+  let html = `<table>
+    <tr>
+      <th>Date</th>
+      <th>Match</th>
+      <th>Stake</th>
+      <th>Result</th>
+      <th class="profit-col">Profit</th>
+    </tr>`;
+  (rows || []).forEach(row=>{
+    const stakeVal = row.stake ?? 0;
+    const res = row.result || "pending";
+    let profit = 0;
+    if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
+    if(res === "lost") profit = (row.profit != null ? row.profit : -row.stake);
+    if(res === "pending") profit = 0;
 
-function buildBody(){
-  const tbody = $("tbl").querySelector("tbody");
-  tbody.innerHTML = "";
-  state.filtered.forEach(r=>{
-    const tr = document.createElement("tr");
-    tr.addEventListener("click", ()=> openDetails(r));
-    state.columns.forEach(key=>{
-      const td = document.createElement("td");
-      td.innerHTML = cellHTML(key, r[key]);
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
+    const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
+    const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
+
+    const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
+
+    html += `<tr>
+      <td class="date-col">${dateLabel}</td>
+      <td>${row.match || ""}</td>
+      <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
+      <td>
+        <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
+          <option value="pending" ${res==="pending"?"selected":""}>pending</option>
+          <option value="won" ${res==="won"?"selected":""}>won</option>
+          <option value="lost" ${res==="lost"?"selected":""}>lost</option>
+        </select>
+      </td>
+      <td class="profit-col ${profitClass}">${profitText}</td>
+    </tr>`;
   });
+  html += `</table>`;
+  return html;
 }
 
-function buildCards(){
-  const list = $("cardList");
-  list.innerHTML = "";
-  const rows = state.filtered;
-  if(!rows.length) return;
+function _renderFilteredTrackerTable(){
+  const tableEl = document.getElementById("trackerTable");
+  const countEl = document.getElementById("betCount");
+  if(!tableEl) return;
 
-  const pCol = state.current?.probCol;
-  const dateKey = ("DateUTC (date)" in rows[0]) ? "DateUTC (date)" : null;
-  const show = inferPrimaryCols(state.columnsAll);
+  const filtered = _applyTrackerFilters(trackerAllRows);
+  tableEl.innerHTML = _buildTrackerTableHTML(filtered);
+  if(countEl) countEl.textContent = filtered.length;
 
-  rows.forEach(r=>{
-    const item = document.createElement("div");
-    item.className = "cardItem";
-    item.addEventListener("click", ()=> openDetails(r));
+  // re-bind inline input/select listeners for edited rows
+  bindTrackerTableInputs();
+}
 
-    const top = document.createElement("div");
-    top.className = "cardTop";
+let _filtersWired = false;
+function wireTrackerFilters(){
+  if(_filtersWired) return;
+  _filtersWired = true;
 
-    const left = document.createElement("div");
-    const title = document.createElement("div");
-    title.className = "cardTitle";
-    title.textContent = (r.Home && r.Away) ? `${r.Home} vs ${r.Away}` : (r.League || "Row");
-    const sub = document.createElement("div");
-    sub.className = "cardSub";
-    const parts = [];
-    if(r.League) parts.push(r.League);
-    if(dateKey && r[dateKey]) parts.push(`${r[dateKey]} UTC`);
-    if(r.Pick) parts.push(r.Pick); else if(r.Strength) parts.push(r.Strength);
-    sub.textContent = parts.join(" • ");
-    left.appendChild(title);
-    left.appendChild(sub);
+  const dateEl = document.getElementById("filterDate");
+  const marketEl = document.getElementById("filterMarket");
+  const todayBtn = document.getElementById("todayToggle");
+  const clearBtn = document.getElementById("clearFilters");
 
-    const right = document.createElement("div");
-    // Add-to-tracker button
-    const addBtn = document.createElement("button");
-    addBtn.className = "trackAdd";
-    addBtn.type = "button";
-    addBtn.textContent = "Add";
-    addBtn.title = "Add to Tracker";
+  if(dateEl) dateEl.addEventListener("change", _renderFilteredTrackerTable);
+  if(marketEl) marketEl.addEventListener("input", _renderFilteredTrackerTable);
 
-    // lock if already tracked
-    try{
-      const home = r.Home || "";
-      const away = r.Away || "";
-      const league = r.League || "";
-      const date = r["DateUTC (date)"] || r.Date || "";
-      const market = state.current?.name || "";
-      const key = `${market}||${league}||${date}||${home}||${away}`;
-      const existing = (state.tracker || loadTracker()).some(x => x.key === key);
-      if(existing){
-        addBtn.textContent = "✓ Added";
-        addBtn.disabled = true;
-        addBtn.setAttribute("aria-disabled","true");
-        addBtn.classList.add("added");
+  if(todayBtn){
+    todayBtn.addEventListener("click", ()=>{
+      if(dateEl){
+        const today = new Date();
+        dateEl.value = today.toISOString().slice(0,10);
       }
-    }catch(e){}
-
-    addBtn.addEventListener("click", (ev)=>{
-      ev.stopPropagation();
-      const ok = addToTracker(r);
-      if(ok){
-        addBtn.textContent = "✓ Added";
-        addBtn.disabled = true;
-        addBtn.setAttribute("aria-disabled","true");
-        addBtn.classList.add("added");
-      }
+      _renderFilteredTrackerTable();
     });
-    right.appendChild(addBtn);
-    if(pCol && typeof r[pCol] === "number"){
-      const span = document.createElement("span");
-      span.className = `badge mono ${probClass(r[pCol])}`;
-      span.textContent = `${Math.round(r[pCol]*100)}%`;
-      right.appendChild(span);
-    }
-    top.appendChild(left);
-    top.appendChild(right);
+  }
 
-    const grid = document.createElement("div");
-    grid.className = "cardGrid";
-    show.slice(0,6).forEach(k=>{
-      if(k === "Home" || k === "Away") return;
-      const kv = document.createElement("div");
-      const kk = document.createElement("div"); kk.className="k"; kk.textContent=k;
-      const vv = document.createElement("div"); vv.className="v"; vv.innerHTML = cellHTML(k, r[k]);
-      kv.appendChild(kk); kv.appendChild(vv); grid.appendChild(kv);
+  if(clearBtn){
+    clearBtn.addEventListener("click", ()=>{
+      if(dateEl) dateEl.value = "";
+      if(marketEl) marketEl.value = "";
+      _renderFilteredTrackerTable();
     });
-
-    item.appendChild(top);
-    item.appendChild(grid);
-    list.appendChild(item);
-  });
+  }
 }
 
-function openDetails(row){
-  $("d_title").textContent = (row.Home && row.Away) ? `${row.Home} vs ${row.Away}` : (state.current?.name ?? "Details");
-  $("d_sub").textContent = (row.League ? `${row.League} • ` : "") + (row["DateUTC (date)"] ? `${row["DateUTC (date)"]} (UTC)` : "");
-  const wrap = document.createElement("div"); wrap.className="kv";
-  Object.keys(row).forEach(k=>{
-    const kk=document.createElement("div"); kk.className="k"; kk.textContent=k;
-    const vv=document.createElement("div"); vv.className="v";
-    vv.innerHTML = cellHTML(k, row[k]);
-    wrap.appendChild(kk); wrap.appendChild(vv);
-  });
-  $("d_body").innerHTML=""; $("d_body").appendChild(wrap);
-  $("details").showModal();
+let dailyChart;
+let monthlyChart;
+let marketChart;
+
+function fmtDayLabel(d){
+  if(!d) return "";
+  const dt = new Date(d);
+  if(Number.isNaN(dt.getTime())) return String(d);
+  return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 }
 
-function initFilters(){
-  const leagues = new Set(state.raw.map(r=>r.League).filter(Boolean));
-  const picks = new Set(state.raw.map(r=>r.Pick).filter(Boolean));
-  setSelectOptions($("league"), leagues, "All leagues");
-  setSelectOptions($("pick"), picks, "All picks");
-
-  $("league").closest(".control").style.display = leagues.size ? "" : "none";
-  $("pick").closest(".control").style.display = picks.size ? "" : "none";
-
-  const pCol = state.current?.probCol;
-  $("pminWrap").style.display = pCol ? "" : "none";
-  $("pminLabel").textContent = pCol ? `Min ${pCol} (%)` : "Min probability";
+function escapeHtml(str){
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-function loadDataset(slug){
-  if(slug === "accas"){
-    state.current = {slug:"accas", name:"Accas", rows:[], columns:[], probCol:null};
-    state.tracker = loadTracker();
-    state.accas = loadAccas();
-    buildTabs();
-    renderAccas();
+
+let vipPromoChart;
+
+function notificationsEnabled(){
+  return localStorage.getItem(NEW_BET_ALERTS_KEY) === '1';
+}
+
+function updateBetAlertUI(){
+  const statusEl = document.getElementById('notifyStatus');
+  const btnEl = document.getElementById('notifyToggleBtn');
+  const enabled = notificationsEnabled();
+  if(statusEl){
+    if(!('Notification' in window)) statusEl.textContent = 'Alerts unsupported';
+    else statusEl.textContent = enabled ? 'Alerts on' : 'Alerts off';
+  }
+  if(btnEl){
+    btnEl.textContent = enabled ? 'Alerts enabled' : 'Turn on new bet alerts';
+  }
+}
+
+async function registerServiceWorker(){
+  if(!('serviceWorker' in navigator)) return null;
+  try{
+    return await navigator.serviceWorker.register('/sw.js');
+  }catch(e){
+    console.error('Service worker registration failed', e);
+    return null;
+  }
+}
+
+async function toggleBetAlerts(){
+  const statusEl = document.getElementById('notifyStatus');
+  if(!('Notification' in window)){
+    if(statusEl) statusEl.textContent = 'Alerts unsupported on this browser';
+    updateBetAlertUI();
     return;
   }
-  if(slug === "tracker"){
-    state.current = {slug:"tracker", name:"Tracker", rows:[], columns:[], probCol:null};
-    state.tracker = loadTracker();
-    buildTabs();
-    renderTracker();
+  const current = notificationsEnabled();
+  if(current){
+    localStorage.setItem(NEW_BET_ALERTS_KEY, '0');
+    if(statusEl) statusEl.textContent = 'Alerts off';
+    updateBetAlertUI();
     return;
   }
-  const ds = state.datasets.find(d=>d.slug===slug) || state.datasets[0];
-  state.current = ds;
-  state.raw = ds.rows;
-  state.columnsAll = ds.columns;
-  state.columns = inferPrimaryCols(state.columnsAll);
-  state.sortKey = state.columns[0] || null;
-  state.sortDir = "asc";
-  // Default sort: BTTS by probability (high -> low)
-  if(state.current?.slug === "btts-yes" && state.current?.probCol){
-    state.sortKey = state.current.probCol;
-    state.sortDir = "desc";
+  let permission = Notification.permission;
+  if(permission === 'default'){
+    permission = await Notification.requestPermission();
   }
-  $("status").textContent = "Loaded.";
-  buildTabs();
-  initFilters();
-  render();
+  if(permission === 'granted'){
+    localStorage.setItem(NEW_BET_ALERTS_KEY, '1');
+    updateBetAlertUI();
+    if(statusEl) statusEl.textContent = 'Alerts on · sending test';
+    await sendBetNotification('Top Daily Tips alerts enabled', 'You will get alerts here when a new visible bet appears.');
+    return;
+  }
+  if(statusEl) statusEl.textContent = permission === 'denied' ? 'Browser blocked alerts' : 'Alerts not enabled';
+  updateBetAlertUI();
 }
 
-
-
-
-
-function resetTracker(){
-  if(!confirm("Reset tracker? This clears your win/loss history on this device.")) return;
-  state.tracker = [];
-  saveTracker();
-  renderTracker();
+async function sendBetNotification(title, body){
+  if(!notificationsEnabled() || !('Notification' in window) || Notification.permission !== 'granted') return;
+  try{
+    const reg = await registerServiceWorker();
+    if(reg && reg.showNotification){
+      await reg.showNotification(title, { body, icon:'/icons/icon-192.png', badge:'/icons/icon-192.png', tag:'tdt-new-bet' });
+      return;
+    }
+  }catch(e){
+    console.error(e);
+  }
+  try{
+    new Notification(title, { body });
+  }catch(e){}
 }
 
+function notifyForNewVisibleBets(rows){
+  const seenKey = 'tdt_seen_visible_bets';
+  const nextIds = (rows || []).map(makeBetKey);
+  const prevIds = JSON.parse(localStorage.getItem(seenKey) || '[]');
+  const prevSet = new Set(prevIds);
+  const fresh = (rows || []).filter(r => !prevSet.has(makeBetKey(r)));
+  localStorage.setItem(seenKey, JSON.stringify(nextIds));
+  if(!fresh.length) return;
+  const latest = fresh[0];
+  sendBetNotification('New Top Daily Tips bet', `${latest.match || 'New bet'} • ${latest.odds || ''}`);
+}
 
-function renderAccas(){
-  try{ document.body.classList.add("trackerView"); }catch(e){}
-  const list = $("cardList");
-  list.innerHTML = "";
+function renderVipPromoChart(rows){
+  const canvas = document.getElementById('vipPromoChart');
+  if(!canvas || typeof Chart === 'undefined') return;
+  const safeRows = Array.isArray(rows) ? rows : [];
+  const labels = [];
+  const points = [];
+  let running = 0;
+  let lastDayKey = '';
 
-  state.tracker = state.tracker || loadTracker();
-  state.accas = state.accas || loadAccas();
-
-  const st = accaStats();
-
-  const header = document.createElement("div");
-  header.className = "accaHeader";
-  header.innerHTML = `
-    <div class="accaStats">
-      <div class="tsRow"><span>Total accas</span><b>${st.total}</b></div>
-      <div class="tsRow"><span>Pending</span><b>${st.pending}</b></div>
-      <div class="tsRow"><span>Won</span><b>${st.won}</b></div>
-      <div class="tsRow"><span>Lost</span><b>${st.lost}</b></div>
-      <div class="tsRow"><span>Win rate</span><b>${st.winp}%</b></div>
-      <div class="tsRow"><span>P/L</span><b>${(st.profit>=0?"+":"") + st.profit.toFixed(2)}</b></div>
-      <div class="tsRow"><span>ROI</span><b>${(st.roi*100).toFixed(1)}%</b></div>
-    </div>
-
-    
-    <div class="accaBuilder">
-      <div class="tcTitle">Build an acca</div>
-      <div class="abRow">
-        <select id="abMarket" class="tfSel">
-          <option value="all">All markets</option>
-          <option value="Over 2.5">Over 2.5</option>
-          <option value="BTTS Yes">BTTS Yes</option>
-          <option value="Over 1.5">Over 1.5</option>
-        </select>
-        <select id="abFold" class="tfSel">
-          <option value="2">Double (2-fold)</option>
-          <option value="3">Treble (3-fold)</option>
-          <option value="4">4-fold</option>
-          <option value="5">5-fold</option>
-        </select>
-      </div>
-      <div class="abRow">
-        <input id="abStake" class="tbInput" inputmode="decimal" value="${DEFAULT_STAKE}">
-        <button id="abAutoTop" class="tbBtn">Auto-pick top</button>
-        <button id="abCreate" class="tbBtn">Create</button>
-      </div>
-      <div class="abRow">
-        <button id="abBest" class="tbBtn">1‑tap Best (uses top probs)</button>
-      </div>
-      <div class="abHint">Select picks below (or Auto-pick), then Create. Odds multiply. Best = highest probabilities.</div>
-    </div>
-  `;
-
-  // Acca bankroll + chart
-  const abr = loadAccaBankroll();
-  const finBr = accaStats();
-  const currentAccaBr = abr.start + finBr.profit;
-
-  const brBox = document.createElement("div");
-  brBox.className = "trackerBankroll"; // reuse styles
-  brBox.innerHTML = `
-    <label class="tbLabel">Accas starting bankroll</label>
-    <div class="tbRow">
-      <input id="accaBrStart" class="tbInput" inputmode="decimal" value="${abr.start}">
-      <button id="accaBrSave" class="tbBtn">Save</button>
-    </div>
-    <div class="tbHint">Accas current bankroll: <b>${currentAccaBr.toFixed(2)}</b></div>
-  `;
-  const chartWrap = document.createElement("div");
-  chartWrap.className = "trackerChart";
-  chartWrap.innerHTML = `
-    <div class="tcTitle">Accas bankroll chart</div>
-    <canvas id="accaChart" width="320" height="120"></canvas>
-  `;
-  const brRow = document.createElement("div");
-  brRow.className = "accaBrRow";
-  brRow.appendChild(brBox);
-  brRow.appendChild(chartWrap);
-  list.appendChild(brRow);
-
-  try{
-    $("accaBrSave").addEventListener("click", ()=>{
-      const v = parseFloat(($("accaBrStart").value||"").replace(",","."));
-      if(!isFinite(v)) return;
-      saveAccaBankroll({ start: v, updatedAt: Date.now() });
-      renderAccas();
+  safeRows.slice(-200).forEach((row)=>{
+    running += rowProfit({
+      stake: Number(row.stake || 0),
+      odds: Number(row.odds || 0),
+      result: row.result || 'pending'
     });
-  }catch(e){}
-
-  // draw acca chart from settled accas
-  try{
-    const decided = (state.accas||[])
-      .filter(a=>a.status==="won" || a.status==="lost" || a.status==="void")
-      .slice()
-      .sort((a,b)=>(a.updatedAt||a.createdAt||0)-(b.updatedAt||b.createdAt||0));
-    let brv = abr.start;
-    const pts = [brv];
-    decided.forEach(a=>{ brv += accaProfit(a); pts.push(brv); });
-    if(typeof drawBankrollChart === "function") drawBankrollChart($("accaChart"), pts);
-  }catch(e){}
-
-  list.appendChild(header);
-
-  $("count").textContent = `Accas • ${st.total} total • ${st.winp}% win`;
-  $("status").textContent = "Acca builder ready.";
-
-  const pending = state.tracker.filter(x=>x.status==="pending");
-  const selected = new Set();
-
-  function getPool(){
-    const market = $("abMarket").value;
-    return pending.filter(t=> market==="all" ? true : (t.market===market));
-  }
-  function topByProb(pool, n){
-    return pool.slice().sort((a,b)=>((b.prob??-1)-(a.prob??-1))).slice(0,n);
-  }
-  function syncCheckboxes(fromIds){
-    // clear all
-    document.querySelectorAll(".accaPick input[type=checkbox]").forEach(cb=>{ cb.checked=false; });
-    selected.clear();
-    fromIds.forEach(id=>{
-      const cb = document.querySelector(`.accaPick input[data-id="${id}"]`);
-      if(cb){ cb.checked=true; selected.add(id); }
-    });
-  }
-
-  const pickList = document.createElement("div");
-  pickList.className = "accaPickList";
-
-  pending.forEach(t=>{
-    const row = document.createElement("div");
-    row.className = "accaPick";
-    row.innerHTML = `
-      <label class="apChk">
-        <input type="checkbox" data-id="${t.id}">
-        <span>${t.home} vs ${t.away}</span>
-      </label>
-      <span class="apMeta">${t.market}${t.prob!=null?(" • "+Math.round(t.prob*100)+"%"):""}${t.odds!=null?(" • @"+t.odds):""}</span>
-    `;
-    pickList.appendChild(row);
-  });
-
-  if(!pending.length){
-    const empty = document.createElement("div");
-    empty.className = "trackEmpty";
-    empty.textContent = "No pending picks to build accas.";
-    list.appendChild(empty);
-  } else {
-    list.appendChild(pickList);
-  }
-
-  // wire checkboxes
-  pickList.querySelectorAll("input[type=checkbox]").forEach(cb=>{
-    cb.addEventListener("change", ()=>{
-      const id = cb.getAttribute("data-id");
-      if(cb.checked) selected.add(id); else selected.delete(id);
-    });
-  });
-
-
-  $("abAutoTop").addEventListener("click", ()=>{
-    const fold = parseInt($("abFold").value, 10);
-    const pool = getPool();
-    const legs = topByProb(pool, fold);
-    syncCheckboxes(legs.map(l=>l.id));
-  });
-
-  $("abBest").addEventListener("click", ()=>{
-    const fold = parseInt($("abFold").value, 10);
-    const stake = parseFloat(($("abStake").value||"").replace(",","."));
-    const pool = getPool();
-    const legs = topByProb(pool, fold);
-    if(legs.length !== fold){
-      alert("Not enough pending picks for that fold.");
-      return;
+    const dayKey = fmtDayLabel(row.match_date_date || row.bet_date || row.created_at);
+    if(dayKey !== lastDayKey){
+      labels.push(dayKey);
+      points.push(running);
+      lastDayKey = dayKey;
+    }else{
+      points[points.length - 1] = running;
     }
-    createAccaFromLegs(legs, stake);
-    renderAccas();
   });
 
-  $("abCreate").addEventListener("click", ()=>{
-    const fold = parseInt($("abFold").value, 10);
-    const stake = parseFloat(($("abStake").value||"").replace(",","."));
-    const market = $("abMarket").value;
-    const pool = pending.filter(t=> market==="all" ? true : (t.market===market));
-    const legs = pool.filter(t=> selected.has(t.id)).slice(0, fold);
-    if(legs.length !== fold){
-      alert(`Select exactly ${fold} picks (matching the market filter).`);
-      return;
-    }
-    createAccaFromLegs(legs, stake);
-    // uncheck and re-render
-    renderAccas();
-  });
-
-  // Acca list
-  const sections = [
-    {key:"pending", title:"🟡 Pending accas"},
-    {key:"won", title:"✅ Won accas"},
-    {key:"lost", title:"❌ Lost accas"},
-    {key:"void", title:"⚪ Void accas"},
-  ];
-
-  sections.forEach(sec=>{
-    const rows = (state.accas||[]).filter(a=>a.status===sec.key);
-    const h = document.createElement("div");
-    h.className = "trackSectionTitle";
-    h.textContent = `${sec.title} • ${rows.length}`;
-    list.appendChild(h);
-
-    if(!rows.length){
-      const empty = document.createElement("div");
-      empty.className = "trackEmpty";
-      empty.textContent = "No accas";
-      list.appendChild(empty);
-      return;
-    }
-
-    rows.forEach(a=>{
-      const item = document.createElement("div");
-      item.className = "cardItem trackItem";
-      const top = document.createElement("div");
-      top.className = "cardTop";
-
-      const left = document.createElement("div");
-      const title = document.createElement("div");
-      title.className = "cardTitle";
-      title.textContent = `${a.legs.length}-fold Acca`;
-      const sub = document.createElement("div");
-      sub.className = "cardSub";
-      const pl = accaProfit(a);
-      sub.textContent = `Stake ${a.stake} • Odds ${a.odds.toFixed(2)} • ${a.status.toUpperCase()} • P/L ${(pl>=0?"+":"") + pl.toFixed(2)}`;
-      left.appendChild(title); left.appendChild(sub);
-
-      const right = document.createElement("div");
-      right.className = "trackActions";
-
-      const legs = document.createElement("div");
-      legs.className = "accaLegs";
-      legs.innerHTML = a.legs.map(l=>`<div class="accaLeg">• ${l.home} vs ${l.away} — ${l.market}${l.odds?(" @"+l.odds):""}</div>`).join("");
-      item.appendChild(legs);
-
-      const mkBtn = (label, cls, fn)=>{
-        const b = document.createElement("button");
-        b.type="button";
-        b.className = `trackBtn ${cls}`;
-        b.textContent = label;
-        b.addEventListener("click",(ev)=>{ ev.stopPropagation(); fn(); renderAccas(); });
-        return b;
-      };
-      right.appendChild(mkBtn("✅", "win", ()=>setAccaStatus(a.id,"won")));
-      right.appendChild(mkBtn("❌", "lose", ()=>setAccaStatus(a.id,"lost")));
-      right.appendChild(mkBtn("⚪", "void", ()=>setAccaStatus(a.id,"void")));
-      right.appendChild(mkBtn("🗑️", "del", ()=>removeAcca(a.id)));
-
-      top.appendChild(left); top.appendChild(right);
-      item.appendChild(top);
-      list.appendChild(item);
-    });
+  if(vipPromoChart) vipPromoChart.destroy();
+  vipPromoChart = new Chart(canvas.getContext('2d'), {
+    type:'line',
+    data:{ labels, datasets:[{ data:points, tension:0.3, fill:true, backgroundColor:'rgba(34,197,94,0.10)', borderColor:'#22c55e', borderWidth:2, pointRadius:(ctx)=>{ const len = Array.isArray(ctx.dataset?.data) ? ctx.dataset.data.length : 0; if(len <= 1) return len ? 3 : 0; return (ctx.dataIndex === 0 || ctx.dataIndex === len - 1) ? 3 : 0; } }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ ticks:{ maxTicksLimit:6 } }, y:{ ticks:{ callback:(v)=> `£${v}` } } } }
   });
 }
 
-function renderTracker(){
-
-  // hide filters panel in tracker view (keep layout stable)
-  try{ document.body.classList.add("trackerView"); }catch(e){}
-  const list = $("cardList");
-  list.innerHTML = "";
-
-  const arr = state.tracker || loadTracker();
-  state.tracker = arr;
-
-  // Filters (persisted in localStorage). If anything goes wrong, fall back to showing all.
-  const f2 = loadTrackerFilter();
-  const filteredArr = (()=>{ try{ return filterTracker(arr, f2); }catch(e){ return (arr||[]); } })();
-
-  const st = trackerStats();
-  const fin = trackerFinance();
-  const avgOdds = averageOddsGlobal(state.tracker);
-  const br = loadBankroll();
-  const currentBankroll = br.start + fin.profit;
-
-  // Header block
-  const header = document.createElement("div");
-  header.className = "trackerHeader";
-
-  const stats = document.createElement("div");
-  stats.className = "trackerStats";
-  stats.innerHTML = `
-    <div class="tsRow"><span>Total</span><b>${st.total}</b></div>
-    <div class="tsRow"><span>Pending</span><b>${st.pending}</b></div>
-    <div class="tsRow"><span>Won</span><b>${st.won}</b></div>
-    <div class="tsRow"><span>Lost</span><b>${st.lost}</b></div>
-    <div class="tsRow"><span>Win rate</span><b>${st.winp}%</b></div>
-    <div class="tsRow"><span>P/L</span><b>${(fin.profit>=0?"+":"") + money(fin.profit)}</b></div>
-    <div class="tsRow"><span>ROI</span><b>${(fin.roi*100).toFixed(1)}%</b></div>
-    <div class="tsRow"><span>Avg odds</span><b>${avgOdds!=null ? avgOdds.toFixed(2) : "—"}</b></div>
-  `;
-
-  const bankroll = document.createElement("div");
-  bankroll.className = "trackerBankroll";
-  bankroll.innerHTML = `
-    <label class="tbLabel">Starting bankroll</label>
-    <div class="tbRow">
-      <input id="brStart" class="tbInput" inputmode="decimal" value="${br.start}">
-      <button id="brSave" class="tbBtn">Save</button>
-    </div>
-    <div class="tbHint">Current bankroll: <b>${money(currentBankroll)}</b></div>
-    <div class="tbRow" style="margin-top:10px;gap:8px;flex-wrap:wrap;">
-  <button id="trackerExport" class="tbBtn">Export CSV</button>
-  <button id="trackerCopyPending" class="tbBtn">Copy pending</button>
-  <button id="trackerReset" class="tbBtn danger">Reset tracker</button>
-</div>
-  `;
-
-  const chartWrap = document.createElement("div");
-  chartWrap.className = "trackerChart";
-  chartWrap.innerHTML = `
-    <div class="tcTitle">Bankroll chart</div>
-    <canvas id="brChart" width="320" height="120"></canvas>
-  `;
-
-  const f = loadTrackerFilter();
-  state.trackerFilter = f;
-  const filters = document.createElement("div");
-  filters.className = "trackerFilters";
-  const leagues = Array.from(new Set(arr.map(x=>x.league).filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b)));
-  filters.innerHTML = `
-    <div class="tfRow">
-      <select id="tfStatus" class="tfSel">
-        <option value="all">All statuses</option>
-        <option value="pending">Pending</option>
-        <option value="won">Won</option>
-        <option value="lost">Lost</option>
-        <option value="void">Void</option>
-      </select>
-      <select id="tfRange" class="tfSel">
-        <option value="all">All time</option>
-        <option value="today">Today</option>
-        <option value="7d">Last 7 days</option>
-      </select>
-    </div>
-    <div class="tfRow">
-      <select id="tfLeague" class="tfSel">
-        <option value="all">All leagues</option>
-        ${leagues.map(l=>`<option value="${l.replace(/"/g,'&quot;')}">${l}</option>`).join('')}
-      </select>
-      <input id="tfQ" class="tfQ" placeholder="Search team/league…" value="${(f.q||'').replace(/"/g,'&quot;')}">
-    </div>
-  `;
-  header.appendChild(stats);
-  header.appendChild(filters);
-  header.appendChild(bankroll);
-  
-  const leagueWrap = document.createElement("div");
-  leagueWrap.className = "trackerLeagueCharts";
-  leagueWrap.innerHTML = `
-    <div class="tcTitle">League performance (ROI)</div>
-    <div class="lcGrid">
-      <div class="lcCard">
-        <div class="lcTitle">Over 2.5</div>
-        <canvas id="leagueChartO25" width="320" height="160"></canvas>
-      </div>
-      <div class="lcCard">
-        <div class="lcTitle">BTTS Yes</div>
-        <canvas id="leagueChartBTTS" width="320" height="160"></canvas>
-      </div>
-    </div>
-  `;
-header.appendChild(chartWrap);
-  header.appendChild(leagueWrap);
-
-  list.appendChild(header);
-
-  // wire bankroll save + reset
+async function loadVipPromoProof(){
+  const statsEl = document.getElementById('vipPromoStats');
   try{
-    $("brSave").addEventListener("click", ()=>{
-      const v = parseFloat(($("brStart").value||"").replace(",","."));
-      if(!isFinite(v)) return;
-      saveBankroll({ start: v, updatedAt: Date.now() });
-      renderTracker();
-    });
-    $("trackerReset").addEventListener("click", resetTracker);
-    try{ $("trackerExport").addEventListener("click", ()=>{
-      const f = state.trackerFilter || loadTrackerFilter();
-      const filtered = filterTracker(state.tracker||[], f);
-      downloadText('tracker.csv', trackerToCsv(filtered), 'text/csv');
-    }); }catch(e){}
-    try{ $("trackerCopyPending").addEventListener("click", async ()=>{
-      const pending = (state.tracker||[]).filter(x=>x.status==='pending');
-      const text = pending.map(betSlipLine).join('\n');
-      const ok = await copyText(text || '');
-      alert(ok ? 'Copied pending ✅' : 'Copy failed');
-    }); }catch(e){}
-    // filters
-    try{
-      const f = state.trackerFilter || loadTrackerFilter();
-      const setSel = (id, val)=>{ const el=$(id); if(el) el.value = val; };
-      setSel('tfStatus', f.status||'all');
-      setSel('tfRange', f.range||'all');
-      setSel('tfLeague', f.league||'all');
-      $("tfStatus").addEventListener('change', ()=>{ f.status=$("tfStatus").value; saveTrackerFilter(f); renderTracker(); });
-      $("tfRange").addEventListener('change', ()=>{ f.range=$("tfRange").value; saveTrackerFilter(f); renderTracker(); });
-      $("tfLeague").addEventListener('change', ()=>{ f.league=$("tfLeague").value; saveTrackerFilter(f); renderTracker(); });
-      let qT;
-      $("tfQ").addEventListener('input', ()=>{ clearTimeout(qT); qT=setTimeout(()=>{ f.q=$("tfQ").value; saveTrackerFilter(f); renderTracker(); }, 250); });
-    }catch(e){}
+    const { data, error } = await client
+      .from('tdt_tracker')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(200);
+    if(error) throw error;
 
-  }catch(e){}
+    const rows = Array.isArray(data) ? data : [];
+    const settled = rows.filter(r => (r.result || 'pending') !== 'pending');
 
-  // draw chart
-  try{
-    const decided = arr
-      .filter(x=>x.status==="won" || x.status==="lost" || x.status==="void")
-      .slice()
-      .sort((a,b)=>(a.updatedAt||a.createdAt||0)-(b.updatedAt||b.createdAt||0));
-    let brv = br.start;
-    const pts = [brv];
-    decided.forEach(t=>{ brv += betProfit(t); pts.push(brv); });
-    drawBankrollChart($("brChart"), pts);
-  }catch(e){}
-
-  // league charts
-  try{
-    const o25 = leaguePerfByMarket("Over 2.5");
-    const btts = leaguePerfByMarket("BTTS Yes");
-    drawLeagueBarChart($("leagueChartO25"), o25);
-    drawLeagueBarChart($("leagueChartBTTS"), btts);
-  }catch(e){}
-
-  $("count").textContent = `Tracker • ${st.total} total • ${st.winp}% win`;
-  $("status").textContent = "Tracker ready.";
-const sections = [
-    {key:"pending", title:"🟡 Pending"},
-    {key:"won", title:"✅ Won"},
-    {key:"lost", title:"❌ Lost"},
-    {key:"void", title:"⚪ Void"},
-  ];
-  const sectionsToShow = (f2.status && f2.status!=='all') ? sections.filter(s=>s.key===f2.status) : sections;
-  sectionsToShow.forEach(sec=>{
-    const rows = filteredArr.filter(x=>x.status===sec.key);
-    const h = document.createElement("div");
-    h.className = "trackSectionTitle";
-    h.textContent = `${sec.title} • ${rows.length}`;
-    list.appendChild(h);
-    if(!rows.length){
-      const empty = document.createElement("div");
-      empty.className = "trackEmpty";
-      empty.textContent = "No picks";
-      list.appendChild(empty);
+    if(!settled.length){
+      if(statsEl) statsEl.textContent = 'Official proof updates soon';
+      renderVipPromoChart([]);
       return;
     }
-    rows.forEach(t=>{
-      const item = document.createElement("div");
-      item.className = "cardItem trackItem";
-      const top = document.createElement("div");
-      top.className = "cardTop";
-      const left = document.createElement("div");
-      const title = document.createElement("div");
-      title.className = "cardTitle";
-      title.textContent = (t.home && t.away) ? `${t.home} vs ${t.away}` : (t.league || "Pick");
-      const sub = document.createElement("div");
-      sub.className = "cardSub";
-      const parts = [];
-      if(t.market) parts.push(t.market);
-      if(t.league) parts.push(t.league);
-      if(t.date) parts.push(`${t.date} UTC`);
-      if(t.pick) parts.push(t.pick);
-      if(t.status==="won"||t.status==="lost"||t.status==="void"){ parts.push(`P/L ${(betProfit(t)>=0?"+":"") + money(betProfit(t))}`); }
-      sub.textContent = parts.join(" • ");
-      left.appendChild(title); left.appendChild(sub);
 
-      const right = document.createElement("div");
-      right.className = "trackActions";
-      if(typeof t.prob === "number"){
-        const p = document.createElement("span");
-        p.className = `badge mono ${probClass(t.prob)}`;
-        p.textContent = `${Math.round(t.prob*100)}%`;
-        right.appendChild(p);
-      }
-
-      // stake + odds inputs
-      const so = document.createElement("div");
-      so.className = "stakeOdds";
-      so.innerHTML = `<label>Stake <input class="soIn" data-k="stake" inputmode="decimal" value="${(typeof t.stake==="number")?t.stake:DEFAULT_STAKE}"></label>
-                      <label>Odds <input class="soIn" data-k="odds" inputmode="decimal" value="${(typeof t.odds==="number")?t.odds:DEFAULT_ODDS}"></label>`;
-      so.querySelectorAll(".soIn").forEach(inp=>{
-        inp.addEventListener("change", ()=>{
-          const k = inp.getAttribute("data-k");
-          const v = parseFloat((inp.value||"").replace(",","."));
-          if(!isFinite(v)) return;
-          t[k] = v;
-          t.updatedAt = Date.now();
-          saveTracker();
-          renderTracker();
-        });
+    let wins = 0;
+    let losses = 0;
+    let stake = 0;
+    let profit = 0;
+    settled.forEach((row)=>{
+      const result = row.result || 'pending';
+      if(result === 'won') wins += 1;
+      if(result === 'lost') losses += 1;
+      stake += Number(row.stake || 0);
+      profit += rowProfit({
+        stake: Number(row.stake || 0),
+        odds: Number(row.odds || 0),
+        result
       });
-      right.appendChild(so);
+    });
 
-      const mkBtn = (label, cls, fn)=>{
-        const b = document.createElement("button");
-        b.type="button";
-        b.className = `trackBtn ${cls}`;
-        b.textContent = label;
-        b.addEventListener("click",(ev)=>{ ev.stopPropagation(); fn(); renderTracker(); });
-        return b;
-      };
-      right.appendChild(mkBtn("✅", "win", ()=>setTrackerStatus(t.id,"won")));
-      right.appendChild(mkBtn("❌", "lose", ()=>setTrackerStatus(t.id,"lost")));
-      right.appendChild(mkBtn("⚪", "void", ()=>setTrackerStatus(t.id,"void")));
-      right.appendChild(mkBtn("📋", "copy", async ()=>{ const ok = await copyText(betSlipLine(t)); alert(ok ? "Copied ✅" : "Copy failed"); }));
-      right.appendChild(mkBtn("🗑️", "del", ()=>removeTracker(t.id)));
+    const roi = stake ? ((profit / stake) * 100) : 0;
+    if(statsEl){
+      const profitLabel = `${profit >= 0 ? '+' : ''}£${profit.toFixed(2)}`;
+      statsEl.textContent = `${settled.length} official bets • ${wins}-${losses} • ${profitLabel} profit • ${roi.toFixed(1)}% ROI`;
+    }
+    renderVipPromoChart(settled);
+  }catch(err){
+    console.error('VIP proof load failed', err);
+    if(statsEl) statsEl.textContent = 'Official TDT proof unavailable right now';
+  }
+}
 
-      top.appendChild(left); top.appendChild(right);
-      item.appendChild(top);
-      list.appendChild(item);
+
+function pulseStatCard(el){
+  if(!el) return;
+  el.classList.remove("glow-pulse");
+  void el.offsetWidth;
+  el.classList.add("glow-pulse");
+}
+
+
+async function loadTracker(){
+const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+trackerRowsCache = rows;
+trackerAllRows = rows;
+
+// Keep Value Bets \"Added\" state synced with tracker rows
+addedKeys.clear();
+rows.forEach(r => addedKeys.add(makeBetKey(r)));
+wireTrackerFilters();
+
+let start=parseFloat(document.getElementById("startingBankroll").value);
+let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
+let dailyLabels=[];
+let dayKeys=[];
+
+	const tableRows = [];
+
+rows.forEach(row=>{
+let p=0;
+if(row.result==="won"){p=row.stake*(row.odds-1);wins++;}
+if(row.result==="lost"){p=-row.stake;losses++;}
+profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
+bankroll=start+profit;
+
+const gameDate = row.match_date_date || row.bet_date || row.created_at;
+const dayKey = fmtDayLabel(gameDate);
+const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
+dayKeys.push(dayKey);
+dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
+history.push(bankroll);
+
+tableRows.push(`<tr>
+<td class="match-market-cell">
+  <div class="tracker-match-name">${row.match}</div>
+  <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
+</td>
+<td class="tracker-market-col">${getMarketIcon(row.market)} ${row.market || "—"}</td>
+<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
+<td>
+<select 
+class="result-select result-${row.result}" 
+onchange="updateResult('${row.id}',this.value)">
+<option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
+<option value="won" ${row.result==="won"?"selected":""}>won</option>
+<option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
+<option value="delete">🗑 delete</option>
+</select>
+</td>
+<td class="profit-col">
+<span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span>
+</td>
+</tr>`);
+});
+
+let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+html += tableRows.reverse().join("");
+html+="</table>";
+trackerTable.innerHTML=html;
+
+bankrollElem.innerText=bankroll.toFixed(2);
+profitElem.innerText=profit.toFixed(2);
+roiElem.innerText=totalStake?((profit/totalStake)*100).toFixed(1):0;
+winrateElem.innerText=(wins+losses)?((wins/(wins+losses))*100).toFixed(1):0;
+const wonLostElem = document.getElementById("wonLost");
+if(wonLostElem){
+  wonLostElem.innerHTML = `<span class="wl-split__win">${wins}</span><span class="wl-split__sep">-</span><span class="wl-split__loss">${losses}</span>`;
+}
+
+const winrateCard = document.getElementById("winrateCard");
+if(winrateCard){
+  const avgOddsVal = rows.length ? (totalOdds / rows.length) : 0;
+  const winrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
+  const breakEven = avgOddsVal > 0 ? (100 / avgOddsVal) : 0;
+  const diff = winrateVal - breakEven;
+  winrateCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
+  if(diff > 0.1) winrateCard.classList.add("glow-green-soft");
+  else if(diff < -0.1) winrateCard.classList.add("glow-red-soft");
+  else winrateCard.classList.add("glow-grey-soft");
+  pulseStatCard(winrateCard);
+}
+
+const totalBets = rows.length;
+const totalElem = document.getElementById("totalBets");
+if(totalElem) totalElem.innerText = totalBets;
+const totalStakedCard = document.getElementById("totalStakedCard");
+if(totalStakedCard){
+  totalStakedCard.innerText = totalStake.toFixed(2);
+}
+
+
+avgOddsElem.innerText=rows.length?(totalOdds/rows.length).toFixed(2):0;
+
+profitCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
+if(profit>0) profitCard.classList.add("glow-green-soft");
+else if(profit<0) profitCard.classList.add("glow-red-soft");
+else profitCard.classList.add("glow-grey-soft");
+pulseStatCard(profitCard);
+pulseStatCard(profitCard);
+
+const bankrollCard = document.getElementById("bankrollCard");
+if(bankrollCard){
+  bankrollCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
+  if(bankroll > start) bankrollCard.classList.add("glow-green-soft");
+  else if(bankroll < start) bankrollCard.classList.add("glow-red-soft");
+  else bankrollCard.classList.add("glow-grey-soft");
+  pulseStatCard(bankrollCard);
+}
+
+
+renderDailyChart(history, dailyLabels, dayKeys);
+
+// ---- Monthly & Market analytics (tabs + mini summary) ----
+const countElem = document.getElementById("betCount");
+if(countElem) countElem.textContent = String(rows.length);
+
+// Monthly profit aggregation (ROI version)
+const monthMap = {};
+const monthStakeMap = {};
+const monthBetsMap = {};
+const monthWinsMap = {};
+const monthLossMap = {};
+const monthOddsMap = {};
+const monthOddsCountMap = {};
+
+rows.forEach(r=>{
+  const d = new Date(r.created_at);
+  const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+  monthMap[key] = (monthMap[key]||0) + rowProfit(r);
+  monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
+  monthBetsMap[key] = (monthBetsMap[key] || 0) + 1;
+
+  if((r.result || "") === "won") monthWinsMap[key] = (monthWinsMap[key] || 0) + 1;
+  if((r.result || "") === "lost") monthLossMap[key] = (monthLossMap[key] || 0) + 1;
+
+  if(r.odds != null && r.odds !== ""){
+    monthOddsMap[key] = (monthOddsMap[key] || 0) + Number(r.odds || 0);
+    monthOddsCountMap[key] = (monthOddsCountMap[key] || 0) + 1;
+  }
+});
+
+const monthKeys = Object.keys(monthMap).sort();
+
+const monthLabels = monthKeys.map(k=>{
+  const [y,m]=k.split("-");
+  return new Date(parseInt(y), parseInt(m)-1, 1)
+    .toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
+});
+
+const monthlyProfit = monthKeys.map(k=> monthMap[k]);
+const monthlyROI = monthKeys.map(k=>{
+  const stake = monthStakeMap[k] || 0;
+  return stake ? (monthMap[k] / stake) * 100 : 0;
+});
+const monthlyBets = monthKeys.map(k => monthBetsMap[k] || 0);
+const monthlyWinrate = monthKeys.map(k=>{
+  const wins = monthWinsMap[k] || 0;
+  const losses = monthLossMap[k] || 0;
+  const settled = wins + losses;
+  return settled ? (wins / settled) * 100 : 0;
+});
+const monthlyAvgOdds = monthKeys.map(k=>{
+  const total = monthOddsMap[k] || 0;
+  const count = monthOddsCountMap[k] || 0;
+  return count ? (total / count) : 0;
+});
+
+renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
+
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>W/L</th><th>WR</th><th>Avg</th></tr>";
+  monthKeys.forEach((k,i)=>{
+    const p = monthlyProfit[i];
+    const r = monthlyROI[i];
+    const bets = monthlyBets[i] || 0;
+    const wins = monthWinsMap[k] || 0;
+    const losses = monthLossMap[k] || 0;
+    const winrate = monthlyWinrate[i] || 0;
+    const avgOdds = monthlyAvgOdds[i] || 0;
+
+    const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
+    const diff = winrate - breakEven;
+    const wrClass = diff > 0.1 ? 'profit-win' : diff < -0.1 ? 'profit-loss' : 'profit-breakeven';
+
+    breakdownHTML += `<tr>
+      <td>${monthLabels[i]}</td>
+      <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
+      <td>${r.toFixed(1)}%</td>
+      <td>${bets}</td>
+      <td class="month-wl-cell"><span class="month-wl-win">${wins}</span><span class="month-wl-sep">-</span><span class="month-wl-loss">${losses}</span></td>
+      <td class="${(() => {
+        const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
+        const diff = winrate - breakEven;
+        return diff > 0.1 ? 'profit-win' : diff < -0.1 ? 'profit-loss' : 'profit-breakeven';
+      })()}">${winrate.toFixed(1)}%</td>
+      <td>${avgOdds.toFixed(2)}</td>
+    </tr>`;
+  });
+  breakdownHTML += "</table>";
+  const tableEl = document.getElementById("monthlyTable");
+  if(tableEl) tableEl.innerHTML = breakdownHTML;
+
+// Market profit aggregation
+const marketMap = {};
+const marketWL = {}; // {market:{wins,losses,pending,bets}}
+rows.forEach(r=>{
+  const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
+  marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
+
+  if(!marketWL[mk]) marketWL[mk] = {wins:0,losses:0,pending:0,bets:0};
+  marketWL[mk].bets += 1;
+  const res = (r.result || "pending").toLowerCase();
+  if(res === "won") marketWL[mk].wins += 1;
+  else if(res === "lost") marketWL[mk].losses += 1;
+  else marketWL[mk].pending += 1;
+});
+
+// Build win% series (resolved only); show top 8 by bet count
+let entries = Object.entries(marketWL);
+entries.sort((a,b)=>(b[1].bets)-(a[1].bets));
+entries = entries.slice(0,8);
+
+const labels = entries.map(e=>e[0]);
+const totals = entries.map(e=>({ bets:e[1].bets, wins:e[1].wins, losses:e[1].losses }));
+const winPct = entries.map(e=>{
+  const resolved = e[1].wins + e[1].losses;
+  return resolved ? (e[1].wins / resolved) * 100 : 0;
+});
+renderMarketChart(labels, winPct, totals);
+
+// Mini summary
+if(entries.length){
+  const bestM = [...Object.entries(marketMap)].sort((a,b)=>b[1]-a[1])[0];
+  const worstM = [...Object.entries(marketMap)].sort((a,b)=>a[1]-b[1])[0];
+  setMiniValue("bestMarket", bestM[0]+":", (bestM[1] >= 0 ? "+£" : "-£") + Math.abs(bestM[1]).toFixed(2));
+  setMiniValue("worstMarket", worstM[0]+":", (worstM[1] >= 0 ? "+£" : "-£") + Math.abs(worstM[1]).toFixed(2));
+}
+if(monthKeys.length){
+  const monthEntries = monthKeys.map(k=>[k, monthMap[k]]);
+  const bestMo = [...monthEntries].sort((a,b)=>b[1]-a[1])[0];
+  const worstMo = [...monthEntries].sort((a,b)=>a[1]-b[1])[0];
+  const fmtMonth = (k)=>{
+    const [y,m]=k.split("-");
+    return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
+  };
+  setMiniValue("bestMonth", fmtMonth(bestMo[0])+":", (bestMo[1] >= 0 ? "+£" : "-£") + Math.abs(bestMo[1]).toFixed(2));
+  setMiniValue("worstMonth", fmtMonth(worstMo[0])+":", (worstMo[1] >= 0 ? "+£" : "-£") + Math.abs(worstMo[1]).toFixed(2));
+}
+
+}
+
+
+
+async function updateOdds(id,val){
+  const rows = await readTrackerRows();
+  const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
+  const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+  }
+  if(row && isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+  }
+  loadTracker();
+}
+
+async function updateStake(id,val){
+
+  const rows = await readTrackerRows();
+  const updated = rows.map(r => String(r.id)===String(id) ? { ...r, stake: parseFloat(val) || 0 } : r);
+  const row = updated.find(r => String(r.id)===String(id));
+  if(row){
+    try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+  }
+  if(row && isAdminSyncEnabled()){
+    try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+  }
+  loadTracker();
+}
+
+async function updateResult(id,val){
+  const rows = await readTrackerRows();
+  if(val==="delete"){
+    if(!confirm("Delete this bet?")){loadTracker();return;}
+    const row = rows.find(r => String(r.id)===String(id));
+    try{ await deleteTrackerRowById(id); }catch(e){ console.error(e); }
+    if(row && isAdminSyncEnabled() && row.sync_id){
+      try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
+    }
+    loadBets();
+  }else{
+    const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
+    const row = updated.find(r => String(r.id)===String(id));
+    if(row){
+      try{ await upsertTrackerRow(row); }catch(e){ console.error(e); }
+    }
+    if(row && isAdminSyncEnabled()){
+      try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
+    }
+  }
+  loadTracker();
+}
+
+
+
+
+
+function sortTdtTable(key){
+  if(tdtSortKey === key){
+    tdtSortDir = tdtSortDir === "asc" ? "desc" : "asc";
+  }else{
+    tdtSortKey = key;
+    tdtSortDir = key === "date" ? "asc" : "desc";
+  }
+  loadTdtTracker();
+}
+
+
+
+function getTdtRowDateValue(row){
+  return row?.match_date_date || row?.bet_date || row?.created_at || '';
+}
+
+function getTdtRowDayKey(row){
+  const raw = getTdtRowDateValue(row);
+  const dt = new Date(raw);
+  if(Number.isNaN(dt.getTime())) return String(raw || 'Unknown');
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth()+1).padStart(2,'0');
+  const d = String(dt.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+function fmtTdtDayHeader(dayKey){
+  const dt = new Date(`${dayKey}T12:00:00`);
+  if(Number.isNaN(dt.getTime())) return dayKey;
+  return dt.toLocaleDateString('en-GB',{ weekday:'short', day:'2-digit', month:'short' });
+}
+
+function getTdtSortValue(row, key){
+  if(key === 'date') return new Date(getTdtRowDateValue(row) || 0).getTime() || 0;
+  if(key === 'stake') return Number(row?.stake || 0);
+  if(key === 'odds') return Number(row?.odds || 0);
+  if(key === 'result'){
+    const res = String(row?.result || 'pending').toLowerCase();
+    return res === 'won' ? 2 : res === 'lost' ? 1 : 0;
+  }
+  return String(row?.[key] || '').toLowerCase();
+}
+
+function sortTdtRows(rows){
+  const sorted = (Array.isArray(rows) ? rows.slice() : []);
+  sorted.sort((a,b)=>{
+    const av = getTdtSortValue(a, tdtSortKey);
+    const bv = getTdtSortValue(b, tdtSortKey);
+    if(av < bv) return tdtSortDir === 'asc' ? -1 : 1;
+    if(av > bv) return tdtSortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  return sorted;
+}
+
+function tdtSortArrow(key){
+  if(tdtSortKey !== key) return '↕';
+  return tdtSortDir === 'asc' ? '▲' : '▼';
+}
+
+
+function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds }){
+  const tdtRoiVal = totalStake ? ((profit / totalStake) * 100) : 0;
+  const tdtWinrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
+  const tdtAvgOddsVal = resolvedCount ? (totalOdds / resolvedCount) : 0;
+
+  const roiFill = document.getElementById("tdtRoiBarFill");
+  const roiLabel = document.getElementById("tdtRoiBarLabel");
+  if(roiFill && roiLabel){
+    const width = Math.max(0, Math.min(100, Math.abs(tdtRoiVal)));
+    roiFill.style.width = width + "%";
+    roiFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red");
+    roiFill.classList.add(tdtRoiVal >= 0 ? "tdt-perf-fill--green" : "tdt-perf-fill--red");
+    roiLabel.textContent = `${tdtRoiVal.toFixed(1)}%`;
+  }
+
+  const winFill = document.getElementById("tdtWinrateBarFill");
+  const winLabel = document.getElementById("tdtWinrateBarLabel");
+  if(winFill && winLabel){
+    const width = Math.max(0, Math.min(100, tdtWinrateVal));
+    winFill.style.width = width + "%";
+    winLabel.textContent = `${tdtWinrateVal.toFixed(1)}%`;
+  }
+
+  const oddsFill = document.getElementById("tdtAvgOddsBarFill");
+  const oddsLabel = document.getElementById("tdtAvgOddsBarLabel");
+  if(oddsFill && oddsLabel){
+    const maxOdds = 5;
+    const width = Math.max(0, Math.min(100, (tdtAvgOddsVal / maxOdds) * 100));
+    oddsFill.style.width = width + "%";
+    oddsLabel.textContent = tdtAvgOddsVal.toFixed(2);
+  }
+}
+
+async function loadTdtTracker(){
+  const tableEl = document.getElementById("tdtTrackerTable");
+  try{
+    const {data, error} = await client.from("tdt_tracker").select("*").order("created_at",{ascending:true});
+    if(error) throw error;
+    const rows = Array.isArray(data) ? data : [];
+    tdtRowsCache = rows;
+
+    let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
+
+    rows.forEach(row=>{
+      const result = String(row.result || 'pending').toLowerCase();
+      const p = result==="won"
+        ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
+        : result==="lost"
+        ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
+        : 0;
+
+      if(result==="won") wins++;
+      if(result==="lost") losses++;
+      if(result !== 'pending') resolvedCount++;
+      profit += p;
+      if(result !== 'pending'){
+        totalStake += Number(row.stake || 0);
+        totalOdds += Number(row.odds || 0);
+      }
+    });
+
+    const sortedRows = sortTdtRows(rows);
+    const groups = [];
+    const map = new Map();
+    sortedRows.forEach(row=>{
+      const key = getTdtRowDayKey(row);
+      if(!map.has(key)){
+        const group = { key, rows: [], wins:0, losses:0, pending:0, settled:0 };
+        map.set(key, group);
+        groups.push(group);
+      }
+      const group = map.get(key);
+      group.rows.push(row);
+      const result = String(row.result || 'pending').toLowerCase();
+      if(result === 'won'){ group.wins++; group.settled++; }
+      else if(result === 'lost'){ group.losses++; group.settled++; }
+      else { group.pending++; }
+    });
+
+    const todayKey = getTdtTodayKey();
+    let html = `
+      <div style="display:flex;justify-content:flex-end;align-items:center;margin:0 0 10px;">
+        <button id="tdtToggleAllDaysBtn" type="button" onclick="toggleAllTdtDays()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#e2e8f0;padding:8px 12px;border-radius:999px;font-weight:800;font-size:12px;">
+          Collapse all days
+        </button>
+      </div>
+      <div class="tdt-groups-wrap">`;
+
+    groups.forEach((group, idx)=>{
+      const dayWinrate = group.settled ? ((group.wins / group.settled) * 100).toFixed(0) : '0';
+      const isToday = group.key === todayKey;
+      html += `
+        <div class="tdt-day-card">
+          <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)" style="${isToday ? 'box-shadow: inset 0 0 0 1px rgba(34,197,94,0.35), 0 0 0 1px rgba(34,197,94,0.08); background: rgba(34,197,94,0.05);' : ''}">
+            <div class="tdt-day-left">
+              <div class="tdt-day-date" style="${isToday ? 'color:#bbf7d0;' : ''}">${escapeHtml(fmtTdtDayHeader(group.key))}${isToday ? ' • Today' : ''}</div>
+              <div class="tdt-day-meta">${group.rows.length} bet${group.rows.length === 1 ? '' : 's'}</div>
+            </div>
+            <div class="tdt-day-right">
+              <span class="tdt-day-chip win">Won ${group.wins}</span>
+              <span class="tdt-day-chip loss">Lost ${group.losses}</span>
+              <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
+              <span class="tdt-day-chevron">▼</span>
+            </div>
+          </button>
+          <div class="tdt-day-body" style="display:block;">
+            <div class="tdt-table-wrap">
+              <table class="tdt-table tdt-table-fit">
+                <thead>
+                  <tr>
+                    <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
+                    <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
+                    <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
+                    <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
+                    <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${tdtSortArrow('result')}</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+      `;
+
+      group.rows.forEach(row=>{
+        const result = String(row.result || 'pending').toLowerCase();
+        const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+        html += `
+          <tr class="tdt-row ${result}">
+            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+            <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
+            <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
+            <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
+          </tr>
+        `;
+      });
+
+      html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+
+    if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
+
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
+    set("tdtProfit", profit.toFixed(2));
+    set("tdtRoi", totalStake?((profit/totalStake)*100).toFixed(1):0);
+    set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
+    set("tdtWonLost", `${wins}-${losses}`);
+    set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
+    set("tdtTotalBets", rows.length);
+    set("tdtBetCount", rows.length);
+    updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
+  }catch(err){
+    if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
+  }
+}
+
+
+
+
+
+function toggleTdtDay(btn){
+  const body = btn ? btn.nextElementSibling : null;
+  const chev = btn ? btn.querySelector(".tdt-day-chevron") : null;
+  if(!body) return;
+  const isHidden = body.style.display === "none";
+  body.style.display = isHidden ? "block" : "none";
+  if(chev) chev.innerText = isHidden ? "▼" : "▶";
+
+  const bodies = Array.from(document.querySelectorAll("#tdtTrackerTable .tdt-day-body"));
+  const btnAll = document.getElementById("tdtToggleAllDaysBtn");
+  const allHidden = bodies.length && bodies.every(el => el.style.display === "none");
+  tdtAllCollapsed = !!allHidden;
+  if(btnAll) btnAll.textContent = tdtAllCollapsed ? "Open all days" : "Collapse all days";
+}
+
+function toggleAllTdtDays(){
+  const bodies = Array.from(document.querySelectorAll("#tdtTrackerTable .tdt-day-body"));
+  const chevs = Array.from(document.querySelectorAll("#tdtTrackerTable .tdt-day-chevron"));
+  const btnAll = document.getElementById("tdtToggleAllDaysBtn");
+  if(!bodies.length) return;
+
+  const nextCollapsed = !tdtAllCollapsed;
+  bodies.forEach(el => { el.style.display = nextCollapsed ? "none" : "block"; });
+  chevs.forEach(el => { el.innerText = nextCollapsed ? "▶" : "▼"; });
+
+  tdtAllCollapsed = nextCollapsed;
+  if(btnAll) btnAll.textContent = tdtAllCollapsed ? "Open all days" : "Collapse all days";
+}
+
+function tdtWinrateClass(rate){
+  const n = Number(rate || 0);
+  if(n <= 50) return "ratio--red";
+  if(n <= 62) return "ratio--amber";
+  return "ratio--green";
+}
+
+function toggleTdtTracker(){
+  const wrapper = document.getElementById("tdtTrackerWrapper");
+  const arrow = document.getElementById("tdtTrackerArrow");
+  if(!wrapper || !arrow) return;
+  if(wrapper.classList.contains("collapsed")){
+    wrapper.classList.remove("collapsed");
+    wrapper.classList.add("expanded");
+    arrow.innerText="▲";
+  }else{
+    wrapper.classList.remove("expanded");
+    wrapper.classList.add("collapsed");
+    arrow.innerText="▼";
+  }
+}
+
+async function exportCSV(){
+  const data = await readTrackerRows();
+  const rows = Array.isArray(data) ? data : [];
+  const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+
+  let csv = "match,market,odds,stake,result\n";
+  rows.forEach(r=>{
+    csv += [
+      esc(r.match),
+      esc(r.market),
+      esc(r.odds),
+      esc(r.stake),
+      esc(r.result)
+    ].join(",") + "\n";
+  });
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "bet_tracker.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+loadBets();
+loadTracker();
+
+
+// Toggle with animation + memory
+function toggleTracker(){
+  const wrapper = document.getElementById("trackerWrapper");
+  const arrow = document.getElementById("trackerArrow");
+
+  if(wrapper.classList.contains("collapsed")){
+    wrapper.classList.remove("collapsed");
+    wrapper.classList.add("expanded");
+    arrow.innerText="▲";
+    localStorage.setItem("tracker_open","true");
+  }else{
+    wrapper.classList.remove("expanded");
+    wrapper.classList.add("collapsed");
+    arrow.innerText="▼";
+    localStorage.setItem("tracker_open","false");
+  }
+}
+
+// Restore state on load
+document.addEventListener("DOMContentLoaded",function(){
+  const wrapper=document.getElementById("trackerWrapper");
+  const arrow=document.getElementById("trackerArrow");
+  const open=localStorage.getItem("tracker_open");
+  if(open==="true"){
+    wrapper.classList.remove("collapsed");
+    wrapper.classList.add("expanded");
+    arrow.innerText="▲";
+  }
+});
+
+// Extend loadTracker to update bet count
+const originalLoadTracker = loadTracker;
+loadTracker = async function(){
+  await originalLoadTracker();
+  const rows=document.querySelectorAll("#trackerTable table tr").length-1;
+  const count=document.getElementById("betCount");
+  if(count && rows>=0){count.innerText=rows;}
+};
+
+
+
+
+function renderDailyChart(history, labels, dayKeys){
+  const el = document.getElementById("chart");
+  if(!el) return;
+  if(dailyChart) dailyChart.destroy();
+
+  const safeHistory = Array.isArray(history) ? history : [];
+  const safeDayKeys = Array.isArray(dayKeys) ? dayKeys : [];
+  const ctx = el.getContext("2d");
+
+  const monthOnlyLabels = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    if(!curr) return "";
+    const prev = i > 0 ? safeDayKeys[i - 1] : "";
+    const currDate = new Date(`${curr}T12:00:00`);
+    const prevDate = prev ? new Date(`${prev}T12:00:00`) : null;
+    if(Number.isNaN(currDate.getTime())) return "";
+    const isNewMonth = !prevDate || Number.isNaN(prevDate.getTime()) ||
+      currDate.getMonth() !== prevDate.getMonth() ||
+      currDate.getFullYear() !== prevDate.getFullYear();
+    return isNewMonth ? currDate.toLocaleDateString('en-GB',{month:'short'}) : "";
+  });
+
+  const pointRadius = safeHistory.map((_, i)=>{
+    const curr = safeDayKeys[i];
+    if(!curr) return 0;
+    const prev = i > 0 ? safeDayKeys[i - 1] : "";
+    const currDate = new Date(`${curr}T12:00:00`);
+    const prevDate = prev ? new Date(`${prev}T12:00:00`) : null;
+    if(Number.isNaN(currDate.getTime())) return 0;
+    const isNewMonth = !prevDate || Number.isNaN(prevDate.getTime()) ||
+      currDate.getMonth() !== prevDate.getMonth() ||
+      currDate.getFullYear() !== prevDate.getFullYear();
+    return isNewMonth ? 4 : 0;
+  });
+
+  const pointHoverRadius = safeHistory.map((_, i)=> pointRadius[i] ? 6 : 3);
+  const pointHitRadius = safeHistory.map(() => 14);
+
+  dailyChart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:monthOnlyLabels,
+      datasets:[{
+        data:safeHistory,
+        tension:0.28,
+        fill:true,
+        borderWidth:3,
+        borderColor:"rgba(34,197,94,0.95)",
+        backgroundColor:"rgba(34,197,94,0.14)",
+        pointRadius:pointRadius,
+        pointHoverRadius:pointHoverRadius,
+        pointHitRadius:pointHitRadius,
+        pointBackgroundColor:"rgba(34,197,94,1)"
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:"nearest", intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:(items)=> safeDayKeys[items?.[0]?.dataIndex ?? 0] || "",
+            label:(ctx)=>`Bankroll: £${Number(ctx.raw || 0).toFixed(2)}`
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            autoSkip:false,
+            maxRotation:0,
+            minRotation:0
+          },
+          grid:{display:false}
+        },
+        y:{
+          ticks:{
+            color:"rgba(226,232,240,0.78)",
+            callback:(v)=>`£${Number(v).toFixed(0)}`
+          },
+          grid:{color:"rgba(255,255,255,0.05)"}
+        }
+      }
+    }
+  });
+}
+
+function renderMonthlyChart(profits, roi, labels){
+  const el = document.getElementById("monthlyChart");
+  if(!el) return;
+  if(monthlyChart) monthlyChart.destroy();
+
+  const safeRoi = Array.isArray(roi) ? roi.map(v => Number(v || 0)) : [];
+  const maxROI = safeRoi.length ? Math.max(...safeRoi) : 0;
+  const minROI = safeRoi.length ? Math.min(...safeRoi) : 0;
+  const allPositive = safeRoi.length && safeRoi.every(v => v >= 0);
+  const allNegative = safeRoi.length && safeRoi.every(v => v <= 0);
+  const spread = Math.max(Math.abs(maxROI - minROI), 1);
+  const pad = Math.max(0.75, spread * 0.12);
+  const yMin = allPositive ? 0 : Math.floor(minROI - pad);
+  const yMax = allNegative ? 0 : Math.ceil(maxROI + pad);
+
+  const ctx = el.getContext("2d");
+
+  monthlyChart = new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels:labels,
+      datasets:[{
+        data:roi,
+        borderRadius:10,
+        barThickness:24,
+        backgroundColor:profits.map(v=>{
+          if(v>0) return "rgba(34,197,94,0.9)";
+          if(v<0) return "rgba(239,68,68,0.9)";
+          return "rgba(100,116,139,0.4)";
+        })
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{
+          min: yMin,
+          max: yMax,
+          ticks:{callback:(v)=>v+"%"},
+          grid:{color:"rgba(255,255,255,0.05)"}
+        }
+      }
+    },
+    plugins:[{
+      afterDatasetsDraw(chart){
+        const {ctx} = chart;
+        chart.getDatasetMeta(0).data.forEach((bar,i)=>{
+          const val = profits[i];
+          if(val === 0) return;
+          ctx.fillStyle="#fff";
+          ctx.font="bold 13px system-ui";
+          ctx.textAlign="center";
+          ctx.fillText("£"+val.toFixed(2), bar.x, roi[i]>=0 ? bar.y-8 : bar.y+18);
+        });
+      }
+    }]
+  });
+}
+
+
+function renderMarketChart(labels, winPct, totals){
+  const el = document.getElementById("marketChart");
+  if(!el) return;
+  if(marketChart) marketChart.destroy();
+
+  const ctx = el.getContext("2d");
+  marketChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        data: winPct,
+        borderWidth: 0,
+        borderRadius: 10,
+        barThickness: 18,
+        backgroundColor: winPct.map(v=>{
+          if(v >= 55) return "rgba(34,197,94,0.85)";   // green
+          if(v >= 40) return "rgba(245,158,11,0.85)";  // amber
+          return "rgba(239,68,68,0.85)";               // red
+        }),
+        borderColor: winPct.map(v=>{
+          if(v >= 55) return "#22c55e";
+          if(v >= 40) return "#f59e0b";
+          return "#ef4444";
+        })
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx)=>{
+              const i = ctx.dataIndex;
+              const pct = Number(ctx.raw || 0).toFixed(0) + "%";
+              const t = (totals && totals[i]) ? totals[i] : { bets: 0, wins: 0, losses: 0 };
+              return `Win rate: ${pct} • Bets: ${t.bets} (W:${t.wins} L:${t.losses})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          min: 0,
+          max: 100,
+          ticks: { display: false },
+          grid: { display: false, drawBorder: false }
+        },
+        y: {
+          ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
+          grid: { display: false, drawBorder: false }
+        }
+      },
+      animation: { duration: 250 }
+    },
+    plugins: [{
+  id: "pctLabels",
+  afterDatasetsDraw(chart){
+    const {ctx, chartArea} = chart;
+    const meta = chart.getDatasetMeta(0);
+
+    ctx.save();
+    ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.fillStyle = "rgba(229,231,235,0.95)";
+
+    meta.data.forEach((bar, i)=>{
+      const val = Number(winPct[i] ?? 0);
+      const text = Math.round(val) + "%";
+
+      const isTiny = val <= 8;
+
+      const x = isTiny ? (chartArea.left + 8) : (bar.x - 10);
+      const y = bar.y + 4;
+
+      ctx.textAlign = isTiny ? "left" : "right";
+      ctx.fillText(text, x, y);
+    });
+
+    ctx.restore();
+  }
+}]
+  });
+}
+
+function setMiniValue(id, prefix, value){
+  // legacy helper kept, now feeds Insights dropdown
+  const txt = (prefix ? (prefix + " ") : "") + (value || "—");
+  setInsight(id, txt);
+  updateInsightUI();
+}
+
+
+
+
+function initChartTabs(){
+  const btns = document.querySelectorAll(".tab-btn");
+  if(!btns.length) return;
+
+  btns.forEach(b=>{
+    b.addEventListener("click", ()=>{
+      btns.forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      const tab = b.getAttribute("data-tab");
+      document.querySelectorAll(".chart-pane").forEach(p=>p.classList.remove("active"));
+      const pane = document.getElementById("pane-"+tab);
+      if(pane) pane.classList.add("active");
     });
   });
 }
-function render(){
-  if(state.current?.slug === "tracker"){ renderTracker(); return; }
-  if(state.current?.slug === "accas"){ renderAccas(); return; }
-  // normal dashboards
-  try{ document.body.classList.remove("trackerView"); }catch(e){}
-  applyFilters();
-  buildHead();
-  buildBody();
-  buildCards();
-  $("count").textContent = `${state.filtered.length} of ${state.raw.length} rows • ${state.current?.name ?? ""}`;
-}
-
-function resetFilters(){
-  $("q").value=""; $("league").value=""; $("pick").value=""; $("pmin").value=""; $("dfrom").value=""; $("dto").value="";
-  state.sortKey = state.columns[0] || null; state.sortDir="asc";
-  render();
-}
-
-function setCompact(on){
-  state.compact = on;
-  document.body.classList.toggle("compact", on);
-  $("viewBtn").textContent = on ? "Wide" : "Compact";
-  render();
-}
-
-async function init(){
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js");
-  }
-
-  // serviceWorker disabled (prevent stale cache)
-  state.tracker = loadTracker();
-  let deferredPrompt=null;
-  window.addEventListener("beforeinstallprompt",(e)=>{ e.preventDefault(); deferredPrompt=e;  });
-  $("installBtn").addEventListener("click", async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null;  });
-
-  ["q","league","pick","pmin","dfrom","dto"].forEach(id=>{ $(id).addEventListener(id==="q" ? "input":"change", render); });
-  $("resetBtn").addEventListener("click", resetFilters);
-  $("viewBtn").addEventListener("click", ()=> setCompact(!state.compact));
-  $("closeDlg").addEventListener("click", ()=> $("details").close());
-  $("details").addEventListener("click",(e)=>{ const rect=$("details").getBoundingClientRect(); const inDialog = rect.top<=e.clientY && e.clientY<=rect.bottom && rect.left<=e.clientX && e.clientX<=rect.right; if(!inDialog) $("details").close(); });
-
-  setCompact(window.matchMedia("(max-width: 640px)").matches);
-  loadDataset(state.datasets[0]?.slug);
-}
-init();
 
 
-function loadAccas(){
-  try{
-    const raw = localStorage.getItem(ACCAS_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
-  }catch(e){ return []; }
-}
-function saveAccas(){
-  try{ localStorage.setItem(ACCAS_KEY, JSON.stringify(state.accas || [])); }
-  catch(e){}
-}
-
-function loadAccaBankroll(){
-  try{
-    const raw = localStorage.getItem(ACCA_BANKROLL_KEY);
-    const v = raw ? JSON.parse(raw) : null;
-    if(v && typeof v.start === "number") return v;
-  }catch(e){}
-  return { start: 50, updatedAt: Date.now() };
-}
-function saveAccaBankroll(obj){
-  try{ localStorage.setItem(ACCA_BANKROLL_KEY, JSON.stringify(obj)); }catch(e){}
-}
-function accaProfit(a){
-  const stake = (typeof a.stake === "number" && isFinite(a.stake)) ? a.stake : 0;
-  const odds  = (typeof a.odds === "number" && isFinite(a.odds)) ? a.odds : 0;
-  if(a.status === "won") return stake * Math.max(0, (odds - 1));
-  if(a.status === "lost") return -stake;
+function rowProfit(row){
+  if(row.result === "won") return row.stake * (row.odds - 1);
+  if(row.result === "lost") return -row.stake;
   return 0;
 }
-function accaStats(){
-  const arr = state.accas || [];
-  const won = arr.filter(x=>x.status==="won").length;
-  const lost = arr.filter(x=>x.status==="lost").length;
-  const pending = arr.filter(x=>x.status==="pending").length;
-  const voided = arr.filter(x=>x.status==="void").length;
-  const decided = won + lost;
-  const winp = decided ? Math.round((won/decided)*100) : 0;
-  const staked = arr.reduce((s,a)=> s + (((typeof a.stake==="number" && isFinite(a.stake))?a.stake:0) * (a.status==="pending"?0:1)), 0);
-  const profit = arr.reduce((s,a)=> s + accaProfit(a), 0);
-  const roi = staked ? (profit / staked) : 0;
-  return {total: arr.length, won, lost, pending, voided, winp, staked, profit, roi};
-}
-function createAccaFromLegs(legs, stake){
-  const odds = legs.reduce((p,l)=> p * (((typeof l.odds==="number" && isFinite(l.odds))?l.odds:1)), 1);
-  const a = {
-    id: uid(),
-    status: "pending",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    stake: (typeof stake==="number" && isFinite(stake)) ? stake : DEFAULT_STAKE,
-    odds: odds,
-    legs: legs.map(l=>({
-      id: l.id, home:l.home, away:l.away, market:l.market, league:l.league, date:l.date,
-      pick:l.pick, prob:l.prob, odds:l.odds
-    }))
-  };
-  state.accas = state.accas || loadAccas();
-  state.accas.unshift(a);
-  saveAccas();
-}
-function setAccaStatus(id, status){
-  const a = (state.accas||[]).find(x=>x.id===id);
-  if(!a) return;
-  a.status = status;
-  a.updatedAt = Date.now();
-  saveAccas();
-}
-function removeAcca(id){
-  state.accas = (state.accas||[]).filter(x=>x.id!==id);
-  saveAccas();
+
+
+function toggleInsights(){
+  const content = document.getElementById("insightsContent");
+  const arrow = document.getElementById("insightsArrow");
+
+  if(content.classList.contains("insights-collapsed")){
+    content.classList.remove("insights-collapsed");
+    content.classList.add("insights-expanded");
+    arrow.innerText="▲";
+  }else{
+    content.classList.remove("insights-expanded");
+    content.classList.add("insights-collapsed");
+    arrow.innerText="▼";
+  }
 }
 
-function filterTracker(arr, f){
-  // v2 filters: q, market, status, from, to, tab
-  // Backwards compatible with v1 (league/range) so older caches don't crash.
-  const status = (f && f.status) ? f.status : "all";
-  const market = (f && f.market) ? f.market : "all";
-  const tab = (f && f.tab) ? f.tab : "all"; // all | singles | accas
-  const q = (f && f.q) ? f.q : "";
 
-  // Date range: prefer explicit from/to; fall back to legacy "range"
-  const from = (f && f.from) ? f.from : "";
-  const to = (f && f.to) ? f.to : "";
-  const legacyRange = (f && f.range) ? f.range : "all";
-
-  const fromTs = from ? Date.parse(from) : NaN;
-  const toTs = to ? Date.parse(to) : NaN;
-
-  const inFromTo = (t) => {
-    const ts = (t.updatedAt || t.createdAt || 0);
-    if(!isNaN(fromTs) && ts < fromTs) return false;
-    if(!isNaN(toTs)){
-      // include the whole 'to' day when user chooses a date-only value
-      const end = toTs + 24*60*60*1000 - 1;
-      if(ts > end) return false;
+// Auto-close Insights when switching chart tabs
+document.addEventListener("click", function(e){
+  if(e.target.classList.contains("tab-btn")){
+    const content = document.getElementById("insightsContent");
+    const arrow = document.getElementById("insightsArrow");
+    if(content && !content.classList.contains("insights-collapsed")){
+      content.classList.remove("insights-expanded");
+      content.classList.add("insights-collapsed");
+      arrow.innerText="▼";
     }
-    return true;
-  };
+  }
+});
 
-  return (arr||[]).filter(t=>{
-    if(status!=="all" && t.status!==status) return false;
-    if(tab==="singles" && t.type!=="single") return false;
-    if(tab==="accas" && t.type!=="acca") return false;
-    if(market!=="all" && (t.market||t.pick||"")!==market) return false;
-    if(!inFromTo(t)){
-      // If no explicit from/to are set, fall back to legacy range.
-      if(!(from||to) && !inRange(t, legacyRange)) return false;
-      if(from||to) return false;
-    }
-    if(!matchQ(t, q)) return false;
-    return true;
+function toggleMonthly(){
+  const wrapper=document.getElementById("monthlyWrapper");
+  const arrow=document.getElementById("monthlyArrow");
+  if(wrapper.classList.contains("collapsed")){
+    wrapper.classList.remove("collapsed");
+    wrapper.classList.add("expanded");
+    arrow.innerText="▲";
+  }else{
+    wrapper.classList.remove("expanded");
+    wrapper.classList.add("collapsed");
+    arrow.innerText="▼";
+  }
+}
+const startingInput = document.getElementById("startingBankroll");
+
+if(startingInput){
+  // Load saved value
+  const saved = localStorage.getItem("starting_bankroll");
+  if(saved){
+    startingInput.value = saved;
+  }
+
+  // Save on change
+  startingInput.addEventListener("input", function(){
+    localStorage.setItem("starting_bankroll", this.value);
   });
 }
 
 
-function averageOddsGlobal(arr){
-  const settled = (arr||[]).filter(t =>
-    (t.status === "won" || t.status === "lost") &&
-    typeof t.odds === "number" &&
-    isFinite(t.odds) &&
-    t.odds > 1
-  );
-  if(!settled.length) return null;
-  const sum = settled.reduce((s,t)=>s+t.odds,0);
-  return sum / settled.length;
+setInterval(()=>{
+  if(currentTopTab === "bets") loadBets();
+}, 60000);
+// ===== Personal Tracker: visual date grouping only =====
+function addPersonalTrackerDateGroups(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const existing = table.querySelectorAll("tr.date-group");
+  existing.forEach(el => el.remove());
+
+  const rows = Array.from(table.querySelectorAll("tr")).slice(1); // skip header
+  let lastDate = "";
+
+  rows.forEach(row => {
+    const dateCell = row.querySelector(".date-col");
+    if(!dateCell) return;
+
+    const dateText = dateCell.textContent.trim();
+    if(!dateText) return;
+
+    if(dateText !== lastDate){
+      const divider = document.createElement("tr");
+      divider.className = "date-group";
+      divider.innerHTML = `<td colspan="5">📅 ${dateText}</td>`;
+      row.parentNode.insertBefore(divider, row);
+      lastDate = dateText;
+    }
+  });
 }
+
+const __originalLoadTrackerWithCount = loadTracker;
+loadTracker = async function(){
+  await __originalLoadTrackerWithCount();
+  addPersonalTrackerDateGroups();
+};
+// ===== Personal Tracker: collapsible date groups =====
+function wirePersonalTrackerDateCollapse(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const groups = Array.from(table.querySelectorAll("tr.date-group"));
+
+  groups.forEach(groupRow => {
+    if (groupRow.dataset.bound === "1") return;
+    groupRow.dataset.bound = "1";
+    groupRow.dataset.expanded = "1";
+
+    const cell = groupRow.querySelector("td");
+    if (!cell) return;
+
+    const rawText = cell.textContent.replace(/^▼|^▶/, "").trim();
+    cell.innerHTML = `▼ ${rawText}`;
+
+    groupRow.addEventListener("click", () => {
+      const expanded = groupRow.dataset.expanded === "1";
+      groupRow.dataset.expanded = expanded ? "0" : "1";
+
+      const label = groupRow.querySelector("td");
+      if (label) {
+        label.innerHTML = `${expanded ? "▶" : "▼"} ${rawText}`;
+      }
+
+      let next = groupRow.nextElementSibling;
+      while (next && !next.classList.contains("date-group")) {
+        next.style.display = expanded ? "none" : "";
+        next = next.nextElementSibling;
+      }
+    });
+  });
+}
+
+// re-wrap the current loadTracker safely
+const __originalLoadTrackerWithDateGroups = loadTracker;
+loadTracker = async function(){
+  await __originalLoadTrackerWithDateGroups();
+  addPersonalTrackerDateGroups();
+  wirePersonalTrackerDateCollapse();
+};
+// ===== Personal Tracker: persistent collapsible date groups =====
+function getPersonalTrackerCollapseKey(){
+  const email = (localStorage.getItem("vip_email") || "guest").trim().toLowerCase();
+  return `personal_tracker_collapsed_days_${email}`;
+}
+
+function readPersonalTrackerCollapseState(){
+  try{
+    return JSON.parse(localStorage.getItem(getPersonalTrackerCollapseKey()) || "{}");
+  }catch(e){
+    return {};
+  }
+}
+
+function writePersonalTrackerCollapseState(state){
+  localStorage.setItem(getPersonalTrackerCollapseKey(), JSON.stringify(state || {}));
+}
+
+function getNewestPersonalTrackerDay(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return "";
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return "";
+
+  const firstGroup = table.querySelector("tr.date-group td");
+  if(!firstGroup) return "";
+
+  return firstGroup.textContent.replace(/^▼|^▶|^📅/, "").trim();
+}
+
+function applyPersonalTrackerCollapseState(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const saved = readPersonalTrackerCollapseState();
+  const newestDay = getNewestPersonalTrackerDay();
+
+  // if newest day changed, reset so only newest opens
+  if(saved.__latestDay !== newestDay){
+    const resetState = { __latestDay: newestDay };
+    writePersonalTrackerCollapseState(resetState);
+  }
+
+  const state = readPersonalTrackerCollapseState();
+  const groups = Array.from(table.querySelectorAll("tr.date-group"));
+
+  groups.forEach((groupRow, index) => {
+    const cell = groupRow.querySelector("td");
+    if(!cell) return;
+
+    const rawText = cell.textContent.replace(/^▼|^▶|^📅/, "").trim();
+    const isNewest = index === 0;
+
+    // default: newest open, all others collapsed
+    const expanded = Object.prototype.hasOwnProperty.call(state, rawText)
+      ? !!state[rawText]
+      : isNewest;
+
+    groupRow.dataset.expanded = expanded ? "1" : "0";
+    cell.innerHTML = `${expanded ? "▼" : "▶"} ${rawText}`;
+
+    let next = groupRow.nextElementSibling;
+    while(next && !next.classList.contains("date-group")){
+      next.style.display = expanded ? "" : "none";
+      next = next.nextElementSibling;
+    }
+  });
+}
+
+function wirePersonalTrackerDateCollapse(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const groups = Array.from(table.querySelectorAll("tr.date-group"));
+
+  groups.forEach(groupRow => {
+    if(groupRow.dataset.bound === "1") return;
+    groupRow.dataset.bound = "1";
+
+    groupRow.addEventListener("click", () => {
+      const cell = groupRow.querySelector("td");
+      if(!cell) return;
+
+      const rawText = cell.textContent.replace(/^▼|^▶|^📅/, "").trim();
+      const expanded = groupRow.dataset.expanded === "1";
+      const nextExpanded = !expanded;
+
+      groupRow.dataset.expanded = nextExpanded ? "1" : "0";
+      cell.innerHTML = `${nextExpanded ? "▼" : "▶"} ${rawText}`;
+
+      let next = groupRow.nextElementSibling;
+      while(next && !next.classList.contains("date-group")){
+        next.style.display = nextExpanded ? "" : "none";
+        next = next.nextElementSibling;
+      }
+
+      const state = readPersonalTrackerCollapseState();
+      state[rawText] = nextExpanded;
+      state.__latestDay = getNewestPersonalTrackerDay();
+      writePersonalTrackerCollapseState(state);
+    });
+  });
+}
+
+// final safe wrapper
+const __originalLoadTrackerCollapsedGroups = loadTracker;
+loadTracker = async function(){
+  await __originalLoadTrackerCollapsedGroups();
+  addPersonalTrackerDateGroups();
+  wirePersonalTrackerDateCollapse();
+  applyPersonalTrackerCollapseState();
+};
+// ===== Personal Tracker: month grouping (visual only) =====
+function monthKeyFromDateLabel(dateLabel){
+  const txt = (dateLabel || "").replace(/^▼|^▶|^📅/, "").trim();
+  if(!txt) return "";
+
+  const parts = txt.split(" ");
+  if(parts.length < 2) return "";
+
+  const day = parts[0];
+  const mon = parts[1];
+  const yr = new Date().getFullYear();
+
+  const d = new Date(`${day} ${mon} ${yr}`);
+  if(Number.isNaN(d.getTime())) return "";
+
+  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+}
+
+function getPersonalTrackerMonthCollapseKey(){
+  const email = (localStorage.getItem("vip_email") || "guest").trim().toLowerCase();
+  return `personal_tracker_collapsed_months_${email}`;
+}
+
+function readPersonalTrackerMonthState(){
+  try{
+    return JSON.parse(localStorage.getItem(getPersonalTrackerMonthCollapseKey()) || "{}");
+  }catch(e){
+    return {};
+  }
+}
+
+function writePersonalTrackerMonthState(state){
+  localStorage.setItem(getPersonalTrackerMonthCollapseKey(), JSON.stringify(state || {}));
+}
+
+function addPersonalTrackerMonthGroups(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  table.querySelectorAll("tr.month-group").forEach(el => el.remove());
+
+  const rows = Array.from(table.querySelectorAll("tr"));
+  const dayGroups = rows.filter(r => r.classList.contains("date-group"));
+
+  let lastMonth = "";
+  dayGroups.forEach(groupRow => {
+    const cell = groupRow.querySelector("td");
+    if(!cell) return;
+
+    const month = monthKeyFromDateLabel(cell.textContent);
+    if(!month) return;
+
+    if(month !== lastMonth){
+      const divider = document.createElement("tr");
+      divider.className = "month-group";
+      divider.innerHTML = `<td colspan="5">▼ ${month}</td>`;
+      groupRow.parentNode.insertBefore(divider, groupRow);
+      lastMonth = month;
+    }
+  });
+}
+
+function applyPersonalTrackerMonthCollapseState(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const groups = Array.from(table.querySelectorAll("tr.month-group"));
+  if(!groups.length) return;
+
+  const state = readPersonalTrackerMonthState();
+  const newestMonth = groups[0]?.querySelector("td")?.textContent.replace(/^▼|^▶/, "").trim() || "";
+
+  if(state.__latestMonth !== newestMonth){
+    writePersonalTrackerMonthState({ __latestMonth: newestMonth });
+  }
+
+  const freshState = readPersonalTrackerMonthState();
+
+  groups.forEach((groupRow, index) => {
+    const cell = groupRow.querySelector("td");
+    if(!cell) return;
+
+    const rawText = cell.textContent.replace(/^▼|^▶/, "").trim();
+    const isNewest = index === 0;
+
+    const expanded = Object.prototype.hasOwnProperty.call(freshState, rawText)
+      ? !!freshState[rawText]
+      : isNewest;
+
+    groupRow.dataset.expanded = expanded ? "1" : "0";
+    cell.innerHTML = `${expanded ? "▼" : "▶"} ${rawText}`;
+
+    let next = groupRow.nextElementSibling;
+    while(next && !next.classList.contains("month-group")){
+      next.style.display = expanded ? "" : "none";
+      next = next.nextElementSibling;
+    }
+  });
+}
+
+function wirePersonalTrackerMonthCollapse(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const groups = Array.from(table.querySelectorAll("tr.month-group"));
+
+  groups.forEach(groupRow => {
+    if(groupRow.dataset.bound === "1") return;
+    groupRow.dataset.bound = "1";
+
+    groupRow.addEventListener("click", () => {
+      const cell = groupRow.querySelector("td");
+      if(!cell) return;
+
+      const rawText = cell.textContent.replace(/^▼|^▶/, "").trim();
+      const expanded = groupRow.dataset.expanded === "1";
+      const nextExpanded = !expanded;
+
+      groupRow.dataset.expanded = nextExpanded ? "1" : "0";
+      cell.innerHTML = `${nextExpanded ? "▼" : "▶"} ${rawText}`;
+
+      let next = groupRow.nextElementSibling;
+      while(next && !next.classList.contains("month-group")){
+        next.style.display = nextExpanded ? "" : "none";
+        next = next.nextElementSibling;
+      }
+
+      const state = readPersonalTrackerMonthState();
+      state[rawText] = nextExpanded;
+      state.__latestMonth = Array.from(document.querySelectorAll("#trackerTable tr.month-group"))[0]
+        ?.querySelector("td")
+        ?.textContent.replace(/^▼|^▶/, "").trim() || "";
+      writePersonalTrackerMonthState(state);
+    });
+  });
+}
+
+// final wrapper for month + day grouping
+const __originalLoadTrackerWithMonthGroups = loadTracker;
+loadTracker = async function(){
+  await __originalLoadTrackerWithMonthGroups();
+  addPersonalTrackerDateGroups();
+  addPersonalTrackerMonthGroups();
+  wirePersonalTrackerDateCollapse();
+  applyPersonalTrackerCollapseState();
+  wirePersonalTrackerMonthCollapse();
+  applyPersonalTrackerMonthCollapseState();
+};
+/* =========================
+   PERSONAL TRACKER COLLAPSE FIX
+   Keeps:
+   - Month groups
+   - Day groups
+   - Only current day open
+   - Fixes double-click collapse
+   ========================= */
+
+function getNewestPersonalTrackerDay(){
+  const groups = Array.from(document.querySelectorAll("#trackerTable tr.date-group"));
+  if(!groups.length) return "";
+  const first = groups[0].querySelector("td");
+  if(!first) return "";
+  return first.textContent.replace(/^▼|^▶|^📅/, "").trim();
+}
+
+function applyPersonalTrackerCollapseState(){
+  const tableWrap = document.getElementById("trackerTable");
+  if(!tableWrap) return;
+
+  const table = tableWrap.querySelector("table");
+  if(!table) return;
+
+  const saved = readPersonalTrackerCollapseState();
+  const newestDay = getNewestPersonalTrackerDay();
+
+  if(saved.__latestDay !== newestDay){
+    const resetState = { __latestDay: newestDay };
+    writePersonalTrackerCollapseState(resetState);
+  }
+
+  const state = readPersonalTrackerCollapseState();
+  const groups = Array.from(table.querySelectorAll("tr.date-group"));
+
+  groups.forEach((groupRow, index) => {
+
+    const cell = groupRow.querySelector("td");
+    if(!cell) return;
+
+    const rawText = cell.textContent.replace(/^▼|^▶|^📅/, "").trim();
+    const todayLabel = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short"});
+const newestRow = groups[0]?.querySelector("td")?.textContent.replace(/^▼|^▶|^📅/, "").trim();
+
+const isNewest = rawText === todayLabel || rawText === newestRow;
+    const expanded = Object.prototype.hasOwnProperty.call(state, rawText)
+      ? !!state[rawText]
+      : isNewest;
+
+    groupRow.dataset.expanded = expanded ? "1" : "0";
+    cell.innerHTML = `${expanded ? "▼" : "▶"} ${rawText}`;
+
+    let next = groupRow.nextElementSibling;
+
+    while(next && !next.classList.contains("date-group") && !next.classList.contains("month-group")){
+      next.style.display = expanded ? "" : "none";
+      next = next.nextElementSibling;
+    }
+
+  });
+
+}
+
+/* ---------- final safe wrapper ---------- */
+
+const __originalLoadTrackerFinal = loadTracker;
+
+loadTracker = async function(){
+
+  await __originalLoadTrackerFinal();
+
+  if(typeof addPersonalTrackerDateGroups === "function"){
+    addPersonalTrackerDateGroups();
+  }
+
+  if(typeof addPersonalTrackerMonthGroups === "function"){
+    addPersonalTrackerMonthGroups();
+  }
+
+  if(typeof wirePersonalTrackerDateCollapse === "function"){
+    wirePersonalTrackerDateCollapse();
+  }
+
+  if(typeof wirePersonalTrackerMonthCollapse === "function"){
+    wirePersonalTrackerMonthCollapse();
+  }
+
+  if(typeof applyPersonalTrackerMonthCollapseState === "function"){
+    applyPersonalTrackerMonthCollapseState();
+  }
+
+  applyPersonalTrackerCollapseState();
+
+};
+/* ===== SAFE TDT RESULTS MONTHLY OVERRIDE ===== */
+
+function __tdtMonthKeySafe(row){
+  const raw = row?.match_date_date || row?.bet_date || row?.created_at;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return "Unknown";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+function __tdtMonthLabelSafe(monthKey){
+  if (!monthKey || monthKey === "Unknown") return "Unknown";
+  const [y, m] = String(monthKey).split("-");
+  const d = new Date(Number(y), Number(m) - 1, 1);
+  if (Number.isNaN(d.getTime())) return monthKey;
+  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+}
+
+window.loadTdtTracker = async function(){
+  const tableEl = document.getElementById("tdtTrackerTable");
+
+  function __tdtWeekLabelSafe(row){
+    const raw = row?.match_date_date || row?.bet_date || row?.created_at;
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return "Unknown week";
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const day = d.getDate();
+    const week = Math.ceil(day / 7);
+    const startDay = (week - 1) * 7 + 1;
+    let endDay = week * 7;
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    if (endDay > lastDay) endDay = lastDay;
+    const monthShort = d.toLocaleDateString("en-GB", { month: "short" });
+    return `Week ${week} (${startDay}–${endDay} ${monthShort})`;
+  }
+
+  try{
+    const { data, error } = await client
+      .from("tdt_tracker")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if(error) throw error;
+
+    const rows = Array.isArray(data) ? data : [];
+    tdtRowsCache = rows;
+
+    let profit = 0;
+    let wins = 0;
+    let losses = 0;
+    let totalStake = 0;
+    let totalOdds = 0;
+    let resolvedCount = 0;
+
+    rows.forEach(row=>{
+      const result = String(row.result || "pending").toLowerCase();
+
+      const p =
+        result === "won"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
+          : result === "lost"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : -Number(row.stake || 0))
+          : 0;
+
+      profit += p;
+
+      if(result === "won") wins++;
+      if(result === "lost") losses++;
+
+      if(result !== "pending"){
+        resolvedCount++;
+        totalStake += Number(row.stake || 0);
+        totalOdds += Number(row.odds || 0);
+      }
+    });
+
+    const todayIso = new Date().toISOString();
+    const currentMonthKey = __tdtMonthKeySafe({ created_at: todayIso });
+    const currentWeekLabel = __tdtWeekLabelSafe({ created_at: todayIso });
+    const currentDayKey = typeof getTdtRowDayKey === "function" ? getTdtRowDayKey({ created_at: todayIso }) : "";
+
+    const monthMap = new Map();
+
+    rows.forEach(row=>{
+      const monthKey = __tdtMonthKeySafe(row);
+      const weekKey = __tdtWeekLabelSafe(row);
+      const dayKey = typeof getTdtRowDayKey === "function" ? getTdtRowDayKey(row) : String(row.bet_date || row.created_at || "Unknown");
+      const result = String(row.result || "pending").toLowerCase();
+
+      const p =
+        result === "won"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
+          : result === "lost"
+          ? (row.profit != null
+              ? Number(row.profit)
+              : -Number(row.stake || 0))
+          : 0;
+
+      if(!monthMap.has(monthKey)){
+        monthMap.set(monthKey, {
+          key: monthKey,
+          rows: [],
+          wins: 0,
+          losses: 0,
+          settled: 0,
+          profit: 0,
+          weeks: new Map()
+        });
+      }
+
+      const monthGroup = monthMap.get(monthKey);
+      monthGroup.rows.push(row);
+      monthGroup.profit += p;
+
+      if(result === "won"){
+        monthGroup.wins++;
+        monthGroup.settled++;
+      }else if(result === "lost"){
+        monthGroup.losses++;
+        monthGroup.settled++;
+      }
+
+      if(!monthGroup.weeks.has(weekKey)){
+        monthGroup.weeks.set(weekKey, {
+          key: weekKey,
+          rows: [],
+          wins: 0,
+          losses: 0,
+          settled: 0,
+          days: new Map()
+        });
+      }
+
+      const weekGroup = monthGroup.weeks.get(weekKey);
+      weekGroup.rows.push(row);
+      if(result === "won"){
+        weekGroup.wins++;
+        weekGroup.settled++;
+      }else if(result === "lost"){
+        weekGroup.losses++;
+        weekGroup.settled++;
+      }
+
+      if(!weekGroup.days.has(dayKey)){
+        weekGroup.days.set(dayKey, {
+          key: dayKey,
+          rows: [],
+          wins: 0,
+          losses: 0,
+          settled: 0
+        });
+      }
+
+      const dayGroup = weekGroup.days.get(dayKey);
+      dayGroup.rows.push(row);
+      if(result === "won"){
+        dayGroup.wins++;
+        dayGroup.settled++;
+      }else if(result === "lost"){
+        dayGroup.losses++;
+        dayGroup.settled++;
+      }
+    });
+
+    const monthGroups = Array.from(monthMap.values()).sort((a,b)=>a.key.localeCompare(b.key));
+
+    let html = `<div class="tdt-month-groups">`;
+
+    monthGroups.forEach((group, idx)=>{
+      const monthWinrate = group.settled
+        ? Math.round((group.wins / group.settled) * 100)
+        : 0;
+
+      const profitClass = group.profit >= 0 ? "positive" : "negative";
+      const profitSign = group.profit >= 0 ? "+" : "-";
+      const monthOpen = group.key === currentMonthKey || (!monthGroups.some(m => m.key === currentMonthKey) && idx === monthGroups.length - 1);
+
+      html += `
+        <div class="tdt-month-card">
+          <button class="tdt-month-head" type="button" onclick="toggleTdtDay(this)">
+            <div class="tdt-month-left">
+              <div class="tdt-month-title">${escapeHtml(__tdtMonthLabelSafe(group.key))}</div>
+              <div class="tdt-month-sub">
+                ${group.rows.length} result${group.rows.length === 1 ? "" : "s"} •
+                <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span>
+              </div>
+            </div>
+            <div class="tdt-month-right">
+              <span class="tdt-day-chip win">Won ${group.wins}</span>
+              <span class="tdt-day-chip loss">Lost ${group.losses}</span>
+              <span class="tdt-day-chip ratio ${tdtWinrateClass(monthWinrate)}">Winrate ${monthWinrate}%</span>
+              <span class="tdt-day-chevron">${monthOpen ? "▼" : "▶"}</span>
+            </div>
+          </button>
+          <div class="tdt-day-body" style="display:${monthOpen ? "block" : "none"};">
+      `;
+
+      const weekGroups = Array.from(group.weeks.values()).sort((a,b)=>{
+        const aFirst = a.rows.reduce((min, r)=> {
+          const t = new Date(r.match_date_date || r.bet_date || r.created_at || 0).getTime() || 0;
+          return min === null || t < min ? t : min;
+        }, null);
+        const bFirst = b.rows.reduce((min, r)=> {
+          const t = new Date(r.match_date_date || r.bet_date || r.created_at || 0).getTime() || 0;
+          return min === null || t < min ? t : min;
+        }, null);
+        return (aFirst || 0) - (bFirst || 0);
+      });
+
+      weekGroups.forEach((weekGroup)=>{
+        const weekWinrate = weekGroup.settled ? Math.round((weekGroup.wins / weekGroup.settled) * 100) : 0;
+        const isCurrentWeek = group.key === currentMonthKey && weekGroup.key === currentWeekLabel;
+        const weekOpen = isCurrentWeek;
+        const weekCurrentStyle = isCurrentWeek ? 'box-shadow: inset 0 0 0 1px rgba(34,197,94,0.35), 0 0 0 1px rgba(34,197,94,0.08); background: rgba(34,197,94,0.05);' : '';
+
+        html += `
+            <div class="tdt-week-wrap" style="padding:0 0 10px;">
+              <button class="tracker-week-toggle ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" type="button" onclick="toggleTdtDay(this)" style="${weekCurrentStyle}">
+                <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
+                <span>${escapeHtml(weekGroup.key)}</span>
+                <span class="tracker-stats">${weekGroup.rows.length} • ${weekGroup.wins}-${weekGroup.losses} • ${weekWinrate}%</span>
+              </button>
+              <div class="tdt-day-body" style="display:${weekOpen ? "block" : "none"};">
+        `;
+
+        const dayGroups = Array.from(weekGroup.days.values()).sort((a,b)=>a.key.localeCompare(b.key));
+
+        dayGroups.forEach((dayGroup)=>{
+          const dayWinrate = dayGroup.settled ? Math.round((dayGroup.wins / dayGroup.settled) * 100) : 0;
+          const isCurrentDay = dayGroup.key === currentDayKey;
+          const dayOpen = isCurrentDay && isCurrentWeek;
+          const dayCurrentStyle = isCurrentDay ? 'box-shadow: inset 0 0 0 1px rgba(34,197,94,0.35), 0 0 0 1px rgba(34,197,94,0.08); background: rgba(34,197,94,0.05);' : '';
+
+          html += `
+                <div class="tdt-day-card">
+                  <button class="tdt-day-head" type="button" onclick="toggleTdtDay(this)" style="${dayCurrentStyle}">
+                    <div class="tdt-day-left">
+                      <div class="tdt-day-date">${escapeHtml(typeof fmtTdtDayHeader === "function" ? fmtTdtDayHeader(dayGroup.key) : dayGroup.key)}${isCurrentDay ? ' • Today' : ''}</div>
+                      <div class="tdt-day-meta">${dayGroup.rows.length} bet${dayGroup.rows.length === 1 ? "" : "s"}</div>
+                    </div>
+                    <div class="tdt-day-right">
+                      <span class="tdt-day-chip win">Won ${dayGroup.wins}</span>
+                      <span class="tdt-day-chip loss">Lost ${dayGroup.losses}</span>
+                      <span class="tdt-day-chip ratio ${tdtWinrateClass(dayWinrate)}">Winrate ${dayWinrate}%</span>
+                      <span class="tdt-day-chevron">${dayOpen ? "▼" : "▶"}</span>
+                    </div>
+                  </button>
+                  <div class="tdt-day-body" style="display:${dayOpen ? "block" : "none"};">
+                    <div class="tdt-table-wrap">
+                      <table class="tdt-table tdt-table-fit">
+                        <thead>
+                          <tr>
+                            <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('match') : ''}</span></th>
+                            <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('market') : ''}</span></th>
+                            <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('stake') : ''}</span></th>
+                            <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('odds') : ''}</span></th>
+                            <th class="tdt-col-result sortable" onclick="sortTdtTable('result')">Result <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('result') : ''}</span></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+          `;
+
+          dayGroup.rows.forEach(row=>{
+            const result = String(row.result || "pending").toLowerCase();
+            const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+
+            html += `
+                          <tr class="tdt-row ${result}">
+                            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+                            <td class="tdt-market">${escapeHtml(row.market || '')}</td>
+                            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
+                            <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
+                            <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
+                          </tr>
+            `;
+          });
+
+          html += `
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+          `;
+        });
+
+        html += `
+              </div>
+            </div>
+        `;
+      });
+
+      html += `
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+
+    if(tableEl){
+      tableEl.innerHTML = rows.length
+        ? html
+        : '<div class="card">No official TDT results yet.</div>';
+    }
+
+    const set = (id, val)=>{
+      const el = document.getElementById(id);
+      if(el) el.innerText = val;
+    };
+
+    set("tdtProfit", profit.toFixed(2));
+    set("tdtRoi", totalStake ? ((profit / totalStake) * 100).toFixed(1) : 0);
+    set("tdtWinrate", (wins + losses) ? ((wins / (wins + losses)) * 100).toFixed(1) : 0);
+    set("tdtWonLost", `${wins}-${losses}`);
+    set("tdtAvgOdds", resolvedCount ? (totalOdds / resolvedCount).toFixed(2) : 0);
+    set("tdtTotalBets", rows.length);
+    set("tdtBetCount", rows.length);
+
+    if(typeof updateTdtPerformanceBars === "function"){
+      updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
+    }
+  }catch(err){
+    console.error("TDT monthly override failed:", err);
+    if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
+  }
+};
+
+try{
+  if(typeof currentTopTab !== "undefined" && currentTopTab === "tdt"){
+    loadTdtTracker();
+  }
+}catch(e){}
+
+window.restoreVipAccess = restoreVipAccess;
+window.forgotVipPassword = forgotVipPassword;
+
+
+
+/* ===== REBUILT TRACKER GROUP DROPDOWNS (month/day above headers) ===== */
+(function(){
+  function trackerParseDate(raw){
+    if(!raw) return new Date("1970-01-01T12:00:00");
+    const d = new Date(raw);
+    if(!Number.isNaN(d.getTime())) return d;
+    return new Date("1970-01-01T12:00:00");
+  }
+
+  function trackerRawDate(row){
+    return row.match_date_date || row.match_date || row.bet_date || row.created_at;
+  }
+
+  function trackerMonthLabel(row){
+    const d = trackerParseDate(trackerRawDate(row));
+    return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  }
+
+  function trackerDayLabel(row){
+    return fmtDayLabel(trackerRawDate(row));
+  }
+
+  function trackerWeekLabel(row){
+    const d = trackerParseDate(trackerRawDate(row));
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const day = d.getDate();
+    const week = Math.ceil(day / 7);
+    const startDay = (week - 1) * 7 + 1;
+    let endDay = week * 7;
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    if (endDay > lastDay) endDay = lastDay;
+    const monthShort = d.toLocaleDateString("en-GB", { month: "short" });
+    return `Week ${week} (${startDay}–${endDay} ${monthShort})`;
+  }
+
+  function trackerProfit(row){
+    const stake = Number(row.stake || 0);
+    const odds = Number(row.odds || 0);
+    const res = row.result || "pending";
+    if(res === "won") return row.profit != null ? Number(row.profit) : stake * (odds - 1);
+    if(res === "lost") return row.profit != null ? Number(row.profit) : -stake;
+    return 0;
+  }
+
+  function trackerEsc(s){
+    return String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function trackerStateKey(type){
+    const email = (localStorage.getItem("vip_email") || "guest").trim().toLowerCase();
+    return `tracker_rebuilt_${type}_${email}`;
+  }
+
+  function trackerReadState(type){
+    try{
+      return JSON.parse(localStorage.getItem(trackerStateKey(type)) || "{}");
+    }catch(e){
+      return {};
+    }
+  }
+
+  function trackerWriteState(type, state){
+    localStorage.setItem(trackerStateKey(type), JSON.stringify(state || {}));
+  }
+
+  window.toggleTrackerCollapse = function(btn){
+    const type = btn.dataset.type;
+    const key = decodeURIComponent(btn.dataset.key || "");
+    const body = btn.nextElementSibling;
+    if(!body) return;
+
+    const collapsed = body.classList.toggle("is-collapsed");
+    btn.querySelector(".tracker-group-arrow").textContent = collapsed ? "▶" : "▼";
+
+    const state = trackerReadState(type);
+    state[key] = !collapsed;
+    trackerWriteState(type, state);
+  };
+
+  window.buildTrackerGroupedHTML = function(rows){
+    const list = (rows || []).slice().sort((a,b)=> trackerParseDate(trackerRawDate(b)) - trackerParseDate(trackerRawDate(a)));
+
+    const monthState = trackerReadState("month");
+    const weekState = trackerReadState("week");
+    const dayState = trackerReadState("day");
+
+    const today = new Date();
+    const currentMonthLabel = today.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+    const currentWeekLabel = trackerWeekLabel({ created_at: today.toISOString() });
+    const currentDayLabel = fmtDayLabel(today.toISOString());
+
+    const months = [];
+    const monthMap = new Map();
+
+    list.forEach(row=>{
+      const month = trackerMonthLabel(row);
+      const week = trackerWeekLabel(row);
+      const day = trackerDayLabel(row);
+
+      if(!monthMap.has(month)){
+        monthMap.set(month, { label: month, weeks: new Map() });
+        months.push(monthMap.get(month));
+      }
+      const monthEntry = monthMap.get(month);
+
+      if(!monthEntry.weeks.has(week)){
+        monthEntry.weeks.set(week, { label: week, days: new Map() });
+      }
+      const weekEntry = monthEntry.weeks.get(week);
+
+      if(!weekEntry.days.has(day)){
+        weekEntry.days.set(day, []);
+      }
+      weekEntry.days.get(day).push(row);
+    });
+
+    const fallbackMonthLabel = months[0]?.label || "";
+    const effectiveMonthLabel = months.some(m => m.label === currentMonthLabel) ? currentMonthLabel : fallbackMonthLabel;
+
+    let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
+
+    months.forEach((monthEntry, monthIndex)=>{
+      const monthKey = monthEntry.label;
+      const isCurrentMonth = monthKey === effectiveMonthLabel;
+      const monthOpen = isCurrentMonth;
+
+      html += `
+        <div class="tracker-month-wrap">
+          <button class="tracker-group-toggle tracker-month-toggle ${isCurrentMonth ? "tracker-month-toggle--current" : ""}" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+            <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
+            <span>${trackerEsc(monthKey)}</span>
+          </button>
+          <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+      `;
+
+      const weekEntries = Array.from(monthEntry.weeks.entries());
+      const fallbackWeekLabel = weekEntries[0]?.[0] || "";
+      const effectiveWeekLabel = monthKey === effectiveMonthLabel && weekEntries.some(([label]) => label === currentWeekLabel)
+        ? currentWeekLabel
+        : fallbackWeekLabel;
+
+      weekEntries.forEach(([weekLabel, weekEntry], weekIndex)=>{
+        const weekKey = `${monthKey}||${weekLabel}`;
+        const isCurrentWeek = monthKey === effectiveMonthLabel && weekLabel === effectiveWeekLabel;
+        const weekOpen = isCurrentWeek;
+
+        html += `
+          <div class="tracker-week-wrap">
+            <button class="tracker-group-toggle tracker-week-toggle ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" data-type="week" data-key="${encodeURIComponent(weekKey)}" onclick="toggleTrackerCollapse(this)">
+              <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
+              <span>${trackerEsc(weekLabel)}</span>
+            </button>
+            <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
+        `;
+
+        const dayEntries = Array.from(weekEntry.days.entries());
+        const fallbackDayLabel = dayEntries[0]?.[0] || "";
+        const effectiveDayLabel = isCurrentWeek && dayEntries.some(([label]) => label === currentDayLabel)
+          ? currentDayLabel
+          : fallbackDayLabel;
+
+        dayEntries.forEach(([dayLabel, dayRows], dayIndex)=>{
+          const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
+          const isCurrentDay = isCurrentWeek && dayLabel === effectiveDayLabel;
+          const dayOpen = isCurrentDay;
+
+          html += `
+            <div class="tracker-day-wrap">
+              <button class="tracker-group-toggle tracker-day-toggle ${isCurrentDay ? "tracker-day-toggle--current" : ""}" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
+                <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
+                <span>${trackerEsc(dayLabel)}</span>
+              </button>
+              <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
+                <div class="tracker-bet-list">
+          `;
+
+          dayRows.forEach(row=>{
+            html += `
+              <div class="tracker-grid-card">
+                <div class="tracker-grid-top">
+                  <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
+                  <div class="tracker-grid-top-result">
+                    <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                      <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                      <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                      <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                      <option value="delete">🗑 delete</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="tracker-grid-meta tracker-grid-meta--single-row">
+                  <div class="tracker-grid-market-slot">
+                    <span>Market</span>
+                    <div class="tracker-grid-market-inline">
+                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span>Odds</span>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      value="${Number(row.odds ?? 0)}" 
+                      onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
+                  </div>
+
+                  <div>
+                    <span>Stake</span>
+                    <input 
+                      type="number" 
+                      value="${Number(row.stake || 0)}" 
+                      onchange="updateStake('${trackerEsc(row.id)}', this.value)">
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+
+          html += `
+                </div>
+                <div class="tracker-desktop-table-wrap">
+                  <table class="tracker-desktop-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Match</th>
+                        <th>Market</th>
+                        <th>Stake</th>
+                        <th>Odds</th>
+                        <th>Result</th>
+                        <th class="profit-col">Profit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+          `;
+
+          dayRows.forEach(row=>{
+            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
+            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
+            let p = 0;
+            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+            if(row.result === "lost") p = -Number(row.stake || 0);
+            html += `
+                      <tr>
+                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
+                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
+                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
+                        <td>
+                          <input 
+                            type="number" 
+                            value="${Number(row.stake || 0)}" 
+                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
+                        </td>
+                        <td>
+                          <input 
+                            type="number" 
+                            step="0.01" 
+                            value="${Number(row.odds ?? 0)}" 
+                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
+                        </td>
+                        <td>
+                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                            <option value="delete">🗑 delete</option>
+                          </select>
+                        </td>
+                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
+                      </tr>
+            `;
+          });
+
+          html += `
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div></div>`;
+    });
+
+    html += `</div>`;
+    return html;
+  };
+
+  if(typeof _renderFilteredTrackerTable === "function"){
+    _renderFilteredTrackerTable = function(){
+      const tableEl = document.getElementById("trackerTable");
+      const countEl = document.getElementById("betCount");
+      if(!tableEl) return;
+
+      const filtered = _applyTrackerFilters(trackerAllRows);
+      tableEl.innerHTML = buildTrackerGroupedHTML(filtered);
+      if(countEl) countEl.textContent = filtered.length;
+    };
+  }
+
+  if(typeof addPersonalTrackerDateGroups === "function") addPersonalTrackerDateGroups = function(){};
+  if(typeof addPersonalTrackerMonthGroups === "function") addPersonalTrackerMonthGroups = function(){};
+  if(typeof wirePersonalTrackerDateCollapse === "function") wirePersonalTrackerDateCollapse = function(){};
+  if(typeof wirePersonalTrackerMonthCollapse === "function") wirePersonalTrackerMonthCollapse = function(){};
+  if(typeof applyPersonalTrackerCollapseState === "function") applyPersonalTrackerCollapseState = function(){};
+  if(typeof applyPersonalTrackerMonthCollapseState === "function") applyPersonalTrackerMonthCollapseState = function(){};
+
+  if(typeof loadTracker === "function"){
+    const __rebuiltLoadTracker = loadTracker;
+    loadTracker = async function(){
+      await __rebuiltLoadTracker();
+      try{
+        const tableEl = document.getElementById("trackerTable");
+        if(tableEl && Array.isArray(trackerAllRows)){
+          tableEl.innerHTML = buildTrackerGroupedHTML(trackerAllRows);
+          const countEl = document.getElementById("betCount");
+          if(countEl) countEl.textContent = trackerAllRows.length;
+        }
+      }catch(e){
+        console.error("Rebuilt tracker grouping failed", e);
+      }
+    };
+  }
+})();
+// ===== FIX: Hide VIP preview if VIP active =====
+(function(){
+  const observer = new MutationObserver(()=>{
+    const vipPromo = document.getElementById('vipPromo');
+    if(!vipPromo) return;
+
+    if(vipActive){
+      vipPromo.style.display = "none";
+    }else{
+      vipPromo.style.display = "";
+    }
+  });
+
+  observer.observe(document.body, { childList:true, subtree:true });
+
+  // also run immediately
+  const vipPromo = document.getElementById('vipPromo');
+  if(vipPromo && vipActive){
+    vipPromo.style.display = "none";
+  }
+})();
+
+
+window.addEventListener("resize", forceDesktopWideMode);
+window.addEventListener("load", forceDesktopWideMode);
