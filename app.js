@@ -544,6 +544,124 @@ const FREE_VISIBLE_COUNT = 3;
 const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
+const valueFilterSearchEl = document.getElementById("valueFilterSearch");
+const valueFilterLeagueEl = document.getElementById("valueFilterLeague");
+const valueFilterMarketEl = document.getElementById("valueFilterMarket");
+const valueFilterBookieEl = document.getElementById("valueFilterBookie");
+const valueFiltersClearEl = document.getElementById("valueFiltersClear");
+const valueFiltersToggleEl = document.getElementById("valueFiltersToggle");
+const valueFiltersContentEl = document.getElementById("valueFiltersContent");
+const valueFiltersArrowEl = document.getElementById("valueFiltersArrow");
+const valueFiltersSummaryEl = document.getElementById("valueFiltersSummary");
+
+let valueBetsAllRows = [];
+let valueFiltersWired = false;
+let valueFiltersOpen = false;
+
+function normalizeFilterText(value){
+  return String(value || "").trim().toLowerCase();
+}
+function getBetLeagueName(row){
+  return row?.league || row?.competition || row?.league_name || row?.tournament || '';
+}
+function getValueFilterState(){
+  return {
+    search: normalizeFilterText(valueFilterSearchEl?.value || ''),
+    league: normalizeFilterText(valueFilterLeagueEl?.value || ''),
+    market: normalizeFilterText(valueFilterMarketEl?.value || ''),
+    bookie: normalizeFilterText(valueFilterBookieEl?.value || '')
+  };
+}
+function uniqueSortedFilterValues(rows, getter){
+  const map = new Map();
+  (rows || []).forEach(row => {
+    const raw = String(getter(row) || '').trim();
+    if(!raw) return;
+    const key = raw.toLowerCase();
+    if(!map.has(key)) map.set(key, raw);
+  });
+  return Array.from(map.values()).sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:'base' }));
+}
+function fillValueFilterOptions(selectEl, values, currentValue){
+  if(!selectEl) return;
+  const current = String(currentValue || '');
+  const first = selectEl.querySelector('option') ? selectEl.querySelector('option').outerHTML : '<option value="">All</option>';
+  selectEl.innerHTML = first + values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  const match = values.find(v => v.toLowerCase() === current.toLowerCase());
+  selectEl.value = match || '';
+}
+function buildValueFiltersSummary(){
+  const state = getValueFilterState();
+  const parts = [];
+  if(state.search) parts.push(`Search: ${valueFilterSearchEl?.value || ''}`);
+  if(state.league) parts.push(valueFilterLeagueEl?.value || '');
+  if(state.market) parts.push(valueFilterMarketEl?.value || '');
+  if(state.bookie) parts.push(valueFilterBookieEl?.value || '');
+  return parts.length ? parts.join(' • ') : 'All bets';
+}
+function setValueFiltersOpen(open){
+  valueFiltersOpen = !!open;
+  if(valueFiltersContentEl){
+    valueFiltersContentEl.classList.toggle('is-collapsed', !valueFiltersOpen);
+    valueFiltersContentEl.classList.toggle('is-expanded', valueFiltersOpen);
+  }
+  if(valueFiltersToggleEl) valueFiltersToggleEl.setAttribute('aria-expanded', valueFiltersOpen ? 'true' : 'false');
+  if(valueFiltersArrowEl) valueFiltersArrowEl.textContent = valueFiltersOpen ? '▲' : '▼';
+}
+function syncValueFiltersUi(){
+  if(valueFiltersSummaryEl) valueFiltersSummaryEl.textContent = buildValueFiltersSummary();
+}
+function initValueFiltersCollapse(){
+  setValueFiltersOpen(window.innerWidth >= 950);
+}
+function refreshValueFilterOptions(rows){
+  const state = getValueFilterState();
+  fillValueFilterOptions(valueFilterLeagueEl, uniqueSortedFilterValues(rows, getBetLeagueName), state.league);
+  fillValueFilterOptions(valueFilterMarketEl, uniqueSortedFilterValues(rows, r => r.market), state.market);
+  fillValueFilterOptions(valueFilterBookieEl, uniqueSortedFilterValues(rows, r => r.bookie), state.bookie);
+  syncValueFiltersUi();
+}
+function applyValueBetFilters(rows){
+  const state = getValueFilterState();
+  return (rows || []).filter(row => {
+    const match = normalizeFilterText(row.match);
+    const market = normalizeFilterText(row.market);
+    const league = normalizeFilterText(getBetLeagueName(row));
+    const bookie = normalizeFilterText(row.bookie);
+    if(state.search){
+      const hay = `${match} ${market} ${league} ${bookie}`;
+      if(!hay.includes(state.search)) return false;
+    }
+    if(state.league && league !== state.league) return false;
+    if(state.market && market !== state.market) return false;
+    if(state.bookie && bookie !== state.bookie) return false;
+    return true;
+  });
+}
+function wireValueBetFilters(){
+  if(valueFiltersWired) return;
+  valueFiltersWired = true;
+  const rerender = ()=>{ syncValueFiltersUi(); loadBets(); };
+  if(valueFiltersToggleEl) valueFiltersToggleEl.addEventListener('click', ()=>setValueFiltersOpen(!valueFiltersOpen));
+  if(valueFilterSearchEl) valueFilterSearchEl.addEventListener('input', rerender);
+  if(valueFilterLeagueEl) valueFilterLeagueEl.addEventListener('change', rerender);
+  if(valueFilterMarketEl) valueFilterMarketEl.addEventListener('change', rerender);
+  if(valueFilterBookieEl) valueFilterBookieEl.addEventListener('change', rerender);
+  if(valueFiltersClearEl){
+    valueFiltersClearEl.addEventListener('click', ()=>{
+      if(valueFilterSearchEl) valueFilterSearchEl.value = '';
+      if(valueFilterLeagueEl) valueFilterLeagueEl.value = '';
+      if(valueFilterMarketEl) valueFilterMarketEl.value = '';
+      if(valueFilterBookieEl) valueFilterBookieEl.value = '';
+      syncValueFiltersUi();
+      loadBets();
+    });
+  }
+  initValueFiltersCollapse();
+  syncValueFiltersUi();
+}
+
+
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
@@ -648,6 +766,7 @@ checkVIP().then(async ()=>{
   refreshAdminBadgeUI();
   try{ await readTrackerRows(); }catch(e){}
   forceDesktopWideMode();
+  wireValueBetFilters();
   // re-render bets so blur/limits apply
   loadBets();
   loadVipPromoProof();
@@ -692,15 +811,27 @@ async function loadBets(){
   if(betsTbody) betsTbody.innerHTML = "";
 
   const active=(data||[]).filter(isValueBetActiveToday);
+  valueBetsAllRows = active.slice();
+  refreshValueFilterOptions(active);
   if(!active.length){
     betsGrid.innerHTML = `<div class="card">No bets for today.</div>`;
+    if(betsTbody) betsTbody.innerHTML = "";
+    notifyForNewVisibleBets([]);
+    return;
+  }
+
+  const filtered = applyValueBetFilters(active);
+
+  if(!filtered.length){
+    betsGrid.innerHTML = `<div class="card">No bets match those filters.</div>`;
+    if(betsTbody) betsTbody.innerHTML = "";
     notifyForNewVisibleBets([]);
     return;
   }
 
   const visibleForAlerts = [];
 
-  (active || []).forEach((row, idx)=>{
+  (filtered || []).forEach((row, idx)=>{
     const state = getBetPublicState(row, idx);
     const locked = !!state.locked;
     const key = makeBetKey(row);
@@ -3327,6 +3458,5 @@ window.forgotVipPassword = forgotVipPassword;
 
 window.addEventListener("resize", forceDesktopWideMode);
 window.addEventListener("load", forceDesktopWideMode);
-
 
 window.addEventListener('resize', ()=>{ if(window.innerWidth >= 950 && !valueFiltersOpen) setValueFiltersOpen(true); });
