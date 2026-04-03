@@ -6486,65 +6486,64 @@ table td, table th {
 
 
 
-/* ===== Value Bets filters ===== */
+/* ===== Collapsible Value Bets filters ===== */
 .value-filters{
-  max-width:1200px;
-  margin:0 auto 14px;
-  padding:14px 14px 12px;
+  overflow:hidden;
 }
-.value-filters__head{
+.value-filters__toggle{
+  width:100%;
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  margin-bottom:10px;
+  background:transparent;
+  border:none;
+  padding:0;
+  margin:0;
+  color:inherit;
 }
-.value-filters__title{
-  font-size:15px;
-  font-weight:800;
-  color:#f8fafc;
-}
-.value-filters__clear{
-  background:rgba(255,255,255,0.06);
-  border:1px solid rgba(255,255,255,0.10);
-  color:#e2e8f0;
-  padding:8px 12px;
-  border-radius:12px;
-  font-weight:700;
-}
-.value-filters__grid{
-  display:grid;
-  grid-template-columns:1fr;
+.value-filters__toggle-left,
+.value-filters__toggle-right{
+  display:flex;
+  align-items:center;
   gap:10px;
 }
-.value-filters__field{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
+.value-filters__toggle-right{
+  margin-left:auto;
 }
-.value-filters__field label{
+.value-filters__summary{
   font-size:12px;
-  font-weight:700;
+  color:rgba(226,232,240,0.72);
+  max-width:170px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.value-filters__arrow{
+  font-size:14px;
+  font-weight:900;
   color:rgba(226,232,240,0.82);
 }
-.value-filters__field input,
-.value-filters__field select{
-  width:100%;
-  box-sizing:border-box;
-  background:#111827;
-  border:1px solid rgba(255,255,255,0.10);
-  color:#fff;
-  padding:12px 14px;
-  border-radius:14px;
-  font-size:15px;
+.value-filters__content{
+  overflow:hidden;
+  transition:max-height .28s ease, opacity .22s ease, margin-top .22s ease;
 }
-@media (min-width: 700px){
-  .value-filters__grid{
-    grid-template-columns:repeat(2, minmax(0, 1fr));
-  }
+.value-filters__content.is-collapsed{
+  max-height:0;
+  opacity:0;
+  margin-top:0;
 }
-@media (min-width: 950px){
-  .value-filters__grid{
-    grid-template-columns:repeat(4, minmax(0, 1fr));
+.value-filters__content.is-expanded{
+  max-height:800px;
+  opacity:1;
+  margin-top:12px;
+}
+.value-filters__head{
+  justify-content:flex-end;
+  margin-bottom:10px;
+}
+@media (max-width: 699px){
+  .value-filters__summary{
+    max-width:110px;
   }
 }
