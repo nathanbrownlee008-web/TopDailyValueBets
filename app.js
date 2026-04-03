@@ -272,12 +272,20 @@ function shouldTryVipFinalize(){
 
 function getMarketIcon(market){
   if(!market) return "";
-  const m = market.toLowerCase();
-  if(m.includes("goal")) return "⚽";
-  if(m.includes("btts")) return "🥅";
+
+  const m = String(market).toLowerCase();
+
+  if(m.includes("throw")) return "↔️";
   if(m.includes("corner")) return "🚩";
-  if(m.includes("card")) return "🟨";
-  return "⚽";
+  if(m.includes("card") || m.includes("booking")) return "🟨";
+  if(m.includes("foul")) return "🟥";
+  if(m.includes("offside")) return "🚫";
+  if(m.includes("shot")) return "🎯";
+  if(m.includes("btts")) return "🥅";
+  if(m.includes("handicap")) return "⚖️";
+  if(m.includes("goal")) return "⚽";
+
+  return "📊";
 }
 function getBetTitleSizeClass(match){
   const len = String(match || "").trim().length;
@@ -564,48 +572,6 @@ function normalizeFilterText(value){
 function getBetLeagueName(row){
   return row?.league || row?.competition || row?.league_name || row?.tournament || '';
 }
-
-function getMarketCategory(rawMarket){
-  const market = String(rawMarket || '').trim();
-  const m = market.toLowerCase();
-
-  if(!m) return '';
-
-  if(m.includes('btts') || m.includes('both teams to score')) return 'BTTS';
-
-  if(m.includes('shot on target') || m.includes('shots on target') || m.includes('sot')){
-    if(m.includes('team')) return 'Team SoT';
-    return 'Shots On Target';
-  }
-
-  if(m.includes('throw')) return 'Throw In';
-  if(m.includes('corner')) return 'Corners';
-  if(m.includes('card') || m.includes('booking')) return 'Cards';
-  if(m.includes('foul')) return 'Fouls';
-  if(m.includes('offside')) return 'Offsides';
-
-  if(m.includes('asian handicap') || (m.includes('asian') && m.includes('handicap'))) return 'Asian Handicap';
-  if(m.includes('draw no bet') || m.includes('dnb')) return 'Match Winner';
-  if(m.includes('double chance')) return 'Match Winner';
-  if(m.includes('handicap')) return 'Asian Handicap';
-
-  if(m.includes('match winner') || m.includes('to win') || m.includes('win') || m.includes('1x2') || m == 'home' || m == 'away' || m == 'draw') return 'Match Winner';
-
-  if(m.includes('goal') || m.includes('fhg') || m.includes('fgh') || m.includes('team total')) return 'Goals Over & Under';
-  if((m.includes('over') || m.includes('under')) && m.includes('corner')) return 'Corners';
-  if((m.includes('over') || m.includes('under')) && m.includes('card')) return 'Cards';
-  if((m.includes('over') || m.includes('under')) && m.includes('throw')) return 'Throw In';
-  if((m.includes('over') || m.includes('under')) && (m.includes('shot') || m.includes('sot'))){
-    if(m.includes('team')) return 'Team SoT';
-    return 'Shots On Target';
-  }
-  if((m.includes('over') || m.includes('under')) && m.includes('foul')) return 'Fouls';
-  if((m.includes('over') || m.includes('under')) && m.includes('offside')) return 'Offsides';
-  if(m.includes('over') || m.includes('under')) return 'Goals Over & Under';
-
-  return market;
-}
-
 function getValueFilterState(){
   return {
     search: normalizeFilterText(valueFilterSearchEl?.value || ''),
@@ -624,33 +590,6 @@ function uniqueSortedFilterValues(rows, getter){
   });
   return Array.from(map.values()).sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:'base' }));
 }
-
-function getOrderedMarketCategories(rows){
-  const preferred = [
-    'Match Winner',
-    'Goals Over & Under',
-    'BTTS',
-    'Corners',
-    'Cards',
-    'Fouls',
-    'Offsides',
-    'Shots On Target',
-    'Team SoT',
-    'Asian Handicap',
-    'Throw In'
-  ];
-
-  const found = uniqueSortedFilterValues(rows, r => getMarketCategory(r.market));
-  const ordered = [];
-  preferred.forEach(name => {
-    if(found.includes(name)) ordered.push(name);
-  });
-  found.forEach(name => {
-    if(!ordered.includes(name)) ordered.push(name);
-  });
-  return ordered;
-}
-
 function fillValueFilterOptions(selectEl, values, currentValue){
   if(!selectEl) return;
   const current = String(currentValue || '');
@@ -677,18 +616,8 @@ function setValueFiltersOpen(open){
   if(valueFiltersToggleEl) valueFiltersToggleEl.setAttribute('aria-expanded', valueFiltersOpen ? 'true' : 'false');
   if(valueFiltersArrowEl) valueFiltersArrowEl.textContent = valueFiltersOpen ? '▲' : '▼';
 }
-
-function syncValueFilterActiveStates(){
-  [valueFilterSearchEl, valueFilterLeagueEl, valueFilterMarketEl, valueFilterBookieEl].forEach(el=>{
-    if(!el) return;
-    const hasValue = String(el.value || '').trim() !== '';
-    el.classList.toggle('is-active-filter', hasValue);
-  });
-}
-
 function syncValueFiltersUi(){
   if(valueFiltersSummaryEl) valueFiltersSummaryEl.textContent = buildValueFiltersSummary();
-  syncValueFilterActiveStates();
 }
 function initValueFiltersCollapse(){
   setValueFiltersOpen(window.innerWidth >= 950);
@@ -696,7 +625,7 @@ function initValueFiltersCollapse(){
 function refreshValueFilterOptions(rows){
   const state = getValueFilterState();
   fillValueFilterOptions(valueFilterLeagueEl, uniqueSortedFilterValues(rows, getBetLeagueName), state.league);
-  fillValueFilterOptions(valueFilterMarketEl, getOrderedMarketCategories(rows), state.market);
+  fillValueFilterOptions(valueFilterMarketEl, uniqueSortedFilterValues(rows, r => r.market), state.market);
   fillValueFilterOptions(valueFilterBookieEl, uniqueSortedFilterValues(rows, r => r.bookie), state.bookie);
   syncValueFiltersUi();
 }
@@ -708,11 +637,11 @@ function applyValueBetFilters(rows){
     const league = normalizeFilterText(getBetLeagueName(row));
     const bookie = normalizeFilterText(row.bookie);
     if(state.search){
-      const hay = `${match} ${market} ${getMarketCategory(row.market).toLowerCase()} ${league} ${bookie}`;
+      const hay = `${match} ${market} ${league} ${bookie}`;
       if(!hay.includes(state.search)) return false;
     }
     if(state.league && league !== state.league) return false;
-    if(state.market && getMarketCategory(row.market).toLowerCase() !== state.market) return false;
+    if(state.market && market !== state.market) return false;
     if(state.bookie && bookie !== state.bookie) return false;
     return true;
   });
@@ -936,7 +865,7 @@ async function loadBets(){
       <span class="bet-date">${escapeHtml(betDate)}</span>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market"><span class="bet-market-icon ${String(row.market||'').toLowerCase().includes('throw') ? 'bet-market-icon--throw' : String(row.market||'').toLowerCase().includes('corner') ? 'bet-market-icon--corner' : String(row.market||'').toLowerCase().includes('card') || String(row.market||'').toLowerCase().includes('booking') ? 'bet-market-icon--card' : String(row.market||'').toLowerCase().includes('foul') ? 'bet-market-icon--foul' : String(row.market||'').toLowerCase().includes('offside') ? 'bet-market-icon--offside' : String(row.market||'').toLowerCase().includes('shot') ? 'bet-market-icon--shot' : String(row.market||'').toLowerCase().includes('btts') ? 'bet-market-icon--btts' : String(row.market||'').toLowerCase().includes('handicap') ? 'bet-market-icon--handicap' : String(row.market||'').toLowerCase().includes('goal') ? 'bet-market-icon--goal' : 'bet-market-icon--default'}">${getMarketIcon(row.market)}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
@@ -965,7 +894,7 @@ async function loadBets(){
         <td>${
           locked
             ? '<span class="table-lock-copy">Hidden for VIP</span>'
-            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
+            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon ${String(row.market||'').toLowerCase().includes('throw') ? 'table-market-icon--throw' : String(row.market||'').toLowerCase().includes('corner') ? 'table-market-icon--corner' : String(row.market||'').toLowerCase().includes('card') || String(row.market||'').toLowerCase().includes('booking') ? 'table-market-icon--card' : String(row.market||'').toLowerCase().includes('foul') ? 'table-market-icon--foul' : String(row.market||'').toLowerCase().includes('offside') ? 'table-market-icon--offside' : String(row.market||'').toLowerCase().includes('shot') ? 'table-market-icon--shot' : String(row.market||'').toLowerCase().includes('btts') ? 'table-market-icon--btts' : String(row.market||'').toLowerCase().includes('handicap') ? 'table-market-icon--handicap' : String(row.market||'').toLowerCase().includes('goal') ? 'table-market-icon--goal' : 'table-market-icon--default'}">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
         }</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>

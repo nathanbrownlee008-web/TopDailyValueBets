@@ -6603,16 +6603,124 @@ table td, table th {
 }
 
 
-/* Filter focus / selected state */
-.value-filters__field input:focus,
-.value-filters__field select:focus{
-  outline:none;
-  border-color:rgba(34,197,94,0.85) !important;
-  box-shadow:0 0 0 2px rgba(34,197,94,0.16);
+
+/* Value Bets description upgrade */
+.value-bets-desc{
+  position:relative;
+  line-height:1.55;
+  overflow:hidden;
 }
 
-.value-filters__field input.is-active-filter,
-.value-filters__field select.is-active-filter{
-  border-color:rgba(34,197,94,0.85) !important;
-  box-shadow:0 0 0 1px rgba(34,197,94,0.16) inset;
+.value-bets-desc::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-150%;
+  width:60%;
+  height:100%;
+  background:linear-gradient(120deg, transparent, rgba(255,215,0,0.12), transparent);
+  animation:valueGlow 4.8s linear infinite;
+  pointer-events:none;
+}
+
+.vb-icon{
+  display:inline-block;
+  margin-right:6px;
+  opacity:.92;
+}
+
+@keyframes valueGlow{
+  0%{ left:-150%; }
+  100%{ left:150%; }
+}
+
+
+
+/* OddsJam-style market icon polish */
+.bet-market{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+
+.bet-market-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:22px;
+  height:22px;
+  min-width:22px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.10);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.04);
+  font-size:13px;
+  line-height:1;
+}
+
+.table-market-pill .table-market-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:22px;
+  height:22px;
+  min-width:22px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.10);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.04);
+  font-size:13px;
+  line-height:1;
+}
+
+/* color accents by market */
+.bet-market-icon--goal,
+.table-market-icon--goal{
+  background:rgba(34,197,94,0.14);
+  border-color:rgba(34,197,94,0.34);
+}
+.bet-market-icon--btts,
+.table-market-icon--btts{
+  background:rgba(56,189,248,0.14);
+  border-color:rgba(56,189,248,0.34);
+}
+.bet-market-icon--corner,
+.table-market-icon--corner{
+  background:rgba(245,158,11,0.14);
+  border-color:rgba(245,158,11,0.34);
+}
+.bet-market-icon--card,
+.table-market-icon--card{
+  background:rgba(250,204,21,0.16);
+  border-color:rgba(250,204,21,0.34);
+}
+.bet-market-icon--throw,
+.table-market-icon--throw{
+  background:rgba(167,139,250,0.14);
+  border-color:rgba(167,139,250,0.34);
+}
+.bet-market-icon--shot,
+.table-market-icon--shot{
+  background:rgba(6,182,212,0.14);
+  border-color:rgba(6,182,212,0.34);
+}
+.bet-market-icon--foul,
+.table-market-icon--foul{
+  background:rgba(251,113,133,0.14);
+  border-color:rgba(251,113,133,0.34);
+}
+.bet-market-icon--offside,
+.table-market-icon--offside{
+  background:rgba(249,115,22,0.14);
+  border-color:rgba(249,115,22,0.34);
+}
+.bet-market-icon--handicap,
+.table-market-icon--handicap{
+  background:rgba(192,132,252,0.14);
+  border-color:rgba(192,132,252,0.34);
+}
+.bet-market-icon--default,
+.table-market-icon--default{
+  background:rgba(148,163,184,0.10);
+  border-color:rgba(148,163,184,0.24);
 }
