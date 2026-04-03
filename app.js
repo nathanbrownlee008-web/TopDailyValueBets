@@ -564,6 +564,35 @@ function normalizeFilterText(value){
 function getBetLeagueName(row){
   return row?.league || row?.competition || row?.league_name || row?.tournament || '';
 }
+
+function getMarketCategory(rawMarket){
+  const market = String(rawMarket || '').trim();
+  const m = market.toLowerCase();
+
+  if(!m) return '';
+
+  if(m.includes('btts') || m.includes('both teams to score')) return 'BTTS';
+  if(m.includes('throw')) return 'Throw Ins';
+  if(m.includes('corner')) return 'Corners';
+  if(m.includes('card') || m.includes('booking')) return 'Cards';
+  if(m.includes('asian handicap') || (m.includes('handicap') && m.includes('asian'))) return 'Asian Handicap';
+  if(m.includes('handicap')) return 'Handicap';
+  if(m.includes('draw no bet') || m.includes('dnb')) return 'Draw No Bet';
+  if(m.includes('double chance')) return 'Double Chance';
+
+  if(m.includes('over') || m.includes('under')){
+    if(m.includes('goal') || m.includes('fgh') || m.includes('fhg') || m.includes('2.5') || m.includes('1.5') || m.includes('3.5') || m.includes('4.5')):
+      return 'Goals Over/Under';
+    if(m.includes('corner')) return 'Corners';
+    if(m.includes('card')) return 'Cards';
+    if(m.includes('throw')) return 'Throw Ins';
+    return 'Over/Under';
+  }
+
+  if(m.includes('win') || m.includes('1x2') || m == 'home' || m == 'away' || m == 'draw') return 'Match Result';
+
+  return market;
+}
 function getValueFilterState(){
   return {
     search: normalizeFilterText(valueFilterSearchEl?.value || ''),
@@ -617,7 +646,7 @@ function initValueFiltersCollapse(){
 function refreshValueFilterOptions(rows){
   const state = getValueFilterState();
   fillValueFilterOptions(valueFilterLeagueEl, uniqueSortedFilterValues(rows, getBetLeagueName), state.league);
-  fillValueFilterOptions(valueFilterMarketEl, uniqueSortedFilterValues(rows, r => r.market), state.market);
+  fillValueFilterOptions(valueFilterMarketEl, uniqueSortedFilterValues(rows, r => getMarketCategory(r.market)), state.market);
   fillValueFilterOptions(valueFilterBookieEl, uniqueSortedFilterValues(rows, r => r.bookie), state.bookie);
   syncValueFiltersUi();
 }
@@ -626,14 +655,15 @@ function applyValueBetFilters(rows){
   return (rows || []).filter(row => {
     const match = normalizeFilterText(row.match);
     const market = normalizeFilterText(row.market);
+    const marketCategory = normalizeFilterText(getMarketCategory(row.market));
     const league = normalizeFilterText(getBetLeagueName(row));
     const bookie = normalizeFilterText(row.bookie);
     if(state.search){
-      const hay = `${match} ${market} ${league} ${bookie}`;
+      const hay = `${match} ${market} ${marketCategory} ${league} ${bookie}`;
       if(!hay.includes(state.search)) return false;
     }
     if(state.league && league !== state.league) return false;
-    if(state.market && market !== state.market) return false;
+    if(state.market && marketCategory !== state.market) return false;
     if(state.bookie && bookie !== state.bookie) return false;
     return true;
   });
