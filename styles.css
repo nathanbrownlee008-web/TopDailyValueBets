@@ -6601,3 +6601,18 @@ table td, table th {
 @media (max-width: 699px){
   .value-filters__summary{max-width:110px}
 }
+
+
+/* Filter focus / selected state */
+.value-filters__field input:focus,
+.value-filters__field select:focus{
+  outline:none;
+  border-color:rgba(34,197,94,0.85) !important;
+  box-shadow:0 0 0 2px rgba(34,197,94,0.16);
+}
+
+.value-filters__field input.is-active-filter,
+.value-filters__field select.is-active-filter{
+  border-color:rgba(34,197,94,0.85) !important;
+  box-shadow:0 0 0 1px rgba(34,197,94,0.16) inset;
+}
