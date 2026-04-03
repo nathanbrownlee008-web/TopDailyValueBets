@@ -575,21 +575,17 @@ function getMarketCategory(rawMarket){
   if(m.includes('throw')) return 'Throw Ins';
   if(m.includes('corner')) return 'Corners';
   if(m.includes('card') || m.includes('booking')) return 'Cards';
-  if(m.includes('asian handicap') || (m.includes('handicap') && m.includes('asian'))) return 'Asian Handicap';
-  if(m.includes('handicap')) return 'Handicap';
+  if(m.includes('asian handicap') || (m.includes('asian') && m.includes('handicap'))) return 'Asian Handicap';
   if(m.includes('draw no bet') || m.includes('dnb')) return 'Draw No Bet';
   if(m.includes('double chance')) return 'Double Chance';
-
-  if(m.includes('over') || m.includes('under')){
-    if(m.includes('goal') || m.includes('fgh') || m.includes('fhg') || m.includes('2.5') || m.includes('1.5') || m.includes('3.5') || m.includes('4.5')):
-      return 'Goals Over/Under';
-    if(m.includes('corner')) return 'Corners';
-    if(m.includes('card')) return 'Cards';
-    if(m.includes('throw')) return 'Throw Ins';
-    return 'Over/Under';
-  }
-
+  if(m.includes('handicap')) return 'Handicap';
   if(m.includes('win') || m.includes('1x2') || m == 'home' || m == 'away' || m == 'draw') return 'Match Result';
+
+  if(m.includes('goal') || m.includes('fhg') || m.includes('fgh') || m.includes('team total')) return 'Goals Over/Under';
+  if((m.includes('over') || m.includes('under')) && m.includes('corner')) return 'Corners';
+  if((m.includes('over') || m.includes('under')) && m.includes('card')) return 'Cards';
+  if((m.includes('over') || m.includes('under')) && m.includes('throw')) return 'Throw Ins';
+  if(m.includes('over') || m.includes('under')) return 'Over/Under';
 
   return market;
 }
@@ -655,15 +651,14 @@ function applyValueBetFilters(rows){
   return (rows || []).filter(row => {
     const match = normalizeFilterText(row.match);
     const market = normalizeFilterText(row.market);
-    const marketCategory = normalizeFilterText(getMarketCategory(row.market));
     const league = normalizeFilterText(getBetLeagueName(row));
     const bookie = normalizeFilterText(row.bookie);
     if(state.search){
-      const hay = `${match} ${market} ${marketCategory} ${league} ${bookie}`;
+      const hay = `${match} ${market} ${getMarketCategory(row.market).toLowerCase()} ${league} ${bookie}`;
       if(!hay.includes(state.search)) return false;
     }
     if(state.league && league !== state.league) return false;
-    if(state.market && marketCategory !== state.market) return false;
+    if(state.market && getMarketCategory(row.market).toLowerCase() !== state.market) return false;
     if(state.bookie && bookie !== state.bookie) return false;
     return true;
   });
