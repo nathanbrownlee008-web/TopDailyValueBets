@@ -65,16 +65,9 @@
 <section id="betsSection">
 <div class="card about-box">
   <div class="about-title">Value Bets</div>
-  <div class="about-text">
-    ⚠️ Value bets are calculated by comparing probability against the odds. This approach aims to identify long-term profitable opportunities over time, but results are never guaranteed and short-term variance should be expected.
-    <br><br>
-    We post and show the best value bets of the day — and we stake on every single one ourselves, nothing else.
-    <br><br>
-    We’ve been betting this strategy for years behind the scenes before creating this app, and our accounts are still active and open with no restrictions.
-    <br><br>
-    There is always a chance of restrictions, but we have not experienced any so far.
-    <br><br>
-    So remember — what you see here is exactly what we bet ourselves.
+  <div class="about-text value-bets-desc">
+    <span class="vb-icon">⚠️</span><span class="vb-icon">📊</span>
+    Value bets are calculated by comparing probability against the odds. This approach aims to identify long-term profitable opportunities over time, but results are never guaranteed and short-term variance should be expected.
   </div>
 </div>
 
@@ -97,14 +90,6 @@
       <div class="value-filters__field">
         <label for="valueFilterSearch">Search</label>
         <input id="valueFilterSearch" type="text" placeholder="Match or market" />
-      </div>
-      <div class="value-filters__field">
-        <label for="valueFilterSport">Sport</label>
-        <select id="valueFilterSport">
-          <option value="">All sports</option>
-          <option value="football">Football</option>
-          <option value="basketball">Basketball</option>
-        </select>
       </div>
       <div class="value-filters__field">
         <label for="valueFilterLeague">League</label>
@@ -187,17 +172,6 @@
 <div class="stat-card">Won - Lost<br><strong><span id="wonLost">0-0</span></strong></div>
 <div class="stat-card">Staked<br><strong>£<span id="totalStakedCard">0</span></strong></div>
 <div class="stat-card">Avg Odds<br><strong><span id="avgOdds">0</span></strong></div>
-</div>
-
-<div class="tracker-sport-breakdown">
-  <div class="tracker-sport-card">
-    <div class="tracker-sport-card__head">⚽ Football</div>
-    <div class="tracker-sport-card__stats" id="footballTrackerStats">No football bets yet.</div>
-  </div>
-  <div class="tracker-sport-card">
-    <div class="tracker-sport-card__head">🏀 Basketball</div>
-    <div class="tracker-sport-card__stats" id="basketballTrackerStats">No basketball bets yet.</div>
-  </div>
 </div>
 
 <div class="chart-tabs">

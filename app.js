@@ -270,24 +270,14 @@ function shouldTryVipFinalize(){
 
 
 
-function getMarketIcon(market, sport){
-  const cleanSport = String(sport || "").toLowerCase();
-  if(cleanSport === "basketball") return "🏀";
-
-  if(!market) return cleanSport === "basketball" ? "🏀" : "";
-  const m = String(market).toLowerCase();
-
-  if(m.includes("throw")) return "➡️";
-  if(m.includes("corner")) return "🚩";
-  if(m.includes("card") || m.includes("booking")) return "🟨";
-  if(m.includes("foul")) return "⚠️";
-  if(m.includes("offside")) return "🚫";
-  if(m.includes("shot")) return "🎯";
-  if(m.includes("btts")) return "🥅";
-  if(m.includes("handicap")) return "⚖️";
+function getMarketIcon(market){
+  if(!market) return "";
+  const m = market.toLowerCase();
   if(m.includes("goal")) return "⚽";
-
-  return cleanSport === "basketball" ? "🏀" : "📊";
+  if(m.includes("btts")) return "🥅";
+  if(m.includes("corner")) return "🚩";
+  if(m.includes("card")) return "🟨";
+  return "⚽";
 }
 function getBetTitleSizeClass(match){
   const len = String(match || "").trim().length;
@@ -305,18 +295,12 @@ function forceDesktopWideMode(){
     applyLayout("wide");
     if(btnCompact) btnCompact.style.display = "none";
     if(btnWide){
-      btnWide.style.display = "";
       btnWide.disabled = true;
       btnWide.classList.add("active");
     }
   }else{
-    applyLayout("compact");
     if(btnCompact) btnCompact.style.display = "";
-    if(btnWide){
-      btnWide.style.display = "none";
-      btnWide.disabled = true;
-      btnWide.classList.remove("active");
-    }
+    if(btnWide) btnWide.disabled = false;
   }
 }
 
@@ -428,7 +412,6 @@ function normalizeTrackerRow(row){
   }
   if(out.stake == null) out.stake = 10;
   if(!out.result) out.result = "pending";
-  if(!out.sport) out.sport = getBetSport(out);
   return out;
 }
 
@@ -530,19 +513,17 @@ function applyLayout(mode){
   const isDesktopViewport = window.innerWidth >= 950;
 
   if(saved === "wide" || saved === "compact"){
-    applyLayout(isDesktopViewport ? "wide" : "compact");
+    applyLayout(isDesktopViewport ? "wide" : saved);
   }else{
     applyLayout(isDesktopViewport ? "wide" : "compact");
   }
 
   if(btnCompact) btnCompact.addEventListener("click", ()=>{
+    if(window.innerWidth >= 950) return;
     applyLayout("compact");
   });
 
-  if(btnWide) btnWide.addEventListener("click", ()=>{
-    if(window.innerWidth < 950) return;
-    applyLayout("wide");
-  });
+  if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
 })();
 
 // (Install App / PWA install button removed for now)
@@ -564,7 +545,6 @@ const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
 const valueFilterSearchEl = document.getElementById("valueFilterSearch");
-const valueFilterSportEl = document.getElementById("valueFilterSport");
 const valueFilterLeagueEl = document.getElementById("valueFilterLeague");
 const valueFilterMarketEl = document.getElementById("valueFilterMarket");
 const valueFilterBookieEl = document.getElementById("valueFilterBookie");
@@ -584,27 +564,9 @@ function normalizeFilterText(value){
 function getBetLeagueName(row){
   return row?.league || row?.competition || row?.league_name || row?.tournament || '';
 }
-function getBetSport(row){
-  const explicit = String(row?.sport || '').trim().toLowerCase();
-  if(explicit === 'basketball' || explicit === 'football') return explicit;
-
-  const market = String(row?.market || '').toLowerCase();
-  const league = String(getBetLeagueName(row) || '').toLowerCase();
-  const match = String(row?.match || '').toLowerCase();
-
-  const basketballHints = ['nba','wnba','euroleague','basketball','points','rebounds','assists','three pointers','3-pointers','moneyline','spread'];
-  if(basketballHints.some(h => market.includes(h) || league.includes(h) || match.includes(h))) return 'basketball';
-  return 'football';
-}
-
-function getSportLabel(sport){
-  return getBetSport({ sport }) === 'basketball' ? 'Basketball' : 'Football';
-}
-
 function getValueFilterState(){
   return {
     search: normalizeFilterText(valueFilterSearchEl?.value || ''),
-    sport: normalizeFilterText(valueFilterSportEl?.value || ''),
     league: normalizeFilterText(valueFilterLeagueEl?.value || ''),
     market: normalizeFilterText(valueFilterMarketEl?.value || ''),
     bookie: normalizeFilterText(valueFilterBookieEl?.value || '')
@@ -632,7 +594,6 @@ function buildValueFiltersSummary(){
   const state = getValueFilterState();
   const parts = [];
   if(state.search) parts.push(`Search: ${valueFilterSearchEl?.value || ''}`);
-  if(state.sport) parts.push(getSportLabel(state.sport));
   if(state.league) parts.push(valueFilterLeagueEl?.value || '');
   if(state.market) parts.push(valueFilterMarketEl?.value || '');
   if(state.bookie) parts.push(valueFilterBookieEl?.value || '');
@@ -663,16 +624,14 @@ function refreshValueFilterOptions(rows){
 function applyValueBetFilters(rows){
   const state = getValueFilterState();
   return (rows || []).filter(row => {
-    const sport = normalizeFilterText(getBetSport(row));
     const match = normalizeFilterText(row.match);
     const market = normalizeFilterText(row.market);
     const league = normalizeFilterText(getBetLeagueName(row));
     const bookie = normalizeFilterText(row.bookie);
     if(state.search){
-      const hay = `${sport} ${match} ${market} ${league} ${bookie}`;
+      const hay = `${match} ${market} ${league} ${bookie}`;
       if(!hay.includes(state.search)) return false;
     }
-    if(state.sport && sport !== state.sport) return false;
     if(state.league && league !== state.league) return false;
     if(state.market && market !== state.market) return false;
     if(state.bookie && bookie !== state.bookie) return false;
@@ -685,14 +644,12 @@ function wireValueBetFilters(){
   const rerender = ()=>{ syncValueFiltersUi(); loadBets(); };
   if(valueFiltersToggleEl) valueFiltersToggleEl.addEventListener('click', ()=>setValueFiltersOpen(!valueFiltersOpen));
   if(valueFilterSearchEl) valueFilterSearchEl.addEventListener('input', rerender);
-  if(valueFilterSportEl) valueFilterSportEl.addEventListener('change', rerender);
   if(valueFilterLeagueEl) valueFilterLeagueEl.addEventListener('change', rerender);
   if(valueFilterMarketEl) valueFilterMarketEl.addEventListener('change', rerender);
   if(valueFilterBookieEl) valueFilterBookieEl.addEventListener('change', rerender);
   if(valueFiltersClearEl){
     valueFiltersClearEl.addEventListener('click', ()=>{
       if(valueFilterSearchEl) valueFilterSearchEl.value = '';
-      if(valueFilterSportEl) valueFilterSportEl.value = '';
       if(valueFilterLeagueEl) valueFilterLeagueEl.value = '';
       if(valueFilterMarketEl) valueFilterMarketEl.value = '';
       if(valueFilterBookieEl) valueFilterBookieEl.value = '';
@@ -898,9 +855,9 @@ async function loadBets(){
     <div class="bet-teaser">
       <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
       <span class="bet-date">${escapeHtml(betDate)}</span>
-      ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(getSportLabel(getBetSport(row)))} • ${escapeHtml(leagueName)}</span></div>` : (!locked ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(getSportLabel(getBetSport(row)))}</span></div>` : ``)}
+      ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market"><span class="bet-market-icon">${getMarketIcon(row.market, getBetSport(row))}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
@@ -929,7 +886,7 @@ async function loadBets(){
         <td>${
           locked
             ? '<span class="table-lock-copy">Hidden for VIP</span>'
-            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div><div class="table-market-sport">${getBetSport(row) === 'basketball' ? '🏀 Basketball' : '⚽ Football'}</div></div>`
+            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
         }</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
@@ -973,8 +930,7 @@ async function addToTracker(btn, row){
     result: "pending",
     created_at: new Date().toISOString(),
     bet_date: row.bet_date || null,
-    bookie: row.bookie || null,
-    sport: getBetSport(row)
+    bookie: row.bookie || null
   };
 
   try{
@@ -1038,55 +994,6 @@ document.addEventListener("change", (e)=>{
 
 // ===== Tracker Filters (Bet Results) =====
 let trackerAllRows = [];
-
-function calcTrackerSportStats(rows, sportName){
-  const target = String(sportName || '').toLowerCase();
-  const filtered = (rows || []).filter(r => String(r.sport || getBetSport(r)).toLowerCase() === target);
-
-  let wins = 0, losses = 0, stake = 0, profit = 0;
-  filtered.forEach(r => {
-    const stakeVal = Number(r.stake || 0);
-    const oddsVal = Number(r.odds || 0);
-    stake += stakeVal;
-    if(r.result === 'won'){
-      wins += 1;
-      profit += stakeVal * (oddsVal - 1);
-    }else if(r.result === 'lost'){
-      losses += 1;
-      profit -= stakeVal;
-    }
-  });
-
-  const settled = wins + losses;
-  const roi = stake ? ((profit / stake) * 100) : 0;
-  const winrate = settled ? ((wins / settled) * 100) : 0;
-
-  return {
-    bets: filtered.length,
-    wins,
-    losses,
-    profit,
-    roi,
-    winrate
-  };
-}
-
-function renderTrackerSportBreakdown(rows){
-  const footballEl = document.getElementById('footballTrackerStats');
-  const basketballEl = document.getElementById('basketballTrackerStats');
-  if(!footballEl || !basketballEl) return;
-
-  const football = calcTrackerSportStats(rows, 'football');
-  const basketball = calcTrackerSportStats(rows, 'basketball');
-
-  footballEl.innerHTML = football.bets
-    ? `${football.bets} bets • ${football.wins}-${football.losses} • ${football.winrate.toFixed(1)}% WR • ${football.roi.toFixed(1)}% ROI • £${football.profit.toFixed(2)}`
-    : 'No football bets yet.';
-  basketballEl.innerHTML = basketball.bets
-    ? `${basketball.bets} bets • ${basketball.wins}-${basketball.losses} • ${basketball.winrate.toFixed(1)}% WR • ${basketball.roi.toFixed(1)}% ROI • £${basketball.profit.toFixed(2)}`
-    : 'No basketball bets yet.';
-}
-
 
 function _rowGameDateISO(row){
   const raw = row.match_date_date || row.match_date || row.bet_date || row.created_at;
@@ -1433,9 +1340,9 @@ history.push(bankroll);
 tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  <div class="tracker-market-sub">${getMarketIcon(row.market, row.sport)} ${row.market || "—"}</div>
+  <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
 </td>
-<td class="tracker-market-col">${getMarketIcon(row.market, row.sport)} ${row.market || "—"}</td>
+<td class="tracker-market-col">${getMarketIcon(row.market)} ${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -1514,7 +1421,6 @@ renderDailyChart(history, dailyLabels, dayKeys);
 // ---- Monthly & Market analytics (tabs + mini summary) ----
 const countElem = document.getElementById("betCount");
 if(countElem) countElem.textContent = String(rows.length);
-renderTrackerSportBreakdown(rows);
 
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
@@ -3389,7 +3295,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(getMarketIcon(row.market, row.sport) ? `${getMarketIcon(row.market, row.sport)} ${row.market || "—"}` : (row.market || "—"))}
+                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
                     </div>
                   </div>
 
@@ -3442,7 +3348,7 @@ window.forgotVipPassword = forgotVipPassword;
                       <tr>
                         <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
                         <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, row.sport) ? `${getMarketIcon(row.market, row.sport)} ${row.market || "—"}` : (row.market || "—"))}</td>
+                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
                         <td>
                           <input 
                             type="number" 
@@ -3554,5 +3460,3 @@ window.addEventListener("resize", forceDesktopWideMode);
 window.addEventListener("load", forceDesktopWideMode);
 
 window.addEventListener('resize', ()=>{ if(window.innerWidth >= 950 && !valueFiltersOpen) setValueFiltersOpen(true); });
-
-window.addEventListener('resize', forceDesktopWideMode);

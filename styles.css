@@ -6604,71 +6604,32 @@ table td, table th {
 
 
 
-/* Tracker sport breakdown */
-.tracker-sport-breakdown{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:12px;
-  margin: 0 0 18px;
+/* Value Bets description upgrade */
+.value-bets-desc{
+  position:relative;
+  line-height:1.55;
+  overflow:hidden;
 }
 
-.tracker-sport-card{
-  background: rgba(30,41,59,0.62);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  padding: 12px 14px;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+.value-bets-desc::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-150%;
+  width:60%;
+  height:100%;
+  background:linear-gradient(120deg, transparent, rgba(255,215,0,0.12), transparent);
+  animation:valueGlow 4.8s linear infinite;
+  pointer-events:none;
 }
 
-.tracker-sport-card__head{
-  font-size: 14px;
-  font-weight: 800;
-  margin-bottom: 6px;
-  color: #f8fafc;
+.vb-icon{
+  display:inline-block;
+  margin-right:6px;
+  opacity:.92;
 }
 
-.tracker-sport-card__stats{
-  font-size: 13px;
-  line-height: 1.4;
-  color: rgba(226,232,240,0.9);
-}
-
-@media (min-width: 780px){
-  .tracker-sport-breakdown{
-    grid-template-columns: repeat(2, minmax(0,1fr));
-  }
-}
-
-/* 5 filter fields */
-@media (min-width: 950px){
-  .value-filters__grid{
-    grid-template-columns:repeat(5, minmax(0, 1fr));
-  }
-}
-
-
-
-/* Sport labels */
-.bet-sport{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-size:11px;
-  font-weight:700;
-  opacity:0.78;
-  white-space:nowrap;
-}
-
-.table-market-sport{
-  margin-top:6px;
-  font-size:11px;
-  font-weight:700;
-  opacity:0.78;
-}
-
-@media (max-width: 949px){
-  #btnWide{
-    display:none !important;
-    pointer-events:none !important;
-  }
+@keyframes valueGlow{
+  0%{ left:-150%; }
+  100%{ left:150%; }
 }
