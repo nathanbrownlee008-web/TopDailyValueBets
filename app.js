@@ -722,11 +722,14 @@ async function loadBets(){
 <div class="bet-lock-wrap">
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
-      <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-      <span class="bet-date">${escapeHtml(betDate)}</span>
+      <div class="bet-title-row">
+        <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
+        <span class="bet-sport-inline">${getSportIcon(row)} ${getSportLabel(getBetSport(row))}</span>
+        <span class="bet-date">${escapeHtml(betDate)}</span>
+      </div>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
@@ -755,7 +758,7 @@ async function loadBets(){
         <td>${
           locked
             ? '<span class="table-lock-copy">Hidden for VIP</span>'
-            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
+            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
         }</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
@@ -863,6 +866,47 @@ document.addEventListener("change", (e)=>{
 
 // ===== Tracker Filters (Bet Results) =====
 let trackerAllRows = [];
+
+function calcTrackerSportStats(rows, sportName){
+  const target = String(sportName || '').toLowerCase();
+  const filtered = (rows || []).filter(r => String(r.sport || getBetSport(r)).toLowerCase() === target);
+
+  let wins = 0, losses = 0, stake = 0, profit = 0;
+  filtered.forEach(r => {
+    const stakeVal = Number(r.stake || 0);
+    const oddsVal = Number(r.odds || 0);
+    stake += stakeVal;
+    if(r.result === 'won'){
+      wins += 1;
+      profit += stakeVal * (oddsVal - 1);
+    }else if(r.result === 'lost'){
+      losses += 1;
+      profit -= stakeVal;
+    }
+  });
+
+  const settled = wins + losses;
+  const roi = stake ? ((profit / stake) * 100) : 0;
+  const winrate = settled ? ((wins / settled) * 100) : 0;
+
+  return { bets: filtered.length, wins, losses, profit, roi, winrate };
+}
+
+function renderTrackerSportBreakdown(rows){
+  const footballEl = document.getElementById('footballTrackerStats');
+  const basketballEl = document.getElementById('basketballTrackerStats');
+  if(!footballEl || !basketballEl) return;
+
+  const football = calcTrackerSportStats(rows, 'football');
+  const basketball = calcTrackerSportStats(rows, 'basketball');
+
+  footballEl.innerHTML = football.bets
+    ? `${football.bets} bets • ${football.wins}-${football.losses} • ${football.winrate.toFixed(1)}% WR • ${football.roi.toFixed(1)}% ROI • £${football.profit.toFixed(2)}`
+    : 'No football bets yet.';
+  basketballEl.innerHTML = basketball.bets
+    ? `${basketball.bets} bets • ${basketball.wins}-${basketball.losses} • ${basketball.winrate.toFixed(1)}% WR • ${basketball.roi.toFixed(1)}% ROI • £${basketball.profit.toFixed(2)}`
+    : 'No basketball bets yet.';
+}
 
 function _rowGameDateISO(row){
   const raw = row.match_date_date || row.match_date || row.bet_date || row.created_at;
@@ -1209,9 +1253,9 @@ history.push(bankroll);
 tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
+  <div class="tracker-market-sub">${getMarketIcon(row.market, row.sport || getBetSport(row))} ${row.market || "—"}</div>
 </td>
-<td class="tracker-market-col">${getMarketIcon(row.market)} ${row.market || "—"}</td>
+<td class="tracker-market-col">${getMarketIcon(row.market, row.sport || getBetSport(row))} ${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -1234,6 +1278,7 @@ let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
+renderTrackerSportBreakdown(rows);
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
@@ -3164,7 +3209,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
+                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market, row.sport || getBetSport(row))} ${row.market || "—"}` : (row.market || "—"))}
                     </div>
                   </div>
 
@@ -3217,7 +3262,7 @@ window.forgotVipPassword = forgotVipPassword;
                       <tr>
                         <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
                         <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
+                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market, row.sport || getBetSport(row))} ${row.market || "—"}` : (row.market || "—"))}</td>
                         <td>
                           <input 
                             type="number" 
