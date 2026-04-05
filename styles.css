@@ -6604,28 +6604,71 @@ table td, table th {
 
 
 
-/* Value Bets title row sport label */
-.bet-title-row{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:10px;
+/* Tracker sport breakdown */
+.tracker-sport-breakdown{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  margin: 0 0 18px;
 }
 
-.bet-title-row .bet-title{
-  margin:0;
-  flex:1 1 auto;
-  min-width:0;
+.tracker-sport-card{
+  background: rgba(30,41,59,0.62);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.16);
 }
 
-.bet-sport-inline{
+.tracker-sport-card__head{
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: #f8fafc;
+}
+
+.tracker-sport-card__stats{
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(226,232,240,0.9);
+}
+
+@media (min-width: 780px){
+  .tracker-sport-breakdown{
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+}
+
+/* 5 filter fields */
+@media (min-width: 950px){
+  .value-filters__grid{
+    grid-template-columns:repeat(5, minmax(0, 1fr));
+  }
+}
+
+
+
+/* Sport labels */
+.bet-sport{
   display:inline-flex;
   align-items:center;
   gap:6px;
-  flex:0 0 auto;
   font-size:11px;
-  font-weight:800;
+  font-weight:700;
   opacity:0.78;
   white-space:nowrap;
-  padding-top:3px;
+}
+
+.table-market-sport{
+  margin-top:6px;
+  font-size:11px;
+  font-weight:700;
+  opacity:0.78;
+}
+
+@media (max-width: 949px){
+  #btnWide{
+    display:none !important;
+    pointer-events:none !important;
+  }
 }

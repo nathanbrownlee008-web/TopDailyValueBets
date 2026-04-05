@@ -99,6 +99,14 @@
         <input id="valueFilterSearch" type="text" placeholder="Match or market" />
       </div>
       <div class="value-filters__field">
+        <label for="valueFilterSport">Sport</label>
+        <select id="valueFilterSport">
+          <option value="">All sports</option>
+          <option value="football">Football</option>
+          <option value="basketball">Basketball</option>
+        </select>
+      </div>
+      <div class="value-filters__field">
         <label for="valueFilterLeague">League</label>
         <select id="valueFilterLeague"><option value="">All leagues</option></select>
       </div>
@@ -179,6 +187,17 @@
 <div class="stat-card">Won - Lost<br><strong><span id="wonLost">0-0</span></strong></div>
 <div class="stat-card">Staked<br><strong>£<span id="totalStakedCard">0</span></strong></div>
 <div class="stat-card">Avg Odds<br><strong><span id="avgOdds">0</span></strong></div>
+</div>
+
+<div class="tracker-sport-breakdown">
+  <div class="tracker-sport-card">
+    <div class="tracker-sport-card__head">⚽ Football</div>
+    <div class="tracker-sport-card__stats" id="footballTrackerStats">No football bets yet.</div>
+  </div>
+  <div class="tracker-sport-card">
+    <div class="tracker-sport-card__head">🏀 Basketball</div>
+    <div class="tracker-sport-card__stats" id="basketballTrackerStats">No basketball bets yet.</div>
+  </div>
 </div>
 
 <div class="chart-tabs">
