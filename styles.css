@@ -6520,7 +6520,6 @@ table td, table th {
   gap:12px;
   margin: 0 0 18px;
 }
-
 .tracker-sport-card{
   background: rgba(30,41,59,0.62);
   border: 1px solid rgba(255,255,255,0.08);
@@ -6528,20 +6527,17 @@ table td, table th {
   padding: 12px 14px;
   box-shadow: 0 10px 24px rgba(0,0,0,0.16);
 }
-
 .tracker-sport-card__head{
   font-size: 14px;
   font-weight: 800;
   margin-bottom: 6px;
   color: #f8fafc;
 }
-
 .tracker-sport-card__stats{
   font-size: 13px;
   line-height: 1.4;
   color: rgba(226,232,240,0.9);
 }
-
 @media (min-width: 780px){
   .tracker-sport-breakdown{
     grid-template-columns: repeat(2, minmax(0,1fr));

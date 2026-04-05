@@ -273,7 +273,7 @@ function shouldTryVipFinalize(){
 function getMarketIcon(market){
   if(!market) return "";
   const m = market.toLowerCase();
-  if(m.includes("goal")) return "⚽";
+  if(m.includes("goal") || m.includes("fhg") || m.includes("fgh") || m.includes("team total")) return "⚽";
   if(m.includes("btts")) return "🥅";
   if(m.includes("corner")) return "🚩";
   if(m.includes("card")) return "🟨";
@@ -722,14 +722,11 @@ async function loadBets(){
 <div class="bet-lock-wrap">
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
-      <div class="bet-title-row">
-        <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-        <span class="bet-sport-inline">${getSportIcon(row)} ${getSportLabel(getBetSport(row))}</span>
-        <span class="bet-date">${escapeHtml(betDate)}</span>
-      </div>
+      <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
+      <span class="bet-date">${escapeHtml(betDate)}</span>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
@@ -758,7 +755,7 @@ async function loadBets(){
         <td>${
           locked
             ? '<span class="table-lock-copy">Hidden for VIP</span>'
-            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
+            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
         }</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
@@ -869,13 +866,13 @@ let trackerAllRows = [];
 
 function calcTrackerSportStats(rows, sportName){
   const target = String(sportName || '').toLowerCase();
-  const filtered = (rows || []).filter(r => String(r.sport || getBetSport(r)).toLowerCase() === target);
+  const filtered = (rows || []).filter(r => String(r?.sport || getBetSport(r) || 'football').toLowerCase() === target);
 
-  let wins = 0, losses = 0, stake = 0, profit = 0;
+  let wins = 0, losses = 0, staked = 0, profit = 0;
   filtered.forEach(r => {
     const stakeVal = Number(r.stake || 0);
     const oddsVal = Number(r.odds || 0);
-    stake += stakeVal;
+    staked += stakeVal;
     if(r.result === 'won'){
       wins += 1;
       profit += stakeVal * (oddsVal - 1);
@@ -886,8 +883,8 @@ function calcTrackerSportStats(rows, sportName){
   });
 
   const settled = wins + losses;
-  const roi = stake ? ((profit / stake) * 100) : 0;
-  const winrate = settled ? ((wins / settled) * 100) : 0;
+  const roi = staked ? (profit / staked) * 100 : 0;
+  const winrate = settled ? (wins / settled) * 100 : 0;
 
   return { bets: filtered.length, wins, losses, profit, roi, winrate };
 }
@@ -900,10 +897,10 @@ function renderTrackerSportBreakdown(rows){
   const football = calcTrackerSportStats(rows, 'football');
   const basketball = calcTrackerSportStats(rows, 'basketball');
 
-  footballEl.innerHTML = football.bets
+  footballEl.textContent = football.bets
     ? `${football.bets} bets • ${football.wins}-${football.losses} • ${football.winrate.toFixed(1)}% WR • ${football.roi.toFixed(1)}% ROI • £${football.profit.toFixed(2)}`
     : 'No football bets yet.';
-  basketballEl.innerHTML = basketball.bets
+  basketballEl.textContent = basketball.bets
     ? `${basketball.bets} bets • ${basketball.wins}-${basketball.losses} • ${basketball.winrate.toFixed(1)}% WR • ${basketball.roi.toFixed(1)}% ROI • £${basketball.profit.toFixed(2)}`
     : 'No basketball bets yet.';
 }
@@ -1278,7 +1275,6 @@ let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
-renderTrackerSportBreakdown(rows);
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
@@ -1474,6 +1470,7 @@ if(monthKeys.length){
 
 async function updateOdds(id,val){
   const rows = await readTrackerRows();
+  trackerAllRows = rows || [];
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
   const row = updated.find(r => String(r.id)===String(id));
   if(row){
