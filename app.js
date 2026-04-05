@@ -3537,3 +3537,46 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
+/* ===== SAFE PATCH (DO NOT TOUCH ABOVE CODE) ===== */
+
+(function(){
+
+  // FIX RESULT CLASS + DROPDOWN COLOR
+  const originalRender = window.renderTrackerRow;
+  if(originalRender){
+    window.renderTrackerRow = function(row){
+      const el = originalRender(row);
+
+      // add result class to card
+      if(el){
+        el.classList.remove("won","lost","pending");
+        if(row.result) el.classList.add(row.result);
+
+        // fix dropdown class
+        const select = el.querySelector(".result-select");
+        if(select){
+          select.classList.remove("result-won","result-lost","result-pending");
+          if(row.result){
+            select.classList.add("result-" + row.result);
+          }
+        }
+      }
+
+      return el;
+    };
+  }
+
+  // FIX DATE DUPLICATION
+  document.addEventListener("DOMContentLoaded", ()=>{
+    document.querySelectorAll(".bet-card").forEach(card=>{
+      const dates = card.querySelectorAll(".bet-date");
+      if(dates.length > 1){
+        // remove duplicates (keep first)
+        for(let i=1;i<dates.length;i++){
+          dates[i].remove();
+        }
+      }
+    });
+  });
+
+})();
