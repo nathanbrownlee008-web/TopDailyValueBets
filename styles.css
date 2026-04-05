@@ -6485,190 +6485,31 @@ table td, table th {
 }
 
 
-/* ===== Value Bets filters ===== */
-.value-filters{
-  max-width:1200px;
-  margin:0 auto 14px;
-  padding:14px 14px 12px;
-}
-.value-filters__head{
+
+/* Value Bets title row sport label */
+.bet-title-row{
   display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:12px;
-  margin-bottom:10px;
-}
-.value-filters__title{
-  font-size:15px;
-  font-weight:800;
-  color:#f8fafc;
-}
-.value-filters__clear{
-  background:rgba(255,255,255,0.06);
-  border:1px solid rgba(255,255,255,0.10);
-  color:#e2e8f0;
-  padding:8px 12px;
-  border-radius:12px;
-  font-weight:700;
-}
-.value-filters__grid{
-  display:grid;
-  grid-template-columns:1fr;
+  align-items:flex-start;
   gap:10px;
 }
-.value-filters__field{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-.value-filters__field label{
-  font-size:12px;
-  font-weight:700;
-  color:rgba(226,232,240,0.82);
-}
-.value-filters__field input,
-.value-filters__field select{
-  width:100%;
-  box-sizing:border-box;
-  background:#111827;
-  border:1px solid rgba(255,255,255,0.10);
-  color:#fff;
-  padding:12px 14px;
-  border-radius:14px;
-  font-size:15px;
-}
-@media (min-width: 700px){
-  .value-filters__grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
-}
-@media (min-width: 950px){
-  .value-filters__grid{ grid-template-columns:repeat(4, minmax(0, 1fr)); }
-}
-
-
-/* ===== Collapsible Value Bets filters ===== */
-.value-filters{overflow:hidden}
-.value-filters__toggle{
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  background:rgba(255,255,255,0.03);
-  border:1px solid rgba(255,255,255,0.08);
-  padding:12px 14px;
+.bet-title-row .bet-title{
   margin:0;
-  color:inherit;
-  border-radius:14px;
-  box-sizing:border-box;
+  flex:1 1 auto;
+  min-width:0;
 }
-.value-filters__toggle.is-visible{
-  box-shadow:0 8px 24px rgba(0,0,0,0.18);
-}
-.value-filters__toggle-left,
-.value-filters__toggle-right{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.value-filters__toggle-right{margin-left:auto}
-.value-filters__summary{
-  font-size:12px;
-  color:rgba(226,232,240,0.72);
-  max-width:170px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.value-filters__arrow{
-  font-size:14px;
-  font-weight:900;
-  color:rgba(226,232,240,0.82);
-}
-.value-filters__content{
-  overflow:hidden;
-  transition:max-height .28s ease, opacity .22s ease, margin-top .22s ease;
-}
-.value-filters__content.is-collapsed{
-  max-height:0;
-  opacity:0;
-  margin-top:0;
-}
-.value-filters__content.is-expanded{
-  max-height:800px;
-  opacity:1;
-  margin-top:12px;
-}
-@media (max-width: 699px){
-  .value-filters__summary{max-width:110px}
-}
-
-
-
-/* Tracker sport breakdown */
-.tracker-sport-breakdown{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:12px;
-  margin: 0 0 18px;
-}
-
-.tracker-sport-card{
-  background: rgba(30,41,59,0.62);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  padding: 12px 14px;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.16);
-}
-
-.tracker-sport-card__head{
-  font-size: 14px;
-  font-weight: 800;
-  margin-bottom: 6px;
-  color: #f8fafc;
-}
-
-.tracker-sport-card__stats{
-  font-size: 13px;
-  line-height: 1.4;
-  color: rgba(226,232,240,0.9);
-}
-
-@media (min-width: 780px){
-  .tracker-sport-breakdown{
-    grid-template-columns: repeat(2, minmax(0,1fr));
-  }
-}
-
-/* 5 filter fields */
-@media (min-width: 950px){
-  .value-filters__grid{
-    grid-template-columns:repeat(5, minmax(0, 1fr));
-  }
-}
-
-
-
-/* Sport labels */
-.bet-sport{
+.bet-sport-inline{
   display:inline-flex;
   align-items:center;
   gap:6px;
+  flex:0 0 auto;
   font-size:11px;
-  font-weight:700;
+  font-weight:800;
   opacity:0.78;
   white-space:nowrap;
+  padding-top:2px;
 }
-
-.table-market-sport{
-  margin-top:6px;
-  font-size:11px;
-  font-weight:700;
-  opacity:0.78;
-}
-
-@media (max-width: 949px){
-  #btnWide{
-    display:none !important;
-    pointer-events:none !important;
-  }
+.bet-title-row .bet-date{
+  margin-left:auto;
+  white-space:nowrap;
+  padding-top:2px;
 }
