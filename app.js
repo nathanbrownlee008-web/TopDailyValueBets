@@ -15,6 +15,8 @@ function normalizeVipEmail(email){
 function setVipUI(active, email){
   vipActive = !!active;
 
+  // ✅ ADD THIS LINE (this is the fix)
+  document.body.classList.toggle('vip-active', !!active);
   const titleEl = document.getElementById('vipTitle');
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
