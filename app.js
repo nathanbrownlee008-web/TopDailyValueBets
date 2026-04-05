@@ -3580,3 +3580,66 @@ window.forgotVipPassword = forgotVipPassword;
   });
 
 })();
+/* ===== FINAL SAFE PATCH (DO NOT EDIT ABOVE) ===== */
+
+(function(){
+
+  // =========================
+  // RESULT COLOUR FIX
+  // =========================
+  const originalRender = window.renderTrackerRow;
+
+  if(originalRender){
+    window.renderTrackerRow = function(row){
+
+      const el = originalRender(row);
+
+      if(el){
+
+        // REMOVE OLD CLASSES
+        el.classList.remove("won","lost","pending");
+
+        // ADD CORRECT CLASS
+        if(row.result){
+          el.classList.add(row.result);
+        }
+
+        // FIX DROPDOWN COLOUR
+        const select = el.querySelector(".result-select");
+        if(select){
+          select.classList.remove(
+            "result-won",
+            "result-lost",
+            "result-pending"
+          );
+
+          if(row.result){
+            select.classList.add("result-" + row.result);
+          }
+        }
+      }
+
+      return el;
+    };
+  }
+
+  // =========================
+  // DATE DUPLICATE FIX
+  // =========================
+  document.addEventListener("DOMContentLoaded", ()=>{
+
+    document.querySelectorAll(".bet-card").forEach(card=>{
+
+      const dates = card.querySelectorAll(".bet-date");
+
+      if(dates.length > 1){
+        for(let i = 1; i < dates.length; i++){
+          dates[i].remove();
+        }
+      }
+
+    });
+
+  });
+
+})();
