@@ -6009,3 +6009,56 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
   white-space: nowrap;
   flex: 0 0 auto;
 }
+/* ===== FORCE VALUE FILTER TEXT WHITE ===== */
+.value-filters,
+.value-filters *{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+}
+
+.value-filters__title,
+.value-filters__summary,
+.value-filters__arrow,
+.value-filters__field label{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  opacity:1 !important;
+}
+
+.value-filters__field input,
+.value-filters__field select{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  background:rgba(2,6,23,0.55) !important;
+  border:1px solid rgba(255,255,255,0.28) !important;
+}
+
+.value-filters__field input::placeholder{
+  color:rgba(255,255,255,0.72) !important;
+  -webkit-text-fill-color:rgba(255,255,255,0.72) !important;
+  opacity:1 !important;
+}
+
+.value-filters__field select option{
+  color:#ffffff !important;
+  background:#081224 !important;
+}
+
+.value-filters__clear{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  background:rgba(255,255,255,0.12) !important;
+  border:1px solid rgba(255,255,255,0.18) !important;
+}
+
+#valueFilterSearch,
+#valueFilterSport,
+#valueFilterLeague,
+#valueFilterMarket,
+#valueFilterBookie,
+#valueFiltersSummary,
+#valueFiltersArrow{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  opacity:1 !important;
+}
