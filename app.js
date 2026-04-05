@@ -272,20 +272,12 @@ function shouldTryVipFinalize(){
 
 function getMarketIcon(market){
   if(!market) return "";
-
-  const m = String(market).toLowerCase();
-
-  if(m.includes("throw")) return "➡️";
+  const m = market.toLowerCase();
+  if(m.includes("goal")) return "⚽";
+  if(m.includes("btts")) return "🥅";
   if(m.includes("corner")) return "🚩";
   if(m.includes("card")) return "🟨";
-  if(m.includes("foul")) return "⚠️";
-  if(m.includes("offside")) return "🚫";
-  if(m.includes("shot")) return "🎯";
-  if(m.includes("btts")) return "🥅";
-  if(m.includes("handicap")) return "⚖️";
-  if(m.includes("goal")) return "⚽";
-
-  return "📊";
+  return "⚽";
 }
 function getBetTitleSizeClass(match){
   const len = String(match || "").trim().length;
