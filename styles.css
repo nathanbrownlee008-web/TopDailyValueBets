@@ -5926,619 +5926,86 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
   min-width:96px;
 }
 
+/* Value bet filters */
+.value-filters{max-width:1200px;margin:0 auto 14px;padding:12px}
+.value-filters__toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(15,23,42,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:14px 16px;font-weight:800}
+.value-filters__toggle-left,.value-filters__toggle-right{display:flex;align-items:center;gap:10px}
+.value-filters__summary{opacity:.78}
+.value-filters__content{overflow:hidden;transition:max-height .28s ease,opacity .2s ease,margin-top .2s ease}
+.value-filters__content.is-collapsed{max-height:0;opacity:0;margin-top:0}
+.value-filters__content.is-expanded{max-height:800px;opacity:1;margin-top:12px}
+.value-filters__head{display:flex;justify-content:flex-end;margin-bottom:12px}
+.value-filters__clear{border-radius:14px;padding:10px 14px}
+.value-filters__grid{display:grid;grid-template-columns:1fr;gap:12px}
+.value-filters__field label{display:block;font-size:13px;opacity:.8;margin-bottom:6px}
+.value-filters__field input,.value-filters__field select{width:100%;box-sizing:border-box;border-radius:16px;padding:12px 14px;background:rgba(2,6,23,0.38)}
+.is-active-filter{border-color:rgba(34,197,94,0.75)!important;box-shadow:0 0 0 1px rgba(34,197,94,0.15)}
+@media (min-width:700px){.value-filters__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:950px){.value-filters__grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 
-/* ===== Desktop Value Bets: league + market lines ===== */
-.table-market-wrap{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  min-width:0;
-}
-.table-league-line,
-.table-market-line{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  min-width:0;
-}
-.table-league-line{
+/* Value Bets sport label */
+.bet-title-row{display:flex;align-items:flex-start;gap:10px}
+.bet-title-row .bet-title{margin:0;flex:1 1 auto;min-width:0}
+.bet-sport-inline{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;font-size:11px;font-weight:800;opacity:.82;white-space:nowrap;padding-top:2px}
+.bet-title-row .bet-date{margin-left:auto;white-space:nowrap;padding-top:2px}
+
+/* Tracker sport breakdown */
+.tracker-sport-breakdown{display:grid;grid-template-columns:1fr;gap:12px;margin:0 0 18px}
+.tracker-sport-card{background:rgba(30,41,59,0.62);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px 14px;box-shadow:0 10px 24px rgba(0,0,0,0.16)}
+.tracker-sport-card__head{font-size:14px;font-weight:800;margin-bottom:6px;color:#f8fafc}
+.tracker-sport-card__stats{font-size:13px;line-height:1.4;color:rgba(226,232,240,0.9)}
+@media (min-width:780px){.tracker-sport-breakdown{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* === FIX DATE OVERLAP === */
+.bet-date{
+  position:absolute;
+  right:12px;
+  top:10px;
   font-size:12px;
-  color:rgba(226,232,240,.78);
+  opacity:0.7;
 }
-.table-market-line{
-  font-size:13px;
-  color:rgba(240,248,255,.92);
-}
-.table-league-icon,
-.table-market-icon{
-  flex:0 0 auto;
-  line-height:1;
-}
-.table-league-text,
-.table-market-text{
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-
-/* ===== TDT Picks tab: keep visible but mark as later ===== */
-.tab-coming-soon{
+.bet-card{
   position:relative;
 }
-.soon-badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  margin-left:6px;
-  padding:2px 7px;
-  border-radius:999px;
-  font-size:10px;
-  font-weight:800;
-  letter-spacing:.04em;
-  background:rgba(245,158,11,.14);
-  border:1px solid rgba(245,158,11,.28);
-  color:#fcd34d;
-}
-
-@media (max-width: 700px){
-  .soon-badge{
-    display:block;
-    margin:4px auto 0;
-    width:max-content;
-  }
-}
 
 
-/* ===== Desktop Value Bets: league above match, no trophy ===== */
-.table-match-cell{
-  min-width:0;
-}
-.table-match-league{font-size:11px;color:rgba(226,232,240,.74);margin-bottom:7px;line-height:1.05;transform:translateY(-1px)}
-.table-match-league-text{
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.table-match-name{font-size:13px;color:rgba(240,248,255,.96);line-height:1.18;padding-top:1px}
-
-/* ===== Desktop-only pills for market + bookie ===== */
-@media (min-width: 900px){
-  .table-market-pill,
-  .table-bookie-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    padding:6px 10px;
-    border-radius:999px;
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.12);
-    font-weight:700;
-    font-size:12px;
-    line-height:1;
-    white-space:nowrap;
-  }
-
-  .table-market-wrap{
-    display:block;
-  }
-
-  .table-market-line{
-    font-size:12px;
-    color:rgba(240,248,255,.92);
-  }
-}
-
-
-/* ===== Desktop wide value bets match cell spacing ===== */
-@media (min-width: 900px){
-  .bets-table .table-match-cell{
-    min-width:0;
-    vertical-align:middle;
-  }
-  .bets-table .table-match-league{
-    display:block;
-    letter-spacing:.02em;
-  }
-  .bets-table .table-match-name{
-    display:block;
-  }
-}
-
-
-/* ===== ABOUT BOX (SAFE ADD) ===== */
-.about-box{
-  margin-bottom:14px;
-  padding:14px 16px;
-  border-radius:16px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
-}
-.about-title{
-  font-weight:800;
-  font-size:15px;
-  margin-bottom:4px;
-}
-.about-text{
-  font-size:13px;
-  opacity:0.75;
-  line-height:1.4;
-}
-
-/* ===== Safe win/loss colour coding (current uploaded files) ===== */
-/* Mobile / compact tracker cards */
-.tracker-grid-card:has(.result-select.result-won){
-  background: linear-gradient(145deg,#0f1f3d,#133d2a) !important;
-  border: 1px solid rgba(34,197,94,0.35) !important;
+/* === SAFE PATCH: tracker result card colours + clear date === */
+.tracker-grid-card.tracker-grid-card--won{
+  background: linear-gradient(145deg,#0d1c33,#123826) !important;
+  border: 1px solid rgba(34,197,94,0.52) !important;
   box-shadow:
-    0 10px 24px rgba(0,0,0,0.45),
-    0 0 16px rgba(34,197,94,0.12) !important;
+    0 12px 28px rgba(0,0,0,0.45),
+    0 0 18px rgba(34,197,94,0.14) !important;
 }
 
-.tracker-grid-card:has(.result-select.result-lost){
-  background: linear-gradient(145deg,#0f1f3d,#3a1f24) !important;
-  border: 1px solid rgba(239,68,68,0.35) !important;
+.tracker-grid-card.tracker-grid-card--lost{
+  background: linear-gradient(145deg,#151c31,#3a1d24) !important;
+  border: 1px solid rgba(239,68,68,0.52) !important;
   box-shadow:
-    0 10px 24px rgba(0,0,0,0.45),
-    0 0 16px rgba(239,68,68,0.12) !important;
+    0 12px 28px rgba(0,0,0,0.45),
+    0 0 18px rgba(239,68,68,0.14) !important;
 }
 
-/* Keep pending neutral */
-.tracker-grid-card:has(.result-select.result-pending){
+.tracker-grid-card.tracker-grid-card--pending{
   background: linear-gradient(145deg,#0c182f,#101f38) !important;
   border: 1px solid rgba(80,140,255,0.22) !important;
-  box-shadow:
-    0 10px 24px rgba(0,0,0,0.50),
-    0 0 10px rgba(80,140,255,0.06) !important;
 }
 
-/* Desktop / wide tracker rows */
-@media (min-width: 950px){
-  body.layout-wide #trackerTable .tracker-desktop-table tbody tr:has(.result-select.result-won),
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table tbody tr:has(.result-select.result-won){
-    background: rgba(34,197,94,0.08) !important;
-    box-shadow: inset 3px 0 0 rgba(34,197,94,0.55);
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table tbody tr:has(.result-select.result-lost),
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table tbody tr:has(.result-select.result-lost){
-    background: rgba(239,68,68,0.08) !important;
-    box-shadow: inset 3px 0 0 rgba(239,68,68,0.55);
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table tbody tr:has(.result-select.result-pending),
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table tbody tr:has(.result-select.result-pending){
-    background: transparent !important;
-    box-shadow: none !important;
-  }
+.tracker-grid-card.tracker-grid-card--won .result-select{
+  background: rgba(34,197,94,0.16) !important;
+  border-color: rgba(34,197,94,0.38) !important;
+  color: #dcfce7 !important;
 }
 
-
-
-
-/* ===== FULL-WIDTH DESKTOP TRACKER/BETS (safe end patch) ===== */
-@media (min-width: 950px){
-  body.layout-wide{
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-  }
-
-  body.layout-wide #betsSection,
-  body.layout-wide #trackerSection,
-  body.layout-wide #tdtTrackerSection{
-    width: 100% !important;
-    max-width: none !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
-
-  body.layout-wide .bets-table-wrap,
-  body.layout-wide #trackerWrapper,
-  body.layout-wide #tdtTrackerWrapper,
-  body.layout-wide #trackerTable,
-  body.layout-wide #tdtTrackerTable,
-  body.layout-wide #trackerTable .tracker-desktop-table-wrap,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table-wrap,
-  body.layout-wide .tracker-history,
-  body.layout-wide .chart-wrap,
-  body.layout-wide .monthly-breakdown,
-  body.layout-wide .tdt-performance{
-    width: 100% !important;
-    max-width: none !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    box-sizing: border-box !important;
-  }
-
-  body.layout-wide .bets-table-wrap{
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-
-  body.layout-wide .bets-table,
-  body.layout-wide #trackerTable .tracker-desktop-table,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table{
-    width: 100% !important;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-date,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-date{
-    width: 8% !important;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-match,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-match{
-    width: 30% !important;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-market,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-market{
-    width: 22% !important;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table th.profit-col,
-  body.layout-wide #trackerTable .tracker-desktop-table td.profit-col,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table th.profit-col,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table td.profit-col{
-    width: 11% !important;
-    text-align: right !important;
-    white-space: nowrap !important;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table input[type="number"],
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table input[type="number"]{
-    width: 78px !important;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-table select,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-table select{
-    width: 98px !important;
-    min-width: 98px !important;
-  }
+.tracker-grid-card.tracker-grid-card--lost .result-select{
+  background: rgba(239,68,68,0.16) !important;
+  border-color: rgba(239,68,68,0.38) !important;
+  color: #fee2e2 !important;
 }
 
-@media (min-width: 1300px){
-  body.layout-wide{
-    padding-left: 22px !important;
-    padding-right: 22px !important;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-date,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-date{
-    width: 7% !important;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-match,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-match{
-    width: 31% !important;
-  }
-
-  body.layout-wide #trackerTable .tracker-desktop-market,
-  body.layout-wide #tdtTrackerTable .tracker-desktop-market{
-    width: 23% !important;
-  }
-}
-/* ===== TRUE FULL SCREEN DESKTOP FIX ===== */
-@media (min-width: 950px){
-
-  html, body {
-    width: 100% !important;
-    max-width: none !important;
-    overflow-x: hidden !important;
-  }
-
-  /* REMOVE ALL CENTER CONTAINERS */
-  .container,
-  .app-container,
-  .main-container,
-  .content,
-  .wrapper {
-    max-width: none !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-
-  /* MAIN SECTIONS FULL WIDTH */
-  #betsSection,
-  #trackerSection,
-  #tdtTrackerSection {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-  }
-
-  /* TABLE FULL WIDTH */
-  .bets-table-wrap,
-  .tracker-table,
-  table {
-    width: 100% !important;
-    max-width: none !important;
-  }
-
-  /* FORCE ROW LAYOUT */
-  table tr {
-    display: table-row !important;
-  }
-
-  table td, table th {
-    white-space: nowrap;
-  }
-}
-* {
-  box-sizing: border-box;
-}
-table {
-  table-layout: fixed;
-}
-
-table td, table th {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-
-
-/* ===== FORCE DESKTOP-SITE MODE TO USE WIDE TABLES ===== */
-@media (min-width: 950px){
-  #btnCompact{
-    display:none !important;
-  }
-
-  #btnWide{
-    pointer-events:none !important;
-    opacity:1 !important;
-  }
-
-  body.layout-wide .bets-grid{
-    display:none !important;
-  }
-
-  body.layout-wide .bets-table-wrap{
-    display:block !important;
-    width:100% !important;
-    max-width:none !important;
-    margin:0 !important;
-    padding:0 !important;
-  }
-
-  body.layout-wide .bets-table{
-    display:table !important;
-    width:100% !important;
-    table-layout:fixed !important;
-    border-collapse:separate !important;
-    border-spacing:0 12px !important;
-  }
-
-  body.layout-wide .bets-table thead th{
-    font-size:11px !important;
-    letter-spacing:.18em !important;
-    text-transform:uppercase !important;
-    color:rgba(185,205,230,.72) !important;
-    padding:0 14px 10px !important;
-    border-bottom:none !important;
-  }
-
-  body.layout-wide .bets-table tbody tr{
-    background:linear-gradient(180deg, rgba(18,31,58,.92), rgba(13,24,45,.92)) !important;
-    box-shadow:0 16px 34px rgba(0,0,0,.24);
-  }
-
-  body.layout-wide .bets-table tbody td{
-    padding:18px 14px !important;
-    vertical-align:middle !important;
-    border-top:1px solid rgba(110,145,195,.10) !important;
-    border-bottom:1px solid rgba(110,145,195,.10) !important;
-    color:#eef6ff !important;
-  }
-
-  body.layout-wide .bets-table tbody td:first-child{
-    border-left:3px solid rgba(0,255,140,.55) !important;
-    border-top-left-radius:16px !important;
-    border-bottom-left-radius:16px !important;
-  }
-
-  body.layout-wide .bets-table tbody td:last-child{
-    border-right:1px solid rgba(110,145,195,.10) !important;
-    border-top-right-radius:16px !important;
-    border-bottom-right-radius:16px !important;
-    text-align:right !important;
-  }
-
-  body.layout-wide .table-date-cell{
-    color:rgba(198,216,245,.92) !important;
-    font-size:12px !important;
-    font-weight:800 !important;
-    letter-spacing:.04em !important;
-    text-transform:uppercase !important;
-    white-space:nowrap !important;
-  }
-
-  body.layout-wide .table-match-league{
-    margin-bottom:6px !important;
-    line-height:1 !important;
-  }
-
-  body.layout-wide .table-match-league-text{
-    font-size:13px !important;
-    color:rgba(153,178,219,.86) !important;
-    font-weight:600 !important;
-  }
-
-  body.layout-wide .table-match-name{
-    font-size:19px !important;
-    font-weight:900 !important;
-    color:#fff !important;
-    line-height:1.08 !important;
-    letter-spacing:-.01em !important;
-  }
-
-  body.layout-wide .table-market-wrap,
-  body.layout-wide .table-market-line,
-  body.layout-wide .table-market-pill{
-    background:none !important;
-    border:none !important;
-    padding:0 !important;
-    box-shadow:none !important;
-  }
-
-  body.layout-wide .table-market-icon{
-    margin-right:6px !important;
-  }
-
-  body.layout-wide .table-market-text{
-    font-size:16px !important;
-    font-weight:700 !important;
-    color:rgba(241,247,255,.96) !important;
-    line-height:1.15 !important;
-  }
-
-  body.layout-wide .table-bookie-pill{
-    display:inline-flex !important;
-    align-items:center !important;
-    padding:12px 16px !important;
-    border-radius:14px !important;
-    background:rgba(16,110,56,.34) !important;
-    border:1px solid rgba(34,197,94,.48) !important;
-    color:#ecfff5 !important;
-    font-weight:900 !important;
-    box-shadow:inset 0 0 0 1px rgba(34,197,94,.08), 0 0 0 1px rgba(34,197,94,.06) !important;
-  }
-
-  body.layout-wide .bets-table .pill{
-    display:inline-flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    padding:12px 16px !important;
-    border-radius:999px !important;
-    font-weight:900 !important;
-  }
-
-  body.layout-wide .bets-table tbody td:nth-child(5) .pill{
-    min-width:82px !important;
-    background:rgba(10,19,35,.82) !important;
-    border:1px solid rgba(255,255,255,.14) !important;
-    color:#fff !important;
-    font-size:16px !important;
-  }
-
-  body.layout-wide .bets-table tbody td:nth-child(6) .pill{
-    min-width:126px !important;
-    background:linear-gradient(180deg, rgba(20,54,36,.98), rgba(11,39,27,.98)) !important;
-    border:1px solid rgba(92,255,154,.68) !important;
-    color:#f2fff8 !important;
-    font-size:16px !important;
-    box-shadow:0 0 18px rgba(34,197,94,.16), inset 0 0 10px rgba(34,197,94,.06) !important;
-  }
-
-  body.layout-wide .bets-table tbody td:nth-child(6) .pill.value-medium{
-    background:linear-gradient(180deg, rgba(74,63,20,.96), rgba(56,47,13,.96)) !important;
-    border-color:rgba(255,214,70,.56) !important;
-    color:#fff8dc !important;
-    box-shadow:0 0 14px rgba(255,214,70,.12) !important;
-  }
-
-  body.layout-wide .bets-table tbody td:nth-child(6) .pill.value-low{
-    background:linear-gradient(180deg, rgba(63,26,26,.96), rgba(46,18,18,.96)) !important;
-    border-color:rgba(248,113,113,.42) !important;
-    color:#ffe5e5 !important;
-    box-shadow:none !important;
-  }
-
-  body.layout-wide .bets-table .btn{
-    min-width:96px !important;
-    padding:12px 18px !important;
-    border-radius:999px !important;
-    background:linear-gradient(180deg, rgba(16,88,56,.56), rgba(10,64,40,.56)) !important;
-    border:1px solid rgba(34,197,94,.45) !important;
-    color:#ecfff5 !important;
-    font-weight:900 !important;
-    letter-spacing:.01em !important;
-  }
-
-  body.layout-wide .bets-table .btn.added{
-    background:linear-gradient(180deg, rgba(28,120,82,.66), rgba(16,90,60,.66)) !important;
-  }
-
-  body.layout-wide .bets-table thead th:nth-child(1),
-  body.layout-wide .bets-table tbody td:nth-child(1){ width:11% !important; }
-
-  body.layout-wide .bets-table thead th:nth-child(2),
-  body.layout-wide .bets-table tbody td:nth-child(2){ width:25% !important; }
-
-  body.layout-wide .bets-table thead th:nth-child(3),
-  body.layout-wide .bets-table tbody td:nth-child(3){ width:19% !important; }
-
-  body.layout-wide .bets-table thead th:nth-child(4),
-  body.layout-wide .bets-table tbody td:nth-child(4){ width:16% !important; }
-
-  body.layout-wide .bets-table thead th:nth-child(5),
-  body.layout-wide .bets-table tbody td:nth-child(5){ width:10% !important; text-align:center !important; }
-
-  body.layout-wide .bets-table thead th:nth-child(6),
-  body.layout-wide .bets-table tbody td:nth-child(6){ width:11% !important; white-space:nowrap !important; }
-
-  body.layout-wide .bets-table thead th:nth-child(7),
-  body.layout-wide .bets-table tbody td:nth-child(7){ width:8% !important; text-align:right !important; white-space:nowrap !important; }
-}
-
-
-/* ===== Exact patch: fix date overlap on Value Bets ===== */
-.bet-head-row{
-  display:flex !important;
-  align-items:flex-start !important;
-  justify-content:space-between !important;
-  gap:10px !important;
-}
-
-#betsGrid .bet-teaser{
-  position:static !important;
-}
-
-#betsGrid .bet-title,
-.bet-title{
-  padding-right:0 !important;
-  min-width:0 !important;
-  flex:1 1 auto !important;
-}
-
-#betsGrid .bet-date,
-.bet-date{
-  position:static !important;
-  top:auto !important;
-  right:auto !important;
-  display:block !important;
-  flex:0 0 auto !important;
-  text-align:right !important;
-  white-space:nowrap !important;
-  font-size:12px !important;
-  line-height:1.2 !important;
-  opacity:0.78 !important;
-}
-
-/* ===== Exact patch: force tracker result card colours ===== */
-.tracker-grid-card.result-won{
-  background: linear-gradient(145deg,#0f1f3d,#133d2a) !important;
-  border: 1px solid rgba(34,197,94,0.38) !important;
-  box-shadow:
-    0 10px 24px rgba(0,0,0,0.45),
-    0 0 16px rgba(34,197,94,0.12) !important;
-}
-
-.tracker-grid-card.result-lost{
-  background: linear-gradient(145deg,#0f1f3d,#3a1f24) !important;
-  border: 1px solid rgba(239,68,68,0.38) !important;
-  box-shadow:
-    0 10px 24px rgba(0,0,0,0.45),
-    0 0 16px rgba(239,68,68,0.12) !important;
-}
-
-.tracker-grid-card.result-pending{
-  background: linear-gradient(145deg,#0c182f,#101f38) !important;
-  border: 1px solid rgba(80,140,255,0.22) !important;
-  box-shadow:
-    0 10px 24px rgba(0,0,0,0.50),
-    0 0 10px rgba(80,140,255,0.06) !important;
+.bet-title-row .bet-date{
+  margin-left: auto;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
