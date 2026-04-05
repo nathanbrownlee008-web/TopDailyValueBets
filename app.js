@@ -216,11 +216,27 @@ function normalizeDateOnly(value){
   return null;
 }
 function isValueBetActiveToday(row){
-  const today=toLocalYMD(new Date());
-  const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
-  const end=normalizeDateOnly(row.bet_end_date) || start;
-  if(!start) return false;
-  return today >= start && today <= end;
+  const today = toLocalYMD(new Date());
+
+  const start = normalizeDateOnly(row.bet_date)
+             || normalizeDateOnly(row.created_at);
+
+  const end = normalizeDateOnly(row.bet_end_date);
+
+  // if no dates at all -> show it
+  if(!start && !end) return true;
+
+  // if only start exists
+  if(start && !end){
+    return start === today;
+  }
+
+  // if both exist
+  if(start && end){
+    return today >= start && today <= end;
+  }
+
+  return true;
 }
 
 
