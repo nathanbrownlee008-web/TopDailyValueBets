@@ -216,25 +216,11 @@ function normalizeDateOnly(value){
   return null;
 }
 function isValueBetActiveToday(row){
-  const today = toLocalYMD(new Date());
-
-  const start = normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
-  const end = normalizeDateOnly(row.bet_end_date);
-
-  // no usable dates -> still show the bet
-  if(!start && !end) return true;
-
-  // only start date
-  if(start && !end){
-    return start === today;
-  }
-
-  // start + end range
-  if(start && end){
-    return today >= start && today <= end;
-  }
-
-  return true;
+  const today=toLocalYMD(new Date());
+  const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
+  const end=normalizeDateOnly(row.bet_end_date) || start;
+  if(!start) return false;
+  return today >= start && today <= end;
 }
 
 
@@ -284,14 +270,21 @@ function shouldTryVipFinalize(){
 
 
 
-function getMarketIcon(market){
+function getMarketIcon(market, sport){
+  const cleanSport = String(sport || "").toLowerCase();
+  if(cleanSport === "basketball") return "🏀";
   if(!market) return "";
-  const m = market.toLowerCase();
-  if(m.includes("goal")) return "⚽";
-  if(m.includes("btts")) return "🥅";
+  const m = String(market).toLowerCase();
+  if(m.includes("throw")) return "➡️";
   if(m.includes("corner")) return "🚩";
-  if(m.includes("card")) return "🟨";
-  return "⚽";
+  if(m.includes("card") || m.includes("booking")) return "🟨";
+  if(m.includes("foul")) return "⚠️";
+  if(m.includes("offside")) return "🚫";
+  if(m.includes("shot")) return "🎯";
+  if(m.includes("btts")) return "🥅";
+  if(m.includes("handicap")) return "⚖️";
+  if(m.includes("goal") || m.includes("fhg") || m.includes("fgh") || m.includes("team total")) return "⚽";
+  return cleanSport === "basketball" ? "🏀" : "⚽";
 }
 function getBetTitleSizeClass(match){
   const len = String(match || "").trim().length;
@@ -302,22 +295,6 @@ function getBetTitleSizeClass(match){
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
-
-function forceDesktopWideMode(){
-  const isDesktopViewport = window.innerWidth >= 950;
-  if(isDesktopViewport){
-    applyLayout("wide");
-    if(btnCompact) btnCompact.style.display = "none";
-    if(btnWide){
-      btnWide.disabled = true;
-      btnWide.classList.add("active");
-    }
-  }else{
-    if(btnCompact) btnCompact.style.display = "";
-    if(btnWide) btnWide.disabled = false;
-  }
-}
-
 
 // VIP UI
 const vipButtonEl = document.getElementById("vipButton");
@@ -426,6 +403,7 @@ function normalizeTrackerRow(row){
   }
   if(out.stake == null) out.stake = 10;
   if(!out.result) out.result = "pending";
+  if(!out.sport) out.sport = getBetSport(out);
   return out;
 }
 
@@ -524,19 +502,13 @@ function applyLayout(mode){
 
 (function initLayoutMode(){
   const saved = localStorage.getItem("layout_mode");
-  const isDesktopViewport = window.innerWidth >= 950;
-
   if(saved === "wide" || saved === "compact"){
-    applyLayout(isDesktopViewport ? "wide" : saved);
+    applyLayout(saved);
   }else{
-    applyLayout(isDesktopViewport ? "wide" : "compact");
+    // Default: compact on small screens, wide on desktop
+    applyLayout(window.innerWidth >= 950 ? "wide" : "compact");
   }
-
-  if(btnCompact) btnCompact.addEventListener("click", ()=>{
-    if(window.innerWidth >= 950) return;
-    applyLayout("compact");
-  });
-
+  if(btnCompact) btnCompact.addEventListener("click", ()=>applyLayout("compact"));
   if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
 })();
 
@@ -558,6 +530,193 @@ const FREE_VISIBLE_COUNT = 3;
 const FREE_DELAY_MINUTES = 10;
 const NEW_BET_ALERTS_KEY = "tdt_new_bet_alerts_enabled";
 
+const valueFilterSearchEl = document.getElementById("valueFilterSearch");
+const valueFilterSportEl = document.getElementById("valueFilterSport");
+const valueFilterLeagueEl = document.getElementById("valueFilterLeague");
+const valueFilterMarketEl = document.getElementById("valueFilterMarket");
+const valueFilterBookieEl = document.getElementById("valueFilterBookie");
+const valueFiltersClearEl = document.getElementById("valueFiltersClear");
+const valueFiltersToggleEl = document.getElementById("valueFiltersToggle");
+const valueFiltersContentEl = document.getElementById("valueFiltersContent");
+const valueFiltersArrowEl = document.getElementById("valueFiltersArrow");
+const valueFiltersSummaryEl = document.getElementById("valueFiltersSummary");
+
+let valueBetsAllRows = [];
+let valueFiltersWired = false;
+let valueFiltersOpen = false;
+
+
+function normalizeFilterText(value){
+  return String(value || "").trim().toLowerCase();
+}
+function getBetLeagueName(row){
+  return row?.league || row?.competition || row?.league_name || row?.tournament || '';
+}
+function getBetSport(row){
+  const explicit = String(row?.sport || '').trim().toLowerCase();
+  if(explicit === 'basketball' || explicit === 'football') return explicit;
+  const market = String(row?.market || '').toLowerCase();
+  const league = String(getBetLeagueName(row) || '').toLowerCase();
+  const match = String(row?.match || '').toLowerCase();
+  const basketballHints = ['nba','wnba','euroleague','basketball','points','rebounds','assists','three pointers','3-pointers','moneyline','spread'];
+  if(basketballHints.some(h => market.includes(h) || league.includes(h) || match.includes(h))) return 'basketball';
+  return 'football';
+}
+function getSportLabel(sport){
+  return getBetSport({ sport }) === 'basketball' ? 'Basketball' : 'Football';
+}
+function getSportIcon(row){
+  return getBetSport(row) === 'basketball' ? '🏀' : '⚽';
+}
+function getMarketCategory(rawMarket){
+  const market = String(rawMarket || '').trim();
+  const m = market.toLowerCase();
+  if(!m) return '';
+  if(m.includes('btts') || m.includes('both teams to score')) return 'BTTS';
+  if(m.includes('shot on target') || m.includes('shots on target') || m.includes('sot')){
+    if(m.includes('team')) return 'Team SoT';
+    return 'Shots On Target';
+  }
+  if(m.includes('throw')) return 'Throw In';
+  if(m.includes('corner')) return 'Corners';
+  if(m.includes('card') || m.includes('booking')) return 'Cards';
+  if(m.includes('foul')) return 'Fouls';
+  if(m.includes('offside')) return 'Offsides';
+  if(m.includes('asian handicap') || (m.includes('asian') && m.includes('handicap'))) return 'Asian Handicap';
+  if(m.includes('draw no bet') || m.includes('dnb') || m.includes('double chance')) return 'Match Winner';
+  if(m.includes('handicap')) return 'Asian Handicap';
+  if(m.includes('match winner') || m.includes('to win') || m.includes('win') || m == 'home' || m == 'away' || m == 'draw') return 'Match Winner';
+  if(m.includes('goal') || m.includes('fhg') || m.includes('fgh') || m.includes('team total')) return 'Goals Over & Under';
+  if((m.includes('over') || m.includes('under')) && m.includes('corner')) return 'Corners';
+  if((m.includes('over') || m.includes('under')) && m.includes('card')) return 'Cards';
+  if((m.includes('over') || m.includes('under')) && m.includes('throw')) return 'Throw In';
+  if((m.includes('over') || m.includes('under')) && (m.includes('shot') || m.includes('sot'))){
+    if(m.includes('team')) return 'Team SoT';
+    return 'Shots On Target';
+  }
+  if((m.includes('over') || m.includes('under')) && m.includes('foul')) return 'Fouls';
+  if((m.includes('over') || m.includes('under')) && m.includes('offside')) return 'Offsides';
+  if((m.includes('over') || m.includes('under')) || m.includes('goal')) return 'Goals Over & Under';
+  return market;
+}
+function getValueFilterState(){
+  return {
+    search: normalizeFilterText(valueFilterSearchEl?.value || ''),
+    sport: normalizeFilterText(valueFilterSportEl?.value || ''),
+    league: normalizeFilterText(valueFilterLeagueEl?.value || ''),
+    market: normalizeFilterText(valueFilterMarketEl?.value || ''),
+    bookie: normalizeFilterText(valueFilterBookieEl?.value || '')
+  };
+}
+function uniqueSortedFilterValues(rows, getter){
+  const map = new Map();
+  (rows || []).forEach(row => {
+    const raw = String(getter(row) || '').trim();
+    if(!raw) return;
+    const key = raw.toLowerCase();
+    if(!map.has(key)) map.set(key, raw);
+  });
+  return Array.from(map.values()).sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:'base' }));
+}
+function getOrderedMarketCategories(rows){
+  const preferred = ['Match Winner','Goals Over & Under','BTTS','Corners','Cards','Fouls','Offsides','Shots On Target','Team SoT','Asian Handicap','Throw In'];
+  const found = uniqueSortedFilterValues(rows, r => getMarketCategory(r.market));
+  const ordered = [];
+  preferred.forEach(name => { if(found.includes(name)) ordered.push(name); });
+  found.forEach(name => { if(!ordered.includes(name)) ordered.push(name); });
+  return ordered;
+}
+function fillValueFilterOptions(selectEl, values, currentValue){
+  if(!selectEl) return;
+  const current = String(currentValue || '');
+  const first = selectEl.querySelector('option') ? selectEl.querySelector('option').outerHTML : '<option value="">All</option>';
+  selectEl.innerHTML = first + values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  const match = values.find(v => v.toLowerCase() === current.toLowerCase());
+  selectEl.value = match || '';
+}
+function buildValueFiltersSummary(){
+  const state = getValueFilterState();
+  const parts = [];
+  if(state.search) parts.push(`Search: ${valueFilterSearchEl?.value || ''}`);
+  if(state.sport) parts.push(getSportLabel(state.sport));
+  if(state.league) parts.push(valueFilterLeagueEl?.value || '');
+  if(state.market) parts.push(valueFilterMarketEl?.value || '');
+  if(state.bookie) parts.push(valueFilterBookieEl?.value || '');
+  return parts.length ? parts.join(' • ') : 'All bets';
+}
+function setValueFiltersOpen(open){
+  valueFiltersOpen = !!open;
+  if(valueFiltersContentEl){
+    valueFiltersContentEl.classList.toggle('is-collapsed', !valueFiltersOpen);
+    valueFiltersContentEl.classList.toggle('is-expanded', valueFiltersOpen);
+  }
+  if(valueFiltersToggleEl) valueFiltersToggleEl.setAttribute('aria-expanded', valueFiltersOpen ? 'true' : 'false');
+  if(valueFiltersArrowEl) valueFiltersArrowEl.textContent = valueFiltersOpen ? '▲' : '▼';
+}
+function syncValueFilterActiveStates(){
+  [valueFilterSearchEl, valueFilterSportEl, valueFilterLeagueEl, valueFilterMarketEl, valueFilterBookieEl].forEach(el=>{
+    if(!el) return;
+    const hasValue = String(el.value || '').trim() !== '';
+    el.classList.toggle('is-active-filter', hasValue);
+  });
+}
+function syncValueFiltersUi(){
+  if(valueFiltersSummaryEl) valueFiltersSummaryEl.textContent = buildValueFiltersSummary();
+  syncValueFilterActiveStates();
+}
+function initValueFiltersCollapse(){
+  setValueFiltersOpen(window.innerWidth >= 950);
+}
+function refreshValueFilterOptions(rows){
+  const state = getValueFilterState();
+  fillValueFilterOptions(valueFilterLeagueEl, uniqueSortedFilterValues(rows, getBetLeagueName), state.league);
+  fillValueFilterOptions(valueFilterMarketEl, getOrderedMarketCategories(rows), state.market);
+  fillValueFilterOptions(valueFilterBookieEl, uniqueSortedFilterValues(rows, r => r.bookie), state.bookie);
+  syncValueFiltersUi();
+}
+function applyValueBetFilters(rows){
+  const state = getValueFilterState();
+  return (rows || []).filter(row => {
+    const sport = normalizeFilterText(getBetSport(row));
+    const match = normalizeFilterText(row.match);
+    const market = normalizeFilterText(row.market);
+    const league = normalizeFilterText(getBetLeagueName(row));
+    const bookie = normalizeFilterText(row.bookie);
+    if(state.search){
+      const hay = `${sport} ${match} ${market} ${getMarketCategory(row.market).toLowerCase()} ${league} ${bookie}`;
+      if(!hay.includes(state.search)) return false;
+    }
+    if(state.sport && sport !== state.sport) return false;
+    if(state.league && league !== state.league) return false;
+    if(state.market && getMarketCategory(row.market).toLowerCase() !== state.market) return false;
+    if(state.bookie && bookie !== state.bookie) return false;
+    return true;
+  });
+}
+function wireValueBetFilters(){
+  if(valueFiltersWired) return;
+  valueFiltersWired = true;
+  const rerender = ()=>{ syncValueFiltersUi(); loadBets(); };
+  if(valueFiltersToggleEl) valueFiltersToggleEl.addEventListener('click', ()=>setValueFiltersOpen(!valueFiltersOpen));
+  if(valueFilterSearchEl) valueFilterSearchEl.addEventListener('input', rerender);
+  if(valueFilterSportEl) valueFilterSportEl.addEventListener('change', rerender);
+  if(valueFilterLeagueEl) valueFilterLeagueEl.addEventListener('change', rerender);
+  if(valueFilterMarketEl) valueFilterMarketEl.addEventListener('change', rerender);
+  if(valueFilterBookieEl) valueFilterBookieEl.addEventListener('change', rerender);
+  if(valueFiltersClearEl){
+    valueFiltersClearEl.addEventListener('click', ()=>{
+      if(valueFilterSearchEl) valueFilterSearchEl.value = '';
+      if(valueFilterSportEl) valueFilterSportEl.value = '';
+      if(valueFilterLeagueEl) valueFilterLeagueEl.value = '';
+      if(valueFilterMarketEl) valueFilterMarketEl.value = '';
+      if(valueFilterBookieEl) valueFilterBookieEl.value = '';
+      syncValueFiltersUi();
+      loadBets();
+    });
+  }
+  initValueFiltersCollapse();
+  syncValueFiltersUi();
+}
 function makeBetKey(row){
   const match = (row?.match ?? "").toString().trim();
   const market = (row?.market ?? "").toString().trim();
@@ -600,6 +759,17 @@ function teaserCopyForLockedBet(row, state){
   return `VIP only • ${valueText} • market hidden`;
 }
 
+
+function formatTdtPickDate(value){
+  if(!value) return "";
+  const d = new Date(value);
+  if(Number.isNaN(d.getTime())) return String(value);
+  const day = d.getDate();
+  const suffix = (day >= 11 && day <= 13) ? 'th' : (day % 10 === 1) ? 'st' : (day % 10 === 2) ? 'nd' : (day % 10 === 3) ? 'rd' : 'th';
+  const month = d.toLocaleString('en-GB', { month:'short' });
+  return `${day}${suffix} ${month}`;
+}
+
 function formatUnlockLabel(state){
   if(!state?.unlocksAt) return 'VIP only';
   return `Unlocks ${state.unlocksAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
@@ -607,12 +777,9 @@ function formatUnlockLabel(state){
 
 // Top navigation tabs
 const tabTdtTrackerEl = document.getElementById("tabTdtTracker");
-const tabTdtPicksEl = document.getElementById("tabTdtPicks");
 const tdtTrackerSectionEl = document.getElementById("tdtTrackerSection");
+const tabTdtPicksEl = document.getElementById("tabTdtPicks");
 const tdtPicksSectionEl = document.getElementById("tdtPicksSection");
-const tdtPicksListEl = document.getElementById("tdtPicksList");
-const tdtPicksCountEl = document.getElementById("tdtPicksCount");
-const tdtPicksStatusEl = document.getElementById("tdtPicksStatus");
 const tabHistoryEl = document.getElementById("tabHistory");
 const historySectionEl = document.getElementById("historySection");
 const tabTdtHistoryEl = document.getElementById("tabTdtHistory");
@@ -665,7 +832,7 @@ checkVIP().then(async ()=>{
   }
   refreshAdminBadgeUI();
   try{ await readTrackerRows(); }catch(e){}
-  forceDesktopWideMode();
+  wireValueBetFilters();
   // re-render bets so blur/limits apply
   loadBets();
   loadVipPromoProof();
@@ -701,100 +868,72 @@ function switchTab(tab){
   }
 }
 
-
-
-async function fetchTdtPicksRows(){
-  const attempts = [
-    () => client.from("tdt_picks_feed").select("*").order("created_at",{ascending:false}),
-    () => client.from("tdt_picks").select("*").order("created_at",{ascending:false})
-  ];
-
-  for(const run of attempts){
-    try{
-      const res = await run();
-      if(!res.error && Array.isArray(res.data)) return res.data;
-    }catch(e){}
-  }
-  return [];
-}
-
-function renderTdtPickCard(row){
-  const match = row.match || row.fixture || [row.home_team || row.home, row.away_team || row.away].filter(Boolean).join(" vs ") || "TDT Pick";
-  const league = row.league || row.competition || row.league_name || row.tournament || "";
-  const dateText = formatTdtPickDate(row.bet_date || row.created_at || row.match_date || row.date);
-  const market = row.market || row.pick || row.selection || "";
-  const bookie = row.bookie || row.bookmaker || "";
-  const oddsRaw = row.odds ?? row.price ?? row.decimal_odds;
-  const odds = (oddsRaw != null && oddsRaw !== "") ? String(oddsRaw) : "—";
-  const confRaw = row.confidence ?? row.confidence_pct ?? row.probability_pct ?? row.probability;
-  const confNum = confRaw != null && confRaw !== "" && !Number.isNaN(Number(confRaw))
-    ? (Number(confRaw) <= 1 ? Math.round(Number(confRaw) * 100) : Math.round(Number(confRaw)))
-    : null;
-  const confText = confNum != null ? `${confNum}%` : "TDT";
-  const added = false;
-
-  return `
-  <div class="tdt-pick-card">
-    <div class="tdt-pick-card__top">
-      <div class="tdt-pick-card__left">
-        <div class="tdt-pick-card__title">${escapeHtml(match)}</div>
-        <div class="tdt-pick-card__sub">
-          ${league ? `${escapeHtml(league)} • ` : ''}${escapeHtml(String((row.bet_date || row.created_at || row.match_date || row.date) ? (row.bet_date || row.created_at || row.match_date || row.date) : ''))}${(row.strength || row.pick_type || row.tag) ? ` • ${escapeHtml(String(row.strength || row.pick_type || row.tag))}` : ''}
-        </div>
-      </div>
-      <div class="tdt-pick-card__actions">
-        <button class="tdt-pick-add" type="button" disabled>Official</button>
-        <span class="tdt-pick-chip">${escapeHtml(confText)}</span>
-      </div>
-    </div>
-
-    <div class="tdt-pick-card__grid">
-      <div class="tdt-pick-cell">
-        <div class="tdt-pick-cell__k">League</div>
-        <div class="tdt-pick-cell__v">${escapeHtml(league || '—')}</div>
-      </div>
-      <div class="tdt-pick-cell">
-        <div class="tdt-pick-cell__k">DateUTC (date)</div>
-        <div class="tdt-pick-cell__v">${escapeHtml(String(row.bet_date || row.created_at || row.match_date || row.date || '—'))}</div>
-      </div>
-      <div class="tdt-pick-cell">
-        <div class="tdt-pick-cell__k">Market</div>
-        <div class="tdt-pick-cell__v">${escapeHtml(market || '—')}</div>
-      </div>
-      <div class="tdt-pick-cell">
-        <div class="tdt-pick-cell__k">Bookie</div>
-        <div class="tdt-pick-cell__v">${escapeHtml(bookie || '—')}</div>
-      </div>
-      <div class="tdt-pick-cell">
-        <div class="tdt-pick-cell__k">Odds</div>
-        <div class="tdt-pick-cell__v">${escapeHtml(odds)}</div>
-      </div>
-      <div class="tdt-pick-cell">
-        <div class="tdt-pick-cell__k">Pick Date</div>
-        <div class="tdt-pick-cell__v">${escapeHtml(dateText || '—')}</div>
-      </div>
-    </div>
-  </div>`;
-}
-
 async function loadTdtPicks(){
-  if(!tdtPicksListEl) return;
-  tdtPicksListEl.innerHTML = `<div class="card">Loading TDT picks...</div>`;
-  if(tdtPicksCountEl) tdtPicksCountEl.textContent = "Loading TDT picks...";
-  if(tdtPicksStatusEl) tdtPicksStatusEl.textContent = "Official tips from TDT (Top Daily Tips).";
+  const grid = document.getElementById("tdtPicksGrid");
+  const table = document.getElementById("tdtPicksTable");
+  const tbody = table ? table.querySelector("tbody") : null;
 
-  const rows = await fetchTdtPicksRows();
+  if(grid) grid.innerHTML = `<div class="card">Loading TDT picks...</div>`;
+  if(tbody) tbody.innerHTML = "";
 
-  if(!rows.length){
-    tdtPicksListEl.innerHTML = `<div class="card">No TDT picks added yet.</div>`;
-    if(tdtPicksCountEl) tdtPicksCountEl.textContent = "0 TDT picks";
-    if(tdtPicksStatusEl) tdtPicksStatusEl.textContent = "Add rows to tdt_picks_feed or tdt_picks to show official picks here.";
-    return;
+  try{
+    const { data, error } = await client
+      .from("tdt_picks")
+      .select("*")
+      .order("created_at", { ascending:false });
+
+    if(error) throw error;
+
+    const rows = data || [];
+    if(!rows.length){
+      if(grid) grid.innerHTML = `<div class="card">No TDT picks yet.</div>`;
+      return;
+    }
+
+    if(grid){
+      grid.innerHTML = rows.map(row=>{
+        const match = row.match || "";
+        const market = row.market || "";
+        const bookie = row.bookie || "";
+        const odds = row.odds ?? "";
+        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
+        return `
+          <div class="card bet-card">
+            <div class="bet-title">${match}</div>
+            <div class="bet-meta">
+              <span class="bet-market">${market}</span>
+              <span class="bet-date">${dateText}</span>
+            </div>
+            ${bookie ? `<div class="bet-bookie">${bookie}</div>` : ``}
+            <div class="bet-footer">
+              <span class="odds-badge"><strong>@ ${odds}</strong></span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    if(tbody){
+      tbody.innerHTML = rows.map(row=>{
+        const match = row.match || "";
+        const market = row.market || "";
+        const bookie = row.bookie || "-";
+        const odds = row.odds ?? "";
+        const dateText = formatTdtPickDate(row.bet_date || row.created_at || "");
+        return `
+          <tr>
+            <td>${match}</td>
+            <td>${market}</td>
+            <td>${bookie}</td>
+            <td><span class="pill">${odds}</span></td>
+            <td>${dateText}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+  }catch(err){
+    if(grid) grid.innerHTML = `<div class="card">Could not load TDT picks.</div>`;
   }
-
-  tdtPicksListEl.innerHTML = rows.map(renderTdtPickCard).join("");
-  if(tdtPicksCountEl) tdtPicksCountEl.textContent = `${rows.length} TDT pick${rows.length === 1 ? '' : 's'}`;
-  if(tdtPicksStatusEl) tdtPicksStatusEl.textContent = "Official TDT picks feed shown in the old dashboard-style layout.";
 }
 
 
@@ -812,15 +951,26 @@ async function loadBets(){
   if(betsTbody) betsTbody.innerHTML = "";
 
   const active=(data||[]).filter(isValueBetActiveToday);
+  valueBetsAllRows = active.slice();
+  refreshValueFilterOptions(active);
   if(!active.length){
     betsGrid.innerHTML = `<div class="card">No bets for today.</div>`;
+    if(betsTbody) betsTbody.innerHTML = "";
+    notifyForNewVisibleBets([]);
+    return;
+  }
+
+  const filtered = applyValueBetFilters(active);
+  if(!filtered.length){
+    betsGrid.innerHTML = `<div class="card">No bets match those filters.</div>`;
+    if(betsTbody) betsTbody.innerHTML = "";
     notifyForNewVisibleBets([]);
     return;
   }
 
   const visibleForAlerts = [];
 
-  (active || []).forEach((row, idx)=>{
+  (filtered || []).forEach((row, idx)=>{
     const state = getBetPublicState(row, idx);
     const locked = !!state.locked;
     const key = makeBetKey(row);
@@ -842,11 +992,14 @@ async function loadBets(){
 <div class="bet-lock-wrap">
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
-      <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-      <span class="bet-date">${escapeHtml(betDate)}</span>
+      <div class="bet-title-row">
+        <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
+        <span class="bet-sport-inline">${getSportIcon(row)} ${getSportLabel(getBetSport(row))}</span>
+        <span class="bet-date">${escapeHtml(betDate)}</span>
+      </div>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '')}</span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
@@ -867,16 +1020,8 @@ async function loadBets(){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
         <td class="table-date-cell">${escapeHtml(betDate)}</td>
-        <td class="table-match-cell">${
-          leagueName
-            ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>`
-            : ''
-        }<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
-        <td>${
-          locked
-            ? '<span class="table-lock-copy">Hidden for VIP</span>'
-            : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||''))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`
-        }</td>
+        <td class="table-match-cell">${leagueName ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>` : ''}<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
@@ -919,7 +1064,8 @@ async function addToTracker(btn, row){
     result: "pending",
     created_at: new Date().toISOString(),
     bet_date: row.bet_date || null,
-    bookie: row.bookie || null
+    bookie: row.bookie || null,
+    sport: getBetSport(row)
   };
 
   try{
@@ -983,6 +1129,45 @@ document.addEventListener("change", (e)=>{
 
 // ===== Tracker Filters (Bet Results) =====
 let trackerAllRows = [];
+
+function calcTrackerSportStats(rows, sportName){
+  const target = String(sportName || '').toLowerCase();
+  const filtered = (rows || []).filter(r => String(r.sport || getBetSport(r)).toLowerCase() === target);
+  let wins = 0, losses = 0, stake = 0, profit = 0;
+  filtered.forEach(r => {
+    const stakeVal = Number(r.stake || 0);
+    const oddsVal = Number(r.odds || 0);
+    stake += stakeVal;
+    if(r.result === 'won'){
+      wins += 1;
+      profit += stakeVal * (oddsVal - 1);
+    }else if(r.result === 'lost'){
+      losses += 1;
+      profit -= stakeVal;
+    }
+  });
+  const settled = wins + losses;
+  const roi = stake ? ((profit / stake) * 100) : 0;
+  const winrate = settled ? ((wins / settled) * 100) : 0;
+  return { bets: filtered.length, wins, losses, profit, roi, winrate };
+}
+
+function renderTrackerSportBreakdown(rows){
+  const footballEl = document.getElementById('footballTrackerStats');
+  const basketballEl = document.getElementById('basketballTrackerStats');
+  if(!footballEl || !basketballEl) return;
+
+  const football = calcTrackerSportStats(rows, 'football');
+  const basketball = calcTrackerSportStats(rows, 'basketball');
+
+  footballEl.textContent = football.bets
+    ? `${football.bets} bets • ${football.wins}-${football.losses} • ${football.winrate.toFixed(1)}% WR • ${football.roi.toFixed(1)}% ROI • £${football.profit.toFixed(2)}`
+    : 'No football bets yet.';
+  basketballEl.textContent = basketball.bets
+    ? `${basketball.bets} bets • ${basketball.wins}-${basketball.losses} • ${basketball.winrate.toFixed(1)}% WR • ${basketball.roi.toFixed(1)}% ROI • £${basketball.profit.toFixed(2)}`
+    : 'No basketball bets yet.';
+}
+
 
 function _rowGameDateISO(row){
   const raw = row.match_date_date || row.match_date || row.bet_date || row.created_at;
@@ -1410,6 +1595,7 @@ renderDailyChart(history, dailyLabels, dayKeys);
 // ---- Monthly & Market analytics (tabs + mini summary) ----
 const countElem = document.getElementById("betCount");
 if(countElem) countElem.textContent = String(rows.length);
+renderTrackerSportBreakdown(rows);
 
 // Monthly profit aggregation (ROI version)
 const monthMap = {};
@@ -3206,14 +3392,11 @@ window.forgotVipPassword = forgotVipPassword;
       weekEntry.days.get(day).push(row);
     });
 
-    const fallbackMonthLabel = months[0]?.label || "";
-    const effectiveMonthLabel = months.some(m => m.label === currentMonthLabel) ? currentMonthLabel : fallbackMonthLabel;
-
     let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
 
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
-      const isCurrentMonth = monthKey === effectiveMonthLabel;
+      const isCurrentMonth = monthKey === currentMonthLabel;
       const monthOpen = isCurrentMonth;
 
       html += `
@@ -3225,15 +3408,9 @@ window.forgotVipPassword = forgotVipPassword;
           <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
       `;
 
-      const weekEntries = Array.from(monthEntry.weeks.entries());
-      const fallbackWeekLabel = weekEntries[0]?.[0] || "";
-      const effectiveWeekLabel = monthKey === effectiveMonthLabel && weekEntries.some(([label]) => label === currentWeekLabel)
-        ? currentWeekLabel
-        : fallbackWeekLabel;
-
-      weekEntries.forEach(([weekLabel, weekEntry], weekIndex)=>{
+      Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
-        const isCurrentWeek = monthKey === effectiveMonthLabel && weekLabel === effectiveWeekLabel;
+        const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
         const weekOpen = isCurrentWeek;
 
         html += `
@@ -3245,15 +3422,9 @@ window.forgotVipPassword = forgotVipPassword;
             <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
         `;
 
-        const dayEntries = Array.from(weekEntry.days.entries());
-        const fallbackDayLabel = dayEntries[0]?.[0] || "";
-        const effectiveDayLabel = isCurrentWeek && dayEntries.some(([label]) => label === currentDayLabel)
-          ? currentDayLabel
-          : fallbackDayLabel;
-
-        dayEntries.forEach(([dayLabel, dayRows], dayIndex)=>{
+        Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
-          const isCurrentDay = isCurrentWeek && dayLabel === effectiveDayLabel;
+          const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
           const dayOpen = isCurrentDay;
 
           html += `
@@ -3284,7 +3455,7 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-grid-market-slot">
                     <span>Market</span>
                     <div class="tracker-grid-market-inline">
-                      ${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}
+                      ${trackerEsc(row.market || "—")}
                     </div>
                   </div>
 
@@ -3310,63 +3481,6 @@ window.forgotVipPassword = forgotVipPassword;
           });
 
           html += `
-                </div>
-                <div class="tracker-desktop-table-wrap">
-                  <table class="tracker-desktop-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Match</th>
-                        <th>Market</th>
-                        <th>Stake</th>
-                        <th>Odds</th>
-                        <th>Result</th>
-                        <th class="profit-col">Profit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-          `;
-
-          dayRows.forEach(row=>{
-            const rowDateRaw = row.match_date_date || row.bet_date || row.created_at;
-            const rowDateText = rowDateRaw ? fmtDayLabel(rowDateRaw) : '—';
-            let p = 0;
-            if(row.result === "won") p = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
-            if(row.result === "lost") p = -Number(row.stake || 0);
-            html += `
-                      <tr>
-                        <td class="tracker-desktop-date">${trackerEsc(rowDateText)}</td>
-                        <td class="tracker-desktop-match">${trackerEsc(row.match || "")}</td>
-                        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market) ? `${getMarketIcon(row.market)} ${row.market || "—"}` : (row.market || "—"))}</td>
-                        <td>
-                          <input 
-                            type="number" 
-                            value="${Number(row.stake || 0)}" 
-                            onchange="updateStake('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <input 
-                            type="number" 
-                            step="0.01" 
-                            value="${Number(row.odds ?? 0)}" 
-                            onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                        </td>
-                        <td>
-                          <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                            <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                            <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                            <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                            <option value="delete">🗑 delete</option>
-                          </select>
-                        </td>
-                        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span></td>
-                      </tr>
-            `;
-          });
-
-          html += `
-                    </tbody>
-                  </table>
                 </div>
               </div>
             </div>
@@ -3422,28 +3536,4 @@ window.forgotVipPassword = forgotVipPassword;
     };
   }
 })();
-// ===== FIX: Hide VIP preview if VIP active =====
-(function(){
-  const observer = new MutationObserver(()=>{
-    const vipPromo = document.getElementById('vipPromo');
-    if(!vipPromo) return;
 
-    if(vipActive){
-      vipPromo.style.display = "none";
-    }else{
-      vipPromo.style.display = "";
-    }
-  });
-
-  observer.observe(document.body, { childList:true, subtree:true });
-
-  // also run immediately
-  const vipPromo = document.getElementById('vipPromo');
-  if(vipPromo && vipActive){
-    vipPromo.style.display = "none";
-  }
-})();
-
-
-window.addEventListener("resize", forceDesktopWideMode);
-window.addEventListener("load", forceDesktopWideMode);
