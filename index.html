@@ -65,18 +65,46 @@
 <section id="betsSection">
 <div class="card about-box">
   <div class="about-title">Value Bets</div>
-  <div class="about-text">
-    ⚠️ Value bets are calculated by comparing probability against the odds. This approach aims to identify long-term profitable opportunities over time, but results are never guaranteed and short-term variance should be expected.
-    <br><br>
-    We post and show the best value bets of the day — and we stake on every single one ourselves, nothing else.
-    <br><br>
-    We’ve been betting this strategy for years behind the scenes before creating this app, and our accounts are still active and open with no restrictions.
-    <br><br>
-    There is always a chance of restrictions, but we have not experienced any so far.
-    <br><br>
-    So remember — what you see here is exactly what we bet ourselves.
+  <div class="about-text"><span class="vb-icon">⚠️</span> 
+    Value bets are calculated by comparing probability against the odds. This approach aims to identify long-term profitable opportunities over time, but results are never guaranteed and short-term variance should be expected.</div>
+</div>
+
+<div class="value-filters card" id="valueFiltersBar">
+  <button id="valueFiltersToggle" class="value-filters__toggle is-visible" type="button" aria-expanded="false">
+    <span class="value-filters__toggle-left">
+      <span class="value-filters__title">Filter Value Bets</span>
+    </span>
+    <span class="value-filters__toggle-right">
+      <span id="valueFiltersSummary" class="value-filters__summary">All bets</span>
+      <span id="valueFiltersArrow" class="value-filters__arrow">▼</span>
+    </span>
+  </button>
+
+  <div id="valueFiltersContent" class="value-filters__content is-collapsed">
+    <div class="value-filters__head">
+      <button id="valueFiltersClear" class="value-filters__clear" type="button">Clear</button>
+    </div>
+    <div class="value-filters__grid">
+      <div class="value-filters__field">
+        <label for="valueFilterSearch">Search</label>
+        <input id="valueFilterSearch" type="text" placeholder="Match or market" />
+      </div>
+      <div class="value-filters__field">
+        <label for="valueFilterLeague">League</label>
+        <select id="valueFilterLeague"><option value="">All leagues</option></select>
+      </div>
+      <div class="value-filters__field">
+        <label for="valueFilterMarket">Market category</label>
+        <select id="valueFilterMarket"><option value="">All categories</option></select>
+      </div>
+      <div class="value-filters__field">
+        <label for="valueFilterBookie">Bookie</label>
+        <select id="valueFilterBookie"><option value="">All bookies</option></select>
+      </div>
+    </div>
   </div>
 </div>
+
 <!-- Mobile/compact cards -->
 <div id="betsGrid" class="bets-grid"></div>
 
@@ -120,7 +148,7 @@
 <section id="trackerSection" style="display:none;">
 <div class="card about-box">
   <div class="about-title">My Tracker</div>
-  <div class="about-text">
+  <div class="about-text"><span class="vb-icon">⚠️</span> 
     Track your own bets, bankroll, ROI and performance over time based on what you add.
   </div>
 </div>
@@ -142,17 +170,6 @@
 <div class="stat-card">Won - Lost<br><strong><span id="wonLost">0-0</span></strong></div>
 <div class="stat-card">Staked<br><strong>£<span id="totalStakedCard">0</span></strong></div>
 <div class="stat-card">Avg Odds<br><strong><span id="avgOdds">0</span></strong></div>
-</div>
-
-<div class="tracker-sport-breakdown">
-  <div class="tracker-sport-card">
-    <div class="tracker-sport-card__head">⚽ Football</div>
-    <div class="tracker-sport-card__stats" id="footballTrackerStats">No football bets yet.</div>
-  </div>
-  <div class="tracker-sport-card">
-    <div class="tracker-sport-card__head">🏀 Basketball</div>
-    <div class="tracker-sport-card__stats" id="basketballTrackerStats">No basketball bets yet.</div>
-  </div>
 </div>
 
 <div class="chart-tabs">
@@ -201,7 +218,7 @@
 <section id="tdtTrackerSection" style="display:none;">
 <div class="card about-box">
   <div class="about-title">TDT Tracker</div>
-  <div class="about-text">
+  <div class="about-text"><span class="vb-icon">⚠️</span> 
     Official TDT results. Fully transparent, read-only performance showing long-term results.
   </div>
 </div>
