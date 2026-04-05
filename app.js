@@ -3537,109 +3537,25 @@ window.forgotVipPassword = forgotVipPassword;
   }
 })();
 
-/* ===== SAFE PATCH (DO NOT TOUCH ABOVE CODE) ===== */
 
-(function(){
 
-  // FIX RESULT CLASS + DROPDOWN COLOR
-  const originalRender = window.renderTrackerRow;
-  if(originalRender){
-    window.renderTrackerRow = function(row){
-      const el = originalRender(row);
-
-      // add result class to card
-      if(el){
-        el.classList.remove("won","lost","pending");
-        if(row.result) el.classList.add(row.result);
-
-        // fix dropdown class
-        const select = el.querySelector(".result-select");
-        if(select){
-          select.classList.remove("result-won","result-lost","result-pending");
-          if(row.result){
-            select.classList.add("result-" + row.result);
-          }
-        }
-      }
-
-      return el;
-    };
+// === FORCE RESULT COLOURS FIX ===
+document.addEventListener("change", function(e){
+  if(e.target.classList.contains("result-select")){
+    const val = e.target.value;
+    e.target.classList.remove("result-won","result-lost","result-pending");
+    if(val === "won") e.target.classList.add("result-won");
+    else if(val === "lost") e.target.classList.add("result-lost");
+    else e.target.classList.add("result-pending");
   }
+});
 
-  // FIX DATE DUPLICATION
-  document.addEventListener("DOMContentLoaded", ()=>{
-    document.querySelectorAll(".bet-card").forEach(card=>{
-      const dates = card.querySelectorAll(".bet-date");
-      if(dates.length > 1){
-        // remove duplicates (keep first)
-        for(let i=1;i<dates.length;i++){
-          dates[i].remove();
-        }
-      }
-    });
+setTimeout(()=>{
+  document.querySelectorAll(".result-select").forEach(el=>{
+    const val = el.value;
+    el.classList.remove("result-won","result-lost","result-pending");
+    if(val === "won") el.classList.add("result-won");
+    else if(val === "lost") el.classList.add("result-lost");
+    else el.classList.add("result-pending");
   });
-
-})();
-/* ===== FINAL SAFE PATCH (DO NOT EDIT ABOVE) ===== */
-
-(function(){
-
-  // =========================
-  // RESULT COLOUR FIX
-  // =========================
-  const originalRender = window.renderTrackerRow;
-
-  if(originalRender){
-    window.renderTrackerRow = function(row){
-
-      const el = originalRender(row);
-
-      if(el){
-
-        // REMOVE OLD CLASSES
-        el.classList.remove("won","lost","pending");
-
-        // ADD CORRECT CLASS
-        if(row.result){
-          el.classList.add(row.result);
-        }
-
-        // FIX DROPDOWN COLOUR
-        const select = el.querySelector(".result-select");
-        if(select){
-          select.classList.remove(
-            "result-won",
-            "result-lost",
-            "result-pending"
-          );
-
-          if(row.result){
-            select.classList.add("result-" + row.result);
-          }
-        }
-      }
-
-      return el;
-    };
-  }
-
-  // =========================
-  // DATE DUPLICATE FIX
-  // =========================
-  document.addEventListener("DOMContentLoaded", ()=>{
-
-    document.querySelectorAll(".bet-card").forEach(card=>{
-
-      const dates = card.querySelectorAll(".bet-date");
-
-      if(dates.length > 1){
-        for(let i = 1; i < dates.length; i++){
-          dates[i].remove();
-        }
-      }
-
-    });
-
-  });
-
-})();
+},500);
