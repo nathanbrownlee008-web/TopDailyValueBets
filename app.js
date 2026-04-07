@@ -12,17 +12,11 @@ function normalizeVipEmail(email){
 }
 
 
-
-function syncVipPromoVisibility(){
-  const vipPromoEl = document.getElementById('vipPromo');
-  document.body.classList.toggle('vip-active', !!vipActive);
-  if(!vipPromoEl) return;
-  vipPromoEl.style.display = vipActive ? 'none' : '';
-}
-
 function setVipUI(active, email){
   vipActive = !!active;
 
+  // ✅ ADD THIS LINE (this is the fix)
+  document.body.classList.toggle('vip-active', !!active);
   const titleEl = document.getElementById('vipTitle');
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
@@ -51,8 +45,6 @@ function setVipUI(active, email){
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
   }
-
-  syncVipPromoVisibility();
 }
 
 function openVipModal(){
@@ -233,76 +225,6 @@ function isValueBetActiveToday(row){
   return today >= start && today <= end;
 }
 
-function normalizeKickoffTime(value){
-  const raw = String(value || '').trim();
-  if(!raw) return '';
-  let t = raw.toLowerCase().replace(/\./g, ':').replace(/\s+/g, '');
-  const match = t.match(/^(\d{1,2})(?::?(\d{2}))?(am|pm)?$/);
-  if(!match) return raw;
-  let hour = Number(match[1]);
-  const minute = Number(match[2] || '0');
-  const suffix = match[3] || '';
-  if(Number.isNaN(hour) || Number.isNaN(minute) || minute > 59) return raw;
-  if(suffix === 'pm' && hour < 12) hour += 12;
-  if(suffix === 'am' && hour === 12) hour = 0;
-  if(hour > 23) return raw;
-  return `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
-}
-function getKickoffTimeValue(row){
-  return normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || row?.kickoff || row?.start_time || '');
-}
-function formatKickoffTime(row){
-  const norm = getKickoffTimeValue(row);
-  return norm || '';
-}
-function getRowDateOnly(row){
-  return normalizeDateOnly(row?.bet_date || row?.match_date_date || row?.match_date || row?.created_at) || '';
-}
-function getRowDateTimeStamp(row){
-  const date = getRowDateOnly(row) || '9999-12-31';
-  const time = getKickoffTimeValue(row) || '23:59';
-  return `${date}T${time}:00`;
-}
-function compareRowsByKickoffMatch(a,b){
-  const aStamp = getRowDateTimeStamp(a);
-  const bStamp = getRowDateTimeStamp(b);
-  if(aStamp < bStamp) return -1;
-  if(aStamp > bStamp) return 1;
-  const aMatch = String(a?.match || '').toLowerCase();
-  const bMatch = String(b?.match || '').toLowerCase();
-  if(aMatch < bMatch) return -1;
-  if(aMatch > bMatch) return 1;
-  const aMarket = String(a?.market || '').toLowerCase();
-  const bMarket = String(b?.market || '').toLowerCase();
-  if(aMarket < bMarket) return -1;
-  if(aMarket > bMarket) return 1;
-  return new Date(a?.created_at || 0) - new Date(b?.created_at || 0);
-}
-function formatTrackerDateLabel(row){
-  const raw = row?.bet_date || row?.match_date_date || row?.match_date || row?.created_at;
-  if(!raw) return '';
-  const dt = new Date(raw);
-  if(Number.isNaN(dt.getTime())) return String(raw);
-  return dt.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
-}
-function getTrackerGroupKey(row){
-  return `${getRowDateOnly(row)}__${getKickoffTimeValue(row)}__${String(row?.match || '').trim()}`;
-}
-function groupTrackerRows(rows){
-  const groups = [];
-  const map = new Map();
-  (rows || []).forEach(row => {
-    const key = getTrackerGroupKey(row);
-    if(!map.has(key)){
-      const group = { key, date:getRowDateOnly(row), kickoff:getKickoffTimeValue(row), match:String(row?.match || '').trim(), rows:[] };
-      map.set(key, group);
-      groups.push(group);
-    }
-    map.get(key).rows.push(row);
-  });
-  return groups;
-}
-
 
 
 async function forceVipRefreshNow(emailFromInput){
@@ -476,9 +398,7 @@ function normalizeTrackerRow(row){
   const out = { ...(row || {}) };
   if(!out.id) out.id = makeLocalTrackerId();
   if(!out.created_at && out.bet_date){
-    const fallbackDate = normalizeDateOnly(out.bet_date) || toLocalYMD(new Date());
-    const fallbackTime = normalizeKickoffTime(out.kickoff_time) || '12:00';
-    out.created_at = new Date(`${fallbackDate}T${fallbackTime}:00`).toISOString();
+    out.created_at = new Date(String(out.bet_date).slice(0,10) + "T12:00:00").toISOString();
   }
   if(!out.created_at){
     out.created_at = new Date().toISOString();
@@ -486,7 +406,6 @@ function normalizeTrackerRow(row){
   if(out.stake == null) out.stake = 10;
   if(!out.result) out.result = "pending";
   if(!out.sport) out.sport = getBetSport(out);
-  out.kickoff_time = normalizeKickoffTime(out.kickoff_time || out.match_time || out.time || '');
   return out;
 }
 
@@ -510,19 +429,27 @@ async function currentAuthUserId(){
 function trackerCloudBasePayload(row, userId){
   const safeRow = normalizeTrackerRow(row);
   return {
-    id: safeRow.id,
     user_id: userId,
-    sync_id: safeRow.sync_id || null,
-    match: safeRow.match || '',
-    market: safeRow.market || '',
+    match: safeRow.match || "",
+    market: safeRow.market || "",
     odds: Number(safeRow.odds || 0),
     stake: Number(safeRow.stake == null ? 10 : safeRow.stake),
-    result: safeRow.result || 'pending',
+    result: safeRow.result || "pending",
     created_at: safeRow.created_at || new Date().toISOString(),
     bet_date: safeRow.bet_date || null,
-    bookie: safeRow.bookie || null,
-    kickoff_time: safeRow.kickoff_time || null
+    bookie: safeRow.bookie || null
   };
+}
+
+function trackerCloudExtraPayload(row){
+  const safeRow = normalizeTrackerRow(row);
+  const extra = {};
+  if(safeRow.sync_id) extra.sync_id = safeRow.sync_id;
+  return extra;
+}
+
+function isTemporaryTrackerId(id){
+  return String(id || '').startsWith('trk_');
 }
 
 function mergeTrackerRowIntoLocal(row){
@@ -533,85 +460,228 @@ function mergeTrackerRowIntoLocal(row){
   return safeRow;
 }
 
+async function findExistingCloudTrackerRow(row, userId){
+  const safeRow = normalizeTrackerRow(row);
+  const createdAt = safeRow.created_at || null;
+  if(!createdAt) return null;
+  try{
+    const { data, error } = await client
+      .from("personal_tracker")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("created_at", createdAt)
+      .limit(1);
+    if(error) throw error;
+    return data?.[0] || null;
+  }catch(e){
+    console.error("findExistingCloudTrackerRow", e);
+    return null;
+  }
+}
+
+async function insertTrackerRowCloud(row, userId){
+  const basePayload = trackerCloudBasePayload(row, userId);
+  const attempts = [
+    { ...basePayload, ...trackerCloudExtraPayload(row) },
+    basePayload,
+    {
+      user_id: userId,
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at,
+      bet_date: basePayload.bet_date,
+      bookie: basePayload.bookie
+    },
+    {
+      user_id: userId,
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at
+    }
+  ];
+
+  let lastError = null;
+  for(const payload of attempts){
+    const { data, error } = await client
+      .from("personal_tracker")
+      .insert([payload])
+      .select("*")
+      .limit(1);
+    if(!error){
+      return normalizeTrackerRow(data?.[0] || { ...row, ...payload });
+    }
+    lastError = error;
+  }
+  throw lastError || new Error("Cloud insert failed.");
+}
+
+async function updateTrackerRowCloudById(row, userId){
+  const safeRow = normalizeTrackerRow(row);
+  if(isTemporaryTrackerId(safeRow.id)) return null;
+
+  const basePayload = trackerCloudBasePayload(safeRow, userId);
+  const attempts = [
+    { ...basePayload, ...trackerCloudExtraPayload(safeRow) },
+    basePayload,
+    {
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at,
+      bet_date: basePayload.bet_date,
+      bookie: basePayload.bookie
+    },
+    {
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at
+    }
+  ];
+
+  let lastError = null;
+  for(const payload of attempts){
+    const { data, error } = await client
+      .from("personal_tracker")
+      .update(payload)
+      .eq("user_id", userId)
+      .eq("id", safeRow.id)
+      .select("*")
+      .limit(1);
+    if(!error){
+      if(data && data.length) return normalizeTrackerRow(data[0]);
+      return normalizeTrackerRow(safeRow);
+    }
+    lastError = error;
+  }
+  if(lastError) throw lastError;
+  return null;
+}
+
+async function syncLocalTrackerRowsToCloud(localRows, userId){
+  const synced = [];
+  for(const row of (localRows || [])){
+    try{
+      const saved = await upsertTrackerRow(row);
+      synced.push(saved);
+    }catch(e){
+      console.error("syncLocalTrackerRowsToCloud", e);
+      synced.push(normalizeTrackerRow(row));
+    }
+  }
+  return synced;
+}
+
 async function readTrackerRows(){
   const localRows = readTrackerRowsLocal();
+
   const userId = await currentAuthUserId();
   if(!userId) return localRows;
 
   try{
     const { data, error } = await client
-      .from('personal_tracker')
-      .select('*')
-      .eq('user_id', userId)
-      .order('bet_date', { ascending: true })
-      .order('kickoff_time', { ascending: true, nullsFirst: false })
-      .order('created_at', { ascending: true });
+      .from("personal_tracker")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true });
+
     if(error) throw error;
+
     const cloudRows = (data || []).map(normalizeTrackerRow);
     if(cloudRows.length){
       writeTrackerRowsLocal(cloudRows);
       return cloudRows;
     }
+
     if(localRows.length){
-      for(const row of localRows){
-        try{ await upsertTrackerRow(row); }catch(e){ console.error('seed tracker row failed', e); }
-      }
-      const { data: refreshed } = await client
-        .from('personal_tracker')
-        .select('*')
-        .eq('user_id', userId)
-        .order('bet_date', { ascending: true })
-        .order('kickoff_time', { ascending: true, nullsFirst: false })
-        .order('created_at', { ascending: true });
+      const syncedRows = await syncLocalTrackerRowsToCloud(localRows, userId);
+      const { data: refreshed, error: refreshError } = await client
+        .from("personal_tracker")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+      if(refreshError) throw refreshError;
       const refreshedRows = (refreshed || []).map(normalizeTrackerRow);
       if(refreshedRows.length){
         writeTrackerRowsLocal(refreshedRows);
         return refreshedRows;
       }
+      writeTrackerRowsLocal(syncedRows);
+      return syncedRows;
     }
+
     return [];
   }catch(e){
-    console.error('readTrackerRows cloud fallback', e);
+    console.error("readTrackerRows cloud fallback", e);
     return localRows;
   }
 }
 
 async function upsertTrackerRow(row){
-  const safeRow = mergeTrackerRowIntoLocal(row);
+  const safeRow = normalizeTrackerRow(row);
+  mergeTrackerRowIntoLocal(safeRow);
+
   const userId = await currentAuthUserId();
-  if(!userId) throw new Error('Sign in to save tracker bets across devices.');
+  if(!userId) throw new Error("Sign in to save tracker bets across devices.");
 
-  const full = trackerCloudBasePayload(safeRow, userId);
-  const withoutKickoff = { ...full };
-  delete withoutKickoff.kickoff_time;
-  const attempts = [full, withoutKickoff];
-
-  let lastError = null;
-  for(const payload of attempts){
-    const { error } = await client.from('personal_tracker').upsert([payload], { onConflict: 'id' });
-    if(!error){
-      return mergeTrackerRowIntoLocal(payload);
+  try{
+    const existingCloudRow = await findExistingCloudTrackerRow(safeRow, userId);
+    if(existingCloudRow?.id != null){
+      safeRow.id = existingCloudRow.id;
     }
-    lastError = error;
+
+    let savedRow = null;
+    if(!isTemporaryTrackerId(safeRow.id)){
+      savedRow = await updateTrackerRowCloudById(safeRow, userId);
+    }
+    if(!savedRow){
+      savedRow = await insertTrackerRowCloud(safeRow, userId);
+    }
+
+    return mergeTrackerRowIntoLocal(savedRow);
+  }catch(error){
+    console.error("upsertTrackerRow cloud save failed", error);
+    throw error;
   }
-  console.error('upsertTrackerRow cloud save failed', lastError);
-  throw lastError || new Error('Cloud save failed.');
 }
 
 async function deleteTrackerRowById(id){
-  const localRows = readTrackerRowsLocal().filter(r => String(r.id) !== String(id));
-  writeTrackerRowsLocal(localRows);
+  const localRows = readTrackerRowsLocal();
+  const rowToDelete = localRows.find(r => String(r.id) === String(id)) || null;
+  writeTrackerRowsLocal(localRows.filter(r => String(r.id) !== String(id)));
 
   const userId = await currentAuthUserId();
-  if(!userId) throw new Error('Sign in to remove tracker bets across devices.');
+  if(!userId) throw new Error("Sign in to remove tracker bets across devices.");
 
-  const { error } = await client
-    .from('personal_tracker')
-    .delete()
-    .eq('user_id', userId)
-    .eq('id', id);
+  const cloudId = rowToDelete && !isTemporaryTrackerId(rowToDelete.id) ? rowToDelete.id : null;
+  if(cloudId != null){
+    const { error } = await client
+      .from("personal_tracker")
+      .delete()
+      .eq("user_id", userId)
+      .eq("id", cloudId);
+    if(error) throw error;
+    return;
+  }
 
-  if(error) throw error;
+  if(rowToDelete?.created_at){
+    const { error } = await client
+      .from("personal_tracker")
+      .delete()
+      .eq("user_id", userId)
+      .eq("created_at", rowToDelete.created_at);
+    if(error) throw error;
+  }
 }
 
 
@@ -1067,26 +1137,26 @@ async function loadBets(){
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
-  const {data} = await client.from('value_bets_feed').select('*');
-  betsGrid.innerHTML='';
+  const {data} = await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
+  betsGrid.innerHTML="";
   const betsTable=document.getElementById('betsTable');
   const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
-  if(betsTbody) betsTbody.innerHTML = '';
+  if(betsTbody) betsTbody.innerHTML = "";
 
-  const active=(data||[]).filter(isValueBetActiveToday).sort(compareRowsByKickoffMatch);
+  const active=(data||[]).filter(isValueBetActiveToday);
   valueBetsAllRows = active.slice();
   refreshValueFilterOptions(active);
   if(!active.length){
     betsGrid.innerHTML = `<div class="card">No bets for today.</div>`;
-    if(betsTbody) betsTbody.innerHTML = '';
+    if(betsTbody) betsTbody.innerHTML = "";
     notifyForNewVisibleBets([]);
     return;
   }
 
-  const filtered = applyValueBetFilters(active).sort(compareRowsByKickoffMatch);
+  const filtered = applyValueBetFilters(active);
   if(!filtered.length){
     betsGrid.innerHTML = `<div class="card">No bets match those filters.</div>`;
-    if(betsTbody) betsTbody.innerHTML = '';
+    if(betsTbody) betsTbody.innerHTML = "";
     notifyForNewVisibleBets([]);
     return;
   }
@@ -1100,8 +1170,7 @@ async function loadBets(){
     const isAdded = addedKeys.has(key);
     if(!locked) visibleForAlerts.push(row);
 
-    const betDate = formatTrackerDateLabel(row);
-    const kickoffText = formatKickoffTime(row);
+    const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -1111,7 +1180,6 @@ async function loadBets(){
     const teaser = teaserCopyForLockedBet(row, state);
     const unlockLabel = formatUnlockLabel(state);
     const leagueName = row.league || row.competition || row.league_name || row.tournament || '';
-    const metaStamp = [kickoffText, betDate].filter(Boolean).join(' • ');
 
     betsGrid.innerHTML += `
 <div class="bet-lock-wrap">
@@ -1119,14 +1187,12 @@ async function loadBets(){
     <div class="bet-teaser">
       <div class="bet-title-row">
         <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-        <span class="bet-sport-inline">${getSportIcon(row)} ${getSportLabel(getBetSport(row))}</span>
-        <span class="bet-date">${escapeHtml(metaStamp)}</span>
+        <span class="bet-date">${escapeHtml(betDate)}</span>
       </div>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
       </div>
-      ${!locked && kickoffText ? `<div class="bet-kickoff">Kick off ${escapeHtml(kickoffText)}</div>` : ``}
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
     <div class="bet-details">
@@ -1145,7 +1211,7 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="table-date-cell">${escapeHtml([kickoffText, betDate].filter(Boolean).join(' • '))}</td>
+        <td class="table-date-cell">${escapeHtml(betDate)}</td>
         <td class="table-match-cell">${leagueName ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>` : ''}<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
@@ -1190,7 +1256,6 @@ async function addToTracker(btn, row){
     result: "pending",
     created_at: new Date().toISOString(),
     bet_date: row.bet_date || null,
-    kickoff_time: getKickoffTimeValue(row) || null,
     bookie: row.bookie || null,
     sport: getBetSport(row)
   };
@@ -1203,7 +1268,7 @@ async function addToTracker(btn, row){
       btn.disabled = false;
       btn.textContent = 'Add';
     }
-    alert((e && e.message) ? e.message : 'Could not save tracker bet right now.');
+    alert(e?.message || 'Could not save tracker bet right now.');
     return;
   }
 
@@ -1608,122 +1673,123 @@ function pulseStatCard(el){
 
 
 async function loadTracker(){
-const rows = (await readTrackerRows()).slice().sort(compareRowsByKickoffMatch);
+const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
+// Keep Value Bets \"Added\" state synced with tracker rows
 addedKeys.clear();
 rows.forEach(r => addedKeys.add(makeBetKey(r)));
 wireTrackerFilters();
 
-let start=parseFloat(document.getElementById('startingBankroll').value);
+let start=parseFloat(document.getElementById("startingBankroll").value);
 let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
 let dailyLabels=[];
 let dayKeys=[];
 
+	const tableRows = [];
+
 rows.forEach(row=>{
-  let p=0;
-  if(row.result==='won'){p=Number(row.stake||0)*(Number(row.odds||0)-1);wins++;}
-  if(row.result==='lost'){p=-Number(row.stake||0);losses++;}
-  profit+=p;totalStake+=Number(row.stake||0);totalOdds+=Number(row.odds||0);
-  bankroll=start+profit;
-  const gameDate = row.match_date_date || row.bet_date || row.created_at;
-  const dayKey = fmtDayLabel(gameDate);
-  const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : '';
-  dayKeys.push(dayKey);
-  dailyLabels.push(dayKey !== prevDayKey ? dayKey : '');
-  history.push(bankroll);
+let p=0;
+if(row.result==="won"){p=row.stake*(row.odds-1);wins++;}
+if(row.result==="lost"){p=-row.stake;losses++;}
+profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
+bankroll=start+profit;
+
+const gameDate = row.match_date_date || row.bet_date || row.created_at;
+const dayKey = fmtDayLabel(gameDate);
+const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
+dayKeys.push(dayKey);
+dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
+history.push(bankroll);
+
+tableRows.push(`<tr>
+<td class="match-market-cell">
+  <div class="tracker-match-name">${row.match}</div>
+  <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
+</td>
+<td class="tracker-market-col">${getMarketIcon(row.market)} ${row.market || "—"}</td>
+<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
+<td>
+<select 
+class="result-select result-${row.result}" 
+onchange="updateResult('${row.id}',this.value)">
+<option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
+<option value="won" ${row.result==="won"?"selected":""}>won</option>
+<option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
+<option value="delete">🗑 delete</option>
+</select>
+</td>
+<td class="profit-col">
+<span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span>
+</td>
+</tr>`);
 });
 
-const groups = groupTrackerRows(rows);
-let html = `<div class="tracker-match-groups">`;
-if(!groups.length){
-  html += `<div class="card">No tracker bets yet.</div>`;
-}else{
-  groups.forEach(group=>{
-    const dateLabel = group.rows[0] ? formatTrackerDateLabel(group.rows[0]) : '';
-    const timeLabel = group.kickoff || '';
-    html += `
-      <div class="tracker-match-group card">
-        <div class="tracker-group-head">
-          <div class="tracker-group-head-left">
-            <div class="tracker-group-match">${escapeHtml(group.match || 'Match')}</div>
-            <div class="tracker-group-meta">${escapeHtml([dateLabel, timeLabel].filter(Boolean).join(' • '))}</div>
-          </div>
-          <div class="tracker-group-count">${group.rows.length} bet${group.rows.length === 1 ? '' : 's'}</div>
-        </div>
-        <div class="tracker-group-list">
-          ${group.rows.map(row=>{
-            let p=0;
-            if(row.result==='won') p=Number(row.stake||0)*(Number(row.odds||0)-1);
-            if(row.result==='lost') p=-Number(row.stake||0);
-            const profitClass = p>0 ? 'profit-win' : p<0 ? 'profit-loss' : '';
-            return `
-              <div class="tracker-bet-card tracker-bet-card--${escapeHtml(row.result || 'pending')}">
-                <div class="tracker-bet-top">
-                  <div class="tracker-bet-market">${getMarketIcon(row.market)} ${escapeHtml(row.market || '—')}</div>
-                  <select class="result-select result-${escapeHtml(row.result || 'pending')}" onchange="updateResult('${row.id}',this.value)">
-                    <option value="pending" ${(row.result||'pending')==='pending'?'selected':''}>pending</option>
-                    <option value="won" ${row.result==='won'?'selected':''}>won</option>
-                    <option value="lost" ${row.result==='lost'?'selected':''}>lost</option>
-                    <option value="delete">🗑 delete</option>
-                  </select>
-                </div>
-                <div class="tracker-bet-grid">
-                  <div class="tracker-bet-field">
-                    <div class="tracker-bet-label">Odds</div>
-                    <input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)">
-                  </div>
-                  <div class="tracker-bet-field">
-                    <div class="tracker-bet-label">Stake</div>
-                    <input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)">
-                  </div>
-                  <div class="tracker-bet-field tracker-bet-field--profit">
-                    <div class="tracker-bet-label">Profit</div>
-                    <div class="tracker-bet-profit ${profitClass}">£${p.toFixed(2)}</div>
-                  </div>
-                </div>
-              </div>`;
-          }).join('')}
-        </div>
-      </div>`;
-  });
-}
-html += `</div>`;
+let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+html += tableRows.reverse().join("");
+html+="</table>";
 trackerTable.innerHTML=html;
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
 roiElem.innerText=totalStake?((profit/totalStake)*100).toFixed(1):0;
 winrateElem.innerText=(wins+losses)?((wins/(wins+losses))*100).toFixed(1):0;
-const wonLostElem = document.getElementById('wonLost');
+const wonLostElem = document.getElementById("wonLost");
 if(wonLostElem){
   wonLostElem.innerHTML = `<span class="wl-split__win">${wins}</span><span class="wl-split__sep">-</span><span class="wl-split__loss">${losses}</span>`;
 }
+
+const winrateCard = document.getElementById("winrateCard");
+if(winrateCard){
+  const avgOddsVal = rows.length ? (totalOdds / rows.length) : 0;
+  const winrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
+  const breakEven = avgOddsVal > 0 ? (100 / avgOddsVal) : 0;
+  const diff = winrateVal - breakEven;
+  winrateCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
+  if(diff > 0.1) winrateCard.classList.add("glow-green-soft");
+  else if(diff < -0.1) winrateCard.classList.add("glow-red-soft");
+  else winrateCard.classList.add("glow-grey-soft");
+  pulseStatCard(winrateCard);
+}
+
 const totalBets = rows.length;
-const totalElem = document.getElementById('totalBets');
+const totalElem = document.getElementById("totalBets");
 if(totalElem) totalElem.innerText = totalBets;
-const countElem = document.getElementById('betCount');
-if(countElem) countElem.textContent = String(rows.length);
-const totalStakedCard = document.getElementById('totalStakedCard');
-if(totalStakedCard) totalStakedCard.innerText = totalStake.toFixed(2);
+const totalStakedCard = document.getElementById("totalStakedCard");
+if(totalStakedCard){
+  totalStakedCard.innerText = totalStake.toFixed(2);
+}
+
+
 avgOddsElem.innerText=rows.length?(totalOdds/rows.length).toFixed(2):0;
-profitCard.classList.remove('glow-green','glow-red','glow-green-soft','glow-red-soft','glow-grey-soft');
-if(profit>0) profitCard.classList.add('glow-green-soft');
-else if(profit<0) profitCard.classList.add('glow-red-soft');
-else profitCard.classList.add('glow-grey-soft');
+
+profitCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
+if(profit>0) profitCard.classList.add("glow-green-soft");
+else if(profit<0) profitCard.classList.add("glow-red-soft");
+else profitCard.classList.add("glow-grey-soft");
 pulseStatCard(profitCard);
-const bankrollCard = document.getElementById('bankrollCard');
+pulseStatCard(profitCard);
+
+const bankrollCard = document.getElementById("bankrollCard");
 if(bankrollCard){
-  bankrollCard.classList.remove('glow-green','glow-red','glow-green-soft','glow-red-soft','glow-grey-soft');
-  if(bankroll > start) bankrollCard.classList.add('glow-green-soft');
-  else if(bankroll < start) bankrollCard.classList.add('glow-red-soft');
-  else bankrollCard.classList.add('glow-grey-soft');
+  bankrollCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
+  if(bankroll > start) bankrollCard.classList.add("glow-green-soft");
+  else if(bankroll < start) bankrollCard.classList.add("glow-red-soft");
+  else bankrollCard.classList.add("glow-grey-soft");
   pulseStatCard(bankrollCard);
 }
+
+
 renderDailyChart(history, dailyLabels, dayKeys);
+
+// ---- Monthly & Market analytics (tabs + mini summary) ----
+const countElem = document.getElementById("betCount");
+if(countElem) countElem.textContent = String(rows.length);
 renderTrackerSportBreakdown(rows);
 
+// Monthly profit aggregation (ROI version)
 const monthMap = {};
 const monthStakeMap = {};
 const monthBetsMap = {};
@@ -1731,76 +1797,131 @@ const monthWinsMap = {};
 const monthLossMap = {};
 const monthOddsMap = {};
 const monthOddsCountMap = {};
+
 rows.forEach(r=>{
   const d = new Date(r.created_at);
-  const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  const key = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   monthMap[key] = (monthMap[key]||0) + rowProfit(r);
-  monthStakeMap[key] = (monthStakeMap[key]||0) + Number(r.stake || 0);
+  monthStakeMap[key] = (monthStakeMap[key]||0) + r.stake;
   monthBetsMap[key] = (monthBetsMap[key] || 0) + 1;
-  if((r.result || '') === 'won') monthWinsMap[key] = (monthWinsMap[key] || 0) + 1;
-  if((r.result || '') === 'lost') monthLossMap[key] = (monthLossMap[key] || 0) + 1;
-  if(r.odds != null && r.odds !== ''){
+
+  if((r.result || "") === "won") monthWinsMap[key] = (monthWinsMap[key] || 0) + 1;
+  if((r.result || "") === "lost") monthLossMap[key] = (monthLossMap[key] || 0) + 1;
+
+  if(r.odds != null && r.odds !== ""){
     monthOddsMap[key] = (monthOddsMap[key] || 0) + Number(r.odds || 0);
     monthOddsCountMap[key] = (monthOddsCountMap[key] || 0) + 1;
   }
 });
+
 const monthKeys = Object.keys(monthMap).sort();
-const monthLabels = monthKeys.map(k=>{ const [y,m]=k.split('-'); return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'}); });
+
+const monthLabels = monthKeys.map(k=>{
+  const [y,m]=k.split("-");
+  return new Date(parseInt(y), parseInt(m)-1, 1)
+    .toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
+});
+
 const monthlyProfit = monthKeys.map(k=> monthMap[k]);
-const monthlyROI = monthKeys.map(k=>{ const stake = monthStakeMap[k] || 0; return stake ? (monthMap[k] / stake) * 100 : 0; });
+const monthlyROI = monthKeys.map(k=>{
+  const stake = monthStakeMap[k] || 0;
+  return stake ? (monthMap[k] / stake) * 100 : 0;
+});
 const monthlyBets = monthKeys.map(k => monthBetsMap[k] || 0);
-const monthlyWinrate = monthKeys.map(k=>{ const wins = monthWinsMap[k] || 0; const losses = monthLossMap[k] || 0; const settled = wins + losses; return settled ? (wins / settled) * 100 : 0; });
-const monthlyAvgOdds = monthKeys.map(k=>{ const total = monthOddsMap[k] || 0; const count = monthOddsCountMap[k] || 0; return count ? (total / count) : 0; });
-renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
-let breakdownHTML = '<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>W/L</th><th>WR</th><th>Avg</th></tr>';
-monthKeys.forEach((k,i)=>{
-  const p = monthlyProfit[i];
-  const r = monthlyROI[i];
-  const bets = monthlyBets[i] || 0;
+const monthlyWinrate = monthKeys.map(k=>{
   const wins = monthWinsMap[k] || 0;
   const losses = monthLossMap[k] || 0;
-  const winrate = monthlyWinrate[i] || 0;
-  const avgOdds = monthlyAvgOdds[i] || 0;
-  breakdownHTML += `<tr><td>${monthLabels[i]}</td><td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td><td>${r.toFixed(1)}%</td><td>${bets}</td><td class="month-wl-cell"><span class="month-wl-win">${wins}</span><span class="month-wl-sep">-</span><span class="month-wl-loss">${losses}</span></td><td>${winrate.toFixed(1)}%</td><td>${avgOdds.toFixed(2)}</td></tr>`;
+  const settled = wins + losses;
+  return settled ? (wins / settled) * 100 : 0;
+});
+const monthlyAvgOdds = monthKeys.map(k=>{
+  const total = monthOddsMap[k] || 0;
+  const count = monthOddsCountMap[k] || 0;
+  return count ? (total / count) : 0;
+});
+
+renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
+
+  let breakdownHTML = "<table><tr><th>Month</th><th>Profit</th><th>ROI</th><th>Bets</th><th>W/L</th><th>WR</th><th>Avg</th></tr>";
+  monthKeys.forEach((k,i)=>{
+    const p = monthlyProfit[i];
+    const r = monthlyROI[i];
+    const bets = monthlyBets[i] || 0;
+    const wins = monthWinsMap[k] || 0;
+    const losses = monthLossMap[k] || 0;
+    const winrate = monthlyWinrate[i] || 0;
+    const avgOdds = monthlyAvgOdds[i] || 0;
+
+    const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
+    const diff = winrate - breakEven;
+    const wrClass = diff > 0.1 ? 'profit-win' : diff < -0.1 ? 'profit-loss' : 'profit-breakeven';
+
+    breakdownHTML += `<tr>
+      <td>${monthLabels[i]}</td>
+      <td class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</td>
+      <td>${r.toFixed(1)}%</td>
+      <td>${bets}</td>
+      <td class="month-wl-cell"><span class="month-wl-win">${wins}</span><span class="month-wl-sep">-</span><span class="month-wl-loss">${losses}</span></td>
+      <td class="${(() => {
+        const breakEven = avgOdds > 0 ? (100 / avgOdds) : 0;
+        const diff = winrate - breakEven;
+        return diff > 0.1 ? 'profit-win' : diff < -0.1 ? 'profit-loss' : 'profit-breakeven';
+      })()}">${winrate.toFixed(1)}%</td>
+      <td>${avgOdds.toFixed(2)}</td>
+    </tr>`;
   });
-breakdownHTML += '</table>';
-const tableEl = document.getElementById('monthlyTable');
-if(tableEl) tableEl.innerHTML = breakdownHTML;
+  breakdownHTML += "</table>";
+  const tableEl = document.getElementById("monthlyTable");
+  if(tableEl) tableEl.innerHTML = breakdownHTML;
+
+// Market profit aggregation
 const marketMap = {};
-const marketWL = {};
+const marketWL = {}; // {market:{wins,losses,pending,bets}}
 rows.forEach(r=>{
-  const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : 'Unknown';
+  const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
   marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
+
   if(!marketWL[mk]) marketWL[mk] = {wins:0,losses:0,pending:0,bets:0};
   marketWL[mk].bets += 1;
-  const res = (r.result || 'pending').toLowerCase();
-  if(res === 'won') marketWL[mk].wins += 1;
-  else if(res === 'lost') marketWL[mk].losses += 1;
+  const res = (r.result || "pending").toLowerCase();
+  if(res === "won") marketWL[mk].wins += 1;
+  else if(res === "lost") marketWL[mk].losses += 1;
   else marketWL[mk].pending += 1;
 });
+
+// Build win% series (resolved only); show top 8 by bet count
 let entries = Object.entries(marketWL);
 entries.sort((a,b)=>(b[1].bets)-(a[1].bets));
 entries = entries.slice(0,8);
+
 const labels = entries.map(e=>e[0]);
 const totals = entries.map(e=>({ bets:e[1].bets, wins:e[1].wins, losses:e[1].losses }));
-const winPct = entries.map(e=>{ const resolved = e[1].wins + e[1].losses; return resolved ? (e[1].wins / resolved) * 100 : 0; });
+const winPct = entries.map(e=>{
+  const resolved = e[1].wins + e[1].losses;
+  return resolved ? (e[1].wins / resolved) * 100 : 0;
+});
 renderMarketChart(labels, winPct, totals);
+
+// Mini summary
 if(entries.length){
   const bestM = [...Object.entries(marketMap)].sort((a,b)=>b[1]-a[1])[0];
   const worstM = [...Object.entries(marketMap)].sort((a,b)=>a[1]-b[1])[0];
-  setMiniValue('bestMarket', bestM[0]+':', (bestM[1] >= 0 ? '+£' : '-£') + Math.abs(bestM[1]).toFixed(2));
-  setMiniValue('worstMarket', worstM[0]+':', (worstM[1] >= 0 ? '+£' : '-£') + Math.abs(worstM[1]).toFixed(2));
+  setMiniValue("bestMarket", bestM[0]+":", (bestM[1] >= 0 ? "+£" : "-£") + Math.abs(bestM[1]).toFixed(2));
+  setMiniValue("worstMarket", worstM[0]+":", (worstM[1] >= 0 ? "+£" : "-£") + Math.abs(worstM[1]).toFixed(2));
 }
 if(monthKeys.length){
   const monthEntries = monthKeys.map(k=>[k, monthMap[k]]);
   const bestMo = [...monthEntries].sort((a,b)=>b[1]-a[1])[0];
   const worstMo = [...monthEntries].sort((a,b)=>a[1]-b[1])[0];
-  const fmtMonth = (k)=>{ const [y,m]=k.split('-'); return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'}); };
-  setMiniValue('bestMonth', fmtMonth(bestMo[0])+':', (bestMo[1] >= 0 ? '+£' : '-£') + Math.abs(bestMo[1]).toFixed(2));
-  setMiniValue('worstMonth', fmtMonth(worstMo[0])+':', (worstMo[1] >= 0 ? '+£' : '-£') + Math.abs(worstMo[1]).toFixed(2));
-}
+  const fmtMonth = (k)=>{
+    const [y,m]=k.split("-");
+    return new Date(parseInt(y), parseInt(m)-1, 1).toLocaleDateString('en-GB',{month:'short', year:'2-digit'});
+  };
+  setMiniValue("bestMonth", fmtMonth(bestMo[0])+":", (bestMo[1] >= 0 ? "+£" : "-£") + Math.abs(bestMo[1]).toFixed(2));
+  setMiniValue("worstMonth", fmtMonth(worstMo[0])+":", (worstMo[1] >= 0 ? "+£" : "-£") + Math.abs(worstMo[1]).toFixed(2));
 }
 
+}
 
 
 
@@ -2135,64 +2256,20 @@ function toggleTdtTracker(){
   }
 }
 
-
-async function clearTrackerData(){
-  const ok = window.confirm("Clear all tracker bets and start fresh? This clears this account's tracker and this device backup.");
-  if(!ok) return;
-
-  const btn = document.getElementById("clearTrackerBtn");
-  if(btn){
-    btn.disabled = true;
-    btn.textContent = "Clearing…";
-  }
-
-  try{
-    writeTrackerRowsLocal([]);
-    addedKeys.clear();
-
-    const userId = await currentAuthUserId();
-    if(userId){
-      const { error } = await client
-        .from("personal_tracker")
-        .delete()
-        .eq("user_id", userId);
-      if(error) throw error;
-    }
-
-    trackerRowsCache = [];
-    trackerAllRows = [];
-
-    await loadTracker();
-    await loadBets();
-    alert("Tracker cleared.");
-  }catch(e){
-    console.error(e);
-    alert("Could not clear tracker right now.");
-  }finally{
-    const btn = document.getElementById("clearTrackerBtn");
-    if(btn){
-      btn.disabled = false;
-      btn.textContent = "Clear Tracker";
-    }
-  }
-}
-
 async function exportCSV(){
   const data = await readTrackerRows();
   const rows = Array.isArray(data) ? data : [];
   const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
-  let csv = "match,market,kickoff_time,bet_date,odds,stake,result\n";
+  let csv = "match,market,odds,stake,result\n";
   rows.forEach(r=>{
     csv += [
       esc(r.match),
       esc(r.market),
-      esc(r.kickoff_time || ''),
-      esc(r.bet_date || ''),
       esc(r.odds),
       esc(r.stake),
       esc(r.result)
-    ].join(',') + "\n";
+    ].join(",") + "\n";
   });
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -2244,8 +2321,8 @@ document.addEventListener("DOMContentLoaded",function(){
 const originalLoadTracker = loadTracker;
 loadTracker = async function(){
   await originalLoadTracker();
-  const rows = document.querySelectorAll('#trackerTable .tracker-bet-card').length;
-  const count=document.getElementById('betCount');
+  const rows=document.querySelectorAll("#trackerTable table tr").length-1;
+  const count=document.getElementById("betCount");
   if(count && rows>=0){count.innerText=rows;}
 };
 
@@ -3554,7 +3631,7 @@ window.forgotVipPassword = forgotVipPassword;
 
           dayRows.forEach(row=>{
             html += `
-              <div class="tracker-grid-card">
+              <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                 <div class="tracker-grid-top">
                   <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
                   <div class="tracker-grid-top-result">
