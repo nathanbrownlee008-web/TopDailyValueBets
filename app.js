@@ -12,11 +12,17 @@ function normalizeVipEmail(email){
 }
 
 
+
+function syncVipPromoVisibility(){
+  const vipPromoEl = document.getElementById('vipPromo');
+  document.body.classList.toggle('vip-active', !!vipActive);
+  if(!vipPromoEl) return;
+  vipPromoEl.style.display = vipActive ? 'none' : '';
+}
+
 function setVipUI(active, email){
   vipActive = !!active;
 
-  // ✅ ADD THIS LINE (this is the fix)
-  document.body.classList.toggle('vip-active', !!active);
   const titleEl = document.getElementById('vipTitle');
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
@@ -45,6 +51,8 @@ function setVipUI(active, email){
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
   }
+
+  syncVipPromoVisibility();
 }
 
 function openVipModal(){
@@ -218,25 +226,50 @@ function normalizeDateOnly(value){
   return null;
 }
 function normalizeKickoffTime(value){
-  const raw = String(value || '').trim().toLowerCase();
-  if(!raw) return '';
-  const match = raw.match(/(\d{1,2})(?::?(\d{2}))?\s*(am|pm)?/i);
-  if(!match) return String(value || '').trim();
-  let hours = Number(match[1] || 0);
-  const mins = String(match[2] || '00').padStart(2,'0');
-  const meridiem = (match[3] || '').toLowerCase();
-  if(meridiem === 'pm' && hours < 12) hours += 12;
-  if(meridiem === 'am' && hours === 12) hours = 0;
-  return `${String(hours).padStart(2,'0')}:${mins}`;
-}
-function getKickoffTimeText(row){
-  return normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || row?.kickoff || '');
+  if(value == null) return '';
+  let t = String(value).trim();
+  if(!t) return '';
+  t = t.replace(/\s+/g,'').toUpperCase();
+  const ampm = t.match(/^(\d{1,2})(?::?(\d{2}))?(AM|PM)$/i);
+  if(ampm){
+    let h = Number(ampm[1]);
+    const m = String(ampm[2] || '00').padStart(2,'0');
+    const mer = ampm[3].toUpperCase();
+    if(mer === 'AM'){
+      if(h === 12) h = 0;
+    }else if(h < 12){
+      h += 12;
+    }
+    return `${String(h).padStart(2,'0')}:${m}`;
+  }
+  const match = t.match(/^(\d{1,2})(?::?(\d{2}))$/);
+  if(match){
+    return `${String(Number(match[1])).padStart(2,'0')}:${String(match[2] || '00').padStart(2,'0')}`;
+  }
+  return String(value).trim();
 }
 function kickoffSortValue(row){
-  const ko = getKickoffTimeText(row);
-  if(!ko) return 9999;
-  const parts = ko.split(':');
-  return (Number(parts[0] || 0) * 60) + Number(parts[1] || 0);
+  const k = normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || '');
+  if(!k) return '99:99';
+  return k;
+}
+function sortRowsByDateTimeMatch(rows){
+  return (rows || []).slice().sort((a,b)=>{
+    const aDate = normalizeDateOnly(a?.bet_date || a?.created_at) || '9999-99-99';
+    const bDate = normalizeDateOnly(b?.bet_date || b?.created_at) || '9999-99-99';
+    if(aDate !== bDate) return aDate.localeCompare(bDate);
+    const aKick = kickoffSortValue(a);
+    const bKick = kickoffSortValue(b);
+    if(aKick !== bKick) return aKick.localeCompare(bKick);
+    const aMatch = String(a?.match || '');
+    const bMatch = String(b?.match || '');
+    if(aMatch !== bMatch) return aMatch.localeCompare(bMatch, undefined, { sensitivity:'base' });
+    return String(a?.market || '').localeCompare(String(b?.market || ''), undefined, { sensitivity:'base' });
+  });
+}
+function formatKickoffLabel(row){
+  const k = normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || '');
+  return k ? `Kick off ${k}` : '';
 }
 function isValueBetActiveToday(row){
   const today=toLocalYMD(new Date());
@@ -454,12 +487,11 @@ async function readTrackerRows(){
     const { data, error } = await client
       .from("personal_tracker")
       .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: true });
+      .eq("user_id", userId);
 
     if(error) throw error;
 
-    const cloudRows = (data || []).map(normalizeTrackerRow);
+    const cloudRows = sortRowsByDateTimeMatch((data || []).map(normalizeTrackerRow));
     if(cloudRows.length){
       writeTrackerRowsLocal(cloudRows);
       return cloudRows;
@@ -595,7 +627,7 @@ function getMarketCategory(rawMarket){
   const market = String(rawMarket || '').trim();
   const m = market.toLowerCase();
   if(!m) return '';
-  if(m.includes('in play') || m.includes('in-play') || m.includes('live')) return 'In Play Bets';
+  if(m.includes('in play') || m.includes('live')) return 'In Play Bets';
   if(m.includes('btts') || m.includes('both teams to score')) return 'BTTS';
   if(m.includes('shot on target') || m.includes('shots on target') || m.includes('sot')){
     if(m.includes('team')) return 'Team SoT';
@@ -610,7 +642,7 @@ function getMarketCategory(rawMarket){
   if(m.includes('draw no bet') || m.includes('dnb') || m.includes('double chance')) return 'Match Winner';
   if(m.includes('handicap')) return 'Asian Handicap';
   if(m.includes('match winner') || m.includes('to win') || m.includes('win') || m == 'home' || m == 'away' || m == 'draw') return 'Match Winner';
-  if(m.includes('goal') || m.includes('fhg') || m.includes('fgh') || m.includes('team total')) return 'Goals Over & Under';
+  if(m.includes('goal') || m.includes('fhg') || m.includes('fgh') || m.includes('team total')) return 'Goals O/U';
   if((m.includes('over') || m.includes('under')) && m.includes('corner')) return 'Corners';
   if((m.includes('over') || m.includes('under')) && m.includes('card')) return 'Cards';
   if((m.includes('over') || m.includes('under')) && m.includes('throw')) return 'Throw In';
@@ -620,7 +652,7 @@ function getMarketCategory(rawMarket){
   }
   if((m.includes('over') || m.includes('under')) && m.includes('foul')) return 'Fouls';
   if((m.includes('over') || m.includes('under')) && m.includes('offside')) return 'Offsides';
-  if((m.includes('over') || m.includes('under')) || m.includes('goal')) return 'Goals Over & Under';
+  if((m.includes('over') || m.includes('under')) || m.includes('goal')) return 'Goals O/U';
   return market;
 }
 function getValueFilterState(){
@@ -643,7 +675,7 @@ function uniqueSortedFilterValues(rows, getter){
   return Array.from(map.values()).sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:'base' }));
 }
 function getOrderedMarketCategories(rows){
-  const preferred = ['Match Winner','Goals Over & Under','BTTS','Corners','Cards','Fouls','Offsides','Shots On Target','Team SoT','Asian Handicap','Throw In'];
+  const preferred = ['Match Winner','Goals O/U','BTTS','Corners','Cards','In Play Bets','Fouls','Offsides','Shots On Target','Team SoT','Asian Handicap','Throw In'];
   const found = uniqueSortedFilterValues(rows, r => getMarketCategory(r.market));
   const ordered = [];
   preferred.forEach(name => { if(found.includes(name)) ordered.push(name); });
@@ -968,24 +1000,13 @@ async function loadBets(){
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
-  const {data} = await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
+  const {data} = await client.from("value_bets_feed").select("*");
   betsGrid.innerHTML="";
   const betsTable=document.getElementById('betsTable');
   const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
   if(betsTbody) betsTbody.innerHTML = "";
 
-  const active=(data||[])
-    .filter(isValueBetActiveToday)
-    .sort((a,b)=>{
-      const dateA = normalizeDateOnly(a.bet_date || a.created_at) || '';
-      const dateB = normalizeDateOnly(b.bet_date || b.created_at) || '';
-      if(dateA !== dateB) return dateA.localeCompare(dateB);
-      const koDiff = kickoffSortValue(a) - kickoffSortValue(b);
-      if(koDiff !== 0) return koDiff;
-      const matchDiff = String(a.match || '').localeCompare(String(b.match || ''), undefined, { sensitivity:'base' });
-      if(matchDiff !== 0) return matchDiff;
-      return String(a.market || '').localeCompare(String(b.market || ''), undefined, { sensitivity:'base' });
-    });
+  const active = sortRowsByDateTimeMatch((data||[]).filter(isValueBetActiveToday));
   valueBetsAllRows = active.slice();
   refreshValueFilterOptions(active);
   if(!active.length){
@@ -1022,8 +1043,6 @@ async function loadBets(){
     const teaser = teaserCopyForLockedBet(row, state);
     const unlockLabel = formatUnlockLabel(state);
     const leagueName = row.league || row.competition || row.league_name || row.tournament || '';
-    const kickoffText = getKickoffTimeText(row);
-    const marketCategory = getMarketCategory(row.market || '');
 
     betsGrid.innerHTML += `
 <div class="bet-lock-wrap">
@@ -1034,11 +1053,10 @@ async function loadBets(){
         <span class="bet-date">${escapeHtml(betDate)}</span>
       </div>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
-      ${!locked && kickoffText ? `<div class="bet-meta"><span class="bet-kickoff-text">Kick off ${escapeHtml(kickoffText)}</span></div>` : ``}
+      ${!locked && formatKickoffLabel(row) ? `<div class="bet-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``}
       <div class="bet-meta bet-meta--market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
       </div>
-      ${!locked && marketCategory ? `<div class="bet-meta"><span class="bet-market-category-text">${escapeHtml(marketCategory)}</span></div>` : ``}
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
     <div class="bet-details">
@@ -1057,9 +1075,9 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="table-date-cell">${escapeHtml(betDate)}${kickoffText ? `<div class="table-kickoff-text">KO ${escapeHtml(kickoffText)}</div>` : ''}</td>
+        <td class="table-date-cell">${escapeHtml(betDate)}${formatKickoffLabel(row) ? `<div class="table-kickoff">${escapeHtml(normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || ''))}</div>` : ''}</td>
         <td class="table-match-cell">${leagueName ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>` : ''}<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
-        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div>${marketCategory ? `<div class="table-market-category-text">${escapeHtml(marketCategory)}</div>` : ''}</div>`}</td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
@@ -1102,7 +1120,7 @@ async function addToTracker(btn, row){
     result: "pending",
     created_at: new Date().toISOString(),
     bet_date: row.bet_date || null,
-    kickoff_time: getKickoffTimeText(row) || null,
+    kickoff_time: normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '' ) || null,
     bookie: row.bookie || null,
     sport: getBetSport(row)
   };
@@ -1259,10 +1277,9 @@ function _buildTrackerTableHTML(rows){
     const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
 
     const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
-    const kickoffText = getKickoffTimeText(row);
 
     html += `<tr>
-      <td class="date-col">${dateLabel}${kickoffText ? `<div class="tracker-kickoff-text">KO ${escapeHtml(kickoffText)}</div>` : ''}</td>
+      <td class="date-col">${dateLabel}</td>
       <td>${row.match || ""}</td>
       <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td>
@@ -1521,16 +1538,7 @@ function pulseStatCard(el){
 
 
 async function loadTracker(){
-const rows = (await readTrackerRows()).slice().sort((a,b)=>{
-  const dateA = normalizeDateOnly(a.bet_date || a.created_at) || '';
-  const dateB = normalizeDateOnly(b.bet_date || b.created_at) || '';
-  if(dateA !== dateB) return dateA.localeCompare(dateB);
-  const koDiff = kickoffSortValue(a) - kickoffSortValue(b);
-  if(koDiff !== 0) return koDiff;
-  const matchDiff = String(a.match || '').localeCompare(String(b.match || ''), undefined, { sensitivity:'base' });
-  if(matchDiff !== 0) return matchDiff;
-  return String(a.market || '').localeCompare(String(b.market || ''), undefined, { sensitivity:'base' });
-});
+const rows = sortRowsByDateTimeMatch(await readTrackerRows());
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -1554,8 +1562,6 @@ profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
 bankroll=start+profit;
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
-const kickoffText = getKickoffTimeText(row);
-const marketCategory = getMarketCategory(row.market || '');
 const dayKey = fmtDayLabel(gameDate);
 const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
 dayKeys.push(dayKey);
@@ -1565,11 +1571,10 @@ history.push(bankroll);
 tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  ${kickoffText ? `<div class="tracker-kickoff-text">Kick off ${escapeHtml(kickoffText)}</div>` : ``}
+  ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``}
   <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
-  ${marketCategory ? `<div class="tracker-market-category-text">${escapeHtml(marketCategory)}</div>` : ``}
 </td>
-<td class="tracker-market-col">${marketCategory || (row.market || "—")}</td>
+<td class="tracker-market-col">${getMarketCategory(row.market) || row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -1739,7 +1744,7 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 const marketMap = {};
 const marketWL = {}; // {market:{wins,losses,pending,bets}}
 rows.forEach(r=>{
-  const mk = getMarketCategory(r.market || '') || "Unknown";
+  const mk = getMarketCategory(r.market) || ((r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown");
   marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
 
   if(!marketWL[mk]) marketWL[mk] = {wins:0,losses:0,pending:0,bets:0};
@@ -2114,6 +2119,48 @@ function toggleTdtTracker(){
     wrapper.classList.remove("expanded");
     wrapper.classList.add("collapsed");
     arrow.innerText="▼";
+  }
+}
+
+
+async function clearTrackerData(){
+  const ok = window.confirm("Clear all tracker bets and start fresh? This clears this account's tracker and this device backup.");
+  if(!ok) return;
+
+  const btn = document.getElementById("clearTrackerBtn");
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = "Clearing…";
+  }
+
+  try{
+    writeTrackerRowsLocal([]);
+    addedKeys.clear();
+
+    const userId = await currentAuthUserId();
+    if(userId){
+      const { error } = await client
+        .from("personal_tracker")
+        .delete()
+        .eq("user_id", userId);
+      if(error) throw error;
+    }
+
+    trackerRowsCache = [];
+    trackerAllRows = [];
+
+    await loadTracker();
+    await loadBets();
+    alert("Tracker cleared.");
+  }catch(e){
+    console.error(e);
+    alert("Could not clear tracker right now.");
+  }finally{
+    const btn = document.getElementById("clearTrackerBtn");
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = "Clear Tracker";
+    }
   }
 }
 
@@ -3492,7 +3539,7 @@ window.forgotVipPassword = forgotVipPassword;
 
           dayRows.forEach(row=>{
             html += `
-              <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
+              <div class="tracker-grid-card">
                 <div class="tracker-grid-top">
                   <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
                   <div class="tracker-grid-top-result">
