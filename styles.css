@@ -6134,3 +6134,13 @@ body.vip-active #vipPromo{
 .tracker-grid-card--won{background:linear-gradient(145deg,#102041,#133d2a)!important;border:1px solid rgba(0,255,140,0.35)!important;box-shadow:0 8px 24px rgba(0,0,0,0.18),0 0 16px rgba(0,255,140,0.12)!important}
 .tracker-grid-card--lost{background:linear-gradient(145deg,#102041,#3a1f24)!important;border:1px solid rgba(255,80,80,0.35)!important;box-shadow:0 8px 24px rgba(0,0,0,0.18),0 0 16px rgba(255,80,80,0.12)!important}
 .tracker-grid-card--pending{background:linear-gradient(145deg,#102041,#13284a)!important;border:1px solid rgba(120,160,230,.18)!important}
+
+
+/* ===== FIX: show grouped tracker bets in wide mode too ===== */
+body.layout-wide #trackerTable .tracker-bet-list{
+  display:block !important;
+}
+
+body.layout-wide #trackerTable .tracker-desktop-table-wrap{
+  display:none !important;
+}

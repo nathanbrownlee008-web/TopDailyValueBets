@@ -3612,23 +3612,14 @@ window.forgotVipPassword = forgotVipPassword;
           });
 
           groupedMatches.forEach(group=>{
-            const headRow = group.row;
-            html += `
-              <div class="tracker-match-group-card">
-                <div class="tracker-match-group-head">
-                  <div>
-                    <div class="tracker-grid-match">${trackerEsc(headRow.match || "")}</div>
-                    ${formatKickoffLabel(headRow) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(headRow))}</div>` : ``}
-                  </div>
-                </div>
-                <div class="tracker-match-group-bets">
-            `;
-
             group.rows.forEach(row=>{
               html += `
                 <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                   <div class="tracker-grid-top">
-                    <div class="tracker-grid-top-spacer"></div>
+                    <div class="tracker-grid-top-left">
+                      <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
+                      ${formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
+                    </div>
                     <div class="tracker-grid-top-result">
                       <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
                         <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
@@ -3666,11 +3657,6 @@ window.forgotVipPassword = forgotVipPassword;
                 </div>
               `;
             });
-
-            html += `
-                </div>
-              </div>
-            `;
           });
 
           html += `
