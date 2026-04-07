@@ -415,171 +415,12 @@ function makeLocalTrackerId(){
 
 async function currentAuthUserId(){
   try{
-    const { data: sessionData } = await client.auth.getSession();
-    const sessionUserId = sessionData?.session?.user?.id || null;
-    if(sessionUserId) return sessionUserId;
     const { data, error } = await client.auth.getUser();
     if(error) return null;
     return data?.user?.id || null;
   }catch(e){
     return null;
   }
-}
-
-function trackerCloudBasePayload(row, userId){
-  const safeRow = normalizeTrackerRow(row);
-  return {
-    user_id: userId,
-    match: safeRow.match || "",
-    market: safeRow.market || "",
-    odds: Number(safeRow.odds || 0),
-    stake: Number(safeRow.stake == null ? 10 : safeRow.stake),
-    result: safeRow.result || "pending",
-    created_at: safeRow.created_at || new Date().toISOString(),
-    bet_date: safeRow.bet_date || null,
-    bookie: safeRow.bookie || null
-  };
-}
-
-function trackerCloudExtraPayload(row){
-  const safeRow = normalizeTrackerRow(row);
-  const extra = {};
-  if(safeRow.sync_id) extra.sync_id = safeRow.sync_id;
-  return extra;
-}
-
-function isTemporaryTrackerId(id){
-  return String(id || '').startsWith('trk_');
-}
-
-function mergeTrackerRowIntoLocal(row){
-  const safeRow = normalizeTrackerRow(row);
-  const localRows = readTrackerRowsLocal();
-  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
-  writeTrackerRowsLocal(nextLocal);
-  return safeRow;
-}
-
-async function findExistingCloudTrackerRow(row, userId){
-  const safeRow = normalizeTrackerRow(row);
-  const createdAt = safeRow.created_at || null;
-  if(!createdAt) return null;
-  try{
-    const { data, error } = await client
-      .from("personal_tracker")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("created_at", createdAt)
-      .limit(1);
-    if(error) throw error;
-    return data?.[0] || null;
-  }catch(e){
-    console.error("findExistingCloudTrackerRow", e);
-    return null;
-  }
-}
-
-async function insertTrackerRowCloud(row, userId){
-  const basePayload = trackerCloudBasePayload(row, userId);
-  const attempts = [
-    { ...basePayload, ...trackerCloudExtraPayload(row) },
-    basePayload,
-    {
-      user_id: userId,
-      match: basePayload.match,
-      market: basePayload.market,
-      odds: basePayload.odds,
-      stake: basePayload.stake,
-      result: basePayload.result,
-      created_at: basePayload.created_at,
-      bet_date: basePayload.bet_date,
-      bookie: basePayload.bookie
-    },
-    {
-      user_id: userId,
-      match: basePayload.match,
-      market: basePayload.market,
-      odds: basePayload.odds,
-      stake: basePayload.stake,
-      result: basePayload.result,
-      created_at: basePayload.created_at
-    }
-  ];
-
-  let lastError = null;
-  for(const payload of attempts){
-    const { data, error } = await client
-      .from("personal_tracker")
-      .insert([payload])
-      .select("*")
-      .limit(1);
-    if(!error){
-      return normalizeTrackerRow(data?.[0] || { ...row, ...payload });
-    }
-    lastError = error;
-  }
-  throw lastError || new Error("Cloud insert failed.");
-}
-
-async function updateTrackerRowCloudById(row, userId){
-  const safeRow = normalizeTrackerRow(row);
-  if(isTemporaryTrackerId(safeRow.id)) return null;
-
-  const basePayload = trackerCloudBasePayload(safeRow, userId);
-  const attempts = [
-    { ...basePayload, ...trackerCloudExtraPayload(safeRow) },
-    basePayload,
-    {
-      match: basePayload.match,
-      market: basePayload.market,
-      odds: basePayload.odds,
-      stake: basePayload.stake,
-      result: basePayload.result,
-      created_at: basePayload.created_at,
-      bet_date: basePayload.bet_date,
-      bookie: basePayload.bookie
-    },
-    {
-      match: basePayload.match,
-      market: basePayload.market,
-      odds: basePayload.odds,
-      stake: basePayload.stake,
-      result: basePayload.result,
-      created_at: basePayload.created_at
-    }
-  ];
-
-  let lastError = null;
-  for(const payload of attempts){
-    const { data, error } = await client
-      .from("personal_tracker")
-      .update(payload)
-      .eq("user_id", userId)
-      .eq("id", safeRow.id)
-      .select("*")
-      .limit(1);
-    if(!error){
-      if(data && data.length) return normalizeTrackerRow(data[0]);
-      return normalizeTrackerRow(safeRow);
-    }
-    lastError = error;
-  }
-  if(lastError) throw lastError;
-  return null;
-}
-
-async function syncLocalTrackerRowsToCloud(localRows, userId){
-  const synced = [];
-  for(const row of (localRows || [])){
-    try{
-      const saved = await upsertTrackerRow(row);
-      synced.push(saved);
-    }catch(e){
-      console.error("syncLocalTrackerRowsToCloud", e);
-      synced.push(normalizeTrackerRow(row));
-    }
-  }
-  return synced;
 }
 
 async function readTrackerRows(){
@@ -603,21 +444,13 @@ async function readTrackerRows(){
       return cloudRows;
     }
 
+    // first-time cloud seed from local backup
     if(localRows.length){
-      const syncedRows = await syncLocalTrackerRowsToCloud(localRows, userId);
-      const { data: refreshed, error: refreshError } = await client
-        .from("personal_tracker")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: true });
-      if(refreshError) throw refreshError;
-      const refreshedRows = (refreshed || []).map(normalizeTrackerRow);
-      if(refreshedRows.length){
-        writeTrackerRowsLocal(refreshedRows);
-        return refreshedRows;
-      }
-      writeTrackerRowsLocal(syncedRows);
-      return syncedRows;
+      const seedRows = localRows.map(r => ({ ...normalizeTrackerRow(r), user_id: userId }));
+      const { error: seedError } = await client.from("personal_tracker").upsert(seedRows, { onConflict: "id" });
+      if(seedError) throw seedError;
+      writeTrackerRowsLocal(localRows);
+      return localRows;
     }
 
     return [];
@@ -629,59 +462,35 @@ async function readTrackerRows(){
 
 async function upsertTrackerRow(row){
   const safeRow = normalizeTrackerRow(row);
-  mergeTrackerRowIntoLocal(safeRow);
-
   const userId = await currentAuthUserId();
-  if(!userId) throw new Error("Sign in to save tracker bets across devices.");
 
-  try{
-    const existingCloudRow = await findExistingCloudTrackerRow(safeRow, userId);
-    if(existingCloudRow?.id != null){
-      safeRow.id = existingCloudRow.id;
-    }
+  // Always keep browser backup too
+  const localRows = readTrackerRowsLocal();
+  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
+  writeTrackerRowsLocal(nextLocal);
 
-    let savedRow = null;
-    if(!isTemporaryTrackerId(safeRow.id)){
-      savedRow = await updateTrackerRowCloudById(safeRow, userId);
-    }
-    if(!savedRow){
-      savedRow = await insertTrackerRowCloud(safeRow, userId);
-    }
+  if(!userId) return safeRow;
 
-    return mergeTrackerRowIntoLocal(savedRow);
-  }catch(error){
-    console.error("upsertTrackerRow cloud save failed", error);
-    throw error;
-  }
+  const payload = { ...safeRow, user_id: userId };
+  const { error } = await client.from("personal_tracker").upsert([payload], { onConflict: "id" });
+  if(error) throw error;
+  return safeRow;
 }
 
 async function deleteTrackerRowById(id){
-  const localRows = readTrackerRowsLocal();
-  const rowToDelete = localRows.find(r => String(r.id) === String(id)) || null;
-  writeTrackerRowsLocal(localRows.filter(r => String(r.id) !== String(id)));
+  const localRows = readTrackerRowsLocal().filter(r => String(r.id) !== String(id));
+  writeTrackerRowsLocal(localRows);
 
   const userId = await currentAuthUserId();
-  if(!userId) throw new Error("Sign in to remove tracker bets across devices.");
+  if(!userId) return;
 
-  const cloudId = rowToDelete && !isTemporaryTrackerId(rowToDelete.id) ? rowToDelete.id : null;
-  if(cloudId != null){
-    const { error } = await client
-      .from("personal_tracker")
-      .delete()
-      .eq("user_id", userId)
-      .eq("id", cloudId);
-    if(error) throw error;
-    return;
-  }
+  const { error } = await client
+    .from("personal_tracker")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id);
 
-  if(rowToDelete?.created_at){
-    const { error } = await client
-      .from("personal_tracker")
-      .delete()
-      .eq("user_id", userId)
-      .eq("created_at", rowToDelete.created_at);
-    if(error) throw error;
-  }
+  if(error) throw error;
 }
 
 
@@ -1268,7 +1077,7 @@ async function addToTracker(btn, row){
       btn.disabled = false;
       btn.textContent = 'Add';
     }
-    alert(e?.message || 'Could not save tracker bet right now.');
+    alert('Could not save tracker bet right now.');
     return;
   }
 
