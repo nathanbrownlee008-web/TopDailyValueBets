@@ -478,7 +478,7 @@ async function currentAuthUserId(){
 }
 
 async function readTrackerRows(){
-  const localRows = readTrackerRowsLocal();
+  const localRows = sortRowsByDateTimeMatch(readTrackerRowsLocal());
 
   const userId = await currentAuthUserId();
   if(!userId) return localRows;
@@ -492,18 +492,32 @@ async function readTrackerRows(){
     if(error) throw error;
 
     const cloudRows = sortRowsByDateTimeMatch((data || []).map(normalizeTrackerRow));
+
+    if(cloudRows.length && localRows.length){
+      const byKey = new Map();
+      cloudRows.forEach(r=>{
+        const key = String(r.id || '') || `${r.created_at || ''}|${r.match || ''}|${r.market || ''}`;
+        byKey.set(key, r);
+      });
+      localRows.forEach(r=>{
+        const key = String(r.id || '') || `${r.created_at || ''}|${r.match || ''}|${r.market || ''}`;
+        byKey.set(key, r);
+      });
+      const merged = sortRowsByDateTimeMatch(Array.from(byKey.values()));
+      writeTrackerRowsLocal(merged);
+      return merged;
+    }
+
     if(cloudRows.length){
       writeTrackerRowsLocal(cloudRows);
       return cloudRows;
     }
 
-    // first-time cloud seed from local backup
     if(localRows.length){
-      const seedRows = localRows.map(r => ({ ...normalizeTrackerRow(r), user_id: userId }));
-      const { error: seedError } = await client.from("personal_tracker").upsert(seedRows, { onConflict: "id" });
-      if(seedError) throw seedError;
-      writeTrackerRowsLocal(localRows);
-      return localRows;
+      for (const row of localRows){
+        try{ await upsertTrackerRow(row); }catch(e){ console.error('tracker seed row failed', e); }
+      }
+      return sortRowsByDateTimeMatch(readTrackerRowsLocal());
     }
 
     return [];
@@ -517,16 +531,28 @@ async function upsertTrackerRow(row){
   const safeRow = normalizeTrackerRow(row);
   const userId = await currentAuthUserId();
 
-  // Always keep browser backup too
   const localRows = readTrackerRowsLocal();
   const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
-  writeTrackerRowsLocal(nextLocal);
+  writeTrackerRowsLocal(sortRowsByDateTimeMatch(nextLocal));
 
   if(!userId) return safeRow;
 
-  const payload = { ...safeRow, user_id: userId };
-  const { error } = await client.from("personal_tracker").upsert([payload], { onConflict: "id" });
-  if(error) throw error;
+  const basePayload = { ...safeRow, user_id: userId };
+  const attempts = [
+    basePayload,
+    (({kickoff_time, ...rest}) => rest)(basePayload),
+    (({sport, ...rest}) => rest)(basePayload),
+    (({kickoff_time, sport, ...rest}) => rest)(basePayload),
+  ];
+
+  let lastError = null;
+  for(const payload of attempts){
+    const { error } = await client.from("personal_tracker").upsert([payload], { onConflict: "id" });
+    if(!error) return safeRow;
+    lastError = error;
+  }
+
+  console.error("upsertTrackerRow cloud save failed", lastError);
   return safeRow;
 }
 
@@ -1034,6 +1060,8 @@ async function loadBets(){
     if(!locked) visibleForAlerts.push(row);
 
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
+    const kickoffText = normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '');
+    const dateTimeLabel = kickoffText ? `${betDate} • ${kickoffText}` : betDate;
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -1050,10 +1078,9 @@ async function loadBets(){
     <div class="bet-teaser">
       <div class="bet-title-row">
         <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-        <span class="bet-date">${escapeHtml(betDate)}</span>
+        <span class="bet-date">${escapeHtml(dateTimeLabel)}</span>
       </div>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
-      ${!locked && formatKickoffLabel(row) ? `<div class="bet-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``}
       <div class="bet-meta bet-meta--market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
       </div>
@@ -1133,7 +1160,6 @@ async function addToTracker(btn, row){
       btn.disabled = false;
       btn.textContent = 'Add';
     }
-    alert('Could not save tracker bet right now.');
     return;
   }
 
@@ -3539,9 +3565,12 @@ window.forgotVipPassword = forgotVipPassword;
 
           dayRows.forEach(row=>{
             html += `
-              <div class="tracker-grid-card">
+              <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                 <div class="tracker-grid-top">
-                  <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
+                  <div>
+                    <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
+                    ${formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
+                  </div>
                   <div class="tracker-grid-top-result">
                     <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
                       <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>

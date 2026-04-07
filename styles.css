@@ -6073,3 +6073,43 @@ body.vip-active #vipPromo{
   -webkit-text-fill-color:#ffffff !important;
   opacity:1 !important;
 }
+
+
+/* ===== clean kickoff + tracker result card fixes ===== */
+.bet-date{
+  white-space:nowrap;
+}
+
+.tracker-grid-kickoff{
+  margin-top:6px;
+  color:#dbeafe;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.2;
+}
+
+.tracker-grid-card--won{
+  background: linear-gradient(145deg,#0f1f3d,#133d2a) !important;
+  border: 1px solid rgba(0,255,140,0.35) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 16px rgba(0,255,140,0.12) !important;
+}
+
+.tracker-grid-card--lost{
+  background: linear-gradient(145deg,#0f1f3d,#3a1f24) !important;
+  border: 1px solid rgba(255,80,80,0.35) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 16px rgba(255,80,80,0.12) !important;
+}
+
+.tracker-grid-card--pending{
+  background: linear-gradient(145deg,#0c182f,#101f38) !important;
+  border: 1px solid rgba(80,140,255,0.22) !important;
+}
+
+.tracker-grid-top > div:first-child{
+  min-width:0;
+  flex:1 1 auto;
+}
