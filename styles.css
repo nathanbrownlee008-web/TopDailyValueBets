@@ -5959,11 +5959,11 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
 
 /* === FIX DATE OVERLAP === */
 .bet-date{
-  position:absolute;
-  right:12px;
-  top:10px;
+  position:static;
+  right:auto;
+  top:auto;
   font-size:12px;
-  opacity:0.7;
+  opacity:0.72;
 }
 .bet-card{
   position:relative;
@@ -6113,3 +6113,24 @@ body.vip-active #vipPromo{
   min-width:0;
   flex:1 1 auto;
 }
+
+
+/* === cleaner date + kickoff layout === */
+.bet-title-row{align-items:flex-start;gap:10px}
+.bet-title-row .bet-date{margin-left:auto;white-space:nowrap;padding-top:2px}
+.bet-meta--league-kickoff{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap}
+.bet-meta--league-kickoff .bet-league{flex:1 1 auto;min-width:0}
+.bet-kickoff-inline{flex:0 0 auto;color:#dbeafe;font-size:12px;font-weight:700;white-space:nowrap}
+.table-kickoff{white-space:nowrap}
+
+/* === tracker grouped same-game cards === */
+.tracker-match-group-card{display:grid;gap:10px;margin-bottom:14px}
+.tracker-match-group-head{padding:2px 2px 0}
+.tracker-match-group-bets{display:grid;grid-template-columns:1fr;gap:12px}
+.tracker-grid-top-spacer{flex:1 1 auto;min-width:0}
+.tracker-grid-kickoff{color:#dbeafe;font-size:12px;font-weight:700;line-height:1.2;margin-top:4px}
+
+/* keep result colour states strong */
+.tracker-grid-card--won{background:linear-gradient(145deg,#102041,#133d2a)!important;border:1px solid rgba(0,255,140,0.35)!important;box-shadow:0 8px 24px rgba(0,0,0,0.18),0 0 16px rgba(0,255,140,0.12)!important}
+.tracker-grid-card--lost{background:linear-gradient(145deg,#102041,#3a1f24)!important;border:1px solid rgba(255,80,80,0.35)!important;box-shadow:0 8px 24px rgba(0,0,0,0.18),0 0 16px rgba(255,80,80,0.12)!important}
+.tracker-grid-card--pending{background:linear-gradient(145deg,#102041,#13284a)!important;border:1px solid rgba(120,160,230,.18)!important}
