@@ -5831,28 +5831,23 @@ select.result-lost{
   }
 
   body.layout-wide .bets-table thead th:nth-child(1),
-  body.layout-wide .bets-table tbody td:nth-child(1){ width:25%; }
+  body.layout-wide .bets-table tbody td:nth-child(1){ width:12%; white-space:nowrap; }
   body.layout-wide .bets-table thead th:nth-child(2),
-  body.layout-wide .bets-table tbody td:nth-child(2){ width:21%; }
+  body.layout-wide .bets-table tbody td:nth-child(2){ width:25%; }
   body.layout-wide .bets-table thead th:nth-child(3),
-  body.layout-wide .bets-table tbody td:nth-child(3){ width:14%; }
+  body.layout-wide .bets-table tbody td:nth-child(3){ width:21%; }
   body.layout-wide .bets-table thead th:nth-child(4),
-  body.layout-wide .bets-table tbody td:nth-child(4){ width:10%; text-align:center; }
+  body.layout-wide .bets-table tbody td:nth-child(4){ width:14%; }
   body.layout-wide .bets-table thead th:nth-child(5),
   body.layout-wide .bets-table tbody td:nth-child(5){ width:10%; text-align:center; }
   body.layout-wide .bets-table thead th:nth-child(6),
-  body.layout-wide .bets-table tbody td:nth-child(6){ width:12%; white-space:nowrap; }
+  body.layout-wide .bets-table tbody td:nth-child(6){ width:10%; text-align:center; }
   body.layout-wide .bets-table thead th:nth-child(7),
   body.layout-wide .bets-table tbody td:nth-child(7){ width:8%; text-align:right; white-space:nowrap; }
 
-  body.layout-wide .bets-table tbody td:nth-child(1){
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  body.layout-wide .bets-table tbody td:nth-child(3){
-    white-space:nowrap;
+  body.layout-wide .bets-table tbody td:nth-child(2),
+  body.layout-wide .bets-table tbody td:nth-child(3),
+  body.layout-wide .bets-table tbody td:nth-child(4){
     overflow:hidden;
     text-overflow:ellipsis;
   }
@@ -5959,11 +5954,11 @@ body.layout-wide #trackerTable .tracker-desktop-table select{
 
 /* === FIX DATE OVERLAP === */
 .bet-date{
-  position:static;
-  right:auto;
-  top:auto;
+  position:absolute;
+  right:12px;
+  top:10px;
   font-size:12px;
-  opacity:0.72;
+  opacity:0.7;
 }
 .bet-card{
   position:relative;
@@ -6115,37 +6110,13 @@ body.vip-active #vipPromo{
 }
 
 
-/* === cleaner date + kickoff layout === */
-.bet-title-row{align-items:flex-start;gap:10px}
-.bet-title-row .bet-date{margin-left:auto;white-space:nowrap;padding-top:2px}
-.bet-meta--league-kickoff{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap}
-.bet-meta--league-kickoff .bet-league{flex:1 1 auto;min-width:0}
-.bet-kickoff-inline{flex:0 0 auto;color:#dbeafe;font-size:12px;font-weight:700;white-space:nowrap}
-.table-kickoff{white-space:nowrap}
-
-/* === tracker grouped same-game cards === */
-.tracker-match-group-card{display:grid;gap:10px;margin-bottom:14px}
-.tracker-match-group-head{padding:2px 2px 0}
-.tracker-match-group-bets{display:grid;grid-template-columns:1fr;gap:12px}
-.tracker-grid-top-spacer{flex:1 1 auto;min-width:0}
-.tracker-grid-kickoff{color:#dbeafe;font-size:12px;font-weight:700;line-height:1.2;margin-top:4px}
-
-/* keep result colour states strong */
-.tracker-grid-card--won{background:linear-gradient(145deg,#102041,#133d2a)!important;border:1px solid rgba(0,255,140,0.35)!important;box-shadow:0 8px 24px rgba(0,0,0,0.18),0 0 16px rgba(0,255,140,0.12)!important}
-.tracker-grid-card--lost{background:linear-gradient(145deg,#102041,#3a1f24)!important;border:1px solid rgba(255,80,80,0.35)!important;box-shadow:0 8px 24px rgba(0,0,0,0.18),0 0 16px rgba(255,80,80,0.12)!important}
-.tracker-grid-card--pending{background:linear-gradient(145deg,#102041,#13284a)!important;border:1px solid rgba(120,160,230,.18)!important}
-
-
-/* ===== FIX: show grouped tracker bets in wide mode too ===== */
-body.layout-wide #trackerTable .tracker-bet-list{
-  display:block !important;
+/* wide value bets column alignment fix */
+body.layout-wide .bets-table thead th,
+body.layout-wide .bets-table tbody td{
+  box-sizing:border-box;
+  vertical-align:middle;
 }
-
-body.layout-wide #trackerTable .tracker-desktop-table-wrap{
-  display:none !important;
-}
-
-
-/* ===== Tracker desktop table extras ===== */
-body.layout-wide #trackerTable .tracker-desktop-match-name{font-weight:800;color:#f8fafc;line-height:1.15;}
-body.layout-wide #trackerTable .tracker-desktop-kickoff{margin-top:4px;font-size:12px;color:rgba(226,232,240,0.72);}
+body.layout-wide .bets-table .table-date-cell{ text-align:left; }
+body.layout-wide .bets-table .table-match-cell{ text-align:left; }
+body.layout-wide .bets-table .table-market-wrap{ justify-content:flex-start; }
+body.layout-wide .bets-table .table-bookie-pill{ display:inline-flex; max-width:100%; }

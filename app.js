@@ -225,20 +225,6 @@ function normalizeDateOnly(value){
   if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
   return null;
 }
-function formatDisplayDate(value){
-  const iso = normalizeDateOnly(value);
-  if(!iso) return '';
-  const dt = new Date(`${iso}T12:00:00`);
-  if(Number.isNaN(dt.getTime())) return iso;
-  return dt.toLocaleDateString('en-GB',{ day:'2-digit', month:'short', year:'numeric' });
-}
-function formatKickoffDisplay(value){
-  const k = normalizeKickoffTime(value);
-  if(!k) return '';
-  const parts = k.split(':');
-  const hour = Number(parts[0] || 0);
-  return `${k}${hour >= 12 ? 'pm' : 'am'}`;
-}
 function normalizeKickoffTime(value){
   if(value == null) return '';
   let t = String(value).trim();
@@ -282,7 +268,7 @@ function sortRowsByDateTimeMatch(rows){
   });
 }
 function formatKickoffLabel(row){
-  const k = formatKickoffDisplay(row?.kickoff_time || row?.match_time || row?.time || '');
+  const k = normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || '');
   return k ? `Kick off ${k}` : '';
 }
 function isValueBetActiveToday(row){
@@ -593,16 +579,25 @@ function applyLayout(mode){
   localStorage.setItem("layout_mode", mode);
   if(btnCompact) btnCompact.classList.toggle("active", mode !== "wide");
   if(btnWide) btnWide.classList.toggle("active", mode === "wide");
+
+  try{
+    if(currentTopTab === "tracker"){
+      loadTracker();
+    }else if(currentTopTab === "bets"){
+      loadBets();
+    }else if(currentTopTab === "tdt"){
+      loadTdtTracker();
+    }
+  }catch(e){ console.error("layout re-render failed", e); }
 }
 
 (function initLayoutMode(){
   const saved = localStorage.getItem("layout_mode");
-  if(window.innerWidth < 950){
-    applyLayout("compact");
-  }else if(saved === "wide" || saved === "compact"){
+  if(saved === "wide" || saved === "compact"){
     applyLayout(saved);
   }else{
-    applyLayout("wide");
+    // Default: compact on small screens, wide on desktop
+    applyLayout(window.innerWidth >= 950 ? "wide" : "compact");
   }
   if(btnCompact) btnCompact.addEventListener("click", ()=>applyLayout("compact"));
   if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
@@ -1074,8 +1069,9 @@ async function loadBets(){
     const isAdded = addedKeys.has(key);
     if(!locked) visibleForAlerts.push(row);
 
-    const betDate = formatDisplayDate(row.bet_date || row.created_at || '');
-    const kickoffLabel = formatKickoffLabel(row);
+    const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
+    const kickoffText = normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '');
+    const dateTimeLabel = kickoffText ? `${betDate} • ${kickoffText}` : betDate;
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -1092,9 +1088,9 @@ async function loadBets(){
     <div class="bet-teaser">
       <div class="bet-title-row">
         <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-        <span class="bet-date">${escapeHtml(betDate)}</span>
+        <span class="bet-date">${escapeHtml(dateTimeLabel)}</span>
       </div>
-      ${!locked && (leagueName || kickoffLabel) ? `<div class="bet-meta bet-meta--league-kickoff"><span class="bet-market bet-league">${escapeHtml(leagueName || '')}</span>${kickoffLabel ? `<span class="bet-kickoff-inline">${escapeHtml(kickoffLabel)}</span>` : ``}</div>` : ``}
+      ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
       </div>
@@ -1116,7 +1112,7 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="table-date-cell">${escapeHtml(betDate)}${kickoffLabel ? `<div class="table-kickoff">${escapeHtml(kickoffLabel)}</div>` : ''}</td>
+        <td class="table-date-cell">${escapeHtml(betDate)}${formatKickoffLabel(row) ? `<div class="table-kickoff">${escapeHtml(normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || ''))}</div>` : ''}</td>
         <td class="table-match-cell">${leagueName ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>` : ''}<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
@@ -1636,13 +1632,7 @@ onchange="updateResult('${row.id}',this.value)">
 let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
-if(typeof buildTrackerGroupedHTML === "function"){
-  trackerTable.innerHTML = buildTrackerGroupedHTML(rows);
-}else{
-  trackerTable.innerHTML=html;
-}
-const betCountEl = document.getElementById("betCount");
-if(betCountEl) betCountEl.textContent = rows.length;
+trackerTable.innerHTML=html;
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
@@ -1838,7 +1828,6 @@ if(monthKeys.length){
 
 
 async function updateOdds(id,val){
-  const keepOpen = trackerIsOpen();
   const rows = await readTrackerRows();
   const updated = rows.map(r => String(r.id)===String(id) ? { ...r, odds: parseFloat(val) || 0 } : r);
   const row = updated.find(r => String(r.id)===String(id));
@@ -1848,8 +1837,7 @@ async function updateOdds(id,val){
   if(row && isAdminSyncEnabled()){
     try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
   }
-  await loadTracker();
-  if(keepOpen) trackerForceOpen(true);
+  loadTracker();
 }
 
 async function updateStake(id,val){
@@ -1863,13 +1851,28 @@ async function updateStake(id,val){
   if(row && isAdminSyncEnabled()){
     try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
   }
-  await loadTracker();
-  if(keepOpen) trackerForceOpen(true);
+  loadTracker();
 }
 
 async function updateResult(id,val){
-  const keepOpen = trackerIsOpen();
   const rows = await readTrackerRows();
+  const selectEls = Array.from(document.querySelectorAll('.result-select')).filter(el=>{
+    const attr = el.getAttribute('onchange') || '';
+    return attr.includes(`updateResult('${id}'`) || attr.includes(`updateResult("${id}"`);
+  });
+  const setSelectVisuals = (value)=>{
+    selectEls.forEach(el=>{
+      el.value = value;
+      el.classList.remove('result-won','result-lost','result-pending');
+      el.classList.add(`result-${value}`);
+      const card = el.closest('.tracker-grid-card');
+      if(card){
+        card.classList.remove('tracker-grid-card--won','tracker-grid-card--lost','tracker-grid-card--pending');
+        card.classList.add(`tracker-grid-card--${value}`);
+      }
+    });
+  };
+
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
     const row = rows.find(r => String(r.id)===String(id));
@@ -1877,8 +1880,9 @@ async function updateResult(id,val){
     if(row && isAdminSyncEnabled() && row.sync_id){
       try{ await deleteTdtMirror(row.sync_id); }catch(e){ console.error(e); }
     }
-    await loadBets();
+    loadBets();
   }else{
+    setSelectVisuals(val);
     const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
     const row = updated.find(r => String(r.id)===String(id));
     if(row){
@@ -1888,7 +1892,7 @@ async function updateResult(id,val){
       try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
     }
   }
-  loadTracker();
+  await loadTracker();
 }
 
 
@@ -2278,12 +2282,10 @@ document.addEventListener("DOMContentLoaded",function(){
 // Extend loadTracker to update bet count
 const originalLoadTracker = loadTracker;
 loadTracker = async function(){
-  const keepOpen = trackerIsOpen();
   await originalLoadTracker();
   const rows=document.querySelectorAll("#trackerTable table tr").length-1;
   const count=document.getElementById("betCount");
   if(count && rows>=0){count.innerText=rows;}
-  if(keepOpen) trackerForceOpen(true);
 };
 
 
@@ -3508,19 +3510,7 @@ window.forgotVipPassword = forgotVipPassword;
   };
 
   window.buildTrackerGroupedHTML = function(rows){
-    const isWideTracker = document.body.classList.contains('layout-wide');
-    const list = (rows || []).slice().sort((a,b)=>{
-      const aDate = trackerParseDate(trackerRawDate(a));
-      const bDate = trackerParseDate(trackerRawDate(b));
-      if(aDate !== bDate) return bDate - aDate;
-      const aKick = kickoffSortValue(a);
-      const bKick = kickoffSortValue(b);
-      if(aKick !== bKick) return aKick.localeCompare(bKick);
-      const aMatch = String(a?.match || '');
-      const bMatch = String(b?.match || '');
-      if(aMatch !== bMatch) return aMatch.localeCompare(bMatch, undefined, { sensitivity:'base' });
-      return String(a?.market || '').localeCompare(String(b?.market || ''), undefined, { sensitivity:'base' });
-    });
+    const list = (rows || []).slice().sort((a,b)=> trackerParseDate(trackerRawDate(b)) - trackerParseDate(trackerRawDate(a)));
 
     const monthState = trackerReadState("month");
     const weekState = trackerReadState("week");
@@ -3601,121 +3591,51 @@ window.forgotVipPassword = forgotVipPassword;
                 <div class="tracker-bet-list">
           `;
 
-          const groupedMatches = [];
-          const groupedMatchMap = new Map();
           dayRows.forEach(row=>{
-            const groupKey = `${kickoffSortValue(row)}||${String(row.match || '').toLowerCase()}`;
-            if(!groupedMatchMap.has(groupKey)){
-              const entry = { row, rows: [] };
-              groupedMatchMap.set(groupKey, entry);
-              groupedMatches.push(entry);
-            }
-            groupedMatchMap.get(groupKey).rows.push(row);
-          });
-
-          if(isWideTracker){
             html += `
-              <div class="tracker-desktop-table-wrap">
-                <table class="tracker-desktop-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Match</th>
-                      <th>Market</th>
-                      <th>Odds</th>
-                      <th>Stake</th>
-                      <th>Result</th>
-                      <th class="profit-col">Profit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-            `;
-
-            groupedMatches.forEach(group=>{
-              group.rows.forEach(row=>{
-                let profit = 0;
-                if(row.result === 'won') profit = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
-                if(row.result === 'lost') profit = -Number(row.stake || 0);
-                const profitClass = profit > 0 ? 'profit-win' : profit < 0 ? 'profit-loss' : '';
-                const dateLabel = trackerEsc(fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at));
-                html += `
-                  <tr>
-                    <td class="tracker-desktop-date">${dateLabel}</td>
-                    <td class="tracker-desktop-match">
-                      <div class="tracker-desktop-match-name">${trackerEsc(row.match || "")}</div>
-                      ${formatKickoffLabel(row) ? `<div class="tracker-desktop-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
-                    </td>
-                    <td class="tracker-desktop-market">${trackerEsc(row.market || "—")}</td>
-                    <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}', this.value)"></td>
-                    <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}', this.value)"></td>
-                    <td>
-                      <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                        <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                        <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                        <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                        <option value="delete">🗑 delete</option>
-                      </select>
-                    </td>
-                    <td class="profit-col"><span class="${profitClass}">${profit >= 0 ? '£' + profit.toFixed(2) : '£' + profit.toFixed(2)}</span></td>
-                  </tr>
-                `;
-              });
-            });
-
-            html += `
-                  </tbody>
-                </table>
-              </div>
-            `;
-          }else{
-            groupedMatches.forEach(group=>{
-              group.rows.forEach(row=>{
-                html += `
-                  <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
-                    <div class="tracker-grid-top">
-                      <div class="tracker-grid-top-left">
-                        <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
-                        ${formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
-                      </div>
-                      <div class="tracker-grid-top-result">
-                        <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
-                          <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
-                          <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
-                          <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
-                          <option value="delete">🗑 delete</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="tracker-grid-meta tracker-grid-meta--single-row">
-                      <div class="tracker-grid-market-slot">
-                        <span>Market</span>
-                        <div class="tracker-grid-market-inline">
-                          ${trackerEsc(row.market || "—")}
-                        </div>
-                      </div>
-
-                      <div>
-                        <span>Odds</span>
-                        <input 
-                          type="number" 
-                          step="0.01" 
-                          value="${Number(row.odds ?? 0)}" 
-                          onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                      </div>
-
-                      <div>
-                        <span>Stake</span>
-                        <input 
-                          type="number" 
-                          value="${Number(row.stake || 0)}" 
-                          onchange="updateStake('${trackerEsc(row.id)}', this.value)">
-                      </div>
+              <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
+                <div class="tracker-grid-top">
+                  <div>
+                    <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
+                    ${formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
+                  </div>
+                  <div class="tracker-grid-top-result">
+                    <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                      <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                      <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                      <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                      <option value="delete">🗑 delete</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="tracker-grid-meta tracker-grid-meta--single-row">
+                  <div class="tracker-grid-market-slot">
+                    <span>Market</span>
+                    <div class="tracker-grid-market-inline">
+                      ${trackerEsc(row.market || "—")}
                     </div>
                   </div>
-                `;
-              });
-            });
-          }
+
+                  <div>
+                    <span>Odds</span>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      value="${Number(row.odds ?? 0)}" 
+                      onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
+                  </div>
+
+                  <div>
+                    <span>Stake</span>
+                    <input 
+                      type="number" 
+                      value="${Number(row.stake || 0)}" 
+                      onchange="updateStake('${trackerEsc(row.id)}', this.value)">
+                  </div>
+                </div>
+              </div>
+            `;
+          });
 
           html += `
                 </div>
@@ -3737,14 +3657,32 @@ window.forgotVipPassword = forgotVipPassword;
     return html;
   };
 
+  window.buildTrackerWideHTML = function(rows){
+    const list = sortRowsByDateTimeMatch(rows || []).slice().reverse();
+    let html = `<div class="tracker-desktop-table-wrap"><table class="tracker-desktop-table"><thead><tr><th>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr></thead><tbody>`;
+    list.forEach(row=>{
+      const p = rowProfit(row);
+      html += `<tr>
+        <td class="tracker-desktop-date">${trackerEsc(fmtLabel(row.match_date_date || row.bet_date || row.created_at || ''))}</td>
+        <td class="tracker-desktop-match"><div class="tracker-match-name">${trackerEsc(row.match || '—')}</div>${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}</td>
+        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))} ${trackerEsc(row.market || '—')}</td>
+        <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
+        <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
+        <td><select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)"><option value="pending" ${(row.result==='pending'?'selected':'')}>pending</option><option value="won" ${(row.result==='won'?'selected':'')}>won</option><option value="lost" ${(row.result==='lost'?'selected':'')}>lost</option><option value="delete">🗑 delete</option></select></td>
+        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${Number(p || 0).toFixed(2)}</span></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    return html;
+  };
+
   if(typeof _renderFilteredTrackerTable === "function"){
     _renderFilteredTrackerTable = function(){
       const tableEl = document.getElementById("trackerTable");
       const countEl = document.getElementById("betCount");
       if(!tableEl) return;
-
-      const filtered = _applyTrackerFilters(trackerAllRows);
-      tableEl.innerHTML = buildTrackerGroupedHTML(filtered);
+      const filtered = _applyTrackerFilters(trackerAllRows || []);
+      tableEl.innerHTML = document.body.classList.contains('layout-wide') ? buildTrackerWideHTML(filtered) : buildTrackerGroupedHTML(filtered);
       if(countEl) countEl.textContent = filtered.length;
     };
   }
@@ -3762,10 +3700,11 @@ window.forgotVipPassword = forgotVipPassword;
       await __rebuiltLoadTracker();
       try{
         const tableEl = document.getElementById("trackerTable");
+        const countEl = document.getElementById("betCount");
         if(tableEl && Array.isArray(trackerAllRows)){
-          tableEl.innerHTML = buildTrackerGroupedHTML(trackerAllRows);
-          const countEl = document.getElementById("betCount");
-          if(countEl) countEl.textContent = trackerAllRows.length;
+          const filtered = _applyTrackerFilters(trackerAllRows || []);
+          tableEl.innerHTML = document.body.classList.contains('layout-wide') ? buildTrackerWideHTML(filtered) : buildTrackerGroupedHTML(filtered);
+          if(countEl) countEl.textContent = filtered.length;
         }
       }catch(e){
         console.error("Rebuilt tracker grouping failed", e);
