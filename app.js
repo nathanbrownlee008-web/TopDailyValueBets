@@ -217,6 +217,27 @@ function normalizeDateOnly(value){
   if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
   return null;
 }
+function normalizeKickoffTime(value){
+  const raw = String(value || '').trim().toLowerCase();
+  if(!raw) return '';
+  const match = raw.match(/(\d{1,2})(?::?(\d{2}))?\s*(am|pm)?/i);
+  if(!match) return String(value || '').trim();
+  let hours = Number(match[1] || 0);
+  const mins = String(match[2] || '00').padStart(2,'0');
+  const meridiem = (match[3] || '').toLowerCase();
+  if(meridiem === 'pm' && hours < 12) hours += 12;
+  if(meridiem === 'am' && hours === 12) hours = 0;
+  return `${String(hours).padStart(2,'0')}:${mins}`;
+}
+function getKickoffTimeText(row){
+  return normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || row?.kickoff || '');
+}
+function kickoffSortValue(row){
+  const ko = getKickoffTimeText(row);
+  if(!ko) return 9999;
+  const parts = ko.split(':');
+  return (Number(parts[0] || 0) * 60) + Number(parts[1] || 0);
+}
 function isValueBetActiveToday(row){
   const today=toLocalYMD(new Date());
   const start=normalizeDateOnly(row.bet_date) || normalizeDateOnly(row.created_at);
@@ -415,171 +436,12 @@ function makeLocalTrackerId(){
 
 async function currentAuthUserId(){
   try{
-    const { data: sessionData } = await client.auth.getSession();
-    const sessionUserId = sessionData?.session?.user?.id || null;
-    if(sessionUserId) return sessionUserId;
     const { data, error } = await client.auth.getUser();
     if(error) return null;
     return data?.user?.id || null;
   }catch(e){
     return null;
   }
-}
-
-function trackerCloudBasePayload(row, userId){
-  const safeRow = normalizeTrackerRow(row);
-  return {
-    user_id: userId,
-    match: safeRow.match || "",
-    market: safeRow.market || "",
-    odds: Number(safeRow.odds || 0),
-    stake: Number(safeRow.stake == null ? 10 : safeRow.stake),
-    result: safeRow.result || "pending",
-    created_at: safeRow.created_at || new Date().toISOString(),
-    bet_date: safeRow.bet_date || null,
-    bookie: safeRow.bookie || null
-  };
-}
-
-function trackerCloudExtraPayload(row){
-  const safeRow = normalizeTrackerRow(row);
-  const extra = {};
-  if(safeRow.sync_id) extra.sync_id = safeRow.sync_id;
-  return extra;
-}
-
-function isTemporaryTrackerId(id){
-  return String(id || '').startsWith('trk_');
-}
-
-function mergeTrackerRowIntoLocal(row){
-  const safeRow = normalizeTrackerRow(row);
-  const localRows = readTrackerRowsLocal();
-  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
-  writeTrackerRowsLocal(nextLocal);
-  return safeRow;
-}
-
-async function findExistingCloudTrackerRow(row, userId){
-  const safeRow = normalizeTrackerRow(row);
-  const createdAt = safeRow.created_at || null;
-  if(!createdAt) return null;
-  try{
-    const { data, error } = await client
-      .from("personal_tracker")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("created_at", createdAt)
-      .limit(1);
-    if(error) throw error;
-    return data?.[0] || null;
-  }catch(e){
-    console.error("findExistingCloudTrackerRow", e);
-    return null;
-  }
-}
-
-async function insertTrackerRowCloud(row, userId){
-  const basePayload = trackerCloudBasePayload(row, userId);
-  const attempts = [
-    { ...basePayload, ...trackerCloudExtraPayload(row) },
-    basePayload,
-    {
-      user_id: userId,
-      match: basePayload.match,
-      market: basePayload.market,
-      odds: basePayload.odds,
-      stake: basePayload.stake,
-      result: basePayload.result,
-      created_at: basePayload.created_at,
-      bet_date: basePayload.bet_date,
-      bookie: basePayload.bookie
-    },
-    {
-      user_id: userId,
-      match: basePayload.match,
-      market: basePayload.market,
-      odds: basePayload.odds,
-      stake: basePayload.stake,
-      result: basePayload.result,
-      created_at: basePayload.created_at
-    }
-  ];
-
-  let lastError = null;
-  for(const payload of attempts){
-    const { data, error } = await client
-      .from("personal_tracker")
-      .insert([payload])
-      .select("*")
-      .limit(1);
-    if(!error){
-      return normalizeTrackerRow(data?.[0] || { ...row, ...payload });
-    }
-    lastError = error;
-  }
-  throw lastError || new Error("Cloud insert failed.");
-}
-
-async function updateTrackerRowCloudById(row, userId){
-  const safeRow = normalizeTrackerRow(row);
-  if(isTemporaryTrackerId(safeRow.id)) return null;
-
-  const basePayload = trackerCloudBasePayload(safeRow, userId);
-  const attempts = [
-    { ...basePayload, ...trackerCloudExtraPayload(safeRow) },
-    basePayload,
-    {
-      match: basePayload.match,
-      market: basePayload.market,
-      odds: basePayload.odds,
-      stake: basePayload.stake,
-      result: basePayload.result,
-      created_at: basePayload.created_at,
-      bet_date: basePayload.bet_date,
-      bookie: basePayload.bookie
-    },
-    {
-      match: basePayload.match,
-      market: basePayload.market,
-      odds: basePayload.odds,
-      stake: basePayload.stake,
-      result: basePayload.result,
-      created_at: basePayload.created_at
-    }
-  ];
-
-  let lastError = null;
-  for(const payload of attempts){
-    const { data, error } = await client
-      .from("personal_tracker")
-      .update(payload)
-      .eq("user_id", userId)
-      .eq("id", safeRow.id)
-      .select("*")
-      .limit(1);
-    if(!error){
-      if(data && data.length) return normalizeTrackerRow(data[0]);
-      return normalizeTrackerRow(safeRow);
-    }
-    lastError = error;
-  }
-  if(lastError) throw lastError;
-  return null;
-}
-
-async function syncLocalTrackerRowsToCloud(localRows, userId){
-  const synced = [];
-  for(const row of (localRows || [])){
-    try{
-      const saved = await upsertTrackerRow(row);
-      synced.push(saved);
-    }catch(e){
-      console.error("syncLocalTrackerRowsToCloud", e);
-      synced.push(normalizeTrackerRow(row));
-    }
-  }
-  return synced;
 }
 
 async function readTrackerRows(){
@@ -603,21 +465,13 @@ async function readTrackerRows(){
       return cloudRows;
     }
 
+    // first-time cloud seed from local backup
     if(localRows.length){
-      const syncedRows = await syncLocalTrackerRowsToCloud(localRows, userId);
-      const { data: refreshed, error: refreshError } = await client
-        .from("personal_tracker")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: true });
-      if(refreshError) throw refreshError;
-      const refreshedRows = (refreshed || []).map(normalizeTrackerRow);
-      if(refreshedRows.length){
-        writeTrackerRowsLocal(refreshedRows);
-        return refreshedRows;
-      }
-      writeTrackerRowsLocal(syncedRows);
-      return syncedRows;
+      const seedRows = localRows.map(r => ({ ...normalizeTrackerRow(r), user_id: userId }));
+      const { error: seedError } = await client.from("personal_tracker").upsert(seedRows, { onConflict: "id" });
+      if(seedError) throw seedError;
+      writeTrackerRowsLocal(localRows);
+      return localRows;
     }
 
     return [];
@@ -629,59 +483,35 @@ async function readTrackerRows(){
 
 async function upsertTrackerRow(row){
   const safeRow = normalizeTrackerRow(row);
-  mergeTrackerRowIntoLocal(safeRow);
-
   const userId = await currentAuthUserId();
-  if(!userId) throw new Error("Sign in to save tracker bets across devices.");
 
-  try{
-    const existingCloudRow = await findExistingCloudTrackerRow(safeRow, userId);
-    if(existingCloudRow?.id != null){
-      safeRow.id = existingCloudRow.id;
-    }
+  // Always keep browser backup too
+  const localRows = readTrackerRowsLocal();
+  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
+  writeTrackerRowsLocal(nextLocal);
 
-    let savedRow = null;
-    if(!isTemporaryTrackerId(safeRow.id)){
-      savedRow = await updateTrackerRowCloudById(safeRow, userId);
-    }
-    if(!savedRow){
-      savedRow = await insertTrackerRowCloud(safeRow, userId);
-    }
+  if(!userId) return safeRow;
 
-    return mergeTrackerRowIntoLocal(savedRow);
-  }catch(error){
-    console.error("upsertTrackerRow cloud save failed", error);
-    throw error;
-  }
+  const payload = { ...safeRow, user_id: userId };
+  const { error } = await client.from("personal_tracker").upsert([payload], { onConflict: "id" });
+  if(error) throw error;
+  return safeRow;
 }
 
 async function deleteTrackerRowById(id){
-  const localRows = readTrackerRowsLocal();
-  const rowToDelete = localRows.find(r => String(r.id) === String(id)) || null;
-  writeTrackerRowsLocal(localRows.filter(r => String(r.id) !== String(id)));
+  const localRows = readTrackerRowsLocal().filter(r => String(r.id) !== String(id));
+  writeTrackerRowsLocal(localRows);
 
   const userId = await currentAuthUserId();
-  if(!userId) throw new Error("Sign in to remove tracker bets across devices.");
+  if(!userId) return;
 
-  const cloudId = rowToDelete && !isTemporaryTrackerId(rowToDelete.id) ? rowToDelete.id : null;
-  if(cloudId != null){
-    const { error } = await client
-      .from("personal_tracker")
-      .delete()
-      .eq("user_id", userId)
-      .eq("id", cloudId);
-    if(error) throw error;
-    return;
-  }
+  const { error } = await client
+    .from("personal_tracker")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id);
 
-  if(rowToDelete?.created_at){
-    const { error } = await client
-      .from("personal_tracker")
-      .delete()
-      .eq("user_id", userId)
-      .eq("created_at", rowToDelete.created_at);
-    if(error) throw error;
-  }
+  if(error) throw error;
 }
 
 
@@ -765,6 +595,7 @@ function getMarketCategory(rawMarket){
   const market = String(rawMarket || '').trim();
   const m = market.toLowerCase();
   if(!m) return '';
+  if(m.includes('in play') || m.includes('in-play') || m.includes('live')) return 'In Play Bets';
   if(m.includes('btts') || m.includes('both teams to score')) return 'BTTS';
   if(m.includes('shot on target') || m.includes('shots on target') || m.includes('sot')){
     if(m.includes('team')) return 'Team SoT';
@@ -1143,7 +974,18 @@ async function loadBets(){
   const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
   if(betsTbody) betsTbody.innerHTML = "";
 
-  const active=(data||[]).filter(isValueBetActiveToday);
+  const active=(data||[])
+    .filter(isValueBetActiveToday)
+    .sort((a,b)=>{
+      const dateA = normalizeDateOnly(a.bet_date || a.created_at) || '';
+      const dateB = normalizeDateOnly(b.bet_date || b.created_at) || '';
+      if(dateA !== dateB) return dateA.localeCompare(dateB);
+      const koDiff = kickoffSortValue(a) - kickoffSortValue(b);
+      if(koDiff !== 0) return koDiff;
+      const matchDiff = String(a.match || '').localeCompare(String(b.match || ''), undefined, { sensitivity:'base' });
+      if(matchDiff !== 0) return matchDiff;
+      return String(a.market || '').localeCompare(String(b.market || ''), undefined, { sensitivity:'base' });
+    });
   valueBetsAllRows = active.slice();
   refreshValueFilterOptions(active);
   if(!active.length){
@@ -1180,6 +1022,8 @@ async function loadBets(){
     const teaser = teaserCopyForLockedBet(row, state);
     const unlockLabel = formatUnlockLabel(state);
     const leagueName = row.league || row.competition || row.league_name || row.tournament || '';
+    const kickoffText = getKickoffTimeText(row);
+    const marketCategory = getMarketCategory(row.market || '');
 
     betsGrid.innerHTML += `
 <div class="bet-lock-wrap">
@@ -1190,9 +1034,11 @@ async function loadBets(){
         <span class="bet-date">${escapeHtml(betDate)}</span>
       </div>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
+      ${!locked && kickoffText ? `<div class="bet-meta"><span class="bet-kickoff-text">Kick off ${escapeHtml(kickoffText)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
       </div>
+      ${!locked && marketCategory ? `<div class="bet-meta"><span class="bet-market-category-text">${escapeHtml(marketCategory)}</span></div>` : ``}
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
     <div class="bet-details">
@@ -1211,9 +1057,9 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="table-date-cell">${escapeHtml(betDate)}</td>
+        <td class="table-date-cell">${escapeHtml(betDate)}${kickoffText ? `<div class="table-kickoff-text">KO ${escapeHtml(kickoffText)}</div>` : ''}</td>
         <td class="table-match-cell">${leagueName ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>` : ''}<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
-        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
+        <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div>${marketCategory ? `<div class="table-market-category-text">${escapeHtml(marketCategory)}</div>` : ''}</div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
         <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
@@ -1256,6 +1102,7 @@ async function addToTracker(btn, row){
     result: "pending",
     created_at: new Date().toISOString(),
     bet_date: row.bet_date || null,
+    kickoff_time: getKickoffTimeText(row) || null,
     bookie: row.bookie || null,
     sport: getBetSport(row)
   };
@@ -1268,7 +1115,7 @@ async function addToTracker(btn, row){
       btn.disabled = false;
       btn.textContent = 'Add';
     }
-    alert(e?.message || 'Could not save tracker bet right now.');
+    alert('Could not save tracker bet right now.');
     return;
   }
 
@@ -1412,9 +1259,10 @@ function _buildTrackerTableHTML(rows){
     const profitText = (profit >= 0 ? `£${profit.toFixed(2)}` : `£${profit.toFixed(2)}`);
 
     const dateLabel = fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at);
+    const kickoffText = getKickoffTimeText(row);
 
     html += `<tr>
-      <td class="date-col">${dateLabel}</td>
+      <td class="date-col">${dateLabel}${kickoffText ? `<div class="tracker-kickoff-text">KO ${escapeHtml(kickoffText)}</div>` : ''}</td>
       <td>${row.match || ""}</td>
       <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td>
@@ -1673,7 +1521,16 @@ function pulseStatCard(el){
 
 
 async function loadTracker(){
-const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
+const rows = (await readTrackerRows()).slice().sort((a,b)=>{
+  const dateA = normalizeDateOnly(a.bet_date || a.created_at) || '';
+  const dateB = normalizeDateOnly(b.bet_date || b.created_at) || '';
+  if(dateA !== dateB) return dateA.localeCompare(dateB);
+  const koDiff = kickoffSortValue(a) - kickoffSortValue(b);
+  if(koDiff !== 0) return koDiff;
+  const matchDiff = String(a.match || '').localeCompare(String(b.match || ''), undefined, { sensitivity:'base' });
+  if(matchDiff !== 0) return matchDiff;
+  return String(a.market || '').localeCompare(String(b.market || ''), undefined, { sensitivity:'base' });
+});
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -1697,6 +1554,8 @@ profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
 bankroll=start+profit;
 
 const gameDate = row.match_date_date || row.bet_date || row.created_at;
+const kickoffText = getKickoffTimeText(row);
+const marketCategory = getMarketCategory(row.market || '');
 const dayKey = fmtDayLabel(gameDate);
 const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
 dayKeys.push(dayKey);
@@ -1706,9 +1565,11 @@ history.push(bankroll);
 tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
+  ${kickoffText ? `<div class="tracker-kickoff-text">Kick off ${escapeHtml(kickoffText)}</div>` : ``}
   <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
+  ${marketCategory ? `<div class="tracker-market-category-text">${escapeHtml(marketCategory)}</div>` : ``}
 </td>
-<td class="tracker-market-col">${getMarketIcon(row.market)} ${row.market || "—"}</td>
+<td class="tracker-market-col">${marketCategory || (row.market || "—")}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -1878,7 +1739,7 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 const marketMap = {};
 const marketWL = {}; // {market:{wins,losses,pending,bets}}
 rows.forEach(r=>{
-  const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
+  const mk = getMarketCategory(r.market || '') || "Unknown";
   marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
 
   if(!marketWL[mk]) marketWL[mk] = {wins:0,losses:0,pending:0,bets:0};
