@@ -12,17 +12,11 @@ function normalizeVipEmail(email){
 }
 
 
-
-function syncVipPromoVisibility(){
-  const vipPromoEl = document.getElementById('vipPromo');
-  document.body.classList.toggle('vip-active', !!vipActive);
-  if(!vipPromoEl) return;
-  vipPromoEl.style.display = vipActive ? 'none' : '';
-}
-
 function setVipUI(active, email){
   vipActive = !!active;
 
+  // ✅ ADD THIS LINE (this is the fix)
+  document.body.classList.toggle('vip-active', !!active);
   const titleEl = document.getElementById('vipTitle');
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
@@ -51,8 +45,6 @@ function setVipUI(active, email){
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
   }
-
-  syncVipPromoVisibility();
 }
 
 function openVipModal(){
@@ -224,52 +216,6 @@ function normalizeDateOnly(value){
   const dt=new Date(value);
   if(!Number.isNaN(dt.getTime())) return toLocalYMD(dt);
   return null;
-}
-function normalizeKickoffTime(value){
-  if(value == null) return '';
-  let t = String(value).trim();
-  if(!t) return '';
-  t = t.replace(/\s+/g,'').toUpperCase();
-  const ampm = t.match(/^(\d{1,2})(?::?(\d{2}))?(AM|PM)$/i);
-  if(ampm){
-    let h = Number(ampm[1]);
-    const m = String(ampm[2] || '00').padStart(2,'0');
-    const mer = ampm[3].toUpperCase();
-    if(mer === 'AM'){
-      if(h === 12) h = 0;
-    }else if(h < 12){
-      h += 12;
-    }
-    return `${String(h).padStart(2,'0')}:${m}`;
-  }
-  const match = t.match(/^(\d{1,2})(?::?(\d{2}))$/);
-  if(match){
-    return `${String(Number(match[1])).padStart(2,'0')}:${String(match[2] || '00').padStart(2,'0')}`;
-  }
-  return String(value).trim();
-}
-function kickoffSortValue(row){
-  const k = normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || '');
-  if(!k) return '99:99';
-  return k;
-}
-function sortRowsByDateTimeMatch(rows){
-  return (rows || []).slice().sort((a,b)=>{
-    const aDate = normalizeDateOnly(a?.bet_date || a?.created_at) || '9999-99-99';
-    const bDate = normalizeDateOnly(b?.bet_date || b?.created_at) || '9999-99-99';
-    if(aDate !== bDate) return aDate.localeCompare(bDate);
-    const aKick = kickoffSortValue(a);
-    const bKick = kickoffSortValue(b);
-    if(aKick !== bKick) return aKick.localeCompare(bKick);
-    const aMatch = String(a?.match || '');
-    const bMatch = String(b?.match || '');
-    if(aMatch !== bMatch) return aMatch.localeCompare(bMatch, undefined, { sensitivity:'base' });
-    return String(a?.market || '').localeCompare(String(b?.market || ''), undefined, { sensitivity:'base' });
-  });
-}
-function formatKickoffLabel(row){
-  const k = normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || '');
-  return k ? `Kick off ${k}` : '';
 }
 function isValueBetActiveToday(row){
   const today=toLocalYMD(new Date());
@@ -469,6 +415,9 @@ function makeLocalTrackerId(){
 
 async function currentAuthUserId(){
   try{
+    const { data: sessionData } = await client.auth.getSession();
+    const sessionUserId = sessionData?.session?.user?.id || null;
+    if(sessionUserId) return sessionUserId;
     const { data, error } = await client.auth.getUser();
     if(error) return null;
     return data?.user?.id || null;
@@ -477,8 +426,164 @@ async function currentAuthUserId(){
   }
 }
 
+function trackerCloudBasePayload(row, userId){
+  const safeRow = normalizeTrackerRow(row);
+  return {
+    user_id: userId,
+    match: safeRow.match || "",
+    market: safeRow.market || "",
+    odds: Number(safeRow.odds || 0),
+    stake: Number(safeRow.stake == null ? 10 : safeRow.stake),
+    result: safeRow.result || "pending",
+    created_at: safeRow.created_at || new Date().toISOString(),
+    bet_date: safeRow.bet_date || null,
+    bookie: safeRow.bookie || null
+  };
+}
+
+function trackerCloudExtraPayload(row){
+  const safeRow = normalizeTrackerRow(row);
+  const extra = {};
+  if(safeRow.sync_id) extra.sync_id = safeRow.sync_id;
+  return extra;
+}
+
+function isTemporaryTrackerId(id){
+  return String(id || '').startsWith('trk_');
+}
+
+function mergeTrackerRowIntoLocal(row){
+  const safeRow = normalizeTrackerRow(row);
+  const localRows = readTrackerRowsLocal();
+  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
+  writeTrackerRowsLocal(nextLocal);
+  return safeRow;
+}
+
+async function findExistingCloudTrackerRow(row, userId){
+  const safeRow = normalizeTrackerRow(row);
+  const createdAt = safeRow.created_at || null;
+  if(!createdAt) return null;
+  try{
+    const { data, error } = await client
+      .from("personal_tracker")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("created_at", createdAt)
+      .limit(1);
+    if(error) throw error;
+    return data?.[0] || null;
+  }catch(e){
+    console.error("findExistingCloudTrackerRow", e);
+    return null;
+  }
+}
+
+async function insertTrackerRowCloud(row, userId){
+  const basePayload = trackerCloudBasePayload(row, userId);
+  const attempts = [
+    { ...basePayload, ...trackerCloudExtraPayload(row) },
+    basePayload,
+    {
+      user_id: userId,
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at,
+      bet_date: basePayload.bet_date,
+      bookie: basePayload.bookie
+    },
+    {
+      user_id: userId,
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at
+    }
+  ];
+
+  let lastError = null;
+  for(const payload of attempts){
+    const { data, error } = await client
+      .from("personal_tracker")
+      .insert([payload])
+      .select("*")
+      .limit(1);
+    if(!error){
+      return normalizeTrackerRow(data?.[0] || { ...row, ...payload });
+    }
+    lastError = error;
+  }
+  throw lastError || new Error("Cloud insert failed.");
+}
+
+async function updateTrackerRowCloudById(row, userId){
+  const safeRow = normalizeTrackerRow(row);
+  if(isTemporaryTrackerId(safeRow.id)) return null;
+
+  const basePayload = trackerCloudBasePayload(safeRow, userId);
+  const attempts = [
+    { ...basePayload, ...trackerCloudExtraPayload(safeRow) },
+    basePayload,
+    {
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at,
+      bet_date: basePayload.bet_date,
+      bookie: basePayload.bookie
+    },
+    {
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at
+    }
+  ];
+
+  let lastError = null;
+  for(const payload of attempts){
+    const { data, error } = await client
+      .from("personal_tracker")
+      .update(payload)
+      .eq("user_id", userId)
+      .eq("id", safeRow.id)
+      .select("*")
+      .limit(1);
+    if(!error){
+      if(data && data.length) return normalizeTrackerRow(data[0]);
+      return normalizeTrackerRow(safeRow);
+    }
+    lastError = error;
+  }
+  if(lastError) throw lastError;
+  return null;
+}
+
+async function syncLocalTrackerRowsToCloud(localRows, userId){
+  const synced = [];
+  for(const row of (localRows || [])){
+    try{
+      const saved = await upsertTrackerRow(row);
+      synced.push(saved);
+    }catch(e){
+      console.error("syncLocalTrackerRowsToCloud", e);
+      synced.push(normalizeTrackerRow(row));
+    }
+  }
+  return synced;
+}
+
 async function readTrackerRows(){
-  const localRows = sortRowsByDateTimeMatch(readTrackerRowsLocal());
+  const localRows = readTrackerRowsLocal();
 
   const userId = await currentAuthUserId();
   if(!userId) return localRows;
@@ -487,37 +592,32 @@ async function readTrackerRows(){
     const { data, error } = await client
       .from("personal_tracker")
       .select("*")
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true });
 
     if(error) throw error;
 
-    const cloudRows = sortRowsByDateTimeMatch((data || []).map(normalizeTrackerRow));
-
-    if(cloudRows.length && localRows.length){
-      const byKey = new Map();
-      cloudRows.forEach(r=>{
-        const key = String(r.id || '') || `${r.created_at || ''}|${r.match || ''}|${r.market || ''}`;
-        byKey.set(key, r);
-      });
-      localRows.forEach(r=>{
-        const key = String(r.id || '') || `${r.created_at || ''}|${r.match || ''}|${r.market || ''}`;
-        byKey.set(key, r);
-      });
-      const merged = sortRowsByDateTimeMatch(Array.from(byKey.values()));
-      writeTrackerRowsLocal(merged);
-      return merged;
-    }
-
+    const cloudRows = (data || []).map(normalizeTrackerRow);
     if(cloudRows.length){
       writeTrackerRowsLocal(cloudRows);
       return cloudRows;
     }
 
     if(localRows.length){
-      for (const row of localRows){
-        try{ await upsertTrackerRow(row); }catch(e){ console.error('tracker seed row failed', e); }
+      const syncedRows = await syncLocalTrackerRowsToCloud(localRows, userId);
+      const { data: refreshed, error: refreshError } = await client
+        .from("personal_tracker")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+      if(refreshError) throw refreshError;
+      const refreshedRows = (refreshed || []).map(normalizeTrackerRow);
+      if(refreshedRows.length){
+        writeTrackerRowsLocal(refreshedRows);
+        return refreshedRows;
       }
-      return sortRowsByDateTimeMatch(readTrackerRowsLocal());
+      writeTrackerRowsLocal(syncedRows);
+      return syncedRows;
     }
 
     return [];
@@ -529,47 +629,59 @@ async function readTrackerRows(){
 
 async function upsertTrackerRow(row){
   const safeRow = normalizeTrackerRow(row);
+  mergeTrackerRowIntoLocal(safeRow);
+
   const userId = await currentAuthUserId();
+  if(!userId) throw new Error("Sign in to save tracker bets across devices.");
 
-  const localRows = readTrackerRowsLocal();
-  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
-  writeTrackerRowsLocal(sortRowsByDateTimeMatch(nextLocal));
+  try{
+    const existingCloudRow = await findExistingCloudTrackerRow(safeRow, userId);
+    if(existingCloudRow?.id != null){
+      safeRow.id = existingCloudRow.id;
+    }
 
-  if(!userId) return safeRow;
+    let savedRow = null;
+    if(!isTemporaryTrackerId(safeRow.id)){
+      savedRow = await updateTrackerRowCloudById(safeRow, userId);
+    }
+    if(!savedRow){
+      savedRow = await insertTrackerRowCloud(safeRow, userId);
+    }
 
-  const basePayload = { ...safeRow, user_id: userId };
-  const attempts = [
-    basePayload,
-    (({kickoff_time, ...rest}) => rest)(basePayload),
-    (({sport, ...rest}) => rest)(basePayload),
-    (({kickoff_time, sport, ...rest}) => rest)(basePayload),
-  ];
-
-  let lastError = null;
-  for(const payload of attempts){
-    const { error } = await client.from("personal_tracker").upsert([payload], { onConflict: "id" });
-    if(!error) return safeRow;
-    lastError = error;
+    return mergeTrackerRowIntoLocal(savedRow);
+  }catch(error){
+    console.error("upsertTrackerRow cloud save failed", error);
+    throw error;
   }
-
-  console.error("upsertTrackerRow cloud save failed", lastError);
-  return safeRow;
 }
 
 async function deleteTrackerRowById(id){
-  const localRows = readTrackerRowsLocal().filter(r => String(r.id) !== String(id));
-  writeTrackerRowsLocal(localRows);
+  const localRows = readTrackerRowsLocal();
+  const rowToDelete = localRows.find(r => String(r.id) === String(id)) || null;
+  writeTrackerRowsLocal(localRows.filter(r => String(r.id) !== String(id)));
 
   const userId = await currentAuthUserId();
-  if(!userId) return;
+  if(!userId) throw new Error("Sign in to remove tracker bets across devices.");
 
-  const { error } = await client
-    .from("personal_tracker")
-    .delete()
-    .eq("user_id", userId)
-    .eq("id", id);
+  const cloudId = rowToDelete && !isTemporaryTrackerId(rowToDelete.id) ? rowToDelete.id : null;
+  if(cloudId != null){
+    const { error } = await client
+      .from("personal_tracker")
+      .delete()
+      .eq("user_id", userId)
+      .eq("id", cloudId);
+    if(error) throw error;
+    return;
+  }
 
-  if(error) throw error;
+  if(rowToDelete?.created_at){
+    const { error } = await client
+      .from("personal_tracker")
+      .delete()
+      .eq("user_id", userId)
+      .eq("created_at", rowToDelete.created_at);
+    if(error) throw error;
+  }
 }
 
 
@@ -579,16 +691,6 @@ function applyLayout(mode){
   localStorage.setItem("layout_mode", mode);
   if(btnCompact) btnCompact.classList.toggle("active", mode !== "wide");
   if(btnWide) btnWide.classList.toggle("active", mode === "wide");
-
-  try{
-    if(currentTopTab === "tracker"){
-      loadTracker();
-    }else if(currentTopTab === "bets"){
-      loadBets();
-    }else if(currentTopTab === "tdt"){
-      loadTdtTracker();
-    }
-  }catch(e){ console.error("layout re-render failed", e); }
 }
 
 (function initLayoutMode(){
@@ -663,7 +765,6 @@ function getMarketCategory(rawMarket){
   const market = String(rawMarket || '').trim();
   const m = market.toLowerCase();
   if(!m) return '';
-  if(m.includes('in play') || m.includes('live')) return 'In Play Bets';
   if(m.includes('btts') || m.includes('both teams to score')) return 'BTTS';
   if(m.includes('shot on target') || m.includes('shots on target') || m.includes('sot')){
     if(m.includes('team')) return 'Team SoT';
@@ -678,7 +779,7 @@ function getMarketCategory(rawMarket){
   if(m.includes('draw no bet') || m.includes('dnb') || m.includes('double chance')) return 'Match Winner';
   if(m.includes('handicap')) return 'Asian Handicap';
   if(m.includes('match winner') || m.includes('to win') || m.includes('win') || m == 'home' || m == 'away' || m == 'draw') return 'Match Winner';
-  if(m.includes('goal') || m.includes('fhg') || m.includes('fgh') || m.includes('team total')) return 'Goals O/U';
+  if(m.includes('goal') || m.includes('fhg') || m.includes('fgh') || m.includes('team total')) return 'Goals Over & Under';
   if((m.includes('over') || m.includes('under')) && m.includes('corner')) return 'Corners';
   if((m.includes('over') || m.includes('under')) && m.includes('card')) return 'Cards';
   if((m.includes('over') || m.includes('under')) && m.includes('throw')) return 'Throw In';
@@ -688,7 +789,7 @@ function getMarketCategory(rawMarket){
   }
   if((m.includes('over') || m.includes('under')) && m.includes('foul')) return 'Fouls';
   if((m.includes('over') || m.includes('under')) && m.includes('offside')) return 'Offsides';
-  if((m.includes('over') || m.includes('under')) || m.includes('goal')) return 'Goals O/U';
+  if((m.includes('over') || m.includes('under')) || m.includes('goal')) return 'Goals Over & Under';
   return market;
 }
 function getValueFilterState(){
@@ -711,7 +812,7 @@ function uniqueSortedFilterValues(rows, getter){
   return Array.from(map.values()).sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:'base' }));
 }
 function getOrderedMarketCategories(rows){
-  const preferred = ['Match Winner','Goals O/U','BTTS','Corners','Cards','In Play Bets','Fouls','Offsides','Shots On Target','Team SoT','Asian Handicap','Throw In'];
+  const preferred = ['Match Winner','Goals Over & Under','BTTS','Corners','Cards','Fouls','Offsides','Shots On Target','Team SoT','Asian Handicap','Throw In'];
   const found = uniqueSortedFilterValues(rows, r => getMarketCategory(r.market));
   const ordered = [];
   preferred.forEach(name => { if(found.includes(name)) ordered.push(name); });
@@ -1036,13 +1137,13 @@ async function loadBets(){
     localRows.forEach(r => addedKeys.add(makeBetKey(r)));
   }catch(e){}
 
-  const {data} = await client.from("value_bets_feed").select("*");
+  const {data} = await client.from("value_bets_feed").select("*").order("value_pct",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
   betsGrid.innerHTML="";
   const betsTable=document.getElementById('betsTable');
   const betsTbody=betsTable ? betsTable.querySelector('tbody') : null;
   if(betsTbody) betsTbody.innerHTML = "";
 
-  const active = sortRowsByDateTimeMatch((data||[]).filter(isValueBetActiveToday));
+  const active=(data||[]).filter(isValueBetActiveToday);
   valueBetsAllRows = active.slice();
   refreshValueFilterOptions(active);
   if(!active.length){
@@ -1070,8 +1171,6 @@ async function loadBets(){
     if(!locked) visibleForAlerts.push(row);
 
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
-    const kickoffText = normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '');
-    const dateTimeLabel = kickoffText ? `${betDate} • ${kickoffText}` : betDate;
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -1088,7 +1187,7 @@ async function loadBets(){
     <div class="bet-teaser">
       <div class="bet-title-row">
         <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-        <span class="bet-date">${escapeHtml(dateTimeLabel)}</span>
+        <span class="bet-date">${escapeHtml(betDate)}</span>
       </div>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
@@ -1112,7 +1211,7 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="table-date-cell">${escapeHtml(betDate)}${formatKickoffLabel(row) ? `<div class="table-kickoff">${escapeHtml(normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || ''))}</div>` : ''}</td>
+        <td class="table-date-cell">${escapeHtml(betDate)}</td>
         <td class="table-match-cell">${leagueName ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>` : ''}<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
@@ -1157,7 +1256,6 @@ async function addToTracker(btn, row){
     result: "pending",
     created_at: new Date().toISOString(),
     bet_date: row.bet_date || null,
-    kickoff_time: normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '' ) || null,
     bookie: row.bookie || null,
     sport: getBetSport(row)
   };
@@ -1170,6 +1268,7 @@ async function addToTracker(btn, row){
       btn.disabled = false;
       btn.textContent = 'Add';
     }
+    alert(e?.message || 'Could not save tracker bet right now.');
     return;
   }
 
@@ -1574,7 +1673,7 @@ function pulseStatCard(el){
 
 
 async function loadTracker(){
-const rows = sortRowsByDateTimeMatch(await readTrackerRows());
+const rows = (await readTrackerRows()).slice().sort((a,b)=> new Date(a.created_at||0) - new Date(b.created_at||0));
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
@@ -1607,10 +1706,9 @@ history.push(bankroll);
 tableRows.push(`<tr>
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``}
   <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
 </td>
-<td class="tracker-market-col">${getMarketCategory(row.market) || row.market || "—"}</td>
+<td class="tracker-market-col">${getMarketIcon(row.market)} ${row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -1780,7 +1878,7 @@ renderMonthlyChart(monthlyProfit, monthlyROI, monthLabels);
 const marketMap = {};
 const marketWL = {}; // {market:{wins,losses,pending,bets}}
 rows.forEach(r=>{
-  const mk = getMarketCategory(r.market) || ((r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown");
+  const mk = (r.market && String(r.market).trim()) ? String(r.market).trim() : "Unknown";
   marketMap[mk] = (marketMap[mk]||0) + rowProfit(r);
 
   if(!marketWL[mk]) marketWL[mk] = {wins:0,losses:0,pending:0,bets:0};
@@ -1856,23 +1954,6 @@ async function updateStake(id,val){
 
 async function updateResult(id,val){
   const rows = await readTrackerRows();
-  const selectEls = Array.from(document.querySelectorAll('.result-select')).filter(el=>{
-    const attr = el.getAttribute('onchange') || '';
-    return attr.includes(`updateResult('${id}'`) || attr.includes(`updateResult("${id}"`);
-  });
-  const setSelectVisuals = (value)=>{
-    selectEls.forEach(el=>{
-      el.value = value;
-      el.classList.remove('result-won','result-lost','result-pending');
-      el.classList.add(`result-${value}`);
-      const card = el.closest('.tracker-grid-card');
-      if(card){
-        card.classList.remove('tracker-grid-card--won','tracker-grid-card--lost','tracker-grid-card--pending');
-        card.classList.add(`tracker-grid-card--${value}`);
-      }
-    });
-  };
-
   if(val==="delete"){
     if(!confirm("Delete this bet?")){loadTracker();return;}
     const row = rows.find(r => String(r.id)===String(id));
@@ -1882,7 +1963,6 @@ async function updateResult(id,val){
     }
     loadBets();
   }else{
-    setSelectVisuals(val);
     const updated = rows.map(r => String(r.id)===String(id) ? { ...r, result: val } : r);
     const row = updated.find(r => String(r.id)===String(id));
     if(row){
@@ -1892,7 +1972,7 @@ async function updateResult(id,val){
       try{ await upsertTdtMirror(row); }catch(e){ console.error(e); }
     }
   }
-  await loadTracker();
+  loadTracker();
 }
 
 
@@ -2173,48 +2253,6 @@ function toggleTdtTracker(){
     wrapper.classList.remove("expanded");
     wrapper.classList.add("collapsed");
     arrow.innerText="▼";
-  }
-}
-
-
-async function clearTrackerData(){
-  const ok = window.confirm("Clear all tracker bets and start fresh? This clears this account's tracker and this device backup.");
-  if(!ok) return;
-
-  const btn = document.getElementById("clearTrackerBtn");
-  if(btn){
-    btn.disabled = true;
-    btn.textContent = "Clearing…";
-  }
-
-  try{
-    writeTrackerRowsLocal([]);
-    addedKeys.clear();
-
-    const userId = await currentAuthUserId();
-    if(userId){
-      const { error } = await client
-        .from("personal_tracker")
-        .delete()
-        .eq("user_id", userId);
-      if(error) throw error;
-    }
-
-    trackerRowsCache = [];
-    trackerAllRows = [];
-
-    await loadTracker();
-    await loadBets();
-    alert("Tracker cleared.");
-  }catch(e){
-    console.error(e);
-    alert("Could not clear tracker right now.");
-  }finally{
-    const btn = document.getElementById("clearTrackerBtn");
-    if(btn){
-      btn.disabled = false;
-      btn.textContent = "Clear Tracker";
-    }
   }
 }
 
@@ -3595,10 +3633,7 @@ window.forgotVipPassword = forgotVipPassword;
             html += `
               <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                 <div class="tracker-grid-top">
-                  <div>
-                    <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
-                    ${formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
-                  </div>
+                  <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
                   <div class="tracker-grid-top-result">
                     <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
                       <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
@@ -3657,32 +3692,14 @@ window.forgotVipPassword = forgotVipPassword;
     return html;
   };
 
-  window.buildTrackerWideHTML = function(rows){
-    const list = sortRowsByDateTimeMatch(rows || []).slice().reverse();
-    let html = `<div class="tracker-desktop-table-wrap"><table class="tracker-desktop-table"><thead><tr><th>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr></thead><tbody>`;
-    list.forEach(row=>{
-      const p = rowProfit(row);
-      html += `<tr>
-        <td class="tracker-desktop-date">${trackerEsc(fmtLabel(row.match_date_date || row.bet_date || row.created_at || ''))}</td>
-        <td class="tracker-desktop-match"><div class="tracker-match-name">${trackerEsc(row.match || '—')}</div>${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}</td>
-        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))} ${trackerEsc(row.market || '—')}</td>
-        <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
-        <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
-        <td><select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)"><option value="pending" ${(row.result==='pending'?'selected':'')}>pending</option><option value="won" ${(row.result==='won'?'selected':'')}>won</option><option value="lost" ${(row.result==='lost'?'selected':'')}>lost</option><option value="delete">🗑 delete</option></select></td>
-        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${Number(p || 0).toFixed(2)}</span></td>
-      </tr>`;
-    });
-    html += `</tbody></table></div>`;
-    return html;
-  };
-
   if(typeof _renderFilteredTrackerTable === "function"){
     _renderFilteredTrackerTable = function(){
       const tableEl = document.getElementById("trackerTable");
       const countEl = document.getElementById("betCount");
       if(!tableEl) return;
-      const filtered = _applyTrackerFilters(trackerAllRows || []);
-      tableEl.innerHTML = document.body.classList.contains('layout-wide') ? buildTrackerWideHTML(filtered) : buildTrackerGroupedHTML(filtered);
+
+      const filtered = _applyTrackerFilters(trackerAllRows);
+      tableEl.innerHTML = buildTrackerGroupedHTML(filtered);
       if(countEl) countEl.textContent = filtered.length;
     };
   }
@@ -3700,11 +3717,10 @@ window.forgotVipPassword = forgotVipPassword;
       await __rebuiltLoadTracker();
       try{
         const tableEl = document.getElementById("trackerTable");
-        const countEl = document.getElementById("betCount");
         if(tableEl && Array.isArray(trackerAllRows)){
-          const filtered = _applyTrackerFilters(trackerAllRows || []);
-          tableEl.innerHTML = document.body.classList.contains('layout-wide') ? buildTrackerWideHTML(filtered) : buildTrackerGroupedHTML(filtered);
-          if(countEl) countEl.textContent = filtered.length;
+          tableEl.innerHTML = buildTrackerGroupedHTML(trackerAllRows);
+          const countEl = document.getElementById("betCount");
+          if(countEl) countEl.textContent = trackerAllRows.length;
         }
       }catch(e){
         console.error("Rebuilt tracker grouping failed", e);
