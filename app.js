@@ -597,11 +597,12 @@ function applyLayout(mode){
 
 (function initLayoutMode(){
   const saved = localStorage.getItem("layout_mode");
-  if(saved === "wide" || saved === "compact"){
+  if(window.innerWidth < 950){
+    applyLayout("compact");
+  }else if(saved === "wide" || saved === "compact"){
     applyLayout(saved);
   }else{
-    // Default: compact on small screens, wide on desktop
-    applyLayout(window.innerWidth >= 950 ? "wide" : "compact");
+    applyLayout("wide");
   }
   if(btnCompact) btnCompact.addEventListener("click", ()=>applyLayout("compact"));
   if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
@@ -3507,6 +3508,7 @@ window.forgotVipPassword = forgotVipPassword;
   };
 
   window.buildTrackerGroupedHTML = function(rows){
+    const isWideTracker = document.body.classList.contains('layout-wide');
     const list = (rows || []).slice().sort((a,b)=>{
       const aDate = trackerParseDate(trackerRawDate(a));
       const bDate = trackerParseDate(trackerRawDate(b));
@@ -3611,53 +3613,109 @@ window.forgotVipPassword = forgotVipPassword;
             groupedMatchMap.get(groupKey).rows.push(row);
           });
 
-          groupedMatches.forEach(group=>{
-            group.rows.forEach(row=>{
-              html += `
-                <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
-                  <div class="tracker-grid-top">
-                    <div class="tracker-grid-top-left">
-                      <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
-                      ${formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
-                    </div>
-                    <div class="tracker-grid-top-result">
+          if(isWideTracker){
+            html += `
+              <div class="tracker-desktop-table-wrap">
+                <table class="tracker-desktop-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Match</th>
+                      <th>Market</th>
+                      <th>Odds</th>
+                      <th>Stake</th>
+                      <th>Result</th>
+                      <th class="profit-col">Profit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+            `;
+
+            groupedMatches.forEach(group=>{
+              group.rows.forEach(row=>{
+                let profit = 0;
+                if(row.result === 'won') profit = Number(row.stake || 0) * (Number(row.odds || 0) - 1);
+                if(row.result === 'lost') profit = -Number(row.stake || 0);
+                const profitClass = profit > 0 ? 'profit-win' : profit < 0 ? 'profit-loss' : '';
+                const dateLabel = trackerEsc(fmtLabel(row.match_date_date || row.match_date || row.bet_date || row.created_at));
+                html += `
+                  <tr>
+                    <td class="tracker-desktop-date">${dateLabel}</td>
+                    <td class="tracker-desktop-match">
+                      <div class="tracker-desktop-match-name">${trackerEsc(row.match || "")}</div>
+                      ${formatKickoffLabel(row) ? `<div class="tracker-desktop-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
+                    </td>
+                    <td class="tracker-desktop-market">${trackerEsc(row.market || "—")}</td>
+                    <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}', this.value)"></td>
+                    <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}', this.value)"></td>
+                    <td>
                       <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
                         <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
                         <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
                         <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
                         <option value="delete">🗑 delete</option>
                       </select>
-                    </div>
-                  </div>
-                  <div class="tracker-grid-meta tracker-grid-meta--single-row">
-                    <div class="tracker-grid-market-slot">
-                      <span>Market</span>
-                      <div class="tracker-grid-market-inline">
-                        ${trackerEsc(row.market || "—")}
+                    </td>
+                    <td class="profit-col"><span class="${profitClass}">${profit >= 0 ? '£' + profit.toFixed(2) : '£' + profit.toFixed(2)}</span></td>
+                  </tr>
+                `;
+              });
+            });
+
+            html += `
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }else{
+            groupedMatches.forEach(group=>{
+              group.rows.forEach(row=>{
+                html += `
+                  <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
+                    <div class="tracker-grid-top">
+                      <div class="tracker-grid-top-left">
+                        <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
+                        ${formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
+                      </div>
+                      <div class="tracker-grid-top-result">
+                        <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
+                          <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
+                          <option value="won" ${(row.result==="won"?"selected":"")}>won</option>
+                          <option value="lost" ${(row.result==="lost"?"selected":"")}>lost</option>
+                          <option value="delete">🗑 delete</option>
+                        </select>
                       </div>
                     </div>
+                    <div class="tracker-grid-meta tracker-grid-meta--single-row">
+                      <div class="tracker-grid-market-slot">
+                        <span>Market</span>
+                        <div class="tracker-grid-market-inline">
+                          ${trackerEsc(row.market || "—")}
+                        </div>
+                      </div>
 
-                    <div>
-                      <span>Odds</span>
-                      <input 
-                        type="number" 
-                        step="0.01" 
-                        value="${Number(row.odds ?? 0)}" 
-                        onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
-                    </div>
+                      <div>
+                        <span>Odds</span>
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          value="${Number(row.odds ?? 0)}" 
+                          onchange="updateOdds('${trackerEsc(row.id)}', this.value)">
+                      </div>
 
-                    <div>
-                      <span>Stake</span>
-                      <input 
-                        type="number" 
-                        value="${Number(row.stake || 0)}" 
-                        onchange="updateStake('${trackerEsc(row.id)}', this.value)">
+                      <div>
+                        <span>Stake</span>
+                        <input 
+                          type="number" 
+                          value="${Number(row.stake || 0)}" 
+                          onchange="updateStake('${trackerEsc(row.id)}', this.value)">
+                      </div>
                     </div>
                   </div>
-                </div>
-              `;
+                `;
+              });
             });
-          });
+          }
 
           html += `
                 </div>

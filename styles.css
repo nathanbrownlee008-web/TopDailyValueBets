@@ -6144,3 +6144,8 @@ body.layout-wide #trackerTable .tracker-bet-list{
 body.layout-wide #trackerTable .tracker-desktop-table-wrap{
   display:none !important;
 }
+
+
+/* ===== Tracker desktop table extras ===== */
+body.layout-wide #trackerTable .tracker-desktop-match-name{font-weight:800;color:#f8fafc;line-height:1.15;}
+body.layout-wide #trackerTable .tracker-desktop-kickoff{margin-top:4px;font-size:12px;color:rgba(226,232,240,0.72);}
