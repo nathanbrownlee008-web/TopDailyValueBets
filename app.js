@@ -1635,7 +1635,13 @@ onchange="updateResult('${row.id}',this.value)">
 let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
-trackerTable.innerHTML=html;
+if(typeof buildTrackerGroupedHTML === "function"){
+  trackerTable.innerHTML = buildTrackerGroupedHTML(rows);
+}else{
+  trackerTable.innerHTML=html;
+}
+const betCountEl = document.getElementById("betCount");
+if(betCountEl) betCountEl.textContent = rows.length;
 
 bankrollElem.innerText=bankroll.toFixed(2);
 profitElem.innerText=profit.toFixed(2);
