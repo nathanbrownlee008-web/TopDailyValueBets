@@ -12,17 +12,11 @@ function normalizeVipEmail(email){
 }
 
 
-
-function syncVipPromoVisibility(){
-  const vipPromoEl = document.getElementById('vipPromo');
-  document.body.classList.toggle('vip-active', !!vipActive);
-  if(!vipPromoEl) return;
-  vipPromoEl.style.display = vipActive ? 'none' : '';
-}
-
 function setVipUI(active, email){
   vipActive = !!active;
 
+  // ✅ ADD THIS LINE (this is the fix)
+  document.body.classList.toggle('vip-active', !!active);
   const titleEl = document.getElementById('vipTitle');
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
@@ -51,8 +45,6 @@ function setVipUI(active, email){
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
   }
-
-  syncVipPromoVisibility();
 }
 
 function openVipModal(){
@@ -1004,7 +996,6 @@ async function loadBets(){
     <div class="bet-teaser">
       <div class="bet-title-row">
         <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-        <span class="bet-sport-inline">${getSportIcon(row)} ${getSportLabel(getBetSport(row))}</span>
         <span class="bet-date">${escapeHtml(betDate)}</span>
       </div>
       ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
@@ -2071,48 +2062,6 @@ function toggleTdtTracker(){
     wrapper.classList.remove("expanded");
     wrapper.classList.add("collapsed");
     arrow.innerText="▼";
-  }
-}
-
-
-async function clearTrackerData(){
-  const ok = window.confirm("Clear all tracker bets and start fresh? This clears this account's tracker and this device backup.");
-  if(!ok) return;
-
-  const btn = document.getElementById("clearTrackerBtn");
-  if(btn){
-    btn.disabled = true;
-    btn.textContent = "Clearing…";
-  }
-
-  try{
-    writeTrackerRowsLocal([]);
-    addedKeys.clear();
-
-    const userId = await currentAuthUserId();
-    if(userId){
-      const { error } = await client
-        .from("personal_tracker")
-        .delete()
-        .eq("user_id", userId);
-      if(error) throw error;
-    }
-
-    trackerRowsCache = [];
-    trackerAllRows = [];
-
-    await loadTracker();
-    await loadBets();
-    alert("Tracker cleared.");
-  }catch(e){
-    console.error(e);
-    alert("Could not clear tracker right now.");
-  }finally{
-    const btn = document.getElementById("clearTrackerBtn");
-    if(btn){
-      btn.disabled = false;
-      btn.textContent = "Clear Tracker";
-    }
   }
 }
 
@@ -3491,7 +3440,7 @@ window.forgotVipPassword = forgotVipPassword;
 
           dayRows.forEach(row=>{
             html += `
-              <div class="tracker-grid-card">
+              <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                 <div class="tracker-grid-top">
                   <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
                   <div class="tracker-grid-top-result">
