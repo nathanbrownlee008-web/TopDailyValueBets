@@ -461,7 +461,7 @@ function readTrackerRowsLocal(){
       if(!raw) return;
       const rows = JSON.parse(raw);
       if(!Array.isArray(rows)) return;
-      filteredRows.forEach(row=>{
+      rows.forEach(row=>{
         const safe = normalizeTrackerRow(row);
         const dedupe = String(safe.id || '') || `${safe.created_at || ''}|${safe.match || ''}|${safe.market || ''}`;
         if(seen.has(dedupe)) return;
@@ -1241,7 +1241,7 @@ async function addToTracker(btn, row){
     setTimeout(()=>btn.classList.remove('flash'), 700);
     btn.disabled = true;
   }
-  loadTracker();
+  await loadTracker();
 }
 
 
