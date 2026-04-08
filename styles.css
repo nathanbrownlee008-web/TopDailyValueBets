@@ -3032,13 +3032,21 @@ body.layout-compact .vip-bar{
 }
 
 #betsGrid .bet-bookie{
-  display:block;
-  margin-top: 0;
-  margin-bottom: 14px;
-  font-size: 13px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: rgba(226,232,240,0.94);
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:7px 12px !important;
+  border-radius:999px !important;
+  font-size:11.5px !important;
+  line-height:1 !important;
+  font-weight:900 !important;
+  color:#f8fbff !important;
+  background:linear-gradient(180deg, rgba(82,104,150,.26) 0%, rgba(39,54,92,.20) 100%) !important;
+  border:1px solid rgba(148,171,223,.34) !important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.03), inset 0 1px 0 rgba(255,255,255,.06) !important;
+  position:relative !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
 }
 
 #betsGrid .bet-left{
@@ -6260,8 +6268,8 @@ body.layout-wide .bets-table .table-market-text{
     gap:8px !important;
   }
   #betsGrid .bet-bookie{
-    padding:8px 14px !important;
-    font-size:11.5px !important;
+    padding:7px 11px !important;
+    font-size:11px !important;
   }
   #betsGrid .odds-pill{
     padding:8px 16px !important;

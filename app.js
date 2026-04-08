@@ -1179,6 +1179,7 @@ async function addToTracker(btn, row){
     bet_date: row.bet_date || null,
     kickoff_time: normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '' ) || null,
     bookie: row.bookie || null,
+    league: getBetLeagueName(row) || null,
     sport: getBetSport(row)
   };
 
