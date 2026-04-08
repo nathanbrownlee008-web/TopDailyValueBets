@@ -351,15 +351,6 @@ function getBetTitleSizeClass(match){
   if(len >= 24) return " bet-title--small";
   return "";
 }
-function getBookiePillClass(bookie){
-  const b = String(bookie || '').trim().toLowerCase();
-  if(b.includes('bet365') || b === '365') return ' bet-bookie--bet365';
-  if(b.includes('sky')) return ' bet-bookie--skybet';
-  if(b.includes('golden')) return ' bet-bookie--goldenbet';
-  if(b.includes('paddy')) return ' bet-bookie--paddypower';
-  if(b.includes('william hill') || b.includes('willhill')) return ' bet-bookie--williamhill';
-  return ' bet-bookie--default';
-}
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -689,6 +680,63 @@ function getSportLabel(sport){
 }
 function getSportIcon(row){
   return getBetSport(row) === 'basketball' ? '🏀' : '⚽';
+}
+function getBookiePillClass(bookie){
+  const key = String(bookie || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  if(!key) return 'bookie--default';
+  if(key.includes('bet365')) return 'bookie--bet365';
+  if(key.includes('skybet') || key === 'sky') return 'bookie--skybet';
+  if(key.includes('goldenbet')) return 'bookie--goldenbet';
+  if(key.includes('paddypower') || key.includes('paddy')) return 'bookie--paddypower';
+  if(key.includes('betfair')) return 'bookie--betfair';
+  if(key.includes('williamhill')) return 'bookie--williamhill';
+  return 'bookie--default';
+}
+function updateResultsFilterPanel(toggleId, contentId, arrowId, summaryId, summaryText){
+  const toggle = document.getElementById(toggleId);
+  const content = document.getElementById(contentId);
+  const arrow = document.getElementById(arrowId);
+  const summary = document.getElementById(summaryId);
+  if(summary) summary.textContent = summaryText;
+  if(toggle && content){
+    const expanded = content.classList.contains('is-expanded');
+    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  }
+  if(arrow && content) arrow.textContent = content.classList.contains('is-expanded') ? '▲' : '▼';
+}
+function wireResultsFilterToggle(toggleId, contentId, arrowId){
+  const toggle = document.getElementById(toggleId);
+  const content = document.getElementById(contentId);
+  const arrow = document.getElementById(arrowId);
+  if(!toggle || !content || toggle.dataset.wired === '1') return;
+  toggle.dataset.wired = '1';
+  toggle.addEventListener('click', ()=>{
+    const open = content.classList.contains('is-expanded');
+    content.classList.toggle('is-expanded', !open);
+    content.classList.toggle('is-collapsed', open);
+    toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+    if(arrow) arrow.textContent = open ? '▼' : '▲';
+  });
+}
+function trackerFilterSummary(){
+  const sportVal = document.getElementById('filterSport')?.value || '';
+  const dateVal = document.getElementById('filterDate')?.value || '';
+  const marketVal = (document.getElementById('filterMarket')?.value || '').trim();
+  const parts = [];
+  if(sportVal) parts.push(sportVal === 'basketball' ? 'Basketball' : 'Football');
+  if(dateVal) parts.push(dateVal);
+  if(marketVal) parts.push(marketVal);
+  return parts.length ? parts.join(' • ') : 'All results';
+}
+function updateTrackerResultsFilterUI(){
+  updateResultsFilterPanel('trackerResultsFiltersToggle','trackerResultsFiltersContent','trackerResultsFiltersArrow','trackerResultsFiltersSummary',trackerFilterSummary());
+}
+function tdtFilterSummary(){
+  const sportVal = document.getElementById('tdtFilterSport')?.value || '';
+  return sportVal ? (sportVal === 'basketball' ? 'Basketball only' : 'Football only') : 'All results';
+}
+function updateTdtResultsFilterUI(){
+  updateResultsFilterPanel('tdtResultsFiltersToggle','tdtResultsFiltersContent','tdtResultsFiltersArrow','tdtResultsFiltersSummary',tdtFilterSummary());
 }
 function getMarketCategory(rawMarket){
   const market = String(rawMarket || '').trim();
@@ -1027,7 +1075,7 @@ async function loadTdtPicks(){
               <span class="bet-market">${market}</span>
               <span class="bet-date">${dateText}</span>
             </div>
-            ${bookie ? `<div class="bet-bookie">${bookie}</div>` : ``}
+            ${bookie ? `<div class="bet-bookie ${getBookiePillClass(bookie)}">${bookie}</div>` : ``}
             <div class="bet-footer">
               <span class="odds-badge"><strong>@ ${odds}</strong></span>
             </div>
@@ -1305,21 +1353,22 @@ function _rowGameDateISO(row){
 function _applyTrackerFilters(rows){
   const dateEl = document.getElementById("filterDate");
   const marketEl = document.getElementById("filterMarket");
+  const sportEl = document.getElementById("filterSport");
   const dateVal = dateEl ? (dateEl.value || "") : "";
   const marketVal = marketEl ? (marketEl.value || "").trim().toLowerCase() : "";
+  const sportVal = sportEl ? (sportEl.value || "") : "";
 
   return (rows || []).filter(r=>{
-    // date filter
     if(dateVal){
       const iso = _rowGameDateISO(r);
       if(iso !== dateVal) return false;
     }
-    // market filter (matches market OR match text)
     if(marketVal){
       const m = (r.market || "").toLowerCase();
       const match = (r.match || "").toLowerCase();
       if(!m.includes(marketVal) && !match.includes(marketVal)) return false;
     }
+    if(sportVal && getBetSport(r) !== sportVal) return false;
     return true;
   });
 }
@@ -1372,6 +1421,7 @@ function _renderFilteredTrackerTable(){
   const filtered = _applyTrackerFilters(trackerAllRows);
   tableEl.innerHTML = _buildTrackerTableHTML(filtered);
   if(countEl) countEl.textContent = filtered.length;
+  updateTrackerResultsFilterUI();
 
   // re-bind inline input/select listeners for edited rows
   bindTrackerTableInputs();
@@ -1384,11 +1434,15 @@ function wireTrackerFilters(){
 
   const dateEl = document.getElementById("filterDate");
   const marketEl = document.getElementById("filterMarket");
+  const sportEl = document.getElementById("filterSport");
   const todayBtn = document.getElementById("todayToggle");
   const clearBtn = document.getElementById("clearFilters");
 
-  if(dateEl) dateEl.addEventListener("change", _renderFilteredTrackerTable);
-  if(marketEl) marketEl.addEventListener("input", _renderFilteredTrackerTable);
+  wireResultsFilterToggle('trackerResultsFiltersToggle','trackerResultsFiltersContent','trackerResultsFiltersArrow');
+
+  if(dateEl) dateEl.addEventListener("change", ()=>{ updateTrackerResultsFilterUI(); _renderFilteredTrackerTable(); });
+  if(marketEl) marketEl.addEventListener("input", ()=>{ updateTrackerResultsFilterUI(); _renderFilteredTrackerTable(); });
+  if(sportEl) sportEl.addEventListener("change", ()=>{ updateTrackerResultsFilterUI(); _renderFilteredTrackerTable(); });
 
   if(todayBtn){
     todayBtn.addEventListener("click", ()=>{
@@ -1404,6 +1458,8 @@ function wireTrackerFilters(){
     clearBtn.addEventListener("click", ()=>{
       if(dateEl) dateEl.value = "";
       if(marketEl) marketEl.value = "";
+      if(sportEl) sportEl.value = "";
+      updateTrackerResultsFilterUI();
       _renderFilteredTrackerTable();
     });
   }
@@ -1639,7 +1695,7 @@ history.push(bankroll);
 tableRows.push(`<tr class="tracker-row-${row.result || 'pending'}">
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  ${resolveTrackerLeague(row) ? `<div class="tracker-kickoff">${escapeHtml(resolveTrackerLeague(row))}</div>` : (formatKickoffLabel(row) ? `<div class="tracker-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``)}
+  ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``}
   <div class="tracker-market-sub">${getMarketIcon(row.market)}&nbsp;${row.market || "—"}</div>
 </td>
 <td class="tracker-market-col">${getMarketCategory(row.market) || row.market || "—"}</td>
@@ -2117,7 +2173,7 @@ async function loadTdtTracker(){
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
         html += `
           <tr class="tdt-row ${result}">
-            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+            <td class="tdt-match"><span class="tracker-sport-icon">${escapeHtml(getSportIcon(row))}</span><span>${escapeHtml(row.match || '')}</span></td>
             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
             <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
@@ -3155,8 +3211,21 @@ window.loadTdtTracker = async function(){
 
     if(error) throw error;
 
-    const rows = Array.isArray(data) ? data : [];
-    tdtRowsCache = rows;
+    const allRows = Array.isArray(data) ? data : [];
+    tdtRowsCache = allRows;
+    wireResultsFilterToggle('tdtResultsFiltersToggle','tdtResultsFiltersContent','tdtResultsFiltersArrow');
+    const tdtSportEl = document.getElementById('tdtFilterSport');
+    const tdtClearBtn = document.getElementById('tdtClearFilters');
+    if(tdtSportEl && tdtSportEl.dataset.wired !== '1'){
+      tdtSportEl.dataset.wired = '1';
+      tdtSportEl.addEventListener('change', ()=>{ updateTdtResultsFilterUI(); loadTdtTracker(); });
+    }
+    if(tdtClearBtn && tdtClearBtn.dataset.wired !== '1'){
+      tdtClearBtn.dataset.wired = '1';
+      tdtClearBtn.addEventListener('click', ()=>{ if(tdtSportEl) tdtSportEl.value = ''; updateTdtResultsFilterUI(); loadTdtTracker(); });
+    }
+    const rows = (tdtSportEl && tdtSportEl.value) ? allRows.filter(row => getBetSport(row) === tdtSportEl.value) : allRows;
+    updateTdtResultsFilterUI();
 
     let profit = 0;
     let wins = 0;
@@ -3385,7 +3454,7 @@ window.loadTdtTracker = async function(){
 
             html += `
                           <tr class="tdt-row ${result}">
-                            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+                            <td class="tdt-match"><span class="tracker-sport-icon">${escapeHtml(getSportIcon(row))}</span><span>${escapeHtml(row.match || '')}</span></td>
                             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
                             <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
                             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
@@ -3628,7 +3697,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                 <div class="tracker-grid-top">
                   <div>
-                    <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
+                    <div class="tracker-grid-match"><span class="tracker-sport-icon">${trackerEsc(getSportIcon(row))}</span><span>${trackerEsc(row.match || "")}</span></div>
                     ${formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
                   </div>
                   <div class="tracker-grid-top-result">
@@ -3781,8 +3850,8 @@ window.forgotVipPassword = forgotVipPassword;
             html += `
               <tr class="tracker-row-${trackerEsc(row.result || 'pending')}">
                 <td class="tracker-desktop-match">
-                  <div class="tracker-match-name">${trackerEsc(row.match || '—')}</div>
-                  ${resolveTrackerLeague(row) ? `<div class="tracker-kickoff">${trackerEsc(resolveTrackerLeague(row))}</div>` : (formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``)}
+                  <div class="tracker-match-name tracker-match-name--with-icon"><span class="tracker-sport-icon">${trackerEsc(getSportIcon(row))}</span><span>${trackerEsc(row.match || '—')}</span></div>
+                  ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
                 </td>
                 <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))}&nbsp;${trackerEsc(row.market || '—')}</td>
                 <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
@@ -3823,6 +3892,7 @@ window.forgotVipPassword = forgotVipPassword;
       const filtered = _applyTrackerFilters(trackerAllRows || []);
       tableEl.innerHTML = document.body.classList.contains('layout-wide') ? buildTrackerWideHTML(filtered) : buildTrackerGroupedHTML(filtered);
       if(countEl) countEl.textContent = filtered.length;
+      updateTrackerResultsFilterUI();
     };
   }
 
