@@ -6443,3 +6443,51 @@ body.layout-wide .bets-table .table-market-text{
   0%{ left:-55%; }
   100%{ left:130%; }
 }
+/* ===== FORCE CLEAN CARD LAYOUT ===== */
+
+/* make top section stack nicely */
+.value-bet-card,
+.bet-card {
+  display: flex;
+  flex-direction: column;
+}
+
+/* header (teams + date) */
+.value-bet-card .top,
+.bet-card .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* 🔥 IMPORTANT: force pills to wrap instead of squish */
+.value-bet-card .pill-row,
+.bet-card .pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* stop pills stretching weird */
+.value-bet-card .pill,
+.bet-card .pill {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* bottom row (bookie / odds / button) */
+.value-bet-card .bottom,
+.bet-card .bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* 🔥 prevents overlapping / squeezing */
+.value-bet-card .bottom > * {
+  flex: 0 0 auto;
+}
