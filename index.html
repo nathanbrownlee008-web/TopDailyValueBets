@@ -49,7 +49,7 @@
   </div>
 
 <div class="tabs">
-<button id="tabBets" class="active">TDT Picks</button>
+<button id="tabBets" class="active">Value Bets</button>
 <button id="tabTracker">My Tracker</button>
 <button id="tabTdtTracker">TDT Tracker</button>
 </div>
@@ -65,22 +65,22 @@
 <section id="betsSection">
 
 <div class="card about-box">
-  <div class="about-title">TDT Picks</div>
+  <div class="about-title">Value Bets</div>
   <div class="about-text">
-    ⚠️ TDT Picks are carefully selected betting opportunities designed with a long-term profitable approach in mind. All bets are deeply analysed and compared across multiple factors to identify the strongest possible outcomes — this is not random or casual betting.
+    ⚠️ We find value in a smart, sustainable way — not the typical aggressive value betting style that can get accounts restricted or banned.
     <br><br>
-    Our focus is on consistency and long-term results, not short-term wins. Variance will always exist, and profits are never guaranteed.
+    We’ve been building and refining this approach for the last 3 years behind the scenes before creating the app, and so far none of our accounts have been banned or restricted.
     <br><br>
-    The recommended approach is to follow bets as singles for the most stable long-term performance. However, you are free to combine picks into accumulators if you prefer.
+    There is always a risk with any betting strategy, so nothing is ever guaranteed, but our focus is on long-term profitable opportunities in a realistic way.
     <br><br>
-    Every bet shown is one we would take ourselves — no gimmicks, no fillers.
+    Every pick is deeply analysed across multiple factors, and the recommended approach is to follow them as singles for the most stable long-term performance. You can still choose to combine them into accumulators if you prefer.
   </div>
 </div>
 
 <div class="value-filters card" id="valueFiltersBar">
   <button id="valueFiltersToggle" class="value-filters__toggle" type="button" aria-expanded="false">
     <span class="value-filters__toggle-left">
-      <span class="value-filters__title">Filter TDT Picks</span>
+      <span class="value-filters__title">Filter Value Bets</span>
     </span>
     <span class="value-filters__toggle-right">
       <span id="valueFiltersSummary" class="value-filters__summary">All bets</span>
@@ -133,6 +133,7 @@
         <th>Market</th>
         <th>Bookie</th>
         <th>Odds</th>
+        <th>Value</th>
         <th></th>
       </tr>
     </thead>
@@ -229,17 +230,6 @@
     <span id="trackerArrow">▼</span>
   </div>
   <div id="trackerWrapper" class="collapsed">
-    <div class="results-filter-bar card">
-      <div class="results-filter-left">Filter results</div>
-      <div class="results-filter-actions">
-        <select id="filterSport" class="results-sport-select">
-          <option value="">All sports</option>
-          <option value="football">Football</option>
-          <option value="basketball">Basketball</option>
-        </select>
-        <button id="clearFilters" type="button" class="results-filter-clear">Clear</button>
-      </div>
-    </div>
     <div id="trackerTable"></div>
   </div>
 </div>
