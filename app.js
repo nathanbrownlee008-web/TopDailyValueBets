@@ -1094,14 +1094,7 @@ async function loadBets(){
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
     const kickoffText = normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '');
     const dateTimeLabel = betDate;
-    const kickoffLabel = formatKickoffLabel(row);
-    const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
-    const valNum = val != null ? Number(val) : null;
-    const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
-    const valueClass = valNum != null && !Number.isNaN(valNum)
-      ? (valNum >= 6 ? ' value-high' : (valNum >= 3 ? ' value-medium' : ' value-low'))
-      : '';
-    const teaser = teaserCopyForLockedBet(row, state);
+    const kickoffLabel = formatKickoffLabel(row);    const teaser = teaserCopyForLockedBet(row, state);
     const unlockLabel = formatUnlockLabel(state);
     const leagueName = row.league || row.competition || row.league_name || row.tournament || '';
 
@@ -1123,7 +1116,6 @@ async function loadBets(){
       <div class="bet-footer">
         <div class="bet-left">
           ${!locked && row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)} @ ${escapeHtml(String(row.odds ?? ''))}</div>` : ``}
-          <span class="stat-chip${valueClass}"><span class="stat-chip__k">Value</span><span class="stat-chip__v">${valTxt}</span></span>
         </div>
         <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
       </div>
@@ -1140,7 +1132,6 @@ async function loadBets(){
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td><span class="pill${valueClass}">${escapeHtml(valTxt)}</span></td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
