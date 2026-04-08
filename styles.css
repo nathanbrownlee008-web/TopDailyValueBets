@@ -6294,5 +6294,152 @@ body.layout-wide .bets-table .table-market-text{
 .results-filter-clear{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#e5e7eb;padding:9px 12px;border-radius:12px;font-weight:700;}
 .tracker-sport-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;margin-right:8px;font-size:15px;vertical-align:-1px;}
 .tdt-match .tracker-sport-icon,.tracker-grid-match .tracker-sport-icon,.tracker-match-name .tracker-sport-icon{margin-right:8px;}
-.bookie-pill{padding:3px 8px !important;border-radius:10px !important;font-size:11px !important;line-height:1.05 !important;}
-@media (max-width:600px){.results-filter-bar{padding:10px 12px;}.results-filter-left{font-size:13px;}.results-sport-select,.results-filter-clear{padding:8px 10px;font-size:12px;border-radius:10px;min-width:118px;}}
+.bookie-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10.5px !important;
+  padding:2px 8px !important;
+  min-height:24px;
+  border-radius:999px !important;
+  font-weight:800 !important;
+  white-space:nowrap;
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.14);
+  color:#fff;
+  letter-spacing:0.08px;
+  line-height:1;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 10px rgba(0,0,0,0.16);
+}
+.bookie-pill::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-120%;
+  width:46%;
+  height:100%;
+  background:linear-gradient(120deg, transparent, rgba(255,255,255,0.18), transparent);
+  animation:bookieShimmer 4.6s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes bookieShimmer{
+  0%, 72%{ left:-120%; }
+  100%{ left:140%; }
+}
+.bookie-bet365{background:linear-gradient(135deg,#0e6030,#17a34a);color:#f8fffb;border-color:rgba(74,222,128,0.36);}
+.bookie-skybet{background:linear-gradient(135deg,#103b8a,#2563eb);color:#f8fbff;border-color:rgba(96,165,250,0.36);}
+.bookie-paddypower{background:linear-gradient(135deg,#006847,#00a86b);color:#f7fffb;border-color:rgba(52,211,153,0.34);}
+.bookie-goldenbet{background:linear-gradient(135deg,#202636,#34425f);color:#f8fafc;border-color:rgba(148,163,184,0.28);}
+.bookie-default{background:linear-gradient(135deg,rgba(255,255,255,0.11),rgba(255,255,255,0.06));color:#e2e8f0;border-color:rgba(255,255,255,0.14);}
+@media (max-width:600px){.results-filter-bar{padding:10px 12px;}.results-filter-left{font-size:13px;}.results-sport-select,.results-filter-clear{padding:8px 10px;font-size:12px;border-radius:10px;min-width:118px;}.bookie-pill{font-size:10px !important;padding:2px 7px !important;min-height:22px;}}
+.bookie-pill{
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.6);
+  color: #ecfdf5;
+  box-shadow: 0 0 10px rgba(34,197,94,0.25);
+}
+/* === BOOKIE PILL FINAL FIX (FORCED) === */
+
+.bookie-pill,
+.bookie,
+[class*="bookie"] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 4px 10px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+
+  border-radius: 10px !important; /* matches odds pill vibe */
+  
+  background: linear-gradient(135deg, rgba(34,197,94,0.25), rgba(16,185,129,0.15)) !important;
+  border: 1px solid rgba(34,197,94,0.7) !important;
+  color: #ecfdf5 !important;
+
+  box-shadow:
+    0 0 8px rgba(34,197,94,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.25) !important;
+
+  backdrop-filter: blur(4px) !important;
+
+  white-space: nowrap !important;
+}
+
+/* subtle shine animation */
+.bookie-pill::after,
+.bookie::after,
+[class*="bookie"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.25),
+    transparent
+  );
+
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.bookie-pill:hover::after,
+.bookie:hover::after,
+[class*="bookie"]:hover::after {
+  opacity: 1;
+}
+/* === FINAL FORCE BOOKIE PILL OVERRIDE === */
+#betsGrid .bet-bookie{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:auto !important;
+  max-width:max-content !important;
+  min-height:26px !important;
+  height:26px !important;
+  padding:0 10px !important;
+  margin:0 !important;
+
+  border-radius:10px !important;
+  font-size:11px !important;
+  line-height:1 !important;
+  font-weight:800 !important;
+  letter-spacing:0 !important;
+
+  color:#f8fafc !important;
+  background:linear-gradient(180deg, rgba(34,197,94,0.18), rgba(21,128,61,0.26)) !important;
+  border:1px solid rgba(255,255,255,0.28) !important;
+  box-shadow:
+    0 0 10px rgba(34,197,94,0.16),
+    inset 0 0 10px rgba(255,255,255,0.04) !important;
+
+  position:relative !important;
+  overflow:hidden !important;
+}
+
+#betsGrid .bet-bookie::after{
+  content:"" !important;
+  position:absolute !important;
+  top:0 !important;
+  left:-55% !important;
+  width:36% !important;
+  height:100% !important;
+  background:linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.18) 50%,
+    transparent 100%
+  ) !important;
+  transform:skewX(-18deg) !important;
+  animation:finalBookieShine 3.2s linear infinite !important;
+  pointer-events:none !important;
+}
+
+@keyframes finalBookieShine{
+  0%{ left:-55%; }
+  100%{ left:130%; }
+}

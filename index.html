@@ -49,7 +49,7 @@
   </div>
 
 <div class="tabs">
-<button id="tabBets" class="active">TDT Picks</button>
+<button id="tabBets" class="active">Value Bets</button>
 <button id="tabTracker">My Tracker</button>
 <button id="tabTdtTracker">TDT Tracker</button>
 </div>
@@ -65,22 +65,32 @@
 <section id="betsSection">
 
 <div class="card about-box">
-  <div class="about-title">TDT Picks</div>
-  <div class="about-text">
-    ⚠️ TDT Picks are carefully selected betting opportunities designed with a long-term profitable approach in mind. All bets are deeply analysed and compared across multiple factors to identify the strongest possible outcomes — this is not random or casual betting.
+  <div class="about-title" onclick="toggleAboutBox()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+    Betting With Value
+    <span id="aboutArrow">▼</span>
+  </div>
+
+  <div id="aboutContent" style="display:none; margin-top:10px;">
+    ⚠️ These are not the typical “value bets” that quickly get accounts restricted or banned.
     <br><br>
-    Our focus is on consistency and long-term results, not short-term wins. Variance will always exist, and profits are never guaranteed.
+    We look to find value in smarter, more sustainable ways — combining pricing edges with deeper analysis across multiple factors for every bet.
     <br><br>
-    The recommended approach is to follow bets as singles for the most stable long-term performance. However, you are free to combine picks into accumulators if you prefer.
+    We only post bets that we have already staked ourselves. You can track everything inside the <strong>TDT Tracker</strong>, while also using your own <strong>My Tracker</strong>.
     <br><br>
-    Every bet shown is one we would take ourselves — no gimmicks, no fillers.
+    Not every value bet needs to be a huge price — even normal odds can hold value when properly analysed.
+    <br><br>
+    This approach was developed and refined over <strong>3 years behind the scenes before we created this app</strong>.
+    <br><br>
+    For long-term profitability, the best approach is to follow as <strong>singles</strong>. Accas are your choice, but come with higher risk.
+    <br><br>
+    The goal is <strong>consistent, long-term profit</strong>, not short-term hype.
   </div>
 </div>
 
 <div class="value-filters card" id="valueFiltersBar">
   <button id="valueFiltersToggle" class="value-filters__toggle" type="button" aria-expanded="false">
     <span class="value-filters__toggle-left">
-      <span class="value-filters__title">Filter TDT Picks</span>
+      <span class="value-filters__title">Filter Value Bets</span>
     </span>
     <span class="value-filters__toggle-right">
       <span id="valueFiltersSummary" class="value-filters__summary">All bets</span>
@@ -133,6 +143,7 @@
         <th>Market</th>
         <th>Bookie</th>
         <th>Odds</th>
+        <th>Value</th>
         <th></th>
       </tr>
     </thead>
@@ -229,15 +240,38 @@
     <span id="trackerArrow">▼</span>
   </div>
   <div id="trackerWrapper" class="collapsed">
-    <div class="results-filter-bar card">
-      <div class="results-filter-left">Filter results</div>
-      <div class="results-filter-actions">
-        <select id="filterSport" class="results-sport-select">
-          <option value="">All sports</option>
-          <option value="football">Football</option>
-          <option value="basketball">Basketball</option>
-        </select>
-        <button id="clearFilters" type="button" class="results-filter-clear">Clear</button>
+    <div class="value-filters card tracker-results-filters" id="trackerResultsFilters">
+      <button id="trackerResultsFiltersToggle" class="value-filters__toggle" type="button" aria-expanded="false">
+        <span class="value-filters__toggle-left">
+          <span class="value-filters__title">Filter Bet Results</span>
+        </span>
+        <span class="value-filters__toggle-right">
+          <span id="trackerResultsFiltersSummary" class="value-filters__summary">All results</span>
+          <span id="trackerResultsFiltersArrow" class="value-filters__arrow">▼</span>
+        </span>
+      </button>
+      <div id="trackerResultsFiltersContent" class="value-filters__content is-collapsed">
+        <div class="value-filters__head">
+          <button id="clearFilters" class="value-filters__clear" type="button">Clear</button>
+        </div>
+        <div class="value-filters__grid results-filters-grid">
+          <div class="value-filters__field">
+            <label for="filterSport">Sport</label>
+            <select id="filterSport">
+              <option value="">All sports</option>
+              <option value="football">Football</option>
+              <option value="basketball">Basketball</option>
+            </select>
+          </div>
+          <div class="value-filters__field">
+            <label for="filterDate">Date</label>
+            <input id="filterDate" type="date" />
+          </div>
+          <div class="value-filters__field">
+            <label for="filterMarket">Search</label>
+            <input id="filterMarket" type="text" placeholder="Match or market" />
+          </div>
+        </div>
       </div>
     </div>
     <div id="trackerTable"></div>
@@ -288,7 +322,7 @@
       <strong id="tdtAvgOddsBarLabel">0.00</strong>
     </div>
     <div class="tdt-perf-track">
-      <div id="tdtAvgOddsBarFill" class="tdt-perf-fill tdt-perf-fill--amber"></div>
+      <div id="tdtAvgOddsBarFill" class="tdt-perf-fill tdt-perf-fill--neutral"></div>
     </div>
   </div>
 </div>
@@ -299,6 +333,32 @@
     <span id="tdtTrackerArrow">▼</span>
   </div>
   <div id="tdtTrackerWrapper" class="collapsed">
+    <div class="value-filters card tracker-results-filters" id="tdtResultsFilters">
+      <button id="tdtResultsFiltersToggle" class="value-filters__toggle" type="button" aria-expanded="false">
+        <span class="value-filters__toggle-left">
+          <span class="value-filters__title">Filter TDT Results</span>
+        </span>
+        <span class="value-filters__toggle-right">
+          <span id="tdtResultsFiltersSummary" class="value-filters__summary">All results</span>
+          <span id="tdtResultsFiltersArrow" class="value-filters__arrow">▼</span>
+        </span>
+      </button>
+      <div id="tdtResultsFiltersContent" class="value-filters__content is-collapsed">
+        <div class="value-filters__head">
+          <button id="tdtClearFilters" class="value-filters__clear" type="button">Clear</button>
+        </div>
+        <div class="value-filters__grid results-filters-grid">
+          <div class="value-filters__field">
+            <label for="tdtFilterSport">Sport</label>
+            <select id="tdtFilterSport">
+              <option value="">All sports</option>
+              <option value="football">Football</option>
+              <option value="basketball">Basketball</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="tdtTrackerTable"></div>
   </div>
 </div>
