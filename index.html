@@ -64,9 +64,12 @@
 
 <section id="betsSection">
 
-<div class="card about-box">
-  <div class="about-title">Betting With Value</div>
-  <div class="about-text">
+<div class="card about-box about-box--collapsed" id="aboutValueBox">
+  <button class="about-box__toggle" id="aboutValueToggle" type="button" aria-expanded="false" aria-controls="aboutValueContent">
+    <span class="about-title">Betting With Value</span>
+    <span class="about-box__arrow" id="aboutValueArrow">▼</span>
+  </button>
+  <div class="about-text about-box__content" id="aboutValueContent" hidden>
     ⚠️ These are not the typical “value bets” that quickly get accounts restricted or banned.
     <br><br>
     We look to find value in smarter, more sustainable ways — not just by chasing obviously overpriced odds, but by combining pricing edges with deeper analysis across multiple factors for every bet.
@@ -75,7 +78,7 @@
     <br><br>
     Not every value bet has to be a huge price. Bets at more normal odds can still hold value when compared properly against probability and the other factors we analyse.
     <br><br>
-    This approach has been developed and refined over the last <strong>3 years</strong> behind the scenes, and we have been consistently profitable over that period while keeping the service affordable.
+    This approach has been developed and refined over the last <strong>3 years</strong> behind the scenes <strong>before we created the app</strong>, and the work that shaped this service was done long before launch.
     <br><br>
     For the best long-term approach, these bets are intended to be followed as <strong>singles</strong>. You are free to use them in accumulators or other bet types, but that is completely your choice and comes with extra risk.
     <br><br>
@@ -318,7 +321,7 @@
       <strong id="tdtAvgOddsBarLabel">0.00</strong>
     </div>
     <div class="tdt-perf-track">
-      <div id="tdtAvgOddsBarFill" class="tdt-perf-fill tdt-perf-fill--neutral"></div>
+      <div id="tdtAvgOddsBarFill" class="tdt-perf-fill tdt-perf-fill--amber"></div>
     </div>
   </div>
 </div>
@@ -383,5 +386,21 @@
 </div>
 
 <script src="app.js?v=1774309616"></script>
+<script>
+(function(){
+  const toggle = document.getElementById('aboutValueToggle');
+  const content = document.getElementById('aboutValueContent');
+  const box = document.getElementById('aboutValueBox');
+  const arrow = document.getElementById('aboutValueArrow');
+  if(!toggle || !content || !box || !arrow) return;
+  toggle.addEventListener('click', ()=>{
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    content.hidden = expanded;
+    box.classList.toggle('about-box--collapsed', expanded);
+    arrow.textContent = expanded ? '▼' : '▲';
+  });
+})();
+</script>
 </body>
 </html>
