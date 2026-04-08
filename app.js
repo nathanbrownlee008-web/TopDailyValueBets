@@ -665,6 +665,28 @@ function normalizeFilterText(value){
 function getBetLeagueName(row){
   return row?.league || row?.competition || row?.league_name || row?.tournament || '';
 }
+function resolveTrackerLeague(row){
+  const direct = getBetLeagueName(row);
+  if(direct) return direct;
+  const match = String(row?.match || '').trim().toLowerCase();
+  const market = String(row?.market || '').trim().toLowerCase();
+  const betDate = normalizeDateOnly(row?.bet_date || row?.created_at || '');
+  const pools = [valueBetsAllRows, tdtRowsCache];
+  for(const pool of pools){
+    if(!Array.isArray(pool) || !pool.length) continue;
+    const found = pool.find(src => {
+      const srcMatch = String(src?.match || '').trim().toLowerCase();
+      const srcMarket = String(src?.market || '').trim().toLowerCase();
+      const srcDate = normalizeDateOnly(src?.bet_date || src?.created_at || '');
+      if(!srcMatch || !srcMarket) return false;
+      if(srcMatch !== match || srcMarket !== market) return false;
+      if(betDate && srcDate && betDate !== srcDate) return false;
+      return !!getBetLeagueName(src);
+    });
+    if(found) return getBetLeagueName(found);
+  }
+  return '';
+}
 function getBetSport(row){
   const explicit = String(row?.sport || '').trim().toLowerCase();
   if(explicit === 'basketball' || explicit === 'football') return explicit;
@@ -1178,8 +1200,8 @@ async function addToTracker(btn, row){
     created_at: new Date().toISOString(),
     bet_date: row.bet_date || null,
     kickoff_time: normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '' ) || null,
-    bookie: row.bookie || null,
     league: getBetLeagueName(row) || null,
+    bookie: row.bookie || null,
     sport: getBetSport(row)
   };
 
@@ -3618,7 +3640,7 @@ window.forgotVipPassword = forgotVipPassword;
                 <div class="tracker-grid-top">
                   <div>
                     <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
-                    ${getBetLeagueName(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(getBetLeagueName(row))}</div>` : (formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``)}
+                    ${resolveTrackerLeague(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(resolveTrackerLeague(row))}</div>` : (formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``)}
                   </div>
                   <div class="tracker-grid-top-result">
                     <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
