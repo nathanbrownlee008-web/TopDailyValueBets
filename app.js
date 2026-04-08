@@ -2003,7 +2003,7 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
     winFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber");
     winFill.classList.add(edgeTone);
     winLabel.textContent = breakEvenWinrate > 0
-      ? `${tdtWinrateVal.toFixed(1)}% (BE ${breakEvenWinrate.toFixed(1)}%)`
+      ? `${tdtWinrateVal.toFixed(1)}% (Break-even ${breakEvenWinrate.toFixed(1)}%)`
       : `${tdtWinrateVal.toFixed(1)}%`;
   }
 

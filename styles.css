@@ -6399,3 +6399,56 @@ body.layout-wide .bets-table .table-market-text{
     padding-right:10px !important;
   }
 }
+
+
+/* ===== FINAL SAFE FIX: bookie shimmer clipped/removed + clearer break-even label support ===== */
+#betsGrid .bet-footer{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto auto !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+
+#betsGrid .bet-left{
+  min-width:0 !important;
+  justify-content:flex-start !important;
+  overflow:hidden !important;
+}
+
+#betsGrid .bet-bookie{
+  position:relative !important;
+  overflow:hidden !important;
+  border-radius:999px !important;
+  max-width:100% !important;
+  white-space:nowrap !important;
+  text-overflow:ellipsis !important;
+}
+
+#betsGrid .bet-bookie::after{
+  display:none !important;
+  animation:none !important;
+}
+
+#betsGrid .bet-center{
+  justify-self:center !important;
+}
+
+#betsGrid .bet-right{
+  justify-self:end !important;
+}
+
+.tdt-perf-fill--neutral{
+  background:linear-gradient(90deg, rgba(120,138,163,0.92), rgba(173,184,201,0.96)) !important;
+}
+
+@media (max-width:430px){
+  #betsGrid .bet-footer{
+    grid-template-columns:minmax(0,1fr) auto auto !important;
+    gap:8px !important;
+  }
+
+  #betsGrid .bet-bookie{
+    min-width:0 !important;
+    max-width:100% !important;
+  }
+}
