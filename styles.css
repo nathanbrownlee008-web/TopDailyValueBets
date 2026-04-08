@@ -6156,3 +6156,19 @@ body.layout-wide .bets-table .table-bookie-pill{ display:inline-flex; max-width:
   line-height:1.15 !important;
   margin-left:auto !important;
 }
+
+
+/* ===== WIDE TRACKER RESULT ROW TINTS ===== */
+@media (min-width: 900px){
+  body.layout-wide #trackerTable tr.tracker-row-won td{
+    background: rgba(34,197,94,0.10) !important;
+  }
+
+  body.layout-wide #trackerTable tr.tracker-row-lost td{
+    background: rgba(239,68,68,0.10) !important;
+  }
+
+  body.layout-wide #trackerTable tr.tracker-row-pending td{
+    background: transparent !important;
+  }
+}

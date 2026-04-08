@@ -249,12 +249,7 @@ function normalizeKickoffTime(value){
   return String(value).trim();
 }
 function kickoffSortValue(row){
-  (() => {
-  const k = normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '');
-  if(!k) return '';
-  const h = Number(k.split(':')[0] || 0);
-  return k + (h >= 12 ? 'pm' : 'am');
-})()
+  const k = normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || '');
   if(!k) return '99:99';
   return k;
 }
@@ -1140,7 +1135,7 @@ async function loadBets(){
     if(betsTbody){
       betsTbody.innerHTML += `
       <tr class="${locked ? 'bet-row--locked' : ''}">
-        <td class="table-date-cell">${escapeHtml(betDate)}${formatKickoffLabel(row) ? `<div class="table-kickoff">${escapeHtml(normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || ''))}</div>` : ''}</td>
+        <td class="table-date-cell">${escapeHtml(betDate)}${formatKickoffLabel(row) ? `<div class="table-kickoff">${escapeHtml((() => { const label = formatKickoffLabel(row); return label ? label.replace(/^Kick off\s+/i,'') : ''; })())}</div>` : ''}</td>
         <td class="table-match-cell">${leagueName ? `<div class="table-match-league"><span class="table-match-league-text">${escapeHtml(leagueName)}</span></div>` : ''}<div class="table-match-name"><b>${escapeHtml(row.match||'')}</b></div></td>
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
@@ -1632,11 +1627,11 @@ dayKeys.push(dayKey);
 dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
-tableRows.push(`<tr>
+tableRows.push(`<tr class="tracker-row-${row.result || 'pending'}">
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
   ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``}
-  <div class="tracker-market-sub">${getMarketIcon(row.market)} ${row.market || "—"}</div>
+  <div class="tracker-market-sub">${getMarketIcon(row.market)}&nbsp;${row.market || "—"}</div>
 </td>
 <td class="tracker-market-col">${getMarketCategory(row.market) || row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
@@ -3775,12 +3770,12 @@ window.forgotVipPassword = forgotVipPassword;
           dayRows.forEach(row=>{
             const p = rowProfit(row);
             html += `
-              <tr>
+              <tr class="tracker-row-${trackerEsc(row.result || 'pending')}">
                 <td class="tracker-desktop-match">
                   <div class="tracker-match-name">${trackerEsc(row.match || '—')}</div>
                   ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
                 </td>
-                <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))} ${trackerEsc(row.market || '—')}</td>
+                <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))}&nbsp;${trackerEsc(row.market || '—')}</td>
                 <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
                 <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
                 <td><select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)"><option value="pending" ${(row.result==='pending'?'selected':'')}>pending</option><option value="won" ${(row.result==='won'?'selected':'')}>won</option><option value="lost" ${(row.result==='lost'?'selected':'')}>lost</option><option value="delete">🗑 delete</option></select></td>
