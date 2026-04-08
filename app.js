@@ -4096,3 +4096,66 @@ function toggleAboutBox(){
   setTimeout(updateBetsTodayCount, 500);
 
 })();
+// ===== SAFE BANKROLL GROWTH + ROI NOTE PATCH =====
+(function(){
+  function applySafeTrackerNotes(){
+    try{
+      // My Tracker bankroll card
+      const bankrollCard = bankrollElem ? bankrollElem.closest('.stat-card') : null;
+      if(bankrollCard && bankrollElem){
+        let growthEl = bankrollCard.querySelector('.bankroll-growth-sub');
+        if(!growthEl){
+          growthEl = document.createElement('div');
+          growthEl.className = 'bankroll-growth-sub';
+          bankrollCard.appendChild(growthEl);
+        }
+
+        const startingInput = document.getElementById('startingBankroll');
+        const start = Number(startingInput?.value || 100);
+        const bankrollNow = Number(bankrollElem.textContent || 0);
+        const growth = start > 0 ? ((bankrollNow - start) / start) * 100 : 0;
+
+        growthEl.textContent = `Growth ${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%`;
+      }
+
+      // My Tracker ROI card
+      const roiCard = roiElem ? roiElem.closest('.stat-card') : null;
+      if(roiCard){
+        let note = roiCard.querySelector('.roi-subnote');
+        if(!note){
+          note = document.createElement('div');
+          note.className = 'roi-subnote';
+          note.textContent = 'Based on £ staked';
+          roiCard.appendChild(note);
+        }
+      }
+
+      // TDT Tracker ROI row
+      const performanceCards = document.querySelectorAll('.card');
+      performanceCards.forEach(card=>{
+        const txt = (card.textContent || '');
+        if(txt.includes('Performance') && txt.includes('ROI') && txt.includes('Avg Odds')){
+          const rows = Array.from(card.querySelectorAll('*'));
+          const roiLabel = rows.find(el => (el.textContent || '').trim() === 'ROI');
+          if(roiLabel){
+            let note = roiLabel.parentElement?.querySelector('.roi-subnote');
+            if(!note){
+              note = document.createElement('div');
+              note.className = 'roi-subnote';
+              note.textContent = 'Based on £ staked';
+              roiLabel.parentElement.appendChild(note);
+            }
+          }
+        }
+      });
+
+    }catch(e){
+      console.error('safe tracker note patch failed', e);
+    }
+  }
+
+  window.addEventListener('load', function(){
+    setTimeout(applySafeTrackerNotes, 400);
+    setTimeout(applySafeTrackerNotes, 1200);
+  });
+})();
