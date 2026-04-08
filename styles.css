@@ -2839,6 +2839,9 @@ body.layout-compact .vip-bar{
 #tdtTrackerSection .tdt-perf-fill--amber{
   background:linear-gradient(90deg,#f59e0b,#fbbf24);
 }
+#tdtTrackerSection .tdt-perf-fill--neutral{
+  background:linear-gradient(90deg,#cbd5e1,#e2e8f0);
+}
 #tdtTrackerSection .tracker-toggle{
   margin-top:18px !important;
   margin-bottom:16px !important;

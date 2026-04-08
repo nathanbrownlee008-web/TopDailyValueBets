@@ -351,6 +351,10 @@ function getBetTitleSizeClass(match){
   if(len >= 24) return " bet-title--small";
   return "";
 }
+function getTrackerSportIcon(row){
+  return getBetSport(row) === "basketball" ? "🏀" : "⚽";
+}
+
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -1629,7 +1633,7 @@ history.push(bankroll);
 
 tableRows.push(`<tr class="tracker-row-${row.result || 'pending'}">
 <td class="match-market-cell">
-  <div class="tracker-match-name">${row.match}</div>
+  <div class="tracker-match-name"><span class="tracker-sport-icon">${getTrackerSportIcon(row)}</span>${row.match}</div>
   ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``}
   <div class="tracker-market-sub">${getMarketIcon(row.market)}&nbsp;${row.market || "—"}</div>
 </td>
@@ -1987,14 +1991,19 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
   const tdtRoiVal = totalStake ? ((profit / totalStake) * 100) : 0;
   const tdtWinrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
   const tdtAvgOddsVal = resolvedCount ? (totalOdds / resolvedCount) : 0;
+  const breakEvenRate = tdtAvgOddsVal > 0 ? (100 / tdtAvgOddsVal) : 0;
 
   const roiFill = document.getElementById("tdtRoiBarFill");
   const roiLabel = document.getElementById("tdtRoiBarLabel");
   if(roiFill && roiLabel){
     const width = Math.max(0, Math.min(100, Math.abs(tdtRoiVal)));
     roiFill.style.width = width + "%";
-    roiFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red");
-    roiFill.classList.add(tdtRoiVal >= 0 ? "tdt-perf-fill--green" : "tdt-perf-fill--red");
+    roiFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber", "tdt-perf-fill--neutral");
+    if(Math.abs(tdtRoiVal) < 0.25){
+      roiFill.classList.add("tdt-perf-fill--amber");
+    }else{
+      roiFill.classList.add(tdtRoiVal >= 0 ? "tdt-perf-fill--green" : "tdt-perf-fill--red");
+    }
     roiLabel.textContent = `${tdtRoiVal.toFixed(1)}%`;
   }
 
@@ -2003,7 +2012,18 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
   if(winFill && winLabel){
     const width = Math.max(0, Math.min(100, tdtWinrateVal));
     winFill.style.width = width + "%";
-    winLabel.textContent = `${tdtWinrateVal.toFixed(1)}%`;
+    winFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber", "tdt-perf-fill--neutral");
+    const diff = tdtWinrateVal - breakEvenRate;
+    if(Math.abs(diff) <= 1.5){
+      winFill.classList.add("tdt-perf-fill--amber");
+    }else if(diff > 0){
+      winFill.classList.add("tdt-perf-fill--green");
+    }else{
+      winFill.classList.add("tdt-perf-fill--red");
+    }
+    winLabel.textContent = breakEvenRate > 0
+      ? `${tdtWinrateVal.toFixed(1)}% (Break-even ${breakEvenRate.toFixed(1)}%)`
+      : `${tdtWinrateVal.toFixed(1)}%`;
   }
 
   const oddsFill = document.getElementById("tdtAvgOddsBarFill");
@@ -2012,6 +2032,8 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
     const maxOdds = 5;
     const width = Math.max(0, Math.min(100, (tdtAvgOddsVal / maxOdds) * 100));
     oddsFill.style.width = width + "%";
+    oddsFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber", "tdt-perf-fill--neutral");
+    oddsFill.classList.add("tdt-perf-fill--neutral");
     oddsLabel.textContent = tdtAvgOddsVal.toFixed(2);
   }
 }
@@ -2108,7 +2130,7 @@ async function loadTdtTracker(){
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
         html += `
           <tr class="tdt-row ${result}">
-            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+            <td class="tdt-match"><span class="tracker-sport-icon">${escapeHtml(getTrackerSportIcon(row))}</span>${escapeHtml(row.match || '')}</td>
             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
             <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
@@ -3376,7 +3398,7 @@ window.loadTdtTracker = async function(){
 
             html += `
                           <tr class="tdt-row ${result}">
-                            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+                            <td class="tdt-match"><span class="tracker-sport-icon">${escapeHtml(getTrackerSportIcon(row))}</span>${escapeHtml(row.match || '')}</td>
                             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
                             <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
                             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
@@ -3619,7 +3641,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                 <div class="tracker-grid-top">
                   <div>
-                    <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
+                    <div class="tracker-grid-match"><span class="tracker-sport-icon">${trackerEsc(getTrackerSportIcon(row))}</span>${trackerEsc(row.match || "")}</div>
                     ${formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
                   </div>
                   <div class="tracker-grid-top-result">
@@ -3772,7 +3794,7 @@ window.forgotVipPassword = forgotVipPassword;
             html += `
               <tr class="tracker-row-${trackerEsc(row.result || 'pending')}">
                 <td class="tracker-desktop-match">
-                  <div class="tracker-match-name">${trackerEsc(row.match || '—')}</div>
+                  <div class="tracker-match-name"><span class="tracker-sport-icon">${trackerEsc(getTrackerSportIcon(row))}</span>${trackerEsc(row.match || '—')}</div>
                   ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
                 </td>
                 <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))}&nbsp;${trackerEsc(row.market || '—')}</td>
