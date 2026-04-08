@@ -12,17 +12,11 @@ function normalizeVipEmail(email){
 }
 
 
-
-function syncVipPromoVisibility(){
-  const vipPromoEl = document.getElementById('vipPromo');
-  document.body.classList.toggle('vip-active', !!vipActive);
-  if(!vipPromoEl) return;
-  vipPromoEl.style.display = vipActive ? 'none' : '';
-}
-
 function setVipUI(active, email){
   vipActive = !!active;
 
+  // ✅ ADD THIS LINE (this is the fix)
+  document.body.classList.toggle('vip-active', !!active);
   const titleEl = document.getElementById('vipTitle');
   const statusEl = document.getElementById('vipStatus');
   const btnEl = document.getElementById('vipButton');
@@ -51,8 +45,6 @@ function setVipUI(active, email){
     }
     if(typeof tabTracker!=='undefined' && tabTracker) tabTracker.classList.add('tab--locked');
   }
-
-  syncVipPromoVisibility();
 }
 
 function openVipModal(){
@@ -423,12 +415,171 @@ function makeLocalTrackerId(){
 
 async function currentAuthUserId(){
   try{
+    const { data: sessionData } = await client.auth.getSession();
+    const sessionUserId = sessionData?.session?.user?.id || null;
+    if(sessionUserId) return sessionUserId;
     const { data, error } = await client.auth.getUser();
     if(error) return null;
     return data?.user?.id || null;
   }catch(e){
     return null;
   }
+}
+
+function trackerCloudBasePayload(row, userId){
+  const safeRow = normalizeTrackerRow(row);
+  return {
+    user_id: userId,
+    match: safeRow.match || "",
+    market: safeRow.market || "",
+    odds: Number(safeRow.odds || 0),
+    stake: Number(safeRow.stake == null ? 10 : safeRow.stake),
+    result: safeRow.result || "pending",
+    created_at: safeRow.created_at || new Date().toISOString(),
+    bet_date: safeRow.bet_date || null,
+    bookie: safeRow.bookie || null
+  };
+}
+
+function trackerCloudExtraPayload(row){
+  const safeRow = normalizeTrackerRow(row);
+  const extra = {};
+  if(safeRow.sync_id) extra.sync_id = safeRow.sync_id;
+  return extra;
+}
+
+function isTemporaryTrackerId(id){
+  return String(id || '').startsWith('trk_');
+}
+
+function mergeTrackerRowIntoLocal(row){
+  const safeRow = normalizeTrackerRow(row);
+  const localRows = readTrackerRowsLocal();
+  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
+  writeTrackerRowsLocal(nextLocal);
+  return safeRow;
+}
+
+async function findExistingCloudTrackerRow(row, userId){
+  const safeRow = normalizeTrackerRow(row);
+  const createdAt = safeRow.created_at || null;
+  if(!createdAt) return null;
+  try{
+    const { data, error } = await client
+      .from("personal_tracker")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("created_at", createdAt)
+      .limit(1);
+    if(error) throw error;
+    return data?.[0] || null;
+  }catch(e){
+    console.error("findExistingCloudTrackerRow", e);
+    return null;
+  }
+}
+
+async function insertTrackerRowCloud(row, userId){
+  const basePayload = trackerCloudBasePayload(row, userId);
+  const attempts = [
+    { ...basePayload, ...trackerCloudExtraPayload(row) },
+    basePayload,
+    {
+      user_id: userId,
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at,
+      bet_date: basePayload.bet_date,
+      bookie: basePayload.bookie
+    },
+    {
+      user_id: userId,
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at
+    }
+  ];
+
+  let lastError = null;
+  for(const payload of attempts){
+    const { data, error } = await client
+      .from("personal_tracker")
+      .insert([payload])
+      .select("*")
+      .limit(1);
+    if(!error){
+      return normalizeTrackerRow(data?.[0] || { ...row, ...payload });
+    }
+    lastError = error;
+  }
+  throw lastError || new Error("Cloud insert failed.");
+}
+
+async function updateTrackerRowCloudById(row, userId){
+  const safeRow = normalizeTrackerRow(row);
+  if(isTemporaryTrackerId(safeRow.id)) return null;
+
+  const basePayload = trackerCloudBasePayload(safeRow, userId);
+  const attempts = [
+    { ...basePayload, ...trackerCloudExtraPayload(safeRow) },
+    basePayload,
+    {
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at,
+      bet_date: basePayload.bet_date,
+      bookie: basePayload.bookie
+    },
+    {
+      match: basePayload.match,
+      market: basePayload.market,
+      odds: basePayload.odds,
+      stake: basePayload.stake,
+      result: basePayload.result,
+      created_at: basePayload.created_at
+    }
+  ];
+
+  let lastError = null;
+  for(const payload of attempts){
+    const { data, error } = await client
+      .from("personal_tracker")
+      .update(payload)
+      .eq("user_id", userId)
+      .eq("id", safeRow.id)
+      .select("*")
+      .limit(1);
+    if(!error){
+      if(data && data.length) return normalizeTrackerRow(data[0]);
+      return normalizeTrackerRow(safeRow);
+    }
+    lastError = error;
+  }
+  if(lastError) throw lastError;
+  return null;
+}
+
+async function syncLocalTrackerRowsToCloud(localRows, userId){
+  const synced = [];
+  for(const row of (localRows || [])){
+    try{
+      const saved = await upsertTrackerRow(row);
+      synced.push(saved);
+    }catch(e){
+      console.error("syncLocalTrackerRowsToCloud", e);
+      synced.push(normalizeTrackerRow(row));
+    }
+  }
+  return synced;
 }
 
 async function readTrackerRows(){
@@ -452,13 +603,21 @@ async function readTrackerRows(){
       return cloudRows;
     }
 
-    // first-time cloud seed from local backup
     if(localRows.length){
-      const seedRows = localRows.map(r => ({ ...normalizeTrackerRow(r), user_id: userId }));
-      const { error: seedError } = await client.from("personal_tracker").upsert(seedRows, { onConflict: "id" });
-      if(seedError) throw seedError;
-      writeTrackerRowsLocal(localRows);
-      return localRows;
+      const syncedRows = await syncLocalTrackerRowsToCloud(localRows, userId);
+      const { data: refreshed, error: refreshError } = await client
+        .from("personal_tracker")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+      if(refreshError) throw refreshError;
+      const refreshedRows = (refreshed || []).map(normalizeTrackerRow);
+      if(refreshedRows.length){
+        writeTrackerRowsLocal(refreshedRows);
+        return refreshedRows;
+      }
+      writeTrackerRowsLocal(syncedRows);
+      return syncedRows;
     }
 
     return [];
@@ -470,35 +629,59 @@ async function readTrackerRows(){
 
 async function upsertTrackerRow(row){
   const safeRow = normalizeTrackerRow(row);
+  mergeTrackerRowIntoLocal(safeRow);
+
   const userId = await currentAuthUserId();
+  if(!userId) throw new Error("Sign in to save tracker bets across devices.");
 
-  // Always keep browser backup too
-  const localRows = readTrackerRowsLocal();
-  const nextLocal = [...localRows.filter(r => String(r.id) !== String(safeRow.id)), safeRow];
-  writeTrackerRowsLocal(nextLocal);
+  try{
+    const existingCloudRow = await findExistingCloudTrackerRow(safeRow, userId);
+    if(existingCloudRow?.id != null){
+      safeRow.id = existingCloudRow.id;
+    }
 
-  if(!userId) return safeRow;
+    let savedRow = null;
+    if(!isTemporaryTrackerId(safeRow.id)){
+      savedRow = await updateTrackerRowCloudById(safeRow, userId);
+    }
+    if(!savedRow){
+      savedRow = await insertTrackerRowCloud(safeRow, userId);
+    }
 
-  const payload = { ...safeRow, user_id: userId };
-  const { error } = await client.from("personal_tracker").upsert([payload], { onConflict: "id" });
-  if(error) throw error;
-  return safeRow;
+    return mergeTrackerRowIntoLocal(savedRow);
+  }catch(error){
+    console.error("upsertTrackerRow cloud save failed", error);
+    throw error;
+  }
 }
 
 async function deleteTrackerRowById(id){
-  const localRows = readTrackerRowsLocal().filter(r => String(r.id) !== String(id));
-  writeTrackerRowsLocal(localRows);
+  const localRows = readTrackerRowsLocal();
+  const rowToDelete = localRows.find(r => String(r.id) === String(id)) || null;
+  writeTrackerRowsLocal(localRows.filter(r => String(r.id) !== String(id)));
 
   const userId = await currentAuthUserId();
-  if(!userId) return;
+  if(!userId) throw new Error("Sign in to remove tracker bets across devices.");
 
-  const { error } = await client
-    .from("personal_tracker")
-    .delete()
-    .eq("user_id", userId)
-    .eq("id", id);
+  const cloudId = rowToDelete && !isTemporaryTrackerId(rowToDelete.id) ? rowToDelete.id : null;
+  if(cloudId != null){
+    const { error } = await client
+      .from("personal_tracker")
+      .delete()
+      .eq("user_id", userId)
+      .eq("id", cloudId);
+    if(error) throw error;
+    return;
+  }
 
-  if(error) throw error;
+  if(rowToDelete?.created_at){
+    const { error } = await client
+      .from("personal_tracker")
+      .delete()
+      .eq("user_id", userId)
+      .eq("created_at", rowToDelete.created_at);
+    if(error) throw error;
+  }
 }
 
 
@@ -1004,10 +1187,9 @@ async function loadBets(){
     <div class="bet-teaser">
       <div class="bet-title-row">
         <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
-        <span class="bet-sport-inline">${getSportIcon(row)} ${getSportLabel(getBetSport(row))}</span>
         <span class="bet-date">${escapeHtml(betDate)}</span>
       </div>
-      ${!locked && (leagueName || kickoffLabel) ? `<div class="bet-meta bet-meta--league-row"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span>${kickoffLabel ? `<span class="bet-kickoff-inline">${escapeHtml(kickoffLabel)}</span>` : ``}</div>` : ``}
+      ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
       <div class="bet-meta bet-meta--market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
       </div>
@@ -1086,7 +1268,7 @@ async function addToTracker(btn, row){
       btn.disabled = false;
       btn.textContent = 'Add';
     }
-    alert('Could not save tracker bet right now.');
+    alert(e?.message || 'Could not save tracker bet right now.');
     return;
   }
 
@@ -2071,48 +2253,6 @@ function toggleTdtTracker(){
     wrapper.classList.remove("expanded");
     wrapper.classList.add("collapsed");
     arrow.innerText="▼";
-  }
-}
-
-
-async function clearTrackerData(){
-  const ok = window.confirm("Clear all tracker bets and start fresh? This clears this account's tracker and this device backup.");
-  if(!ok) return;
-
-  const btn = document.getElementById("clearTrackerBtn");
-  if(btn){
-    btn.disabled = true;
-    btn.textContent = "Clearing…";
-  }
-
-  try{
-    writeTrackerRowsLocal([]);
-    addedKeys.clear();
-
-    const userId = await currentAuthUserId();
-    if(userId){
-      const { error } = await client
-        .from("personal_tracker")
-        .delete()
-        .eq("user_id", userId);
-      if(error) throw error;
-    }
-
-    trackerRowsCache = [];
-    trackerAllRows = [];
-
-    await loadTracker();
-    await loadBets();
-    alert("Tracker cleared.");
-  }catch(e){
-    console.error(e);
-    alert("Could not clear tracker right now.");
-  }finally{
-    const btn = document.getElementById("clearTrackerBtn");
-    if(btn){
-      btn.disabled = false;
-      btn.textContent = "Clear Tracker";
-    }
   }
 }
 
@@ -3491,7 +3631,7 @@ window.forgotVipPassword = forgotVipPassword;
 
           dayRows.forEach(row=>{
             html += `
-              <div class="tracker-grid-card">
+              <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                 <div class="tracker-grid-top">
                   <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
                   <div class="tracker-grid-top-result">
@@ -3611,239 +3751,3 @@ setTimeout(()=>{
     else el.classList.add("result-pending");
   });
 },500);
-
-
-/* ===== FINAL TRACKER/WIDE STABILISER ===== */
-(function(){
-  const trackerStateKeyBase = 'tdt_tracker_group_state_final';
-  function finalStateKey(type){
-    const email = ((localStorage.getItem('vip_email')||'').trim().toLowerCase() || 'guest');
-    return `${trackerStateKeyBase}_${type}_${email}`;
-  }
-  function finalReadState(type){
-    try{ return JSON.parse(localStorage.getItem(finalStateKey(type)) || '{}') || {}; }
-    catch(e){ return {}; }
-  }
-  function finalWriteState(type, state){
-    try{ localStorage.setItem(finalStateKey(type), JSON.stringify(state || {})); }catch(e){}
-  }
-  function finalTrackerRawDate(row){
-    return row?.bet_date || row?.created_at || row?.match_date || row?.match_date_date || new Date().toISOString();
-  }
-  function finalTrackerParseDate(v){
-    const d = new Date(v || '');
-    if(Number.isNaN(d.getTime())) return new Date().getTime();
-    return d.getTime();
-  }
-  function finalMonthLabel(row){
-    const d = new Date(finalTrackerRawDate(row));
-    if(Number.isNaN(d.getTime())) return 'Unknown';
-    return d.toLocaleDateString('en-GB', { month:'long', year:'numeric' });
-  }
-  function finalWeekLabel(row){
-    const d = new Date(finalTrackerRawDate(row));
-    if(Number.isNaN(d.getTime())) return 'Unknown week';
-    const day = d.getDay();
-    const mondayOffset = (day + 6) % 7;
-    const monday = new Date(d);
-    monday.setDate(d.getDate() - mondayOffset);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    const start = monday.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
-    const end = sunday.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
-    const weekNo = Math.max(1, Math.ceil(monday.getDate() / 7));
-    return `Week ${weekNo} (${start}–${end})`;
-  }
-  function finalDayLabel(row){
-    return fmtDayLabel(finalTrackerRawDate(row));
-  }
-  function finalEsc(v){ return escapeHtml(v == null ? '' : String(v)); }
-  function finalMoney(n){
-    const num = Number(n || 0);
-    return `${num >= 0 ? '£' : '-£'}${Math.abs(num).toFixed(2)}`;
-  }
-  function finalProfitForRow(row){
-    const stake = Number(row?.stake || 0);
-    const odds = Number(row?.odds || 0);
-    if(row?.result === 'won') return stake * Math.max(0, odds - 1);
-    if(row?.result === 'lost') return -stake;
-    return 0;
-  }
-  function finalToggle(btn){
-    const type = btn.dataset.type;
-    const key = decodeURIComponent(btn.dataset.key || '');
-    const body = btn.nextElementSibling;
-    if(!body) return;
-    const willOpen = body.classList.contains('is-collapsed');
-    body.classList.toggle('is-collapsed', !willOpen);
-    const arrow = btn.querySelector('.tracker-group-arrow');
-    if(arrow) arrow.textContent = willOpen ? '▼' : '▶';
-    const state = finalReadState(type);
-    state[key] = willOpen;
-    finalWriteState(type, state);
-  }
-  window.toggleTrackerCollapse = finalToggle;
-
-  function buildTrackerWideDayRows(dayRows){
-    const rows = sortRowsByDateTimeMatch(dayRows || []);
-    let html = `
-      <div class="tracker-desktop-table-wrap">
-        <table class="tracker-desktop-table tracker-desktop-table--grouped">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Match</th>
-              <th>Market</th>
-              <th>Stake</th>
-              <th>Odds</th>
-              <th>Result</th>
-              <th class="profit-col">Profit</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-    rows.forEach(row=>{
-      const profit = finalProfitForRow(row);
-      const res = row?.result || 'pending';
-      const dateMain = normalizeDateOnly(finalTrackerRawDate(row)) || '';
-      const kick = normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || '');
-      const category = getMarketCategory(row?.market || '') || row?.market || '—';
-      html += `
-        <tr class="tracker-wide-row tracker-wide-row--${finalEsc(res)}">
-          <td class="tracker-desktop-date">
-            <div>${finalEsc(dateMain)}</div>
-            ${kick ? `<div class="tracker-desktop-kickoff">${finalEsc(kick)}</div>` : ``}
-          </td>
-          <td class="tracker-desktop-match">
-            <div class="tracker-match-name">${finalEsc(row?.match || '—')}</div>
-          </td>
-          <td class="tracker-desktop-market">
-            <div class="tracker-market-cat">${finalEsc(category)}</div>
-            ${String(category).toLowerCase() !== String(row?.market || '').toLowerCase() ? `<div class="tracker-market-raw">${finalEsc(row?.market || '—')}</div>` : ``}
-          </td>
-          <td><input type="number" value="${Number(row?.stake || 0)}" onchange="updateStake('${finalEsc(row?.id)}',this.value)"></td>
-          <td><input type="number" step="0.01" value="${Number(row?.odds || 0)}" onchange="updateOdds('${finalEsc(row?.id)}',this.value)"></td>
-          <td>
-            <select class="result-select result-${finalEsc(res)}" onchange="updateResult('${finalEsc(row?.id)}',this.value)">
-              <option value="pending" ${(res==='pending'?'selected':'')}>pending</option>
-              <option value="won" ${(res==='won'?'selected':'')}>won</option>
-              <option value="lost" ${(res==='lost'?'selected':'')}>lost</option>
-              <option value="delete">🗑 delete</option>
-            </select>
-          </td>
-          <td class="profit-col ${profit >= 0 ? 'profit-win' : 'profit-loss'}"><span>${finalEsc(finalMoney(profit))}</span></td>
-        </tr>
-      `;
-    });
-    html += `</tbody></table></div>`;
-    return html;
-  }
-
-  function buildTrackerCardRows(dayRows){
-    const rows = sortRowsByDateTimeMatch(dayRows || []);
-    let html = `<div class="tracker-bet-list">`;
-    rows.forEach(row=>{
-      const res = row?.result || 'pending';
-      html += `
-        <div class="tracker-grid-card tracker-grid-card--${finalEsc(res)}">
-          <div class="tracker-grid-top">
-            <div>
-              <div class="tracker-grid-match">${finalEsc(row?.match || '')}</div>
-              ${formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${finalEsc(formatKickoffLabel(row))}</div>` : ``}
-            </div>
-            <div class="tracker-grid-top-result">
-              <select class="result-select result-${finalEsc(res)}" onchange="updateResult('${finalEsc(row?.id)}',this.value)">
-                <option value="pending" ${(res==='pending'?'selected':'')}>pending</option>
-                <option value="won" ${(res==='won'?'selected':'')}>won</option>
-                <option value="lost" ${(res==='lost'?'selected':'')}>lost</option>
-                <option value="delete">🗑 delete</option>
-              </select>
-            </div>
-          </div>
-          <div class="tracker-grid-meta tracker-grid-meta--single-row">
-            <div class="tracker-grid-market-slot">
-              <span>Market</span>
-              <div class="tracker-grid-market-inline">${finalEsc(row?.market || '—')}</div>
-            </div>
-            <div>
-              <span>Odds</span>
-              <input type="number" step="0.01" value="${Number(row?.odds || 0)}" onchange="updateOdds('${finalEsc(row?.id)}', this.value)">
-            </div>
-            <div>
-              <span>Stake</span>
-              <input type="number" value="${Number(row?.stake || 0)}" onchange="updateStake('${finalEsc(row?.id)}', this.value)">
-            </div>
-          </div>
-        </div>
-      `;
-    });
-    html += `</div>`;
-    return html;
-  }
-
-  window.buildTrackerGroupedHTML = function(rows){
-    const list = (rows || []).slice().sort((a,b)=> finalTrackerParseDate(finalTrackerRawDate(b)) - finalTrackerParseDate(finalTrackerRawDate(a)));
-    const monthState = finalReadState('month');
-    const weekState = finalReadState('week');
-    const dayState = finalReadState('day');
-    const months = [];
-    const monthMap = new Map();
-    list.forEach(row=>{
-      const month = finalMonthLabel(row);
-      const week = finalWeekLabel(row);
-      const day = finalDayLabel(row);
-      if(!monthMap.has(month)){
-        const entry = { label: month, weeks: new Map() };
-        monthMap.set(month, entry); months.push(entry);
-      }
-      const monthEntry = monthMap.get(month);
-      if(!monthEntry.weeks.has(week)) monthEntry.weeks.set(week, { label: week, days: new Map() });
-      const weekEntry = monthEntry.weeks.get(week);
-      if(!weekEntry.days.has(day)) weekEntry.days.set(day, []);
-      weekEntry.days.get(day).push(row);
-    });
-
-    let html = `<div class="tracker-grouped-shell tracker-opt7-shell">`;
-    months.forEach(monthEntry=>{
-      const monthKey = monthEntry.label;
-      const monthOpen = monthState[monthKey] !== false;
-      html += `<div class="tracker-month-wrap"><button class="tracker-group-toggle tracker-month-toggle" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)"><span class="tracker-group-arrow">${monthOpen ? '▼' : '▶'}</span><span>${finalEsc(monthKey)}</span></button><div class="tracker-group-body ${monthOpen ? '' : 'is-collapsed'}">`;
-      Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry])=>{
-        const weekKey = `${monthKey}||${weekLabel}`;
-        const weekOpen = weekState[weekKey] !== false;
-        html += `<div class="tracker-week-wrap"><button class="tracker-group-toggle tracker-week-toggle" data-type="week" data-key="${encodeURIComponent(weekKey)}" onclick="toggleTrackerCollapse(this)"><span class="tracker-group-arrow">${weekOpen ? '▼' : '▶'}</span><span>${finalEsc(weekLabel)}</span></button><div class="tracker-group-body ${weekOpen ? '' : 'is-collapsed'}">`;
-        Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows])=>{
-          const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
-          const dayOpen = dayState[dayKey] !== false;
-          html += `<div class="tracker-day-wrap"><button class="tracker-group-toggle tracker-day-toggle" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)"><span class="tracker-group-arrow">${dayOpen ? '▼' : '▶'}</span><span>${finalEsc(dayLabel)}</span></button><div class="tracker-group-body ${dayOpen ? '' : 'is-collapsed'}">`;
-          html += document.body.classList.contains('layout-wide') ? buildTrackerWideDayRows(dayRows) : buildTrackerCardRows(dayRows);
-          html += `</div></div>`;
-        });
-        html += `</div></div>`;
-      });
-      html += `</div></div>`;
-    });
-    html += `</div>`;
-    return html;
-  };
-
-  function finalRenderTracker(){
-    const tableEl = document.getElementById('trackerTable');
-    const countEl = document.getElementById('betCount');
-    if(!tableEl) return;
-    const filtered = (typeof _applyTrackerFilters === 'function') ? _applyTrackerFilters(trackerAllRows) : (trackerAllRows || []);
-    tableEl.innerHTML = buildTrackerGroupedHTML(filtered);
-    if(countEl) countEl.textContent = filtered.length;
-  }
-
-  if(typeof _renderFilteredTrackerTable === 'function'){
-    _renderFilteredTrackerTable = finalRenderTracker;
-  }
-  if(typeof loadTracker === 'function'){
-    const originalLoadTracker = loadTracker;
-    loadTracker = async function(){
-      await originalLoadTracker();
-      finalRenderTracker();
-    };
-  }
-})();
