@@ -6491,3 +6491,121 @@ body.layout-wide .bets-table .table-market-text{
 .value-bet-card .bottom > * {
   flex: 0 0 auto;
 }
+/* ===== FORCE ALL VALUE BET CARDS TO LAYOUT LIKE THE GOOD ONE ===== */
+
+#betsGrid .bet-card{
+  display:flex !important;
+  flex-direction:column !important;
+}
+
+#betsGrid .bet-title-row{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  column-gap:12px !important;
+  align-items:start !important;
+}
+
+#betsGrid .bet-title{
+  min-width:0 !important;
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:unset !important;
+  padding-right:0 !important;
+}
+
+#betsGrid .bet-date{
+  white-space:nowrap !important;
+  text-align:right !important;
+}
+
+#betsGrid .bet-league-row{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  column-gap:12px !important;
+  align-items:center !important;
+  margin-top:8px !important;
+}
+
+#betsGrid .bet-league{
+  min-width:0 !important;
+  max-width:100% !important;
+  width:max-content !important;
+}
+
+#betsGrid .bet-kickoff-inline{
+  white-space:nowrap !important;
+  text-align:right !important;
+  flex:0 0 auto !important;
+}
+
+#betsGrid .bet-meta--market-row{
+  display:flex !important;
+  justify-content:flex-start !important;
+  margin-top:8px !important;
+}
+
+#betsGrid .bet-market{
+  max-width:100% !important;
+  width:max-content !important;
+}
+
+#betsGrid .bet-footer--split{
+  display:grid !important;
+  grid-template-columns:auto auto auto !important;
+  justify-content:space-between !important;
+  align-items:center !important;
+  column-gap:10px !important;
+  margin-top:10px !important;
+}
+
+#betsGrid .bet-footer-slot{
+  min-width:0 !important;
+  display:flex !important;
+  align-items:center !important;
+}
+
+#betsGrid .bet-footer-slot--left{
+  justify-content:flex-start !important;
+}
+
+#betsGrid .bet-footer-slot--center{
+  justify-content:center !important;
+}
+
+#betsGrid .bet-footer-slot--right{
+  justify-content:flex-end !important;
+}
+
+#betsGrid .bet-bookie,
+#betsGrid .odds-pill,
+#betsGrid .bet-btn{
+  flex:0 0 auto !important;
+  white-space:nowrap !important;
+}
+
+#betsGrid .odds-pill{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+@media (max-width:520px){
+  #betsGrid .bet-title-row,
+  #betsGrid .bet-league-row{
+    grid-template-columns:minmax(0,1fr) auto !important;
+  }
+
+  #betsGrid .bet-footer--split{
+    grid-template-columns:auto auto auto !important;
+    column-gap:8px !important;
+  }
+
+  #betsGrid .bet-bookie{
+    max-width:120px !important;
+  }
+
+  #betsGrid .bet-league,
+  #betsGrid .bet-market{
+    max-width:100% !important;
+  }
+}
