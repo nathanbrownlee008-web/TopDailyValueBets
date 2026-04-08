@@ -5831,28 +5831,23 @@ select.result-lost{
   }
 
   body.layout-wide .bets-table thead th:nth-child(1),
-  body.layout-wide .bets-table tbody td:nth-child(1){ width:25%; }
+  body.layout-wide .bets-table tbody td:nth-child(1){ width:12%; white-space:nowrap; }
   body.layout-wide .bets-table thead th:nth-child(2),
-  body.layout-wide .bets-table tbody td:nth-child(2){ width:21%; }
+  body.layout-wide .bets-table tbody td:nth-child(2){ width:25%; }
   body.layout-wide .bets-table thead th:nth-child(3),
-  body.layout-wide .bets-table tbody td:nth-child(3){ width:14%; }
+  body.layout-wide .bets-table tbody td:nth-child(3){ width:21%; }
   body.layout-wide .bets-table thead th:nth-child(4),
-  body.layout-wide .bets-table tbody td:nth-child(4){ width:10%; text-align:center; }
+  body.layout-wide .bets-table tbody td:nth-child(4){ width:14%; }
   body.layout-wide .bets-table thead th:nth-child(5),
   body.layout-wide .bets-table tbody td:nth-child(5){ width:10%; text-align:center; }
   body.layout-wide .bets-table thead th:nth-child(6),
-  body.layout-wide .bets-table tbody td:nth-child(6){ width:12%; white-space:nowrap; }
+  body.layout-wide .bets-table tbody td:nth-child(6){ width:10%; text-align:center; }
   body.layout-wide .bets-table thead th:nth-child(7),
   body.layout-wide .bets-table tbody td:nth-child(7){ width:8%; text-align:right; white-space:nowrap; }
 
-  body.layout-wide .bets-table tbody td:nth-child(1){
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  body.layout-wide .bets-table tbody td:nth-child(3){
-    white-space:nowrap;
+  body.layout-wide .bets-table tbody td:nth-child(2),
+  body.layout-wide .bets-table tbody td:nth-child(3),
+  body.layout-wide .bets-table tbody td:nth-child(4){
     overflow:hidden;
     text-overflow:ellipsis;
   }
@@ -6047,71 +6042,99 @@ body.vip-active #vipPromo{
 }
 
 
-/* ===== FINAL VALUE BETS + TRACKER FIXES ===== */
-.bet-meta--league-row{
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-}
-.bet-kickoff-inline{
-  color:rgba(226,232,240,.88);
-  font-size:12px;
+/* ===== kick off time + brighter market text ===== */
+.bet-kickoff,
+.tracker-kickoff,
+.table-kickoff{
+  color:#ffffff;
+  opacity:1;
+  font-size:13px;
   font-weight:700;
-  white-space:nowrap;
+  line-height:1.25;
+  margin-top:6px;
 }
 .table-kickoff{
+  font-size:12px;
   margin-top:4px;
-  font-size:11px;
-  color:rgba(226,232,240,.82);
-  font-weight:700;
 }
-.table-date-cell{
+.bet-market,
+.bet-market-inline,
+.bet-market-text,
+.market-chip,
+.market-pill,
+.tracker-market-sub,
+.tracker-market-col{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  opacity:1 !important;
+}
+
+
+/* ===== clean kickoff + tracker result card fixes ===== */
+.bet-date{
   white-space:nowrap;
 }
 
-body.layout-wide .bets-table{
-  table-layout:fixed;
-}
-body.layout-wide .bets-table thead th:nth-child(1),
-body.layout-wide .bets-table tbody td:nth-child(1){ width:12%; white-space:nowrap; }
-body.layout-wide .bets-table thead th:nth-child(2),
-body.layout-wide .bets-table tbody td:nth-child(2){ width:29%; }
-body.layout-wide .bets-table thead th:nth-child(3),
-body.layout-wide .bets-table tbody td:nth-child(3){ width:21%; }
-body.layout-wide .bets-table thead th:nth-child(4),
-body.layout-wide .bets-table tbody td:nth-child(4){ width:14%; }
-body.layout-wide .bets-table thead th:nth-child(5),
-body.layout-wide .bets-table tbody td:nth-child(5){ width:8%; text-align:center; }
-body.layout-wide .bets-table thead th:nth-child(6),
-body.layout-wide .bets-table tbody td:nth-child(6){ width:8%; text-align:center; }
-body.layout-wide .bets-table thead th:nth-child(7),
-body.layout-wide .bets-table tbody td:nth-child(7){ width:8%; text-align:right; white-space:nowrap; }
-body.layout-wide .bets-table tbody td:nth-child(2) .table-match-name{
-  white-space:normal;
+.tracker-grid-kickoff{
+  margin-top:6px;
+  color:#dbeafe;
+  font-size:12px;
+  font-weight:700;
   line-height:1.2;
 }
-body.layout-wide .bets-table tbody td:nth-child(3){
-  white-space:normal;
+
+.tracker-grid-card--won{
+  background: linear-gradient(145deg,#0f1f3d,#133d2a) !important;
+  border: 1px solid rgba(0,255,140,0.35) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 16px rgba(0,255,140,0.12) !important;
 }
 
-body.layout-wide #trackerTable .tracker-bet-list{ display:none !important; }
-body.layout-wide #trackerTable .tracker-desktop-table-wrap{ display:block !important; padding-top:8px; }
-body.layout-wide #trackerTable .tracker-desktop-table{ width:100%; border-collapse:collapse; table-layout:fixed; }
-body.layout-wide #trackerTable .tracker-desktop-table thead th{ text-align:left; padding:12px 8px; border-bottom:1px solid #334155; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:rgba(180,205,230,.78); }
-body.layout-wide #trackerTable .tracker-desktop-table tbody td{ padding:12px 8px; border-bottom:1px solid #22314a; vertical-align:middle; }
-body.layout-wide #trackerTable .tracker-desktop-date{ width:12%; white-space:nowrap; color:#cbd5e1; font-size:12px; }
-body.layout-wide #trackerTable .tracker-desktop-kickoff{ margin-top:4px; color:#93a9c9; font-size:11px; font-weight:700; }
-body.layout-wide #trackerTable .tracker-desktop-match{ width:24%; white-space:normal; font-weight:800; font-size:14px; line-height:1.15; }
-body.layout-wide #trackerTable .tracker-desktop-market{ width:22%; white-space:normal; color:#dbe6fb; }
-body.layout-wide #trackerTable .tracker-market-cat{ font-weight:800; color:#eef4ff; }
-body.layout-wide #trackerTable .tracker-market-raw{ margin-top:4px; color:#98a8c8; font-size:12px; line-height:1.2; }
-body.layout-wide #trackerTable .tracker-desktop-table input[type="number"]{ width:74px; text-align:center; }
-body.layout-wide #trackerTable .tracker-desktop-table select{ width:96px; min-width:96px; }
-body.layout-wide #trackerTable .tracker-desktop-table th.profit-col,
-body.layout-wide #trackerTable .tracker-desktop-table td.profit-col{ width:10%; text-align:right; white-space:nowrap; }
-body.layout-wide #trackerTable .tracker-desktop-table td.profit-col span{ font-weight:800; }
+.tracker-grid-card--lost{
+  background: linear-gradient(145deg,#0f1f3d,#3a1f24) !important;
+  border: 1px solid rgba(255,80,80,0.35) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.45),
+    0 0 16px rgba(255,80,80,0.12) !important;
+}
 
-@media (max-width:949px){
-  #trackerTable .tracker-desktop-table-wrap{ display:none !important; }
-  #trackerTable .tracker-bet-list{ display:block !important; }
+.tracker-grid-card--pending{
+  background: linear-gradient(145deg,#0c182f,#101f38) !important;
+  border: 1px solid rgba(80,140,255,0.22) !important;
+}
+
+.tracker-grid-top > div:first-child{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+
+/* wide value bets column alignment fix */
+body.layout-wide .bets-table thead th,
+body.layout-wide .bets-table tbody td{
+  box-sizing:border-box;
+  vertical-align:middle;
+}
+body.layout-wide .bets-table .table-date-cell{ text-align:left; }
+body.layout-wide .bets-table .table-match-cell{ text-align:left; }
+body.layout-wide .bets-table .table-market-wrap{ justify-content:flex-start; }
+body.layout-wide .bets-table .table-bookie-pill{ display:inline-flex; max-width:100%; }
+
+
+/* Final card cleanup */
+.bet-sport-inline{display:none !important;}
+.bet-title-row{display:flex;align-items:flex-start;gap:10px;}
+.bet-title-row .bet-title{
+  flex:1 1 auto;
+  min-width:0;
+  max-width:none;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:unset;
+}
+.bet-title-row .bet-date{
+  margin-left:auto;
+  flex:0 0 auto;
+  white-space:nowrap;
 }
