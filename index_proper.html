@@ -1,0 +1,323 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Top Daily Tips</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="styles.css?v=1774309616"/>
+<!-- PWA manifest removed for now (Install App feature disabled) -->
+<meta name="theme-color" content="#0b1220"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+
+<style>
+#vipModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.82);z-index:9999;padding:18px;}
+.vip-modal__card{width:min(92vw,420px);background:#111827;border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:20px;box-shadow:0 24px 80px rgba(0,0,0,.45);}
+.vip-modal__top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.vip-modal__title{font-size:22px;font-weight:900;color:#f8fafc;}
+.vip-modal__close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);width:38px;height:38px;border-radius:999px;font-size:20px;line-height:1;}
+.vip-modal__sub{opacity:.82;line-height:1.45;margin:0 0 16px;}
+#vipEmail,#vipPassword{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;margin:0 0 14px;font-size:15px;}
+.vip-modal__plans{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.vip-plan{padding:14px 12px;border-radius:16px;font-weight:900;font-size:15px;}
+#vipMonthly{background:linear-gradient(180deg,#f7d95a,#d8a800);color:#111827;}
+#vipYearly{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.38);color:#ecfdf5;}
+.vip-restore-btn,.vip-forgot-btn{grid-column:1/-1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;padding:12px 14px;border-radius:16px;font-weight:800;}
+.vip-forgot-btn{background:rgba(255,255,255,.03);color:#cbd5e1;}
+#vipError{margin-top:12px;color:#f87171;min-height:20px;font-size:14px;}
+@media (max-width:520px){.vip-modal__plans{grid-template-columns:1fr;}}
+</style>
+
+</head>
+<body>
+
+<header class="main-header">
+<h1 class="logo-3d">Top Daily Tips</h1>
+
+  <!-- VIP Bar -->
+  <div class="vip-bar" id="vipBar">
+    <div class="vip-bar__left">
+      <div class="vip-bar__title" id="vipTitle">VIP Access</div>
+      <div id="vipStatus" class="vip-bar__status">VIP locked — subscribe to unlock</div>
+      <div class="admin-badge" data-admin-badge="1" style="display:none;">Admin</div>
+    </div>
+    <button id="vipButton" class="vip-button" type="button">
+      <span class="vip-button__icon" aria-hidden="true">👑</span>
+      <span class="vip-button__text">Go VIP</span>
+    </button>
+  </div>
+
+<div class="tabs">
+<button id="tabBets" class="active">Value Bets</button>
+<button id="tabTracker">My Tracker</button>
+<button id="tabTdtTracker">TDT Tracker</button>
+</div>
+<div class="top-controls">
+  <div class="layout-switch" role="group" aria-label="Layout">
+    <button id="btnCompact" class="layout-btn">Compact</button>
+    <button id="btnWide" class="layout-btn">Wide</button>
+  </div>
+  <!-- Install App button removed for now -->
+</div>
+</header>
+
+<section id="betsSection">
+
+<div class="card about-box">
+  <div class="about-title">Value Bets</div>
+  <div class="about-text">
+    ⚠️ Value bets are calculated by comparing probability against the odds. This approach aims to identify long-term profitable opportunities over time, but results are never guaranteed and short-term variance should be expected.
+    <br><br>
+    We post and show the best value bets of the day — and we stake on every single one ourselves, nothing else.
+    <br><br>
+    We’ve been betting this strategy for years behind the scenes before creating this app, and our accounts are still active and open with no restrictions.
+    <br><br>
+    There is always a chance of restrictions, but we have not experienced any so far.
+    <br><br>
+    So remember — what you see here is exactly what we bet ourselves.
+  </div>
+</div>
+
+<div class="value-filters card" id="valueFiltersBar">
+  <button id="valueFiltersToggle" class="value-filters__toggle" type="button" aria-expanded="false">
+    <span class="value-filters__toggle-left">
+      <span class="value-filters__title">Filter Value Bets</span>
+    </span>
+    <span class="value-filters__toggle-right">
+      <span id="valueFiltersSummary" class="value-filters__summary">All bets</span>
+      <span id="valueFiltersArrow" class="value-filters__arrow">▼</span>
+    </span>
+  </button>
+  <div id="valueFiltersContent" class="value-filters__content is-collapsed">
+    <div class="value-filters__head">
+      <button id="valueFiltersClear" class="value-filters__clear" type="button">Clear</button>
+    </div>
+    <div class="value-filters__grid">
+      <div class="value-filters__field">
+        <label for="valueFilterSearch">Search</label>
+        <input id="valueFilterSearch" type="text" placeholder="Match or market" />
+      </div>
+      <div class="value-filters__field">
+        <label for="valueFilterSport">Sport</label>
+        <select id="valueFilterSport">
+          <option value="">All sports</option>
+          <option value="football">Football</option>
+          <option value="basketball">Basketball</option>
+        </select>
+      </div>
+      <div class="value-filters__field">
+        <label for="valueFilterLeague">League</label>
+        <select id="valueFilterLeague"><option value="">All leagues</option></select>
+      </div>
+      <div class="value-filters__field">
+        <label for="valueFilterMarket">Market category</label>
+        <select id="valueFilterMarket"><option value="">All categories</option></select>
+      </div>
+      <div class="value-filters__field">
+        <label for="valueFilterBookie">Bookie</label>
+        <select id="valueFilterBookie"><option value="">All bookies</option></select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile/compact cards -->
+<div id="betsGrid" class="bets-grid"></div>
+
+<!-- Desktop/wide table -->
+<div class="bets-table-wrap">
+  <table id="betsTable" class="bets-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Match</th>
+        <th>Market</th>
+        <th>Bookie</th>
+        <th>Odds</th>
+        <th>Value</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div id="vipPromo" class="vip-promo card">
+  <div class="vip-promo__top">
+    <div>
+      <div class="vip-promo__eyebrow">VIP preview</div>
+      <div class="vip-promo__title">Instant bets, full markets, tracker access</div>
+      <div id="vipPromoStats" class="vip-promo__stats">Loading official TDT proof...</div>
+    </div>
+    <button id="vipPromoBtn" class="vip-promo__btn" type="button">Unlock VIP</button>
+  </div>
+  <div class="vip-promo__chartwrap">
+    <canvas id="vipPromoChart"></canvas>
+  </div>
+  <div class="vip-promo__actions">
+    <button id="notifyToggleBtn" class="vip-promo__ghost" type="button">Turn on new bet alerts</button>
+    <span id="notifyStatus" class="vip-promo__status">Alerts off</span>
+  </div>
+</div>
+</section>
+
+<section id="trackerSection" style="display:none;">
+
+<div class="bankroll-section">
+  <div class="bankroll-row">
+    <label>Starting Bankroll</label>
+    <input type="number" id="startingBankroll" value="290" />
+    <button onclick="exportCSV()">Export CSV</button>
+    <button id="clearTrackerBtn" class="tracker-danger-btn" onclick="clearTrackerData()">Clear Tracker</button>
+  </div>
+</div>
+
+<div class="stats-grid">
+<div class="stat-card">Bankroll<br><strong>£<span id="bankroll">0</span></strong></div>
+<div class="stat-card" id="profitCard">Profit<br><strong>£<span id="profit">0</span></strong></div>
+<div class="stat-card">ROI<br><strong><span id="roi">0</span>%</strong></div>
+<div class="stat-card">Win Rate<br><strong><span id="winrate">0</span>%</strong></div>
+<div class="stat-card">Total Bets<br><strong><span id="totalBets">0</span></strong></div>
+<div class="stat-card">Won - Lost<br><strong><span id="wonLost">0-0</span></strong></div>
+<div class="stat-card">Staked<br><strong>£<span id="totalStakedCard">0</span></strong></div>
+<div class="stat-card">Avg Odds<br><strong><span id="avgOdds">0</span></strong></div>
+</div>
+
+
+<div class="tracker-sport-breakdown">
+  <div class="tracker-sport-card">
+    <div class="tracker-sport-card__head">⚽ Football</div>
+    <div class="tracker-sport-card__stats" id="footballTrackerStats">No football bets yet.</div>
+  </div>
+  <div class="tracker-sport-card">
+    <div class="tracker-sport-card__head">🏀 Basketball</div>
+    <div class="tracker-sport-card__stats" id="basketballTrackerStats">No basketball bets yet.</div>
+  </div>
+</div>
+
+<div class="chart-tabs">
+  <button class="tab-btn active" data-tab="daily">Daily</button>
+  <button class="tab-btn" data-tab="monthly">Monthly</button>
+  <button class="tab-btn" data-tab="market">Markets</button>
+</div>
+
+<div class="chart-wrap">
+  <div class="chart-pane active" id="pane-daily">
+    <canvas id="chart"></canvas>
+  </div>
+  <div class="chart-pane" id="pane-monthly">
+  <canvas id="monthlyChart"></canvas>
+
+  <div class="monthly-breakdown">
+    <div class="monthly-toggle" onclick="toggleMonthly()">
+      📊 Monthly Breakdown
+      <span id="monthlyArrow">▼</span>
+    </div>
+
+    <div id="monthlyWrapper" class="collapsed">
+      <div id="monthlyTable"></div>
+    </div>
+  </div>
+
+</div>
+  <div class="chart-pane" id="pane-market">
+    <canvas id="marketChart"></canvas>
+  </div>
+</div>
+
+<div class="tracker-history">
+  <div class="tracker-toggle" onclick="toggleTracker()">
+    📈 Bet Results (<span id="betCount">0</span>)
+    <span id="trackerArrow">▼</span>
+  </div>
+  <div id="trackerWrapper" class="collapsed">
+    <div id="trackerTable"></div>
+  </div>
+</div>
+
+</section>
+
+
+<section id="tdtTrackerSection" style="display:none;">
+
+<div class="card" style="margin-bottom:16px;">
+  <div style="font-weight:800;font-size:18px;margin-bottom:4px;">TDT Official Tracker</div>
+  <div style="opacity:.85;">Read-only official all-time results for everyone to see.</div>
+</div>
+
+<div class="stats-grid tdt-stats-grid">
+<div class="stat-card">Total Bets<br><strong><span id="tdtTotalBets">0</span></strong></div>
+<div class="stat-card">Won - Lost<br><strong><span id="tdtWonLost">0-0</span></strong></div>
+</div>
+
+<div class="tdt-performance card">
+  <div class="tdt-performance-title">Performance</div>
+
+  <div class="tdt-perf-row">
+    <div class="tdt-perf-head">
+      <span>ROI</span>
+      <strong id="tdtRoiBarLabel">0%</strong>
+    </div>
+    <div class="tdt-perf-track">
+      <div id="tdtRoiBarFill" class="tdt-perf-fill tdt-perf-fill--green"></div>
+    </div>
+  </div>
+
+  <div class="tdt-perf-row">
+    <div class="tdt-perf-head">
+      <span>Win Rate</span>
+      <strong id="tdtWinrateBarLabel">0%</strong>
+    </div>
+    <div class="tdt-perf-track">
+      <div id="tdtWinrateBarFill" class="tdt-perf-fill tdt-perf-fill--green"></div>
+    </div>
+  </div>
+
+  <div class="tdt-perf-row">
+    <div class="tdt-perf-head">
+      <span>Avg Odds</span>
+      <strong id="tdtAvgOddsBarLabel">0.00</strong>
+    </div>
+    <div class="tdt-perf-track">
+      <div id="tdtAvgOddsBarFill" class="tdt-perf-fill tdt-perf-fill--amber"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tracker-history">
+  <div class="tracker-toggle" onclick="toggleTdtTracker()">
+    📈 TDT Results (<span id="tdtBetCount">0</span>)
+    <span id="tdtTrackerArrow">▼</span>
+  </div>
+  <div id="tdtTrackerWrapper" class="collapsed">
+    <div id="tdtTrackerTable"></div>
+  </div>
+</div>
+
+</section>
+
+
+
+<div id="vipModal" aria-hidden="true">
+  <div class="vip-modal__card">
+    <div class="vip-modal__top">
+      <div class="vip-modal__title">Unlock VIP</div>
+      <button id="vipClose" class="vip-modal__close" type="button">×</button>
+    </div>
+    <p class="vip-modal__sub">Get instant bets, full markets, and tracker access.</p>
+    <input id="vipEmail" type="email" placeholder="Enter your email" autocomplete="email" />
+    <input id="vipPassword" type="password" placeholder="Create or enter your VIP password" autocomplete="current-password" />
+    <div class="vip-modal__plans">
+      <button id="vipMonthly" class="vip-plan" type="button">£12 / month</button>
+      <button id="vipYearly" class="vip-plan" type="button">£80 / year</button>
+      <button id="vipRestore" class="vip-restore-btn" type="button">Already subscribed? Restore VIP</button>
+      <button id="vipForgot" class="vip-forgot-btn" type="button">Forgot VIP password?</button>
+    </div>
+    <div id="vipError"></div>
+  </div>
+</div>
+
+<script src="app.js?v=1774309616"></script>
+</body>
+</html>
