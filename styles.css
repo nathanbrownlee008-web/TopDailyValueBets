@@ -2839,9 +2839,6 @@ body.layout-compact .vip-bar{
 #tdtTrackerSection .tdt-perf-fill--amber{
   background:linear-gradient(90deg,#f59e0b,#fbbf24);
 }
-#tdtTrackerSection .tdt-perf-fill--neutral{
-  background:linear-gradient(90deg,#cbd5e1,#e2e8f0);
-}
 #tdtTrackerSection .tracker-toggle{
   margin-top:18px !important;
   margin-bottom:16px !important;
@@ -6198,41 +6195,69 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== SAFE FINAL PATCH: BOOKIE PILL + TRACKER FILTER ALIGN ===== */
+/* === SAFE FINAL TOUCHES === */
 #betsGrid .bet-bookie{
-  border-radius: 999px !important;
-  min-height: 29px !important;
-  height: 29px !important;
-  padding: 0 12px !important;
-  color: #ecfff5 !important;
-  background: linear-gradient(180deg, rgba(16,185,129,0.16), rgba(16,185,129,0.08)) !important;
-  border: 1px solid rgba(16,185,129,0.34) !important;
-  box-shadow:
-    0 0 10px rgba(16,185,129,0.14),
-    inset 0 0 8px rgba(255,255,255,0.03) !important;
-  overflow: hidden !important;
-  position: relative !important;
+  border-radius:16px !important;
+  padding:0 12px !important;
+  min-height:30px !important;
+  height:30px !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+  line-height:1 !important;
+  position:relative !important;
+  overflow:hidden !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 0 10px rgba(0,0,0,0.08) !important;
 }
 #betsGrid .bet-bookie::after{
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -55%;
-  width: 38%;
-  height: 100%;
-  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.18), rgba(255,255,255,0));
-  transform: skewX(-20deg);
-  animation: betBookieSoftShine 3.8s linear infinite;
+  content:"" !important;
+  position:absolute !important;
+  top:0 !important;
+  left:-60% !important;
+  width:42% !important;
+  height:100% !important;
+  background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 100%) !important;
+  transform:skewX(-18deg) !important;
+  animation:betBookieSoftShine 4.6s linear infinite !important;
+  pointer-events:none !important;
 }
 @keyframes betBookieSoftShine{
-  0%{ left: -55%; }
-  100%{ left: 125%; }
+  0%{ left:-60%; }
+  100%{ left:130%; }
 }
-
+#betsGrid .bet-bookie.bet-bookie--default{
+  color:#e5eefc !important;
+  background:rgba(120,140,255,0.10) !important;
+  border:1px solid rgba(120,140,255,0.28) !important;
+}
+#betsGrid .bet-bookie.bet-bookie--bet365{
+  color:#dcfce7 !important;
+  background:rgba(34,197,94,0.10) !important;
+  border:1px solid rgba(34,197,94,0.30) !important;
+}
+#betsGrid .bet-bookie.bet-bookie--skybet{
+  color:#dbeafe !important;
+  background:rgba(59,130,246,0.11) !important;
+  border:1px solid rgba(59,130,246,0.30) !important;
+}
+#betsGrid .bet-bookie.bet-bookie--goldenbet{
+  color:#fef3c7 !important;
+  background:rgba(234,179,8,0.12) !important;
+  border:1px solid rgba(234,179,8,0.30) !important;
+}
+#betsGrid .bet-bookie.bet-bookie--paddypower{
+  color:#d1fae5 !important;
+  background:rgba(16,185,129,0.11) !important;
+  border:1px solid rgba(16,185,129,0.28) !important;
+}
+#betsGrid .bet-bookie.bet-bookie--williamhill{
+  color:#e0e7ff !important;
+  background:rgba(99,102,241,0.11) !important;
+  border:1px solid rgba(99,102,241,0.30) !important;
+}
 .results-sport-select{
-  text-align: center !important;
-  text-align-last: center !important;
+  text-align:center !important;
+  text-align-last:center !important;
 }
 .results-sport-select option{
-  text-align: left;
+  text-align:center;
 }
