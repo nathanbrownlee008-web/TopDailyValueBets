@@ -249,7 +249,12 @@ function normalizeKickoffTime(value){
   return String(value).trim();
 }
 function kickoffSortValue(row){
-  const k = normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || '');
+  (() => {
+  const k = normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '');
+  if(!k) return '';
+  const h = Number(k.split(':')[0] || 0);
+  return k + (h >= 12 ? 'pm' : 'am');
+})()
   if(!k) return '99:99';
   return k;
 }
