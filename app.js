@@ -4001,13 +4001,3 @@ setTimeout(()=>{
     else el.classList.add("result-pending");
   });
 },500);
-function toggleAboutBox(){
-  const el = document.getElementById("aboutContent");
-  const arrow = document.getElementById("aboutArrow");
-
-  if(!el) return;
-
-  const isOpen = el.style.display === "block";
-  el.style.display = isOpen ? "none" : "block";
-  if(arrow) arrow.textContent = isOpen ? "▼" : "▲";
-}
