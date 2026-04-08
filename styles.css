@@ -6452,3 +6452,77 @@ body.layout-wide .bets-table .table-market-text{
     max-width:100% !important;
   }
 }
+
+
+/* ===== SAFE TUNE: centre odds pill + gold bookie pill ===== */
+#betsGrid .bet-footer{
+  display:grid !important;
+  grid-template-columns:1fr 1fr 1fr !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+
+#betsGrid .bet-left{
+  min-width:0 !important;
+  justify-self:start !important;
+  display:flex !important;
+  align-items:center !important;
+}
+
+#betsGrid .bet-center{
+  min-width:0 !important;
+  justify-self:center !important;
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+}
+
+#betsGrid .bet-right{
+  min-width:0 !important;
+  justify-self:end !important;
+  display:flex !important;
+  justify-content:flex-end !important;
+  align-items:center !important;
+}
+
+#betsGrid .bet-bookie{
+  position:relative !important;
+  overflow:hidden !important;
+  border-radius:999px !important;
+  max-width:100% !important;
+  white-space:nowrap !important;
+  text-overflow:ellipsis !important;
+  background:linear-gradient(180deg, rgba(245,158,11,0.18), rgba(217,119,6,0.14)) !important;
+  border:1px solid rgba(245,158,11,0.38) !important;
+  color:#fff7db !important;
+  box-shadow:0 0 10px rgba(245,158,11,0.12) !important;
+}
+
+#betsGrid .bet-bookie::before,
+#betsGrid .bet-bookie::after{
+  display:none !important;
+  animation:none !important;
+}
+
+#betsGrid .odds-pill{
+  margin:0 auto !important;
+}
+
+@media (max-width:430px){
+  #betsGrid .bet-footer{
+    grid-template-columns:1fr 1fr 1fr !important;
+    gap:8px !important;
+  }
+
+  #betsGrid .bet-bookie,
+  #betsGrid .odds-pill,
+  #betsGrid .bet-btn{
+    font-size:11.5px !important;
+  }
+
+  #betsGrid .bet-bookie,
+  #betsGrid .odds-pill{
+    padding-left:10px !important;
+    padding-right:10px !important;
+  }
+}
