@@ -6324,3 +6324,78 @@ body.layout-wide .bets-table .table-market-text{
     font-size:12px !important;
   }
 }
+
+
+/* ===== SAFE FIX: centred odds pill + neutral Avg Odds bar ===== */
+#betsGrid .bet-footer{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+
+#betsGrid .bet-left{
+  display:flex !important;
+  align-items:center !important;
+  justify-self:start !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  padding-right:0 !important;
+  overflow:visible !important;
+}
+
+#betsGrid .bet-center{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  justify-self:center !important;
+  min-width:0 !important;
+  width:auto !important;
+}
+
+#betsGrid .bet-right{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  justify-self:end !important;
+  min-width:max-content !important;
+}
+
+#betsGrid .bet-bookie{
+  min-width:max-content !important;
+  max-width:none !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  white-space:nowrap !important;
+  flex:0 0 auto !important;
+}
+
+#betsGrid .odds-pill{
+  min-width:max-content !important;
+  margin:0 auto !important;
+  white-space:nowrap !important;
+}
+
+.tdt-perf-fill--neutral{
+  background:linear-gradient(90deg, rgba(148,163,184,0.92), rgba(203,213,225,0.92)) !important;
+  box-shadow:none !important;
+}
+
+@media (max-width:430px){
+  #betsGrid .bet-footer{
+    grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
+    gap:8px !important;
+  }
+
+  #betsGrid .bet-bookie,
+  #betsGrid .odds-pill,
+  #betsGrid .bet-btn{
+    font-size:11.5px !important;
+  }
+
+  #betsGrid .bet-bookie,
+  #betsGrid .odds-pill{
+    padding-left:10px !important;
+    padding-right:10px !important;
+  }
+}

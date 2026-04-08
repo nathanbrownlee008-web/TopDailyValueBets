@@ -2013,8 +2013,8 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
     const maxOdds = 5;
     const width = Math.max(0, Math.min(100, (tdtAvgOddsVal / maxOdds) * 100));
     oddsFill.style.width = width + "%";
-    oddsFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber");
-    oddsFill.classList.add(edgeTone);
+    oddsFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber", "tdt-perf-fill--neutral");
+    oddsFill.classList.add("tdt-perf-fill--neutral");
     oddsLabel.textContent = tdtAvgOddsVal.toFixed(2);
   }
 }
