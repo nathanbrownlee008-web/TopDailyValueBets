@@ -6193,3 +6193,17 @@ body.layout-wide .bets-table .table-market-icon::after{
 body.layout-wide .bets-table .table-market-text{
   display:inline-block;
 }
+
+/* ===== MOBILE ONLY: center market pill on Value Bets cards ===== */
+@media (max-width: 600px){
+  #betsGrid .bet-meta--market-row{
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  #betsGrid .bet-meta--market-row .bet-market,
+  #betsGrid .bet-meta--market-row .bet-market-inline{
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
