@@ -259,8 +259,9 @@ function sortRowsByDateTimeMatch(rows){
     const bDate = normalizeDateOnly(b?.bet_date || b?.created_at) || '9999-99-99';
     if(aDate !== bDate) return aDate.localeCompare(bDate);
     const aKick = kickoffSortValue(a);
-    const bKick = kickoffSortValue(b);
-    if(aKick !== bKick) return aKick.localeCompare(bKick);
+const bKick = kickoffSortValue(b);
+
+if (aKick !== bKick) return aKick - bKick;
     const aMatch = String(a?.match || '');
     const bMatch = String(b?.match || '');
     if(aMatch !== bMatch) return aMatch.localeCompare(bMatch, undefined, { sensitivity:'base' });
@@ -268,10 +269,12 @@ function sortRowsByDateTimeMatch(rows){
   });
 }
 function formatKickoffLabel(row){
-  const k = normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || '');
+  const k = normalizeKickoffTime(row?.kickoff || row?.time || '');
   if(!k) return '';
-  const hour = Number(String(k).split(':')[0] || 0);
+
+  const hour = Number(String(k).split(':')[0]);
   const suffix = hour >= 12 ? 'pm' : 'am';
+
   return `Kick off ${k}${suffix}`;
 }
 function isValueBetActiveToday(row){
