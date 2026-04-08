@@ -2022,8 +2022,12 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
   const winLabel = document.getElementById("tdtWinrateBarLabel");
   if(winFill && winLabel){
     const width = Math.max(0, Math.min(100, tdtWinrateVal));
+    const breakEven = tdtAvgOddsVal > 0 ? (100 / tdtAvgOddsVal) : 0;
+    const diff = tdtWinrateVal - breakEven;
     winFill.style.width = width + "%";
-    winLabel.textContent = `${tdtWinrateVal.toFixed(1)}%`;
+    winFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber", "tdt-perf-fill--neutral");
+    winFill.classList.add(diff > 0.1 ? "tdt-perf-fill--green" : diff < -0.1 ? "tdt-perf-fill--red" : "tdt-perf-fill--amber");
+    winLabel.textContent = `${tdtWinrateVal.toFixed(1)}% (Break-even ${breakEven.toFixed(1)}%)`;
   }
 
   const oddsFill = document.getElementById("tdtAvgOddsBarFill");
@@ -2032,6 +2036,8 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
     const maxOdds = 5;
     const width = Math.max(0, Math.min(100, (tdtAvgOddsVal / maxOdds) * 100));
     oddsFill.style.width = width + "%";
+    oddsFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber", "tdt-perf-fill--neutral");
+    oddsFill.classList.add("tdt-perf-fill--neutral");
     oddsLabel.textContent = tdtAvgOddsVal.toFixed(2);
   }
 }

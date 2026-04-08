@@ -2839,6 +2839,9 @@ body.layout-compact .vip-bar{
 #tdtTrackerSection .tdt-perf-fill--amber{
   background:linear-gradient(90deg,#f59e0b,#fbbf24);
 }
+#tdtTrackerSection .tdt-perf-fill--neutral{
+  background:linear-gradient(90deg,#cbd5e1,#94a3b8);
+}
 #tdtTrackerSection .tracker-toggle{
   margin-top:18px !important;
   margin-bottom:16px !important;
@@ -6217,15 +6220,15 @@ body.layout-wide .bets-table .table-market-text{
   display:inline-flex !important;
   align-items:center !important;
   justify-content:center !important;
-  padding:7px 13px !important;
-  border-radius:999px !important;
-  font-size:11.5px !important;
+  padding:4px 10px !important;
+  border-radius:10px !important;
+  font-size:11px !important;
   line-height:1 !important;
-  font-weight:800 !important;
+  font-weight:700 !important;
   color:#ffffff !important;
   background:rgba(255,255,255,0.06) !important;
-  border:1px solid rgba(255,255,255,0.14) !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.06) !important;
+  border:1px solid rgba(255,255,255,0.12) !important;
+  box-shadow:none !important;
   position:relative !important;
   overflow:hidden !important;
   white-space:nowrap !important;
@@ -6261,8 +6264,9 @@ body.layout-wide .bets-table .table-market-text{
     gap:8px !important;
   }
   #betsGrid .bet-bookie{
-    padding:7px 12px !important;
+    padding:4px 10px !important;
     font-size:11px !important;
+    border-radius:10px !important;
   }
   #betsGrid .odds-pill{
     padding:8px 16px !important;
