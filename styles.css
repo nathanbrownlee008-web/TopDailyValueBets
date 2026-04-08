@@ -6294,5 +6294,32 @@ body.layout-wide .bets-table .table-market-text{
 .results-filter-clear{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#e5e7eb;padding:9px 12px;border-radius:12px;font-weight:700;}
 .tracker-sport-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;margin-right:8px;font-size:15px;vertical-align:-1px;}
 .tdt-match .tracker-sport-icon,.tracker-grid-match .tracker-sport-icon,.tracker-match-name .tracker-sport-icon{margin-right:8px;}
-.bookie-pill{padding:3px 8px !important;border-radius:10px !important;font-size:11px !important;line-height:1.05 !important;}
+.bookie-pill{
+  font-size:12px !important;
+  padding:4px 10px !important;
+  border-radius:14px !important;
+  font-weight:600 !important;
+  display:inline-block;
+  white-space:nowrap;
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.08);
+  color:#fff;
+}
+.bookie-pill::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:60%;
+  height:100%;
+  background:linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent);
+  transition:0.6s;
+}
+.bookie-pill:hover::after{left:120%;}
+.bookie-bet365{background:linear-gradient(135deg,#0f5c2e,#1ea65a);color:#fff;}
+.bookie-skybet{background:linear-gradient(135deg,#0b3d91,#1f6bff);color:#fff;}
+.bookie-paddypower{background:linear-gradient(135deg,#005f3c,#00a86b);color:#fff;}
+.bookie-goldenbet{background:linear-gradient(135deg,#111,#3a2a00);color:#f5d36a;}
+.bookie-default{background:rgba(255,255,255,0.08);color:#e2e8f0;}
 @media (max-width:600px){.results-filter-bar{padding:10px 12px;}.results-filter-left{font-size:13px;}.results-sport-select,.results-filter-clear{padding:8px 10px;font-size:12px;border-radius:10px;min-width:118px;}}
