@@ -6197,17 +6197,32 @@ body.layout-wide .bets-table .table-market-text{
 
 /* ===== TDT PICKS: separate bookie + odds pills ===== */
 #betsGrid .bet-footer{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
   align-items:center !important;
-  justify-content:space-between !important;
   gap:10px !important;
 }
 
 #betsGrid .bet-left{
   display:flex !important;
   align-items:center !important;
+  justify-content:flex-start !important;
   gap:8px !important;
   flex-wrap:wrap !important;
-  padding-right:0 !important;
+  min-width:0 !important;
+}
+
+#betsGrid .bet-center{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-width:0 !important;
+}
+
+#betsGrid .bet-right{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
   min-width:0 !important;
 }
 
@@ -6254,6 +6269,11 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 @media (max-width:430px){
+  #betsGrid .bet-footer{
+    grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
+    gap:8px !important;
+  }
+
   #betsGrid .bet-bookie,
   #betsGrid .odds-pill{
     min-height:29px !important;

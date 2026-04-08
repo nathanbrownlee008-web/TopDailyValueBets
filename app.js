@@ -1116,9 +1116,11 @@ async function loadBets(){
       <div class="bet-footer">
         <div class="bet-left">
           ${!locked && row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)}</div>` : ``}
-          ${!locked ? `<span class="odds-pill">Odds ${escapeHtml(String(row.odds ?? ''))}</span>` : ``}
         </div>
-        <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
+        ${!locked ? `<div class="bet-center"><span class="odds-pill">Odds ${escapeHtml(String(row.odds ?? ''))}</span></div>` : `<div class="bet-center"></div>`}
+        <div class="bet-right">
+          <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1979,23 +1981,32 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
   const tdtRoiVal = totalStake ? ((profit / totalStake) * 100) : 0;
   const tdtWinrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
   const tdtAvgOddsVal = resolvedCount ? (totalOdds / resolvedCount) : 0;
+  const breakEvenWinrate = tdtAvgOddsVal > 0 ? (100 / tdtAvgOddsVal) : 0;
+  const winrateEdge = tdtWinrateVal - breakEvenWinrate;
+  const edgeTone = winrateEdge > 0.1 ? "tdt-perf-fill--green" : winrateEdge < -0.1 ? "tdt-perf-fill--red" : "tdt-perf-fill--amber";
 
   const roiFill = document.getElementById("tdtRoiBarFill");
   const roiLabel = document.getElementById("tdtRoiBarLabel");
   if(roiFill && roiLabel){
     const width = Math.max(0, Math.min(100, Math.abs(tdtRoiVal)));
     roiFill.style.width = width + "%";
-    roiFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red");
-    roiFill.classList.add(tdtRoiVal >= 0 ? "tdt-perf-fill--green" : "tdt-perf-fill--red");
+    roiFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber");
+    roiFill.classList.add(tdtRoiVal > 0.1 ? "tdt-perf-fill--green" : tdtRoiVal < -0.1 ? "tdt-perf-fill--red" : edgeTone);
     roiLabel.textContent = `${tdtRoiVal.toFixed(1)}%`;
   }
 
   const winFill = document.getElementById("tdtWinrateBarFill");
   const winLabel = document.getElementById("tdtWinrateBarLabel");
   if(winFill && winLabel){
-    const width = Math.max(0, Math.min(100, tdtWinrateVal));
+    const width = breakEvenWinrate > 0
+      ? Math.max(0, Math.min(100, (tdtWinrateVal / breakEvenWinrate) * 100))
+      : Math.max(0, Math.min(100, tdtWinrateVal));
     winFill.style.width = width + "%";
-    winLabel.textContent = `${tdtWinrateVal.toFixed(1)}%`;
+    winFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber");
+    winFill.classList.add(edgeTone);
+    winLabel.textContent = breakEvenWinrate > 0
+      ? `${tdtWinrateVal.toFixed(1)}% (BE ${breakEvenWinrate.toFixed(1)}%)`
+      : `${tdtWinrateVal.toFixed(1)}%`;
   }
 
   const oddsFill = document.getElementById("tdtAvgOddsBarFill");
@@ -2004,6 +2015,8 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
     const maxOdds = 5;
     const width = Math.max(0, Math.min(100, (tdtAvgOddsVal / maxOdds) * 100));
     oddsFill.style.width = width + "%";
+    oddsFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber");
+    oddsFill.classList.add(edgeTone);
     oddsLabel.textContent = tdtAvgOddsVal.toFixed(2);
   }
 }
