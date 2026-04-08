@@ -1998,9 +1998,7 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
   const winFill = document.getElementById("tdtWinrateBarFill");
   const winLabel = document.getElementById("tdtWinrateBarLabel");
   if(winFill && winLabel){
-    const width = breakEvenWinrate > 0
-      ? Math.max(0, Math.min(100, (tdtWinrateVal / breakEvenWinrate) * 100))
-      : Math.max(0, Math.min(100, tdtWinrateVal));
+    const width = Math.max(0, Math.min(100, tdtWinrateVal));
     winFill.style.width = width + "%";
     winFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber");
     winFill.classList.add(edgeTone);
