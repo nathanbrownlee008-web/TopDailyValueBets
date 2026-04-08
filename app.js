@@ -269,7 +269,10 @@ function sortRowsByDateTimeMatch(rows){
 }
 function formatKickoffLabel(row){
   const k = normalizeKickoffTime(row?.kickoff_time || row?.match_time || row?.time || '');
-  return k ? `Kick off ${k}` : '';
+  if(!k) return '';
+  const hour = Number(String(k).split(':')[0] || 0);
+  const suffix = hour >= 12 ? 'pm' : 'am';
+  return `Kick off ${k}${suffix}`;
 }
 function isValueBetActiveToday(row){
   const today=toLocalYMD(new Date());
@@ -1090,7 +1093,8 @@ async function loadBets(){
 
     const betDate = row.bet_date || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '');
     const kickoffText = normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '');
-    const dateTimeLabel = kickoffText ? `${betDate} • ${kickoffText}` : betDate;
+    const dateTimeLabel = betDate;
+    const kickoffLabel = formatKickoffLabel(row);
     const val = (row.value_pct ?? row.value_percent ?? row.value_percentage ?? row.value);
     const valNum = val != null ? Number(val) : null;
     const valTxt = valNum != null && !Number.isNaN(valNum) ? valNum.toFixed(1)+'%' : '—';
@@ -1109,7 +1113,7 @@ async function loadBets(){
         <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
         <span class="bet-date">${escapeHtml(dateTimeLabel)}</span>
       </div>
-      ${!locked && leagueName ? `<div class="bet-meta"><span class="bet-market bet-league">${escapeHtml(leagueName)}</span></div>` : ``}
+      ${(!locked && (leagueName || kickoffLabel)) ? `<div class="bet-meta bet-league-row">${leagueName ? `<span class="bet-market bet-league">${escapeHtml(leagueName)}</span>` : ``}${kickoffLabel ? `<span class="bet-kickoff-inline">${escapeHtml(kickoffLabel)}</span>` : ``}</div>` : ``}
       <div class="bet-meta bet-meta--market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
       </div>
@@ -3677,21 +3681,128 @@ window.forgotVipPassword = forgotVipPassword;
   };
 
   window.buildTrackerWideHTML = function(rows){
-    const list = sortRowsByDateTimeMatch(rows || []).slice().reverse();
-    let html = `<div class="tracker-desktop-table-wrap"><table class="tracker-desktop-table"><thead><tr><th>Date</th><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr></thead><tbody>`;
+    const list = (rows || []).slice().sort((a,b)=> trackerParseDate(trackerRawDate(b)) - trackerParseDate(trackerRawDate(a)));
+
+    const monthState = trackerReadState("month");
+    const weekState = trackerReadState("week");
+    const dayState = trackerReadState("day");
+
+    const today = new Date();
+    const currentMonthLabel = today.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+    const currentWeekLabel = trackerWeekLabel({ created_at: today.toISOString() });
+    const currentDayLabel = fmtDayLabel(today.toISOString());
+
+    const months = [];
+    const monthMap = new Map();
+
     list.forEach(row=>{
-      const p = rowProfit(row);
-      html += `<tr>
-        <td class="tracker-desktop-date">${trackerEsc(fmtLabel(row.match_date_date || row.bet_date || row.created_at || ''))}</td>
-        <td class="tracker-desktop-match"><div class="tracker-match-name">${trackerEsc(row.match || '—')}</div>${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}</td>
-        <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))} ${trackerEsc(row.market || '—')}</td>
-        <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
-        <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
-        <td><select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)"><option value="pending" ${(row.result==='pending'?'selected':'')}>pending</option><option value="won" ${(row.result==='won'?'selected':'')}>won</option><option value="lost" ${(row.result==='lost'?'selected':'')}>lost</option><option value="delete">🗑 delete</option></select></td>
-        <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${Number(p || 0).toFixed(2)}</span></td>
-      </tr>`;
+      const month = trackerMonthLabel(row);
+      const week = trackerWeekLabel(row);
+      const day = trackerDayLabel(row);
+
+      if(!monthMap.has(month)){
+        monthMap.set(month, { label: month, weeks: new Map() });
+        months.push(monthMap.get(month));
+      }
+      const monthEntry = monthMap.get(month);
+
+      if(!monthEntry.weeks.has(week)){
+        monthEntry.weeks.set(week, { label: week, days: new Map() });
+      }
+      const weekEntry = monthEntry.weeks.get(week);
+
+      if(!weekEntry.days.has(day)){
+        weekEntry.days.set(day, []);
+      }
+      weekEntry.days.get(day).push(row);
     });
-    html += `</tbody></table></div>`;
+
+    let html = `<div class="tracker-grouped-shell tracker-wide-grouped-shell">`;
+
+    months.forEach(monthEntry=>{
+      const monthKey = monthEntry.label;
+      const isCurrentMonth = monthKey === currentMonthLabel;
+      const monthOpen = monthState[monthKey] != null ? !!monthState[monthKey] : isCurrentMonth;
+
+      html += `
+        <div class="tracker-month-wrap">
+          <button class="tracker-group-toggle tracker-month-toggle ${isCurrentMonth ? "tracker-month-toggle--current" : ""}" data-type="month" data-key="${encodeURIComponent(monthKey)}" onclick="toggleTrackerCollapse(this)">
+            <span class="tracker-group-arrow">${monthOpen ? "▼" : "▶"}</span>
+            <span>${trackerEsc(monthKey)}</span>
+          </button>
+          <div class="tracker-group-body ${monthOpen ? "" : "is-collapsed"}">
+      `;
+
+      Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry])=>{
+        const weekKey = `${monthKey}||${weekLabel}`;
+        const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
+        const weekOpen = weekState[weekKey] != null ? !!weekState[weekKey] : isCurrentWeek;
+
+        html += `
+          <div class="tracker-week-wrap">
+            <button class="tracker-group-toggle tracker-week-toggle ${isCurrentWeek ? "tracker-week-toggle--current" : ""}" data-type="week" data-key="${encodeURIComponent(weekKey)}" onclick="toggleTrackerCollapse(this)">
+              <span class="tracker-group-arrow">${weekOpen ? "▼" : "▶"}</span>
+              <span>${trackerEsc(weekLabel)}</span>
+            </button>
+            <div class="tracker-group-body ${weekOpen ? "" : "is-collapsed"}">
+        `;
+
+        Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows])=>{
+          const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
+          const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
+          const dayOpen = dayState[dayKey] != null ? !!dayState[dayKey] : isCurrentDay;
+
+          html += `
+            <div class="tracker-day-wrap">
+              <button class="tracker-group-toggle tracker-day-toggle ${isCurrentDay ? "tracker-day-toggle--current" : ""}" data-type="day" data-key="${encodeURIComponent(dayKey)}" onclick="toggleTrackerCollapse(this)">
+                <span class="tracker-group-arrow">${dayOpen ? "▼" : "▶"}</span>
+                <span>${trackerEsc(dayLabel)}</span>
+              </button>
+              <div class="tracker-group-body ${dayOpen ? "" : "is-collapsed"}">
+                <div class="tracker-desktop-table-wrap">
+                  <table class="tracker-desktop-table">
+                    <thead>
+                      <tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr>
+                    </thead>
+                    <tbody>
+          `;
+
+          dayRows.forEach(row=>{
+            const p = rowProfit(row);
+            html += `
+              <tr>
+                <td class="tracker-desktop-match">
+                  <div class="tracker-match-name">${trackerEsc(row.match || '—')}</div>
+                  ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
+                </td>
+                <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))} ${trackerEsc(row.market || '—')}</td>
+                <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
+                <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
+                <td><select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)"><option value="pending" ${(row.result==='pending'?'selected':'')}>pending</option><option value="won" ${(row.result==='won'?'selected':'')}>won</option><option value="lost" ${(row.result==='lost'?'selected':'')}>lost</option><option value="delete">🗑 delete</option></select></td>
+                <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${Number(p || 0).toFixed(2)}</span></td>
+              </tr>
+            `;
+          });
+
+          html += `
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div></div>`;
+    });
+
+    html += `</div>`;
     return html;
   };
 

@@ -6138,3 +6138,21 @@ body.layout-wide .bets-table .table-bookie-pill{ display:inline-flex; max-width:
   flex:0 0 auto;
   white-space:nowrap;
 }
+
+/* Final compact value card kickoff next to league */
+#betsGrid .bet-league-row{
+  justify-content:space-between !important;
+  gap:10px !important;
+  align-items:center !important;
+}
+#betsGrid .bet-kickoff-inline{
+  display:inline-flex !important;
+  align-items:center !important;
+  white-space:nowrap !important;
+  color:#ffffff !important;
+  opacity:1 !important;
+  font-size:13px !important;
+  font-weight:700 !important;
+  line-height:1.15 !important;
+  margin-left:auto !important;
+}
