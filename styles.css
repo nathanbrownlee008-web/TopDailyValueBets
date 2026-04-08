@@ -6284,3 +6284,15 @@ body.layout-wide .bets-table .table-market-text{
   color:rgba(255,236,179,.92) !important;
   font-weight:800 !important;
 }
+
+
+/* Results sport filters */
+.results-filter-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0 12px;padding:12px 14px;}
+.results-filter-left{font-weight:800;color:#f8fafc;}
+.results-filter-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.results-sport-select{appearance:none;background:rgba(255,255,255,0.06);color:#e5e7eb;border:1px solid rgba(255,255,255,0.12);padding:9px 12px;border-radius:12px;font-weight:700;min-width:132px;}
+.results-filter-clear{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#e5e7eb;padding:9px 12px;border-radius:12px;font-weight:700;}
+.tracker-sport-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;margin-right:8px;font-size:15px;vertical-align:-1px;}
+.tdt-match .tracker-sport-icon,.tracker-grid-match .tracker-sport-icon,.tracker-match-name .tracker-sport-icon{margin-right:8px;}
+.bookie-pill{padding:3px 8px !important;border-radius:10px !important;font-size:11px !important;line-height:1.05 !important;}
+@media (max-width:600px){.results-filter-bar{padding:10px 12px;}.results-filter-left{font-size:13px;}.results-sport-select,.results-filter-clear{padding:8px 10px;font-size:12px;border-radius:10px;min-width:118px;}}
