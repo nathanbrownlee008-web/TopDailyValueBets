@@ -453,7 +453,7 @@ function readTrackerRowsLocal(){
       if(!raw) return;
       const rows = JSON.parse(raw);
       if(!Array.isArray(rows)) return;
-      filteredRows.forEach(row=>{
+      rows.forEach(row=>{
         const safe = normalizeTrackerRow(row);
         const dedupe = String(safe.id || '') || `${safe.created_at || ''}|${safe.match || ''}|${safe.market || ''}`;
         if(seen.has(dedupe)) return;
@@ -701,6 +701,9 @@ function getSportLabel(sport){
   return getBetSport({ sport }) === 'basketball' ? 'Basketball' : 'Football';
 }
 function getSportIcon(row){
+  return getBetSport(row) === 'basketball' ? '🏀' : '⚽';
+}
+function getSportGlyph(row){
   return getBetSport(row) === 'basketball' ? '🏀' : '⚽';
 }
 function getMarketCategory(rawMarket){
@@ -1265,8 +1268,6 @@ document.addEventListener("change", (e)=>{
 
 // ===== Tracker Filters (Bet Results) =====
 let trackerAllRows = [];
-let tdtAllRows = [];
-
 
 function calcTrackerSportStats(rows, sportName){
   const target = String(sportName || '').toLowerCase();
@@ -1315,26 +1316,13 @@ function _rowGameDateISO(row){
   return d.toISOString().slice(0,10); // YYYY-MM-DD
 }
 
-function _getSportIconHTML(row){
-  return getBetSport(row) === "basketball" ? "🏀" : "⚽";
-}
-
-function _getTrackerSportFilterValue(){
-  const sportEl = document.getElementById("filterSport");
-  return sportEl ? String(sportEl.value || "").trim().toLowerCase() : "";
-}
-
-function _getTdtSportFilterValue(){
-  const sportEl = document.getElementById("tdtFilterSport");
-  return sportEl ? String(sportEl.value || "").trim().toLowerCase() : "";
-}
-
 function _applyTrackerFilters(rows){
   const dateEl = document.getElementById("filterDate");
   const marketEl = document.getElementById("filterMarket");
+  const sportEl = document.getElementById("trackerResultsSportFilter");
   const dateVal = dateEl ? (dateEl.value || "") : "";
   const marketVal = marketEl ? (marketEl.value || "").trim().toLowerCase() : "";
-  const sportVal = _getTrackerSportFilterValue();
+  const sportVal = sportEl ? (sportEl.value || "").trim().toLowerCase() : "";
 
   return (rows || []).filter(r=>{
     if(dateVal){
@@ -1378,7 +1366,7 @@ function _buildTrackerTableHTML(rows){
 
     html += `<tr>
       <td class="date-col">${dateLabel}</td>
-      <td>${row.match || ""}</td>
+      <td><span class="tracker-sport-glyph">${escapeHtml(getSportGlyph(row))}</span> ${row.match || ""}</td>
       <td><input class="stake-input" type="number" value="${stakeVal}" data-id="${row.id}" data-field="stake"></td>
       <td>
         <select class="result-select result-${res}" data-id="${row.id}" data-field="result">
@@ -1414,7 +1402,7 @@ function wireTrackerFilters(){
 
   const dateEl = document.getElementById("filterDate");
   const marketEl = document.getElementById("filterMarket");
-  const sportEl = document.getElementById("filterSport");
+  const sportEl = document.getElementById("trackerResultsSportFilter");
   const todayBtn = document.getElementById("todayToggle");
   const clearBtn = document.getElementById("clearFilters");
 
@@ -2048,7 +2036,9 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
     const diff = tdtWinrateVal - breakEven;
     winFill.style.width = width + "%";
     winFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber", "tdt-perf-fill--neutral");
-    winFill.classList.add(diff > 0.1 ? "tdt-perf-fill--green" : diff < -0.1 ? "tdt-perf-fill--red" : "tdt-perf-fill--amber");
+    if(diff > 0.1) winFill.classList.add("tdt-perf-fill--green");
+    else if(diff < -0.1) winFill.classList.add("tdt-perf-fill--red");
+    else winFill.classList.add("tdt-perf-fill--amber");
     winLabel.textContent = `${tdtWinrateVal.toFixed(1)}% (Break-even ${breakEven.toFixed(1)}%)`;
   }
 
@@ -2058,29 +2048,10 @@ function updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCo
     const maxOdds = 5;
     const width = Math.max(0, Math.min(100, (tdtAvgOddsVal / maxOdds) * 100));
     oddsFill.style.width = width + "%";
-    oddsFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber", "tdt-perf-fill--neutral");
+    oddsFill.classList.remove("tdt-perf-fill--green", "tdt-perf-fill--red", "tdt-perf-fill--amber");
     oddsFill.classList.add("tdt-perf-fill--neutral");
     oddsLabel.textContent = tdtAvgOddsVal.toFixed(2);
   }
-}
-
-function applyTdtSportFilter(rows){
-  const sportVal = _getTdtSportFilterValue();
-  if(!sportVal) return (rows || []).slice();
-  return (rows || []).filter(row => String(row.sport || getBetSport(row)).trim().toLowerCase() === sportVal);
-}
-
-let _tdtFiltersWired = false;
-function wireTdtFilters(){
-  if(_tdtFiltersWired) return;
-  _tdtFiltersWired = true;
-  const sportEl = document.getElementById("tdtFilterSport");
-  const clearBtn = document.getElementById("tdtClearFilters");
-  if(sportEl) sportEl.addEventListener("change", loadTdtTracker);
-  if(clearBtn) clearBtn.addEventListener("click", ()=>{
-    if(sportEl) sportEl.value = "";
-    loadTdtTracker();
-  });
 }
 
 async function loadTdtTracker(){
@@ -2090,9 +2061,6 @@ async function loadTdtTracker(){
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
     tdtRowsCache = rows;
-    tdtAllRows = rows;
-    wireTdtFilters();
-    const filteredRows = applyTdtSportFilter(rows);
 
     let profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,resolvedCount=0;
 
@@ -2114,7 +2082,7 @@ async function loadTdtTracker(){
       }
     });
 
-    const sortedRows = sortTdtRows(filteredRows);
+    const sortedRows = sortTdtRows(rows);
     const groups = [];
     const map = new Map();
     sortedRows.forEach(row=>{
@@ -2134,17 +2102,6 @@ async function loadTdtTracker(){
 
     const todayKey = getTdtTodayKey();
     let html = `
-      <div class="results-filter-bar card">
-        <div class="results-filter-left">Filter results</div>
-        <div class="results-filter-actions">
-          <select id="tdtFilterSport" class="results-sport-select">
-            <option value="">All sports</option>
-            <option value="football" ${_getTdtSportFilterValue()==="football"?"selected":""}>Football</option>
-            <option value="basketball" ${_getTdtSportFilterValue()==="basketball"?"selected":""}>Basketball</option>
-          </select>
-          <button id="tdtClearFilters" type="button" class="results-filter-clear">Clear</button>
-        </div>
-      </div>
       <div style="display:flex;justify-content:flex-end;align-items:center;margin:0 0 10px;">
         <button id="tdtToggleAllDaysBtn" type="button" onclick="toggleAllTdtDays()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#e2e8f0;padding:8px 12px;border-radius:999px;font-weight:800;font-size:12px;">
           Collapse all days
@@ -2189,7 +2146,7 @@ async function loadTdtTracker(){
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
         html += `
           <tr class="tdt-row ${result}">
-            <td class="tdt-match"><span class="tracker-sport-icon">${_getSportIconHTML(row)}</span>${escapeHtml(row.match || '')}</td>
+            <td class="tdt-match"><span class="tracker-sport-glyph">${escapeHtml(getSportGlyph(row))}</span> ${escapeHtml(row.match || '')}</td>
             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
             <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
@@ -2209,7 +2166,7 @@ async function loadTdtTracker(){
 
     html += `</div>`;
 
-    if(tableEl) tableEl.innerHTML = filteredRows.length ? html : '<div class="card">No official TDT results for this filter yet.</div>';
+    if(tableEl) tableEl.innerHTML = rows.length ? html : '<div class="card">No official TDT results yet.</div>';
 
     const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
     set("tdtProfit", profit.toFixed(2));
@@ -2217,8 +2174,8 @@ async function loadTdtTracker(){
     set("tdtWinrate", (wins+losses)?((wins/(wins+losses))*100).toFixed(1):0);
     set("tdtWonLost", `${wins}-${losses}`);
     set("tdtAvgOdds", resolvedCount?(totalOdds/resolvedCount).toFixed(2):0);
-    set("tdtTotalBets", filteredRows.length);
-    set("tdtBetCount", filteredRows.length);
+    set("tdtTotalBets", rows.length);
+    set("tdtBetCount", rows.length);
     updateTdtPerformanceBars({ profit, totalStake, wins, losses, resolvedCount, totalOdds });
   }catch(err){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
@@ -3227,8 +3184,14 @@ window.loadTdtTracker = async function(){
 
     if(error) throw error;
 
-    const rows = Array.isArray(data) ? data : [];
-    tdtRowsCache = rows;
+    const allRows = Array.isArray(data) ? data : [];
+    tdtRowsCache = allRows;
+
+    const tdtSportFilterEl = document.getElementById("tdtResultsSportFilter");
+    const tdtSportFilterVal = tdtSportFilterEl ? String(tdtSportFilterEl.value || '').trim().toLowerCase() : '';
+    const rows = tdtSportFilterVal
+      ? allRows.filter(row => String(row.sport || getBetSport(row)).toLowerCase() === tdtSportFilterVal)
+      : allRows;
 
     let profit = 0;
     let wins = 0;
@@ -3457,7 +3420,7 @@ window.loadTdtTracker = async function(){
 
             html += `
                           <tr class="tdt-row ${result}">
-                            <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+                            <td class="tdt-match"><span class="tracker-sport-glyph">${escapeHtml(getSportGlyph(row))}</span> ${escapeHtml(row.match || '')}</td>
                             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
                             <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
                             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
@@ -3516,6 +3479,13 @@ window.loadTdtTracker = async function(){
     if(tableEl) tableEl.innerHTML = '<div class="card">TDT Tracker table not ready yet.</div>';
   }
 };
+
+const tdtResultsSportFilterEl = document.getElementById("tdtResultsSportFilter");
+if(tdtResultsSportFilterEl){
+  tdtResultsSportFilterEl.addEventListener("change", ()=>{
+    try{ loadTdtTracker(); }catch(e){ console.error("TDT sport filter reload failed", e); }
+  });
+}
 
 try{
   if(typeof currentTopTab !== "undefined" && currentTopTab === "tdt"){
@@ -3700,7 +3670,7 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                 <div class="tracker-grid-top">
                   <div>
-                    <div class="tracker-grid-match"><span class="tracker-sport-icon">${_getSportIconHTML(row)}</span>${trackerEsc(row.match || "")}</div>
+                    <div class="tracker-grid-match">${trackerEsc(row.match || "")}</div>
                     ${resolveTrackerLeague(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(resolveTrackerLeague(row))}</div>` : (formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``)}
                   </div>
                   <div class="tracker-grid-top-result">
@@ -3853,7 +3823,7 @@ window.forgotVipPassword = forgotVipPassword;
             html += `
               <tr class="tracker-row-${trackerEsc(row.result || 'pending')}">
                 <td class="tracker-desktop-match">
-                  <div class="tracker-match-name"><span class="tracker-sport-icon">${_getSportIconHTML(row)}</span>${trackerEsc(row.match || '—')}</div>
+                  <div class="tracker-match-name">${trackerEsc(row.match || '—')}</div>
                   ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
                 </td>
                 <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))}&nbsp;${trackerEsc(row.market || '—')}</td>

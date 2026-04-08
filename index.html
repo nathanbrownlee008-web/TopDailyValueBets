@@ -228,18 +228,15 @@
     📈 Bet Results (<span id="betCount">0</span>)
     <span id="trackerArrow">▼</span>
   </div>
+  <div class="results-filter-row">
+    <label class="results-filter-label" for="trackerResultsSportFilter">Sport</label>
+    <select id="trackerResultsSportFilter" class="results-filter-select">
+      <option value="">All sports</option>
+      <option value="football">Football</option>
+      <option value="basketball">Basketball</option>
+    </select>
+  </div>
   <div id="trackerWrapper" class="collapsed">
-    <div class="results-filter-bar card">
-      <div class="results-filter-left">Filter results</div>
-      <div class="results-filter-actions">
-        <select id="filterSport" class="results-sport-select">
-          <option value="">All sports</option>
-          <option value="football">Football</option>
-          <option value="basketball">Basketball</option>
-        </select>
-        <button id="clearFilters" type="button" class="results-filter-clear">Clear</button>
-      </div>
-    </div>
     <div id="trackerTable"></div>
   </div>
 </div>
@@ -288,7 +285,7 @@
       <strong id="tdtAvgOddsBarLabel">0.00</strong>
     </div>
     <div class="tdt-perf-track">
-      <div id="tdtAvgOddsBarFill" class="tdt-perf-fill tdt-perf-fill--amber"></div>
+      <div id="tdtAvgOddsBarFill" class="tdt-perf-fill tdt-perf-fill--neutral"></div>
     </div>
   </div>
 </div>
@@ -297,6 +294,14 @@
   <div class="tracker-toggle" onclick="toggleTdtTracker()">
     📈 TDT Results (<span id="tdtBetCount">0</span>)
     <span id="tdtTrackerArrow">▼</span>
+  </div>
+  <div class="results-filter-row">
+    <label class="results-filter-label" for="tdtResultsSportFilter">Sport</label>
+    <select id="tdtResultsSportFilter" class="results-filter-select">
+      <option value="">All sports</option>
+      <option value="football">Football</option>
+      <option value="basketball">Basketball</option>
+    </select>
   </div>
   <div id="tdtTrackerWrapper" class="collapsed">
     <div id="tdtTrackerTable"></div>
