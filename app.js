@@ -4057,14 +4057,13 @@ function toggleAboutBox(){
 
   observer.observe(document.body, { childList: true, subtree: true });
 })();
-// ===== BETS TODAY COUNT (FIXED) =====
+// ===== BETS TODAY COUNT PATCH =====
 (function(){
 
   function updateBetsTodayCount(){
     try{
-      // 🔥 target your actual value bet cards (this matches your app)
-      const cards = document.querySelectorAll('[data-bet-id], .value-bet-card, .bet-card');
-
+      // grab all visible cards
+      const cards = document.querySelectorAll('.value-bet-card, .bet-card');
       const count = cards.length;
 
       let el = document.getElementById("betsTodayCount");
@@ -4073,21 +4072,14 @@ function toggleAboutBox(){
       if(!el){
         el = document.createElement("div");
         el.id = "betsTodayCount";
+        el.style.margin = "10px 0 5px";
+        el.style.fontWeight = "600";
+        el.style.fontSize = "14px";
+        el.style.opacity = "0.85";
 
-        el.style.margin = "12px 0 6px";
-        el.style.fontWeight = "700";
-        el.style.fontSize = "15px";
-        el.style.color = "#ffffff";
-        el.style.textAlign = "left";
-        el.style.paddingLeft = "4px";
-
-        // 🔥 THIS is where it gets inserted (works with your layout)
-        const filterBar = document.querySelector('.filters, .filter-bar, #filtersContainer');
-
-        if(filterBar){
-          filterBar.parentNode.insertBefore(el, filterBar.nextSibling);
-        } else {
-          document.body.prepend(el);
+        const target = document.querySelector('#valueBetsContainer, #betsContainer');
+        if(target){
+          target.prepend(el);
         }
       }
 
@@ -4096,12 +4088,11 @@ function toggleAboutBox(){
     }catch(e){}
   }
 
-  // run multiple times to guarantee load
-  setTimeout(updateBetsTodayCount, 300);
-  setTimeout(updateBetsTodayCount, 800);
-  setTimeout(updateBetsTodayCount, 1500);
-
+  // auto update when page changes
   const observer = new MutationObserver(updateBetsTodayCount);
   observer.observe(document.body, { childList: true, subtree: true });
+
+  // initial run
+  setTimeout(updateBetsTodayCount, 500);
 
 })();
