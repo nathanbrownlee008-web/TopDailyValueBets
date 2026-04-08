@@ -2518,7 +2518,7 @@ function renderMarketChart(labels, winPct, totals){
           grid: { display: false, drawBorder: false }
         },
         y: {
-          ticks: { color: "rgba(229,231,235,0.85)", font: { weight: 800 } },
+          ticks: { color: "#ffffff", font: { weight: 800 } },
           grid: { display: false, drawBorder: false }
         }
       },
@@ -2532,7 +2532,7 @@ function renderMarketChart(labels, winPct, totals){
 
     ctx.save();
     ctx.font = "800 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.fillStyle = "rgba(229,231,235,0.95)";
+    ctx.fillStyle = "#ffffff";
 
     meta.data.forEach((bar, i)=>{
       const val = Number(winPct[i] ?? 0);
@@ -3574,7 +3574,7 @@ window.forgotVipPassword = forgotVipPassword;
     months.forEach((monthEntry, monthIndex)=>{
       const monthKey = monthEntry.label;
       const isCurrentMonth = monthKey === currentMonthLabel;
-      const monthOpen = isCurrentMonth;
+      const monthOpen = monthState[monthKey] != null ? !!monthState[monthKey] : isCurrentMonth;
 
       html += `
         <div class="tracker-month-wrap">
@@ -3588,7 +3588,7 @@ window.forgotVipPassword = forgotVipPassword;
       Array.from(monthEntry.weeks.entries()).forEach(([weekLabel, weekEntry], weekIndex)=>{
         const weekKey = `${monthKey}||${weekLabel}`;
         const isCurrentWeek = monthKey === currentMonthLabel && weekLabel === currentWeekLabel;
-        const weekOpen = isCurrentWeek;
+        const weekOpen = weekState[weekKey] != null ? !!weekState[weekKey] : isCurrentWeek;
 
         html += `
           <div class="tracker-week-wrap">
@@ -3602,7 +3602,7 @@ window.forgotVipPassword = forgotVipPassword;
         Array.from(weekEntry.days.entries()).forEach(([dayLabel, dayRows], dayIndex)=>{
           const dayKey = `${monthKey}||${weekLabel}||${dayLabel}`;
           const isCurrentDay = monthKey === currentMonthLabel && weekLabel === currentWeekLabel && dayLabel === currentDayLabel;
-          const dayOpen = isCurrentDay;
+          const dayOpen = dayState[dayKey] != null ? !!dayState[dayKey] : isCurrentDay;
 
           html += `
             <div class="tracker-day-wrap">
