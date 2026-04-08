@@ -4011,3 +4011,88 @@ function toggleAboutBox(){
   el.style.display = isOpen ? "none" : "block";
   if(arrow) arrow.textContent = isOpen ? "▼" : "▲";
 }
+// ===== UK DATE FORMAT GLOBAL PATCH =====
+(function(){
+  function formatDateUK(dateStr){
+    if(!dateStr) return '';
+    const d = new Date(dateStr);
+    if(isNaN(d)) return dateStr;
+
+    const day = d.getDate();
+    const year = d.getFullYear();
+
+    const months = [
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
+    ];
+
+    const month = months[d.getMonth()];
+
+    const getOrdinal = (n) => {
+      if(n > 3 && n < 21) return 'th';
+      switch(n % 10){
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    };
+
+    return `${day}${getOrdinal(day)} ${month} ${year}`;
+  }
+
+  // 🔥 AUTO REPLACE ALL DATE TEXT (SAFE PATCH)
+  const observer = new MutationObserver(() => {
+    document.querySelectorAll('[data-date], .bet-date, .match-date').forEach(el=>{
+      if(!el.dataset.formatted){
+        const raw = el.textContent.trim();
+        const formatted = formatDateUK(raw);
+        if(formatted !== raw){
+          el.textContent = formatted;
+          el.dataset.formatted = "1";
+        }
+      }
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
+// ===== BETS TODAY COUNT PATCH =====
+(function(){
+
+  function updateBetsTodayCount(){
+    try{
+      // grab all visible cards
+      const cards = document.querySelectorAll('.value-bet-card, .bet-card');
+      const count = cards.length;
+
+      let el = document.getElementById("betsTodayCount");
+
+      // create if not exists
+      if(!el){
+        el = document.createElement("div");
+        el.id = "betsTodayCount";
+        el.style.margin = "10px 0 5px";
+        el.style.fontWeight = "600";
+        el.style.fontSize = "14px";
+        el.style.opacity = "0.85";
+
+        const target = document.querySelector('#valueBetsContainer, #betsContainer');
+        if(target){
+          target.prepend(el);
+        }
+      }
+
+      el.textContent = `${count} Bet${count === 1 ? '' : 's'} Today`;
+
+    }catch(e){}
+  }
+
+  // auto update when page changes
+  const observer = new MutationObserver(updateBetsTodayCount);
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // initial run
+  setTimeout(updateBetsTodayCount, 500);
+
+})();
