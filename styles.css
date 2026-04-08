@@ -6207,3 +6207,28 @@ body.layout-wide .bets-table .table-market-text{
     margin-right: auto !important;
   }
 }
+/* MOBILE ONLY – CENTER MARKET PILL (REAL FIX) */
+@media (max-width: 768px) {
+
+  /* target the row that holds the market */
+  .bet-meta,
+  .bet-meta--market-row,
+  .bet-row,
+  .bet-market-row {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100%;
+  }
+
+  /* center the actual pill */
+  .bet-market,
+  .bet-market-pill {
+    margin: 0 auto !important;
+    text-align: center !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+}
