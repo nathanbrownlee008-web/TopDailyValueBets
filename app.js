@@ -1115,7 +1115,8 @@ async function loadBets(){
     <div class="bet-details">
       <div class="bet-footer">
         <div class="bet-left">
-          ${!locked && row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)} @ ${escapeHtml(String(row.odds ?? ''))}</div>` : ``}
+          ${!locked && row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)}</div>` : ``}
+          ${!locked ? `<span class="odds-pill">Odds ${escapeHtml(String(row.odds ?? ''))}</span>` : ``}
         </div>
         <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
       </div>

@@ -6193,3 +6193,72 @@ body.layout-wide .bets-table .table-market-icon::after{
 body.layout-wide .bets-table .table-market-text{
   display:inline-block;
 }
+
+
+/* ===== TDT PICKS: separate bookie + odds pills ===== */
+#betsGrid .bet-footer{
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+}
+
+#betsGrid .bet-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  flex-wrap:wrap !important;
+  padding-right:0 !important;
+  min-width:0 !important;
+}
+
+#betsGrid .bet-bookie{
+  margin:0 !important;
+  min-height:31px !important;
+  height:31px !important;
+  padding:0 12px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:999px !important;
+  background:rgba(255,255,255,0.06) !important;
+  border:1px solid rgba(255,255,255,0.14) !important;
+  color:#ffffff !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  text-shadow:none !important;
+  box-shadow:none !important;
+}
+
+#betsGrid .odds-pill{
+  min-height:31px !important;
+  height:31px !important;
+  padding:0 12px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:999px !important;
+  background:linear-gradient(180deg, rgba(34,197,94,0.24), rgba(34,197,94,0.14)) !important;
+  border:1px solid rgba(34,197,94,0.52) !important;
+  color:#ffffff !important;
+  font-size:12px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  box-shadow:0 0 10px rgba(34,197,94,0.22), inset 0 0 8px rgba(34,197,94,0.08) !important;
+}
+
+#betsGrid .bet-btn{
+  color:#ffffff !important;
+}
+
+@media (max-width:430px){
+  #betsGrid .bet-bookie,
+  #betsGrid .odds-pill{
+    min-height:29px !important;
+    height:29px !important;
+    padding:0 10px !important;
+    font-size:11.5px !important;
+  }
+}
