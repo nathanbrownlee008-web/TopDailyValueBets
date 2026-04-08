@@ -351,14 +351,6 @@ function getBetTitleSizeClass(match){
   if(len >= 24) return " bet-title--small";
   return "";
 }
-function getBookiePillClass(name){
-  const n = String(name || '').toLowerCase();
-  if(n.includes('365')) return 'bookie-bet365';
-  if(n.includes('sky')) return 'bookie-skybet';
-  if(n.includes('paddy')) return 'bookie-paddypower';
-  if(n.includes('golden')) return 'bookie-goldenbet';
-  return 'bookie-default';
-}
 // ===== Layout Mode (Compact / Wide) =====
 const btnCompact = document.getElementById("btnCompact");
 const btnWide = document.getElementById("btnWide");
@@ -662,15 +654,9 @@ const valueFiltersContentEl = document.getElementById("valueFiltersContent");
 const valueFiltersArrowEl = document.getElementById("valueFiltersArrow");
 const valueFiltersSummaryEl = document.getElementById("valueFiltersSummary");
 
-const trackerResultsFiltersToggleEl = document.getElementById("trackerResultsFiltersToggle");
-const trackerResultsFiltersContentEl = document.getElementById("trackerResultsFiltersContent");
-const trackerResultsFiltersSummaryEl = document.getElementById("trackerResultsFiltersSummary");
-const trackerResultsFiltersArrowEl = document.getElementById("trackerResultsFiltersArrow");
-
 let valueBetsAllRows = [];
 let valueFiltersWired = false;
 let valueFiltersOpen = false;
-let trackerResultsFiltersOpen = false;
 
 
 function normalizeFilterText(value){
@@ -1152,7 +1138,7 @@ async function loadBets(){
     <div class="bet-details">
       <div class="bet-footer bet-footer--split">
         <div class="bet-footer-slot bet-footer-slot--left">
-          ${!locked && row.bookie ? `<div class="bet-bookie bookie-pill ${getBookiePillClass(row.bookie)}">${escapeHtml(row.bookie)}</div>` : ``}
+          ${!locked && row.bookie ? `<div class="bet-bookie">${escapeHtml(row.bookie)}</div>` : ``}
         </div>
         <div class="bet-footer-slot bet-footer-slot--center">
           ${!locked ? `<div class="odds-pill">Odds ${escapeHtml(String(row.odds ?? ''))}</div>` : ``}
@@ -1338,35 +1324,6 @@ function _getTrackerSportFilterValue(){
   return sportEl ? String(sportEl.value || "").trim().toLowerCase() : "";
 }
 
-function buildTrackerResultsFiltersSummary(){
-  const sportEl = document.getElementById("filterSport");
-  const dateEl = document.getElementById("filterDate");
-  const marketEl = document.getElementById("filterMarket");
-  const parts = [];
-  if(sportEl && sportEl.value) parts.push(sportEl.options[sportEl.selectedIndex]?.text || sportEl.value);
-  if(dateEl && dateEl.value) parts.push(dateEl.value);
-  if(marketEl && String(marketEl.value || '').trim()) parts.push(String(marketEl.value).trim());
-  return parts.length ? parts.join(' • ') : 'All results';
-}
-
-function setTrackerResultsFiltersOpen(open){
-  trackerResultsFiltersOpen = !!open;
-  if(trackerResultsFiltersContentEl){
-    trackerResultsFiltersContentEl.classList.toggle('is-collapsed', !trackerResultsFiltersOpen);
-    trackerResultsFiltersContentEl.classList.toggle('is-expanded', trackerResultsFiltersOpen);
-  }
-  if(trackerResultsFiltersToggleEl) trackerResultsFiltersToggleEl.setAttribute('aria-expanded', trackerResultsFiltersOpen ? 'true' : 'false');
-  if(trackerResultsFiltersArrowEl) trackerResultsFiltersArrowEl.textContent = trackerResultsFiltersOpen ? '▲' : '▼';
-}
-
-function syncTrackerResultsFiltersUi(){
-  if(trackerResultsFiltersSummaryEl) trackerResultsFiltersSummaryEl.textContent = buildTrackerResultsFiltersSummary();
-}
-
-function initTrackerResultsFiltersCollapse(){
-  setTrackerResultsFiltersOpen(false);
-}
-
 function _getTdtSportFilterValue(){
   const sportEl = document.getElementById("tdtFilterSport");
   return sportEl ? String(sportEl.value || "").trim().toLowerCase() : "";
@@ -1443,7 +1400,6 @@ function _renderFilteredTrackerTable(){
   if(!tableEl) return;
 
   const filtered = _applyTrackerFilters(trackerAllRows);
-  syncTrackerResultsFiltersUi();
   tableEl.innerHTML = _buildTrackerTableHTML(filtered);
   if(countEl) countEl.textContent = filtered.length;
 
@@ -1462,15 +1418,9 @@ function wireTrackerFilters(){
   const todayBtn = document.getElementById("todayToggle");
   const clearBtn = document.getElementById("clearFilters");
 
-  const rerenderTrackerFilters = ()=>{
-    syncTrackerResultsFiltersUi();
-    _renderFilteredTrackerTable();
-  };
-
-  if(trackerResultsFiltersToggleEl) trackerResultsFiltersToggleEl.addEventListener("click", ()=>setTrackerResultsFiltersOpen(!trackerResultsFiltersOpen));
-  if(dateEl) dateEl.addEventListener("change", rerenderTrackerFilters);
-  if(marketEl) marketEl.addEventListener("input", rerenderTrackerFilters);
-  if(sportEl) sportEl.addEventListener("change", rerenderTrackerFilters);
+  if(dateEl) dateEl.addEventListener("change", _renderFilteredTrackerTable);
+  if(marketEl) marketEl.addEventListener("input", _renderFilteredTrackerTable);
+  if(sportEl) sportEl.addEventListener("change", _renderFilteredTrackerTable);
 
   if(todayBtn){
     todayBtn.addEventListener("click", ()=>{
@@ -1478,7 +1428,7 @@ function wireTrackerFilters(){
         const today = new Date();
         dateEl.value = today.toISOString().slice(0,10);
       }
-      rerenderTrackerFilters();
+      _renderFilteredTrackerTable();
     });
   }
 
@@ -1487,12 +1437,9 @@ function wireTrackerFilters(){
       if(dateEl) dateEl.value = "";
       if(marketEl) marketEl.value = "";
       if(sportEl) sportEl.value = "";
-      rerenderTrackerFilters();
+      _renderFilteredTrackerTable();
     });
   }
-
-  initTrackerResultsFiltersCollapse();
-  syncTrackerResultsFiltersUi();
 }
 
 let dailyChart;
@@ -3946,7 +3893,6 @@ window.forgotVipPassword = forgotVipPassword;
       const countEl = document.getElementById("betCount");
       if(!tableEl) return;
       const filtered = _applyTrackerFilters(trackerAllRows || []);
-      syncTrackerResultsFiltersUi();
       tableEl.innerHTML = document.body.classList.contains('layout-wide') ? buildTrackerWideHTML(filtered) : buildTrackerGroupedHTML(filtered);
       if(countEl) countEl.textContent = filtered.length;
     };
@@ -3968,7 +3914,6 @@ window.forgotVipPassword = forgotVipPassword;
         const countEl = document.getElementById("betCount");
         if(tableEl && Array.isArray(trackerAllRows)){
           const filtered = _applyTrackerFilters(trackerAllRows || []);
-          syncTrackerResultsFiltersUi();
           tableEl.innerHTML = document.body.classList.contains('layout-wide') ? buildTrackerWideHTML(filtered) : buildTrackerGroupedHTML(filtered);
           if(countEl) countEl.textContent = filtered.length;
         }
