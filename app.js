@@ -1202,7 +1202,8 @@ async function addToTracker(btn, row){
     kickoff_time: normalizeKickoffTime(row.kickoff_time || row.match_time || row.time || '' ) || null,
     league: getBetLeagueName(row) || null,
     bookie: row.bookie || null,
-    sport: getBetSport(row)
+    sport: getBetSport(row),
+    league: row.league || row.competition || row.league_name || row.tournament || null
   };
 
   try{
