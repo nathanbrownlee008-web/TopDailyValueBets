@@ -6333,3 +6333,9 @@ body.layout-wide .bets-table .table-market-text{
 .bookie-goldenbet{background:linear-gradient(135deg,#202636,#34425f);color:#f8fafc;border-color:rgba(148,163,184,0.28);}
 .bookie-default{background:linear-gradient(135deg,rgba(255,255,255,0.11),rgba(255,255,255,0.06));color:#e2e8f0;border-color:rgba(255,255,255,0.14);}
 @media (max-width:600px){.results-filter-bar{padding:10px 12px;}.results-filter-left{font-size:13px;}.results-sport-select,.results-filter-clear{padding:8px 10px;font-size:12px;border-radius:10px;min-width:118px;}.bookie-pill{font-size:10px !important;padding:2px 7px !important;min-height:22px;}}
+.bookie-pill{
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.6);
+  color: #ecfdf5;
+  box-shadow: 0 0 10px rgba(34,197,94,0.25);
+}
