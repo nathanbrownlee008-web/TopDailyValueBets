@@ -461,7 +461,7 @@ function readTrackerRowsLocal(){
       if(!raw) return;
       const rows = JSON.parse(raw);
       if(!Array.isArray(rows)) return;
-      rows.forEach(row=>{
+      filteredRows.forEach(row=>{
         const safe = normalizeTrackerRow(row);
         const dedupe = String(safe.id || '') || `${safe.created_at || ''}|${safe.match || ''}|${safe.market || ''}`;
         if(seen.has(dedupe)) return;
@@ -1241,7 +1241,7 @@ async function addToTracker(btn, row){
     setTimeout(()=>btn.classList.remove('flash'), 700);
     btn.disabled = true;
   }
-  await loadTracker();
+  loadTracker();
 }
 
 
@@ -3753,21 +3753,10 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                 <div class="tracker-grid-top">
                   <div>
-                    <div class="tracker-grid-match">
-  ${trackerEsc(row.match || "")}
-</div>
-
-${resolveTrackerLeague(row) ? `
-  <div class="tracker-grid-kickoff">
-    ${trackerEsc(resolveTrackerLeague(row))}
-  </div>
-` : ``}
-
-${row.bookie ? `
-  <div class="tracker-grid-bookie">
-    ${trackerEsc(row.bookie)}
-  </div>
-` : ``}
+                    <div class="tracker-grid-match"><span class="tracker-sport-icon">${_getSportIconHTML(row)}</span>${trackerEsc(row.match || "")}</div>
+                    ${resolveTrackerLeague(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(resolveTrackerLeague(row))}</div>` : (formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``)}
+                    ${row.bookie ? `<div class="tracker-grid-bookie">${trackerEsc(row.bookie)}</div>` : ``}
+                  </div>
                   <div class="tracker-grid-top-result">
                     <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
                       <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
@@ -4023,151 +4012,3 @@ function toggleAboutBox(){
   el.style.display = isOpen ? "none" : "block";
   if(arrow) arrow.textContent = isOpen ? "▼" : "▲";
 }
-// ===== UK DATE FORMAT GLOBAL PATCH =====
-(function(){
-  function formatDateUK(dateStr){
-    if(!dateStr) return '';
-    const d = new Date(dateStr);
-    if(isNaN(d)) return dateStr;
-
-    const day = d.getDate();
-    const year = d.getFullYear();
-
-    const months = [
-      "January","February","March","April","May","June",
-      "July","August","September","October","November","December"
-    ];
-
-    const month = months[d.getMonth()];
-
-    const getOrdinal = (n) => {
-      if(n > 3 && n < 21) return 'th';
-      switch(n % 10){
-        case 1: return "st";
-        case 2: return "nd";
-        case 3: return "rd";
-        default: return "th";
-      }
-    };
-
-    return `${day}${getOrdinal(day)} ${month} ${year}`;
-  }
-
-  // 🔥 AUTO REPLACE ALL DATE TEXT (SAFE PATCH)
-  const observer = new MutationObserver(() => {
-    document.querySelectorAll('[data-date], .bet-date, .match-date').forEach(el=>{
-      if(!el.dataset.formatted){
-        const raw = el.textContent.trim();
-        const formatted = formatDateUK(raw);
-        if(formatted !== raw){
-          el.textContent = formatted;
-          el.dataset.formatted = "1";
-        }
-      }
-    });
-  });
-
-  observer.observe(document.body, { childList: true, subtree: true });
-})();
-// ===== BETS TODAY COUNT PATCH =====
-(function(){
-
-  function updateBetsTodayCount(){
-    try{
-      // grab all visible cards
-      const cards = document.querySelectorAll('.value-bet-card, .bet-card');
-      const count = cards.length;
-
-      let el = document.getElementById("betsTodayCount");
-
-      // create if not exists
-      if(!el){
-        el = document.createElement("div");
-        el.id = "betsTodayCount";
-        el.style.margin = "10px 0 5px";
-        el.style.fontWeight = "600";
-        el.style.fontSize = "14px";
-        el.style.opacity = "0.85";
-
-        const target = document.querySelector('#valueBetsContainer, #betsContainer');
-        if(target){
-          target.prepend(el);
-        }
-      }
-
-      el.textContent = `${count} Bet${count === 1 ? '' : 's'} Today`;
-
-    }catch(e){}
-  }
-
-  // auto update when page changes
-  const observer = new MutationObserver(updateBetsTodayCount);
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  // initial run
-  setTimeout(updateBetsTodayCount, 500);
-
-})();
-// ===== SAFE BANKROLL GROWTH + ROI NOTE PATCH =====
-(function(){
-  function applySafeTrackerNotes(){
-    try{
-      // My Tracker bankroll card
-      const bankrollCard = bankrollElem ? bankrollElem.closest('.stat-card') : null;
-      if(bankrollCard && bankrollElem){
-        let growthEl = bankrollCard.querySelector('.bankroll-growth-sub');
-        if(!growthEl){
-          growthEl = document.createElement('div');
-          growthEl.className = 'bankroll-growth-sub';
-          bankrollCard.appendChild(growthEl);
-        }
-
-        const startingInput = document.getElementById('startingBankroll');
-        const start = Number(startingInput?.value || 100);
-        const bankrollNow = Number(bankrollElem.textContent || 0);
-        const growth = start > 0 ? ((bankrollNow - start) / start) * 100 : 0;
-
-        growthEl.textContent = `Growth ${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%`;
-      }
-
-      // My Tracker ROI card
-      const roiCard = roiElem ? roiElem.closest('.stat-card') : null;
-      if(roiCard){
-        let note = roiCard.querySelector('.roi-subnote');
-        if(!note){
-          note = document.createElement('div');
-          note.className = 'roi-subnote';
-          note.textContent = 'Based on £ staked';
-          roiCard.appendChild(note);
-        }
-      }
-
-      // TDT Tracker ROI row
-      const performanceCards = document.querySelectorAll('.card');
-      performanceCards.forEach(card=>{
-        const txt = (card.textContent || '');
-        if(txt.includes('Performance') && txt.includes('ROI') && txt.includes('Avg Odds')){
-          const rows = Array.from(card.querySelectorAll('*'));
-          const roiLabel = rows.find(el => (el.textContent || '').trim() === 'ROI');
-          if(roiLabel){
-            let note = roiLabel.parentElement?.querySelector('.roi-subnote');
-            if(!note){
-              note = document.createElement('div');
-              note.className = 'roi-subnote';
-              note.textContent = 'Based on £ staked';
-              roiLabel.parentElement.appendChild(note);
-            }
-          }
-        }
-      });
-
-    }catch(e){
-      console.error('safe tracker note patch failed', e);
-    }
-  }
-
-  window.addEventListener('load', function(){
-    setTimeout(applySafeTrackerNotes, 400);
-    setTimeout(applySafeTrackerNotes, 1200);
-  });
-})();
