@@ -3537,7 +3537,7 @@ window.loadTdtTracker = async function(){
             html += `
                           <tr class="tdt-row ${result}">
                             <td class="tdt-match">${escapeHtml(row.match || '')}</td>
-                            ${document.body.classList.contains('layout-wide') ? `<td class="tdt-league">${escapeHtml(leagueName)}</td><td class="tdt-bookie">${bookieName ? `<span class="bookie-pill ${getBookiePillClass(bookieName)}">${escapeHtml(bookieName)}</span>` : '—'}</td>` : ``}
+                            ${document.body.classList.contains('layout-wide') ? `<td class="tdt-league">${escapeHtml(leagueName)}</td><td class="tdt-bookie">${bookieName ? `<span class="tracker-table-text tracker-table-text--bookie">${escapeHtml(bookieName)}</span>` : '—'}</td>` : ``}
                             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
                             <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
                             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
@@ -3937,7 +3937,7 @@ window.forgotVipPassword = forgotVipPassword;
                   ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
                 </td>
                 <td class="tracker-desktop-league">${trackerEsc(resolveTrackerLeague(row) || '—')}</td>
-                <td class="tracker-desktop-bookie">${resolveTrackerBookie(row) ? `<span class="bookie-pill ${getBookiePillClass(resolveTrackerBookie(row))}">${trackerEsc(resolveTrackerBookie(row))}</span>` : '—'}</td>
+                <td class="tracker-desktop-bookie">${resolveTrackerBookie(row) ? `<span class="tracker-table-text tracker-table-text--bookie">${trackerEsc(resolveTrackerBookie(row))}</span>` : '—'}</td>
                 <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))}&nbsp;${trackerEsc(row.market || '—')}</td>
                 <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
                 <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
