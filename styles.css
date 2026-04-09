@@ -6625,16 +6625,45 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* Wide mode columns */
-body.layout-wide .tracker-desktop-league,
-body.layout-wide .tracker-desktop-bookie {
+/* Wide-mode extra columns for tracker tables */
+body.layout-wide .tracker-desktop-table .tracker-desktop-league,
+body.layout-wide .tracker-desktop-table .tracker-desktop-bookie,
+body.layout-wide .tdt-table .tdt-league,
+body.layout-wide .tdt-table .tdt-bookie,
+body.layout-wide .tracker-desktop-table th.tracker-col-league,
+body.layout-wide .tracker-desktop-table th.tracker-col-bookie,
+body.layout-wide .tdt-table th.tdt-col-league,
+body.layout-wide .tdt-table th.tdt-col-bookie{
   display: table-cell;
 }
 
 .tracker-desktop-league,
-.tracker-desktop-bookie {
+.tracker-desktop-bookie,
+.tdt-league,
+.tdt-bookie,
+.tracker-desktop-table th.tracker-col-league,
+.tracker-desktop-table th.tracker-col-bookie,
+.tdt-table th.tdt-col-league,
+.tdt-table th.tdt-col-bookie{
   display: none;
-  min-width: 120px;
-  color: #ccc;
+}
+
+body.layout-wide .tracker-desktop-league,
+body.layout-wide .tracker-desktop-bookie,
+body.layout-wide .tdt-league,
+body.layout-wide .tdt-bookie{
+  min-width: 110px;
   font-size: 12px;
+  color: rgba(240,248,255,.88);
+  vertical-align: middle;
+}
+
+body.layout-wide .tdt-table,
+body.layout-wide .tracker-desktop-table{
+  table-layout: auto;
+}
+
+body.layout-wide .tdt-col-match,
+body.layout-wide .tracker-desktop-match{
+  min-width: 180px;
 }

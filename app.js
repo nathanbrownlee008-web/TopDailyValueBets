@@ -1401,7 +1401,7 @@ function _buildTrackerTableHTML(rows){
   let html = `<table>
     <tr>
       <th>Date</th>
-      <th>Match</th><th>League</th><th>Bookie</th>
+      <th>Match</th>
       <th>Stake</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
@@ -1747,7 +1747,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th>Match</th><th>League</th><th>Bookie</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -2228,6 +2228,8 @@ async function loadTdtTracker(){
                 <thead>
                   <tr>
                     <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
+                    <th class="tdt-col-league sortable" onclick="sortTdtTable('league')">League <span>${tdtSortArrow('league')}</span></th>
+                    <th class="tdt-col-bookie sortable" onclick="sortTdtTable('bookie')">Bookie <span>${tdtSortArrow('bookie')}</span></th>
                     <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
                     <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
                     <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
@@ -3495,6 +3497,8 @@ window.loadTdtTracker = async function(){
                         <thead>
                           <tr>
                             <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('match') : ''}</span></th>
+                            <th class="tdt-col-league sortable" onclick="sortTdtTable('league')">League <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('league') : ''}</span></th>
+                            <th class="tdt-col-bookie sortable" onclick="sortTdtTable('bookie')">Bookie <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('bookie') : ''}</span></th>
                             <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('market') : ''}</span></th>
                             <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('stake') : ''}</span></th>
                             <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('odds') : ''}</span></th>
@@ -3896,7 +3900,7 @@ window.forgotVipPassword = forgotVipPassword;
                 <div class="tracker-desktop-table-wrap">
                   <table class="tracker-desktop-table">
                     <thead>
-                      <tr><th>Match</th><th>League</th><th>Bookie</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr>
+                      <tr><th>Match</th><th class="tracker-col-league">League</th><th class="tracker-col-bookie">Bookie</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr>
                     </thead>
                     <tbody>
           `;
