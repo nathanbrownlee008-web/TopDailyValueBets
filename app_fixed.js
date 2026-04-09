@@ -461,7 +461,7 @@ function readTrackerRowsLocal(){
       if(!raw) return;
       const rows = JSON.parse(raw);
       if(!Array.isArray(rows)) return;
-      filteredRows.forEach(row=>{
+      rows.forEach(row=>{
         const safe = normalizeTrackerRow(row);
         const dedupe = String(safe.id || '') || `${safe.created_at || ''}|${safe.match || ''}|${safe.market || ''}`;
         if(seen.has(dedupe)) return;
@@ -666,23 +666,12 @@ const trackerResultsFiltersToggleEl = document.getElementById("trackerResultsFil
 const trackerResultsFiltersContentEl = document.getElementById("trackerResultsFiltersContent");
 const trackerResultsFiltersSummaryEl = document.getElementById("trackerResultsFiltersSummary");
 const trackerResultsFiltersArrowEl = document.getElementById("trackerResultsFiltersArrow");
-const aboutBoxToggleEl = document.getElementById("aboutBoxToggle");
-const aboutBoxContentEl = document.getElementById("aboutBoxContent");
-const aboutBoxArrowEl = document.getElementById("aboutBoxArrow");
 
 let valueBetsAllRows = [];
 let valueFiltersWired = false;
 let valueFiltersOpen = false;
 let trackerResultsFiltersOpen = false;
 
-
-function setAboutBoxOpen(open){
-  if(!aboutBoxContentEl) return;
-  aboutBoxContentEl.classList.toggle('is-collapsed', !open);
-  aboutBoxContentEl.classList.toggle('is-expanded', !!open);
-  if(aboutBoxToggleEl) aboutBoxToggleEl.setAttribute('aria-expanded', open ? 'true' : 'false');
-  if(aboutBoxArrowEl) aboutBoxArrowEl.textContent = open ? '▲' : '▼';
-}
 
 function normalizeFilterText(value){
   return String(value || "").trim().toLowerCase();
@@ -859,7 +848,6 @@ function wireValueBetFilters(){
   valueFiltersWired = true;
   const rerender = ()=>{ syncValueFiltersUi(); loadBets(); };
   if(valueFiltersToggleEl) valueFiltersToggleEl.addEventListener('click', ()=>setValueFiltersOpen(!valueFiltersOpen));
-  if(aboutBoxToggleEl) aboutBoxToggleEl.addEventListener('click', ()=>setAboutBoxOpen(aboutBoxContentEl?.classList.contains('is-collapsed')));
   if(valueFilterSearchEl) valueFilterSearchEl.addEventListener('input', rerender);
   if(valueFilterSportEl) valueFilterSportEl.addEventListener('change', rerender);
   if(valueFilterLeagueEl) valueFilterLeagueEl.addEventListener('change', rerender);
@@ -995,7 +983,6 @@ checkVIP().then(async ()=>{
   refreshAdminBadgeUI();
   try{ await readTrackerRows(); }catch(e){}
   wireValueBetFilters();
-  setAboutBoxOpen(false);
   // re-render bets so blur/limits apply
   loadBets();
   loadVipPromoProof();
@@ -4014,3 +4001,13 @@ setTimeout(()=>{
     else el.classList.add("result-pending");
   });
 },500);
+function toggleAboutBox(){
+  const el = document.getElementById("aboutContent");
+  const arrow = document.getElementById("aboutArrow");
+
+  if(!el) return;
+
+  const isOpen = el.style.display === "block";
+  el.style.display = isOpen ? "none" : "block";
+  if(arrow) arrow.textContent = isOpen ? "▼" : "▲";
+}
