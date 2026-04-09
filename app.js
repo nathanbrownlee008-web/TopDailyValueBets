@@ -3753,9 +3753,21 @@ window.forgotVipPassword = forgotVipPassword;
               <div class="tracker-grid-card tracker-grid-card--${trackerEsc(row.result || 'pending')}">
                 <div class="tracker-grid-top">
                   <div>
-                    <div class="tracker-grid-match"><span class="tracker-sport-icon">${_getSportIconHTML(row)}</span>${trackerEsc(row.match || "")}</div>
-                    ${resolveTrackerLeague(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(resolveTrackerLeague(row))}</div>` : (formatKickoffLabel(row) ? `<div class="tracker-grid-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``)}
-                  </div>
+                    <div class="tracker-grid-match">
+  ${trackerEsc(row.match || "")}
+</div>
+
+${resolveTrackerLeague(row) ? `
+  <div class="tracker-grid-kickoff">
+    ${trackerEsc(resolveTrackerLeague(row))}
+  </div>
+` : ``}
+
+${row.bookie ? `
+  <div class="tracker-grid-bookie">
+    ${trackerEsc(row.bookie)}
+  </div>
+` : ``}
                   <div class="tracker-grid-top-result">
                     <select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)">
                       <option value="pending" ${(row.result==="pending"?"selected":"")}>pending</option>
