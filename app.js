@@ -1401,7 +1401,7 @@ function _buildTrackerTableHTML(rows){
   let html = `<table>
     <tr>
       <th>Date</th>
-      <th>Match</th>
+      <th>Match</th><th>League</th><th>Bookie</th>
       <th>Stake</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
@@ -1747,7 +1747,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th>Match</th><th>League</th><th>Bookie</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -3896,7 +3896,7 @@ window.forgotVipPassword = forgotVipPassword;
                 <div class="tracker-desktop-table-wrap">
                   <table class="tracker-desktop-table">
                     <thead>
-                      <tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr>
+                      <tr><th>Match</th><th>League</th><th>Bookie</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr>
                     </thead>
                     <tbody>
           `;

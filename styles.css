@@ -6623,3 +6623,18 @@ body.layout-wide .bets-table .table-market-text{
   font-weight:600;
   opacity:.72;
 }
+
+
+/* Wide mode columns */
+body.layout-wide .tracker-desktop-league,
+body.layout-wide .tracker-desktop-bookie {
+  display: table-cell;
+}
+
+.tracker-desktop-league,
+.tracker-desktop-bookie {
+  display: none;
+  min-width: 120px;
+  color: #ccc;
+  font-size: 12px;
+}
