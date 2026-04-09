@@ -6623,3 +6623,15 @@ body.layout-wide .bets-table .table-market-text{
   font-weight:600;
   opacity:.72;
 }
+/* Desktop-only: show bookie under league on tracker cards */
+@media (min-width: 900px){
+
+  .tracker-desktop-bookie{
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    opacity: 0.85;
+  }
+
+}
