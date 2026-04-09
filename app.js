@@ -3915,9 +3915,26 @@ window.forgotVipPassword = forgotVipPassword;
             html += `
               <tr class="tracker-row-${trackerEsc(row.result || 'pending')}">
                 <td class="tracker-desktop-match">
-                  <div class="tracker-match-name"><span class="tracker-sport-icon">${_getSportIconHTML(row)}</span>${trackerEsc(row.match || '—')}</div>
-                  ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
-                </td>
+  <div class="tracker-match-name">
+    <span class="tracker-sport-icon">${_getSportIconHTML(row)}</span>
+    ${trackerEsc(row.match || '—')}
+  </div>
+
+  ${resolveTrackerLeague(row) ? 
+    `<div class="tracker-kickoff">${trackerEsc(resolveTrackerLeague(row))}</div>` 
+    : (formatKickoffLabel(row) ? 
+      `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` 
+      : ``)}
+
+  ${row.bookie ? 
+    `<div class="tracker-desktop-bookie">${trackerEsc(row.bookie)}</div>` 
+    : ``}
+
+  <div class="tracker-market-sub">
+    ${trackerEsc(getMarketIcon(row.market, getBetSport(row)))}&nbsp;
+    ${trackerEsc(row.market || '—')}
+  </div>
+</td>
                 <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))}&nbsp;${trackerEsc(row.market || '—')}</td>
                 <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
                 <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
