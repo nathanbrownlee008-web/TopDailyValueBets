@@ -6623,3 +6623,19 @@ body.layout-wide .bets-table .table-market-text{
   font-weight:600;
   opacity:.72;
 }
+/* ===== Tracker Bookie Pill ===== */
+.tracker-bookie{
+  display:inline-flex;
+  align-items:center;
+  margin-top:6px;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  line-height:1;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.10);
+  color:#e2e8f0;
+  max-width:max-content;
+  white-space:nowrap;
+}
