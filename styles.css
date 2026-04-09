@@ -6625,45 +6625,52 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* Wide-mode extra columns for tracker tables */
-body.layout-wide .tracker-desktop-table .tracker-desktop-league,
-body.layout-wide .tracker-desktop-table .tracker-desktop-bookie,
-body.layout-wide .tdt-table .tdt-league,
-body.layout-wide .tdt-table .tdt-bookie,
-body.layout-wide .tracker-desktop-table th.tracker-col-league,
-body.layout-wide .tracker-desktop-table th.tracker-col-bookie,
-body.layout-wide .tdt-table th.tdt-col-league,
-body.layout-wide .tdt-table th.tdt-col-bookie{
+/* Wide mode columns */
+body.layout-wide .tracker-desktop-league,
+body.layout-wide .tracker-desktop-bookie {
   display: table-cell;
 }
 
 .tracker-desktop-league,
-.tracker-desktop-bookie,
-.tdt-league,
-.tdt-bookie,
-.tracker-desktop-table th.tracker-col-league,
-.tracker-desktop-table th.tracker-col-bookie,
-.tdt-table th.tdt-col-league,
-.tdt-table th.tdt-col-bookie{
+.tracker-desktop-bookie {
   display: none;
-}
-
-body.layout-wide .tracker-desktop-league,
-body.layout-wide .tracker-desktop-bookie,
-body.layout-wide .tdt-league,
-body.layout-wide .tdt-bookie{
-  min-width: 110px;
+  min-width: 120px;
+  color: #ccc;
   font-size: 12px;
-  color: rgba(240,248,255,.88);
-  vertical-align: middle;
 }
 
-body.layout-wide .tdt-table,
-body.layout-wide .tracker-desktop-table{
-  table-layout: auto;
-}
 
-body.layout-wide .tdt-col-match,
-body.layout-wide .tracker-desktop-match{
-  min-width: 180px;
-}
+/* ===== Wide tracker alignment: League + Bookie columns ===== */
+body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(1){width:24%;}
+body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(2){width:16%;}
+body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(3){width:13%;}
+body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(4){width:20%;}
+body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(5){width:8%;text-align:center;}
+body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(6){width:8%;text-align:center;}
+body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(7){width:7%;text-align:center;}
+body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(8){width:10%;text-align:right;}
+body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(5),
+body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(6),
+body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(7){text-align:center;}
+body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(8){text-align:right;}
+body.layout-wide #trackerTable .tracker-desktop-league,
+body.layout-wide #trackerTable .tracker-desktop-bookie,
+body.layout-wide #trackerTable .tracker-desktop-market{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+body.layout-wide #trackerTable .tracker-desktop-league{color:#dbe6fb;font-size:12px;}
+body.layout-wide #trackerTable .tracker-desktop-bookie .bookie-pill{max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;}
+
+/* ===== Wide TDT tracker alignment: League + Bookie columns ===== */
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-match{width:24%;}
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-league{width:16%;}
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-bookie{width:13%;}
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-market{width:20%;}
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-stake{width:9%;text-align:center;}
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-odds{width:8%;text-align:center;}
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-result{width:10%;text-align:center;}
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-league,
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-bookie,
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-market{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-league{color:#dbe6fb;}
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-bookie .bookie-pill{max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;}
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-stake,
+body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-odds{text-align:center;}

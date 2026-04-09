@@ -701,6 +701,29 @@ function resolveTrackerLeague(row){
   }
   return '';
 }
+
+function resolveTrackerBookie(row){
+  const direct = String(row?.bookie || '').trim();
+  if(direct) return direct;
+  const match = String(row?.match || '').trim().toLowerCase();
+  const market = String(row?.market || '').trim().toLowerCase();
+  const betDate = normalizeDateOnly(row?.bet_date || row?.created_at || '');
+  const pools = [valueBetsAllRows, tdtRowsCache];
+  for(const pool of pools){
+    if(!Array.isArray(pool) || !pool.length) continue;
+    const found = pool.find(src => {
+      const srcMatch = String(src?.match || '').trim().toLowerCase();
+      const srcMarket = String(src?.market || '').trim().toLowerCase();
+      const srcDate = normalizeDateOnly(src?.bet_date || src?.created_at || '');
+      if(!srcMatch || !srcMarket) return false;
+      if(srcMatch !== match || srcMarket !== market) return false;
+      if(betDate && srcDate && betDate !== srcDate) return false;
+      return !!String(src?.bookie || '').trim();
+    });
+    if(found) return String(found?.bookie || '').trim();
+  }
+  return '';
+}
 function getBetSport(row){
   const explicit = String(row?.sport || '').trim().toLowerCase();
   if(explicit === 'basketball' || explicit === 'football') return explicit;
@@ -1401,7 +1424,7 @@ function _buildTrackerTableHTML(rows){
   let html = `<table>
     <tr>
       <th>Date</th>
-      <th>Match</th>
+      <th>Match</th><th>League</th><th>Bookie</th>
       <th>Stake</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
@@ -1747,7 +1770,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th>Match</th><th>League</th><th>Bookie</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -2228,8 +2251,6 @@ async function loadTdtTracker(){
                 <thead>
                   <tr>
                     <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
-                    <th class="tdt-col-league sortable" onclick="sortTdtTable('league')">League <span>${tdtSortArrow('league')}</span></th>
-                    <th class="tdt-col-bookie sortable" onclick="sortTdtTable('bookie')">Bookie <span>${tdtSortArrow('bookie')}</span></th>
                     <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
                     <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
                     <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
@@ -3497,8 +3518,7 @@ window.loadTdtTracker = async function(){
                         <thead>
                           <tr>
                             <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('match') : ''}</span></th>
-                            <th class="tdt-col-league sortable" onclick="sortTdtTable('league')">League <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('league') : ''}</span></th>
-                            <th class="tdt-col-bookie sortable" onclick="sortTdtTable('bookie')">Bookie <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('bookie') : ''}</span></th>
+                            ${document.body.classList.contains('layout-wide') ? `<th class="tdt-col-league">League</th><th class="tdt-col-bookie">Bookie</th>` : ``}
                             <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('market') : ''}</span></th>
                             <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('stake') : ''}</span></th>
                             <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${typeof tdtSortArrow === "function" ? tdtSortArrow('odds') : ''}</span></th>
@@ -3511,10 +3531,13 @@ window.loadTdtTracker = async function(){
           dayGroup.rows.forEach(row=>{
             const result = String(row.result || "pending").toLowerCase();
             const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
+            const leagueName = getBetLeagueName(row) || '—';
+            const bookieName = String(row.bookie || '').trim();
 
             html += `
                           <tr class="tdt-row ${result}">
                             <td class="tdt-match">${escapeHtml(row.match || '')}</td>
+                            ${document.body.classList.contains('layout-wide') ? `<td class="tdt-league">${escapeHtml(leagueName)}</td><td class="tdt-bookie">${bookieName ? `<span class="bookie-pill ${getBookiePillClass(bookieName)}">${escapeHtml(bookieName)}</span>` : '—'}</td>` : ``}
                             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
                             <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
                             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
@@ -3900,7 +3923,7 @@ window.forgotVipPassword = forgotVipPassword;
                 <div class="tracker-desktop-table-wrap">
                   <table class="tracker-desktop-table">
                     <thead>
-                      <tr><th>Match</th><th class="tracker-col-league">League</th><th class="tracker-col-bookie">Bookie</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr>
+                      <tr><th>Match</th><th>League</th><th>Bookie</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr>
                     </thead>
                     <tbody>
           `;
@@ -3913,6 +3936,8 @@ window.forgotVipPassword = forgotVipPassword;
                   <div class="tracker-match-name"><span class="tracker-sport-icon">${_getSportIconHTML(row)}</span>${trackerEsc(row.match || '—')}</div>
                   ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
                 </td>
+                <td class="tracker-desktop-league">${trackerEsc(resolveTrackerLeague(row) || '—')}</td>
+                <td class="tracker-desktop-bookie">${resolveTrackerBookie(row) ? `<span class="bookie-pill ${getBookiePillClass(resolveTrackerBookie(row))}">${trackerEsc(resolveTrackerBookie(row))}</span>` : '—'}</td>
                 <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))}&nbsp;${trackerEsc(row.market || '—')}</td>
                 <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
                 <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
