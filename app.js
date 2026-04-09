@@ -1725,7 +1725,8 @@ history.push(bankroll);
 tableRows.push(`<tr class="tracker-row-${row.result || 'pending'}">
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
-  ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``}
+  ${resolveTrackerLeague(row) ? `<div class="tracker-kickoff">${escapeHtml(resolveTrackerLeague(row))}</div>` : (formatKickoffLabel(row) ? `<div class="tracker-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``)}
+  ${row.bookie ? `<div class="tracker-desktop-bookie">${escapeHtml(row.bookie)}</div>` : ``}
   <div class="tracker-market-sub">${getMarketIcon(row.market)}&nbsp;${row.market || "—"}</div>
 </td>
 <td class="tracker-market-col">${getMarketCategory(row.market) || row.market || "—"}</td>
