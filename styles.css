@@ -6625,9 +6625,11 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== INSTALL BUTTON ===== */
+
+
+/* ===== PWA INSTALL BUTTON ===== */
 .install-btn{
-  display:none;
+  display:inline-flex !important;
   align-items:center;
   justify-content:center;
   padding:8px 14px;
@@ -6641,10 +6643,15 @@ body.layout-wide .bets-table .table-market-text{
 .install-btn:hover{
   filter:brightness(1.05);
 }
+.install-btn.is-hidden{
+  display:none !important;
+}
+
 @media (max-width:600px){
   .top-controls{
     gap:10px;
     flex-wrap:wrap;
     justify-content:center;
   }
+}
 }

@@ -4166,12 +4166,45 @@ function toggleAboutBox(){
   let deferredPrompt = null;
   const installBtn = document.getElementById("installBtn");
 
+  function isStandalone(){
+    try{
+      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
+        || window.navigator.standalone === true;
+    }catch(e){
+      return false;
+    }
+  }
+
   function showInstallButton(){
-    if(installBtn) installBtn.style.display = "inline-flex";
+    if(!installBtn) return;
+    if(isStandalone()){
+      installBtn.classList.add("is-hidden");
+      return;
+    }
+    installBtn.classList.remove("is-hidden");
+    installBtn.textContent = "Install App";
   }
 
   function hideInstallButton(){
-    if(installBtn) installBtn.style.display = "none";
+    if(installBtn) installBtn.classList.add("is-hidden");
+  }
+
+  function showManualInstallHelp(){
+    try{
+      const ua = navigator.userAgent || "";
+      const isAndroidChrome = /Android/i.test(ua) && /Chrome/i.test(ua);
+      const isIphone = /iPhone|iPad|iPod/i.test(ua);
+
+      if(isAndroidChrome){
+        alert("If the popup does not appear, tap the 3 dots in Chrome and choose Install app or Add to Home screen.");
+        return;
+      }
+      if(isIphone){
+        alert("On iPhone, tap Share then Add to Home Screen.");
+        return;
+      }
+      alert("Use your browser menu and choose Install app or Add to Home screen.");
+    }catch(e){}
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
@@ -4180,31 +4213,56 @@ function toggleAboutBox(){
     showInstallButton();
   });
 
-  if(installBtn){
-    installBtn.addEventListener("click", async () => {
-      try{
-        if(!deferredPrompt) return;
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-      }catch(err){
-        console.error("install prompt failed", err);
-      }finally{
-        deferredPrompt = null;
-        hideInstallButton();
-      }
-    });
-  }
-
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
     hideInstallButton();
   });
 
-  window.addEventListener("load", () => {
-    try{
-      if(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches){
+  if(installBtn){
+    installBtn.addEventListener("click", async () => {
+      if(isStandalone()){
         hideInstallButton();
+        return;
       }
-    }catch(e){}
+
+      if(deferredPrompt){
+        try{
+          deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+        }catch(err){
+          console.error("install prompt failed", err);
+        }finally{
+          deferredPrompt = null;
+          showInstallButton();
+        }
+        return;
+      }
+
+      showManualInstallHelp();
+    });
+  }
+
+  window.addEventListener("load", () => {
+    if(isStandalone()){
+      hideInstallButton();
+    }else{
+      showInstallButton();
+    }
   });
 })();
+
+
+
+// ===== SERVICE WORKER BACKUP REGISTER =====
+window.addEventListener("load", function(){
+  try{
+    if("serviceWorker" in navigator){
+      navigator.serviceWorker.register("/sw.js").catch(function(err){
+        console.error("service worker backup register failed", err);
+      });
+    }
+  }catch(e){
+    console.error(e);
+  }
+});
+
