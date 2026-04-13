@@ -6658,55 +6658,6 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== APP SPLASH ===== */
-.app-splash{
-  position:fixed;
-  inset:0;
-  z-index:99999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:
-    radial-gradient(circle at center, rgba(22,163,74,.18), rgba(11,18,32,0) 34%),
-    linear-gradient(180deg,#081121 0%,#0b1220 100%);
-  transition:opacity .35s ease, visibility .35s ease;
-}
-.app-splash.is-hidden{
-  opacity:0;
-  visibility:hidden;
-  pointer-events:none;
-}
-.app-splash__inner{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:14px;
-  text-align:center;
-  padding:24px;
-}
-.app-splash__logo{
-  width:110px;
-  height:110px;
-  border-radius:26px;
-  box-shadow:0 16px 50px rgba(0,0,0,.28);
-}
-.app-splash__title{
-  font-size:32px;
-  font-weight:900;
-  color:#ffffff;
-  text-shadow:0 0 26px rgba(34,197,94,.22);
-}
-.app-splash__sub{
-  font-size:14px;
-  color:rgba(226,232,240,.82);
-}
-@media (max-width:600px){
-  .app-splash__logo{
-    width:96px;
-    height:96px;
-    border-radius:22px;
-  }
-  .app-splash__title{
-    font-size:28px;
-  }
+.install-btn{
+  display:inline-flex !important;
 }

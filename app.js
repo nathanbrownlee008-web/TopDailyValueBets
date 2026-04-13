@@ -4161,22 +4161,6 @@ function toggleAboutBox(){
 })();
 
 
-
-function hideAppSplash(){
-  const splash = document.getElementById("appSplash");
-  if(!splash) return;
-  splash.classList.add("is-hidden");
-  setTimeout(()=>{ splash.style.display = "none"; }, 450);
-}
-
-window.addEventListener("load", () => {
-  setTimeout(hideAppSplash, 900);
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(hideAppSplash, 1800);
-});
-
 // ===== PWA INSTALL =====
 (function(){
   const installBtn = document.getElementById("installBtn");
