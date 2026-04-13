@@ -4175,18 +4175,25 @@ function toggleAboutBox(){
   }
 
   function showInstallBtn(){
-    if(!installBtn) return;
-    if(isStandalone()){
-      installBtn.classList.add("is-hidden");
-      return;
-    }
-    installBtn.classList.remove("is-hidden");
-    installBtn.textContent = "Install App";
+    if(!installBtn || isStandalone()) return;
+    installBtn.classList.remove("install-btn--hidden");
   }
 
   function hideInstallBtn(){
     if(!installBtn) return;
-    installBtn.classList.add("is-hidden");
+    installBtn.classList.add("install-btn--hidden");
+  }
+
+  async function registerPwaServiceWorker(){
+    if(!("serviceWorker" in navigator)) return null;
+    try{
+      const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await navigator.serviceWorker.ready;
+      return reg;
+    }catch(err){
+      console.error("PWA service worker registration failed", err);
+      return null;
+    }
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
@@ -4200,49 +4207,27 @@ function toggleAboutBox(){
     hideInstallBtn();
   });
 
-  async function ensureServiceWorker(){
-    if(!("serviceWorker" in navigator)) return null;
-    try{
-      const reg = await navigator.serviceWorker.register("/sw.js");
-      return reg;
-    }catch(err){
-      console.error("Service worker registration failed", err);
-      return null;
-    }
-  }
-
-  function showManualInstallHelp(){
-    const ua = navigator.userAgent || "";
-    if(/iPhone|iPad|iPod/i.test(ua)){
-      alert("Tap Share, then Add to Home Screen.");
-      return;
-    }
-    alert("Tap the 3 dots in Chrome and choose Install app or Add to Home screen.");
-  }
-
   if(installBtn){
     installBtn.addEventListener("click", async () => {
-      if(isStandalone()){
-        hideInstallBtn();
-        return;
+      if(!deferredPrompt) return;
+      try{
+        await deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+      }catch(err){
+        console.error("Install prompt error", err);
       }
-      if(deferredPrompt){
-        try{
-          deferredPrompt.prompt();
-          await deferredPrompt.userChoice;
-        }catch(err){
-          console.error("Install prompt failed", err);
-        }
-        deferredPrompt = null;
-        showInstallBtn();
-        return;
-      }
-      showManualInstallHelp();
+      deferredPrompt = null;
+      hideInstallBtn();
     });
   }
 
   window.addEventListener("load", async () => {
-    await ensureServiceWorker();
-    showInstallBtn();
+    if(isStandalone()){
+      hideInstallBtn();
+      return;
+    }
+    await registerPwaServiceWorker();
+    // Button stays hidden until browser actually says install is available.
   });
 })();
+
