@@ -1401,7 +1401,7 @@ function _buildTrackerTableHTML(rows){
   let html = `<table>
     <tr>
       <th>Date</th>
-      <th>Match</th><th>League</th><th>Bookie</th>
+      <th>Match</th>
       <th>Stake</th>
       <th>Result</th>
       <th class="profit-col">Profit</th>
@@ -1722,17 +1722,13 @@ dayKeys.push(dayKey);
 dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
 history.push(bankroll);
 
-const trackerLeague = resolveTrackerLeague(row) || getBetLeagueName(row) || row.league || row.competition || row.league_name || row.tournament || "—";
-const trackerBookie = row.bookie || "—";
-
 tableRows.push(`<tr class="tracker-row-${row.result || 'pending'}">
 <td class="match-market-cell">
-  <div class="tracker-match-name">${escapeHtml(row.match || "—")}</div>
+  <div class="tracker-match-name">${row.match}</div>
   ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``}
+  <div class="tracker-market-sub">${getMarketIcon(row.market)}&nbsp;${row.market || "—"}</div>
 </td>
-<td class="tracker-league-col">${escapeHtml(trackerLeague)}</td>
-<td class="tracker-bookie-col"><span class="tracker-bookie-text">${escapeHtml(trackerBookie)}</span></td>
-<td class="tracker-market-col">${escapeHtml(getMarketCategory(row.market) || row.market || "—")}</td>
+<td class="tracker-market-col">${getMarketCategory(row.market) || row.market || "—"}</td>
 <td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
 <td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
@@ -1751,7 +1747,7 @@ onchange="updateResult('${row.id}',this.value)">
 </tr>`);
 });
 
-let html="<table><tr><th>Match</th><th>League</th><th>Bookie</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
+let html="<table><tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class='profit-col'>Profit</th></tr>";
 html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
@@ -2232,8 +2228,6 @@ async function loadTdtTracker(){
                 <thead>
                   <tr>
                     <th class="tdt-col-match sortable" onclick="sortTdtTable('match')">Match <span>${tdtSortArrow('match')}</span></th>
-                    <th class="tdt-col-league sortable" onclick="sortTdtTable('league')">League <span>${tdtSortArrow('league')}</span></th>
-                    <th class="tdt-col-bookie sortable" onclick="sortTdtTable('bookie')">Bookie <span>${tdtSortArrow('bookie')}</span></th>
                     <th class="tdt-col-market sortable" onclick="sortTdtTable('market')">Market <span>${tdtSortArrow('market')}</span></th>
                     <th class="tdt-col-stake sortable" onclick="sortTdtTable('stake')">Stake <span>${tdtSortArrow('stake')}</span></th>
                     <th class="tdt-col-odds sortable" onclick="sortTdtTable('odds')">Odds <span>${tdtSortArrow('odds')}</span></th>
@@ -2246,13 +2240,9 @@ async function loadTdtTracker(){
       group.rows.forEach(row=>{
         const result = String(row.result || 'pending').toLowerCase();
         const resultIcon = result === "won" ? "✅" : result === "lost" ? "❌" : "⏳";
-        const tdtLeague = resolveTrackerLeague(row) || getBetLeagueName(row) || row.league || row.competition || row.league_name || row.tournament || '-';
-        const tdtBookie = row.bookie || '-';
         html += `
           <tr class="tdt-row ${result}">
             <td class="tdt-match"><span class="tracker-sport-icon">${_getSportIconHTML(row)}</span>${escapeHtml(row.match || '')}</td>
-            <td class="tdt-league">${escapeHtml(tdtLeague)}</td>
-            <td class="tdt-bookie"><span class="tdt-bookie-text">${escapeHtml(tdtBookie)}</span></td>
             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
             <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
@@ -3906,7 +3896,7 @@ window.forgotVipPassword = forgotVipPassword;
                 <div class="tracker-desktop-table-wrap">
                   <table class="tracker-desktop-table">
                     <thead>
-                      <tr><th>Match</th><th>League</th><th>Bookie</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr>
+                      <tr><th>Match</th><th>Market</th><th>Stake</th><th>Odds</th><th>Result</th><th class="profit-col">Profit</th></tr>
                     </thead>
                     <tbody>
           `;
