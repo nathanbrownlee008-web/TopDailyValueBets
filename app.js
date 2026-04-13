@@ -4161,73 +4161,87 @@ function toggleAboutBox(){
 })();
 
 
-// ===== PWA INSTALL =====
+// ===== FORCE INSTALL FLOW =====
 (function(){
-  const installBtn = document.getElementById("installBtn");
   let deferredPrompt = null;
+  let promptReady = false;
+  const installBtn = document.getElementById("installBtnForced");
 
-  function isStandalone(){
-    try{
-      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    }catch(e){
-      return false;
-    }
-  }
-
-  function showInstallBtn(){
-    if(!installBtn || isStandalone()) return;
-    installBtn.classList.remove("install-btn--hidden");
-  }
-
-  function hideInstallBtn(){
+  function setBtnState(ready){
     if(!installBtn) return;
-    installBtn.classList.add("install-btn--hidden");
+    promptReady = !!ready;
+    installBtn.classList.toggle("install-btn-ready", !!ready);
+    installBtn.classList.toggle("install-btn-waiting", !ready);
+    installBtn.textContent = ready ? "Install App" : "Install App";
   }
 
-  async function registerPwaServiceWorker(){
-    if(!("serviceWorker" in navigator)) return null;
+  async function ensureServiceWorker(){
+    if(!("serviceWorker" in navigator)) return;
     try{
-      const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
       await navigator.serviceWorker.ready;
-      return reg;
-    }catch(err){
-      console.error("PWA service worker registration failed", err);
-      return null;
+    }catch(e){
+      console.error("SW register failed", e);
     }
+  }
+
+  function manualHelp(){
+    const ua = navigator.userAgent || "";
+    if(/iPhone|iPad|iPod/i.test(ua)){
+      alert("Tap Share, then Add to Home Screen.");
+      return;
+    }
+    alert("Chrome has not exposed the install popup yet. Wait 10 seconds, tap around once, then press Install App again. Or use the 3 dots menu and choose Install app.");
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    showInstallBtn();
+    setBtnState(true);
   });
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
-    hideInstallBtn();
+    setBtnState(false);
   });
 
-  if(installBtn){
-    installBtn.addEventListener("click", async () => {
-      if(!deferredPrompt) return;
+  async function tryInstall(){
+    if(deferredPrompt){
       try{
         await deferredPrompt.prompt();
         await deferredPrompt.userChoice;
-      }catch(err){
-        console.error("Install prompt error", err);
+      }catch(e){
+        console.error("Install prompt failed", e);
       }
-      deferredPrompt = null;
-      hideInstallBtn();
-    });
-  }
-
-  window.addEventListener("load", async () => {
-    if(isStandalone()){
-      hideInstallBtn();
       return;
     }
-    await registerPwaServiceWorker();
-    // Button stays hidden until browser actually says install is available.
+    manualHelp();
+  }
+
+  if(installBtn){
+    installBtn.addEventListener("click", tryInstall);
+  }
+
+  // Retry hooks after gesture, because Chrome often delays beforeinstallprompt after reset.
+  ["click","touchstart","scroll"].forEach(evt=>{
+    window.addEventListener(evt, () => {
+      if(deferredPrompt) setBtnState(true);
+    }, { passive: true, once: false });
+  });
+
+  window.addEventListener("load", async () => {
+    setBtnState(false);
+    await ensureServiceWorker();
+    // Give Chrome time after reset to recalculate installability.
+    setTimeout(() => {
+      if(deferredPrompt) setBtnState(true);
+    }, 3000);
+    setTimeout(() => {
+      if(deferredPrompt) setBtnState(true);
+    }, 7000);
+    setTimeout(() => {
+      if(deferredPrompt) setBtnState(true);
+    }, 12000);
   });
 })();
 
