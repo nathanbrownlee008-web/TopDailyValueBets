@@ -6625,5 +6625,26 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-.install-btn{border:1px solid rgba(34,197,94,0.35);background:rgba(34,197,94,0.16);color:#ecfdf5;font-weight:800;}
-.install-btn:hover{background:rgba(34,197,94,0.24);}
+/* ===== INSTALL BUTTON ===== */
+.install-btn{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:8px 14px;
+  border-radius:12px;
+  background:linear-gradient(180deg,#22c55e,#16a34a);
+  color:#fff;
+  font-weight:800;
+  border:none;
+  box-shadow:0 10px 24px rgba(22,163,74,.28);
+}
+.install-btn:hover{
+  filter:brightness(1.05);
+}
+@media (max-width:600px){
+  .top-controls{
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+}

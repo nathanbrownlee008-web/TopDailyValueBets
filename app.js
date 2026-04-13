@@ -633,8 +633,7 @@ function applyLayout(mode){
   if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
 })();
 
-const installBtn = document.getElementById('installBtn');
-let deferredInstallPrompt = null;
+// (Install App / PWA install button removed for now)
 
 const bankrollElem=document.getElementById("bankroll");
 const profitElem=document.getElementById("profit");
@@ -989,7 +988,6 @@ checkVIP().then(async ()=>{
   loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
-  initPwaInstall();
 });
 
 function switchTab(tab){
@@ -1547,36 +1545,6 @@ async function registerServiceWorker(){
   }
 }
 
-
-
-function initPwaInstall(){
-  if(!installBtn) return;
-
-  window.addEventListener('beforeinstallprompt', (e)=>{
-    e.preventDefault();
-    deferredInstallPrompt = e;
-    installBtn.style.display = 'inline-flex';
-  });
-
-  installBtn.addEventListener('click', async ()=>{
-    try{
-      if(!deferredInstallPrompt) return;
-      await deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
-    }catch(e){
-      console.error('Install prompt failed', e);
-    }finally{
-      deferredInstallPrompt = null;
-      installBtn.style.display = 'none';
-    }
-  });
-
-  window.addEventListener('appinstalled', ()=>{
-    deferredInstallPrompt = null;
-    installBtn.style.display = 'none';
-    console.log('PWA installed');
-  });
-}
 async function toggleBetAlerts(){
   const statusEl = document.getElementById('notifyStatus');
   if(!('Notification' in window)){
@@ -4189,5 +4157,54 @@ function toggleAboutBox(){
   window.addEventListener('load', function(){
     setTimeout(applySafeTrackerNotes, 400);
     setTimeout(applySafeTrackerNotes, 1200);
+  });
+})();
+
+
+// ===== PWA INSTALL =====
+(function(){
+  let deferredPrompt = null;
+  const installBtn = document.getElementById("installBtn");
+
+  function showInstallButton(){
+    if(installBtn) installBtn.style.display = "inline-flex";
+  }
+
+  function hideInstallButton(){
+    if(installBtn) installBtn.style.display = "none";
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallButton();
+  });
+
+  if(installBtn){
+    installBtn.addEventListener("click", async () => {
+      try{
+        if(!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+      }catch(err){
+        console.error("install prompt failed", err);
+      }finally{
+        deferredPrompt = null;
+        hideInstallButton();
+      }
+    });
+  }
+
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    hideInstallButton();
+  });
+
+  window.addEventListener("load", () => {
+    try{
+      if(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches){
+        hideInstallButton();
+      }
+    }catch(e){}
   });
 })();
