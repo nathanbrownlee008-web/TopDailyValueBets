@@ -7,9 +7,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="styles.css?v=1774309616"/>
-<!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
-<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Top Daily Tips"/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/icons/icon-192.png"/>
 
 <style>
 #vipModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.82);z-index:9999;padding:18px;}
@@ -58,7 +62,7 @@
     <button id="btnCompact" class="layout-btn">Compact</button>
     <button id="btnWide" class="layout-btn">Wide</button>
   </div>
-  <!-- Install App button removed for now -->
+  <button id="installBtn" class="layout-btn install-btn" type="button" style="display:none;">Install App</button>
 </div>
 </header>
 

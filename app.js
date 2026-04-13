@@ -633,7 +633,8 @@ function applyLayout(mode){
   if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
 })();
 
-// (Install App / PWA install button removed for now)
+const installBtn = document.getElementById('installBtn');
+let deferredInstallPrompt = null;
 
 const bankrollElem=document.getElementById("bankroll");
 const profitElem=document.getElementById("profit");
@@ -988,6 +989,7 @@ checkVIP().then(async ()=>{
   loadVipPromoProof();
   updateBetAlertUI();
   registerServiceWorker();
+  initPwaInstall();
 });
 
 function switchTab(tab){
@@ -1545,6 +1547,36 @@ async function registerServiceWorker(){
   }
 }
 
+
+
+function initPwaInstall(){
+  if(!installBtn) return;
+
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    installBtn.style.display = 'inline-flex';
+  });
+
+  installBtn.addEventListener('click', async ()=>{
+    try{
+      if(!deferredInstallPrompt) return;
+      await deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+    }catch(e){
+      console.error('Install prompt failed', e);
+    }finally{
+      deferredInstallPrompt = null;
+      installBtn.style.display = 'none';
+    }
+  });
+
+  window.addEventListener('appinstalled', ()=>{
+    deferredInstallPrompt = null;
+    installBtn.style.display = 'none';
+    console.log('PWA installed');
+  });
+}
 async function toggleBetAlerts(){
   const statusEl = document.getElementById('notifyStatus');
   if(!('Notification' in window)){

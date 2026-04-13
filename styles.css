@@ -6623,3 +6623,7 @@ body.layout-wide .bets-table .table-market-text{
   font-weight:600;
   opacity:.72;
 }
+
+
+.install-btn{border:1px solid rgba(34,197,94,0.35);background:rgba(34,197,94,0.16);color:#ecfdf5;font-weight:800;}
+.install-btn:hover{background:rgba(34,197,94,0.24);}
