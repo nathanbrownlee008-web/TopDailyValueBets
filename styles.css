@@ -6625,7 +6625,8 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== INSTALL BUTTON ALWAYS VISIBLE ===== */
+
+/* ===== PWA INSTALL BUTTON ===== */
 .top-controls{
   display:flex;
   align-items:center;
@@ -6635,7 +6636,7 @@ body.layout-wide .bets-table .table-market-text{
   margin:8px 0 18px;
 }
 .install-btn{
-  display:inline-flex !important;
+  display:inline-flex;
   align-items:center;
   justify-content:center;
   padding:8px 14px;
@@ -6646,7 +6647,17 @@ body.layout-wide .bets-table .table-market-text{
   font-weight:900;
   box-shadow:0 8px 20px rgba(22,163,74,.25);
 }
-.install-btn--hidden,
-.install-btn.is-hidden{
+.install-btn--hidden{
+  display:none !important;
+}
+@media (max-width:600px){
+  .install-btn{
+    padding:8px 12px;
+    font-size:13px;
+  }
+}
+
+
+.install-btn{
   display:inline-flex !important;
 }
