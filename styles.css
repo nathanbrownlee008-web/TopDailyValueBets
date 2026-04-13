@@ -6639,114 +6639,110 @@ body.layout-wide .tracker-desktop-bookie {
   font-size: 12px;
 }
 
+/* ===== FINAL TRACKER WIDE MODE CLEAN FIX ===== */
+@media (min-width: 900px){
+  body.layout-wide #trackerTable table{
+    width:100%;
+    table-layout:fixed;
+    border-collapse:collapse;
+  }
+  body.layout-wide #trackerTable th,
+  body.layout-wide #trackerTable td{
+    box-sizing:border-box;
+    vertical-align:middle;
+    padding:10px 8px;
+  }
+  body.layout-wide #trackerTable th:nth-child(1),
+  body.layout-wide #trackerTable td:nth-child(1){width:25%;}
+  body.layout-wide #trackerTable th:nth-child(2),
+  body.layout-wide #trackerTable td:nth-child(2){width:17%;}
+  body.layout-wide #trackerTable th:nth-child(3),
+  body.layout-wide #trackerTable td:nth-child(3){width:14%;}
+  body.layout-wide #trackerTable th:nth-child(4),
+  body.layout-wide #trackerTable td:nth-child(4){width:18%;}
+  body.layout-wide #trackerTable th:nth-child(5),
+  body.layout-wide #trackerTable td:nth-child(5){width:8%;}
+  body.layout-wide #trackerTable th:nth-child(6),
+  body.layout-wide #trackerTable td:nth-child(6){width:8%;}
+  body.layout-wide #trackerTable th:nth-child(7),
+  body.layout-wide #trackerTable td:nth-child(7){width:10%;}
+  body.layout-wide #trackerTable th:nth-child(8),
+  body.layout-wide #trackerTable td:nth-child(8){width:10%;}
 
-/* ===== Wide tracker alignment: League + Bookie columns ===== */
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(1){width:24%;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(2){width:16%;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(3){width:13%;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(4){width:20%;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(5){width:8%;text-align:center;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(6){width:8%;text-align:center;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(7){width:7%;text-align:center;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(8){width:10%;text-align:right;}
-body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(5),
-body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(6),
-body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(7){text-align:center;}
-body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(8){text-align:right;}
-body.layout-wide #trackerTable .tracker-desktop-league,
-body.layout-wide #trackerTable .tracker-desktop-bookie,
-body.layout-wide #trackerTable .tracker-desktop-market{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-body.layout-wide #trackerTable .tracker-desktop-league{color:#dbe6fb;font-size:12px;}
-body.layout-wide #trackerTable .tracker-desktop-bookie .bookie-pill{max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;}
+  body.layout-wide #trackerTable .match-market-cell,
+  body.layout-wide #trackerTable .tracker-league-col,
+  body.layout-wide #trackerTable .tracker-bookie-col,
+  body.layout-wide #trackerTable .tracker-market-col{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  body.layout-wide #trackerTable .tracker-match-name{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  body.layout-wide #trackerTable .tracker-kickoff{
+    margin-top:4px;
+    font-size:11px;
+    color:#cbd5e1;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  body.layout-wide #trackerTable .tracker-league-col,
+  body.layout-wide #trackerTable .tracker-bookie-col{
+    font-size:12px;
+    color:#dbe7ff;
+  }
+  body.layout-wide #trackerTable .tracker-bookie-text{
+    display:inline;
+    padding:0;
+    background:none;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    color:#dbe7ff;
+    font-weight:700;
+  }
 
-/* ===== Wide TDT tracker alignment: League + Bookie columns ===== */
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-match{width:24%;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-league{width:16%;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-bookie{width:13%;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-market{width:20%;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-stake{width:9%;text-align:center;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-odds{width:8%;text-align:center;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-result{width:10%;text-align:center;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-league,
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-bookie,
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-market{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-league{color:#dbe6fb;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-bookie .bookie-pill{max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-stake,
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-odds{text-align:center;}
+  body.layout-wide #tdtTrackerTable .tdt-table-fit{
+    width:100%;
+    table-layout:fixed;
+    border-collapse:collapse;
+  }
+  body.layout-wide #tdtTrackerTable .tdt-table-fit th,
+  body.layout-wide #tdtTrackerTable .tdt-table-fit td{
+    box-sizing:border-box;
+    vertical-align:middle;
+    padding:10px 6px;
+  }
+  body.layout-wide #tdtTrackerTable .tdt-col-match{width:24%;}
+  body.layout-wide #tdtTrackerTable .tdt-col-league{width:17%;}
+  body.layout-wide #tdtTrackerTable .tdt-col-bookie{width:13%;}
+  body.layout-wide #tdtTrackerTable .tdt-col-market{width:20%;}
+  body.layout-wide #tdtTrackerTable .tdt-col-stake{width:9%;}
+  body.layout-wide #tdtTrackerTable .tdt-col-odds{width:7%;}
+  body.layout-wide #tdtTrackerTable .tdt-col-result{width:10%;}
 
-
-/* ===== WIDE TRACKER + TDT TABLE CLEAN ALIGN FIX ===== */
-body.layout-wide #trackerTable .tracker-desktop-table,
-body.layout-wide #tdtTrackerTable .tdt-table-fit{
-  table-layout:fixed;
-  width:100%;
+  body.layout-wide #tdtTrackerTable .tdt-match,
+  body.layout-wide #tdtTrackerTable .tdt-league,
+  body.layout-wide #tdtTrackerTable .tdt-bookie,
+  body.layout-wide #tdtTrackerTable .tdt-market{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    word-break:normal;
+    overflow-wrap:normal;
+  }
+  body.layout-wide #tdtTrackerTable .tdt-bookie-text{
+    display:inline;
+    padding:0;
+    background:none;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    color:#dbe7ff;
+    font-weight:700;
+  }
 }
-
-body.layout-wide #trackerTable .tracker-desktop-table thead th,
-body.layout-wide #trackerTable .tracker-desktop-table tbody td,
-body.layout-wide #tdtTrackerTable .tdt-table-fit thead th,
-body.layout-wide #tdtTrackerTable .tdt-table-fit tbody td{
-  vertical-align:middle;
-}
-
-body.layout-wide #trackerTable .tracker-table-text--bookie,
-body.layout-wide #tdtTrackerTable .tracker-table-text--bookie{
-  display:block;
-  width:100%;
-  max-width:100%;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  padding:0 !important;
-  border:none !important;
-  background:none !important;
-  box-shadow:none !important;
-  border-radius:0 !important;
-  color:#e2e8f0 !important;
-  font-size:12px !important;
-  font-weight:600 !important;
-  line-height:1.25 !important;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-bookie,
-body.layout-wide #trackerTable .tracker-desktop-league,
-body.layout-wide #trackerTable .tracker-desktop-market,
-body.layout-wide #tdtTrackerTable .tdt-bookie,
-body.layout-wide #tdtTrackerTable .tdt-league,
-body.layout-wide #tdtTrackerTable .tdt-market,
-body.layout-wide #tdtTrackerTable .tdt-match{
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-league,
-body.layout-wide #tdtTrackerTable .tdt-league{
-  color:#dbe6fb;
-  font-size:12px;
-}
-
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(1){width:25%;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(2){width:16%;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(3){width:12%;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(4){width:20%;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(5){width:8%;text-align:center;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(6){width:8%;text-align:center;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(7){width:11%;text-align:center;}
-body.layout-wide #trackerTable .tracker-desktop-table thead th:nth-child(8){width:10%;text-align:right;}
-body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(5),
-body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(6),
-body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(7){text-align:center;}
-body.layout-wide #trackerTable .tracker-desktop-table tbody td:nth-child(8){text-align:right;}
-
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-match{width:25%;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-league{width:16%;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-bookie{width:12%;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-market{width:21%;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-stake{width:8%;text-align:center;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-odds{width:8%;text-align:center;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-col-result{width:10%;text-align:center;}
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-stake,
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-odds,
-body.layout-wide #tdtTrackerTable .tdt-table-fit .tdt-result{text-align:center;}
