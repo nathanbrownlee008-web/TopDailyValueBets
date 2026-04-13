@@ -4175,14 +4175,24 @@ function toggleAboutBox(){
   }
 
   function showInstallBtn(){
-    if(!installBtn || isStandalone()) return;
-    installBtn.classList.remove("install-btn--hidden");
+    if(!installBtn) return;
+    if(isStandalone()){
+      installBtn.style.display = "none";
+      return;
+    }
+    installBtn.style.display = "inline-flex";
   }
 
-  function hideInstallBtn(){
-    if(!installBtn) return;
-    installBtn.classList.add("install-btn--hidden");
-  }
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallBtn();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    if(installBtn) installBtn.style.display = "none";
+  });
 
   async function registerPwaServiceWorker(){
     if(!("serviceWorker" in navigator)) return null;
@@ -4196,38 +4206,24 @@ function toggleAboutBox(){
     }
   }
 
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    showInstallBtn();
-  });
-
-  window.addEventListener("appinstalled", () => {
-    deferredPrompt = null;
-    hideInstallBtn();
-  });
-
   if(installBtn){
     installBtn.addEventListener("click", async () => {
-      if(!deferredPrompt) return;
-      try{
-        await deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-      }catch(err){
-        console.error("Install prompt error", err);
+      if(deferredPrompt){
+        try{
+          await deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+        }catch(err){
+          console.error("Install prompt error", err);
+        }
+        deferredPrompt = null;
+      }else{
+        alert("Tap the 3 dots in Chrome, then choose Install app or Add to Home screen.");
       }
-      deferredPrompt = null;
-      hideInstallBtn();
     });
   }
 
   window.addEventListener("load", async () => {
-    if(isStandalone()){
-      hideInstallBtn();
-      return;
-    }
     await registerPwaServiceWorker();
-    // Button stays hidden until browser actually says install is available.
+    showInstallBtn();
   });
 })();
-
