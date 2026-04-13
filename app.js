@@ -4161,19 +4161,10 @@ function toggleAboutBox(){
 })();
 
 
-// ===== FORCE INSTALL FLOW =====
+// ===== NEAT INSTALL BUTTON =====
 (function(){
   let deferredPrompt = null;
-  let promptReady = false;
   const installBtn = document.getElementById("installBtnForced");
-
-  function setBtnState(ready){
-    if(!installBtn) return;
-    promptReady = !!ready;
-    installBtn.classList.toggle("install-btn-ready", !!ready);
-    installBtn.classList.toggle("install-btn-waiting", !ready);
-    installBtn.textContent = ready ? "Install App" : "Install App";
-  }
 
   async function ensureServiceWorker(){
     if(!("serviceWorker" in navigator)) return;
@@ -4191,57 +4182,35 @@ function toggleAboutBox(){
       alert("Tap Share, then Add to Home Screen.");
       return;
     }
-    alert("Chrome has not exposed the install popup yet. Wait 10 seconds, tap around once, then press Install App again. Or use the 3 dots menu and choose Install app.");
+    alert("Tap the 3 dots in Chrome and choose Install app.");
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    setBtnState(true);
   });
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
-    setBtnState(false);
   });
-
-  async function tryInstall(){
-    if(deferredPrompt){
-      try{
-        await deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-      }catch(e){
-        console.error("Install prompt failed", e);
-      }
-      return;
-    }
-    manualHelp();
-  }
 
   if(installBtn){
-    installBtn.addEventListener("click", tryInstall);
+    installBtn.addEventListener("click", async () => {
+      if(deferredPrompt){
+        try{
+          await deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+        }catch(e){
+          console.error("Install prompt failed", e);
+        }
+      }else{
+        manualHelp();
+      }
+    });
   }
 
-  // Retry hooks after gesture, because Chrome often delays beforeinstallprompt after reset.
-  ["click","touchstart","scroll"].forEach(evt=>{
-    window.addEventListener(evt, () => {
-      if(deferredPrompt) setBtnState(true);
-    }, { passive: true, once: false });
-  });
-
   window.addEventListener("load", async () => {
-    setBtnState(false);
     await ensureServiceWorker();
-    // Give Chrome time after reset to recalculate installability.
-    setTimeout(() => {
-      if(deferredPrompt) setBtnState(true);
-    }, 3000);
-    setTimeout(() => {
-      if(deferredPrompt) setBtnState(true);
-    }, 7000);
-    setTimeout(() => {
-      if(deferredPrompt) setBtnState(true);
-    }, 12000);
   });
 })();
 
