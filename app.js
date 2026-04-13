@@ -4159,3 +4159,58 @@ function toggleAboutBox(){
     setTimeout(applySafeTrackerNotes, 1200);
   });
 })();
+
+
+// ===== PWA INSTALL BUTTON =====
+(function(){
+  const installBtn = document.getElementById("installBtn");
+  let deferredPrompt = null;
+
+  async function ensureServiceWorker(){
+    if(!("serviceWorker" in navigator)) return;
+    try{
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await navigator.serviceWorker.ready;
+    }catch(e){
+      console.error("SW register failed", e);
+    }
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+  });
+
+  function manualInstallHelp(){
+    const ua = navigator.userAgent || "";
+    if(/iPhone|iPad|iPod/i.test(ua)){
+      alert("Tap Share, then Add to Home Screen.");
+      return;
+    }
+    alert("Tap the 3 dots in Chrome and choose Install app.");
+  }
+
+  if(installBtn){
+    installBtn.addEventListener("click", async () => {
+      if(deferredPrompt){
+        try{
+          await deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+        }catch(e){
+          console.error("Install prompt failed", e);
+        }
+      }else{
+        manualInstallHelp();
+      }
+    });
+  }
+
+  window.addEventListener("load", async () => {
+    await ensureServiceWorker();
+  });
+})();
+
