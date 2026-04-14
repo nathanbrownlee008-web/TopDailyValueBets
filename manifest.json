@@ -1,12 +1,12 @@
 {
   "name": "Top Daily Tips",
-  "short_name": "Daily Tips",
-  "id": "/?v=9501",
-  "start_url": "/?v=9501",
+  "short_name": "TDT",
+  "id": "/?v=11001",
+  "start_url": "/?v=11001",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0b1220",
-  "theme_color": "#0b1220",
+  "background_color": "#07152b",
+  "theme_color": "#07152b",
   "description": "Top Daily Tips value bets and trackers.",
   "icons": [
     {
