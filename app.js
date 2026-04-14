@@ -4161,50 +4161,49 @@ function toggleAboutBox(){
 })();
 
 
-// ===== PWA INSTALL =====
+// ===== CLEAN WORKING INSTALL BUTTON =====
 (function(){
-  const installBtn = document.getElementById("installBtn");
   let deferredPrompt = null;
+  const installBtn = document.getElementById("installBtn");
 
   function isStandalone(){
     try{
-      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+             window.navigator.standalone === true;
     }catch(e){
       return false;
     }
   }
 
-  function showInstallBtn(){
-    if(!installBtn || isStandalone()) return;
-    installBtn.classList.remove("install-btn--hidden");
-  }
-
-  function hideInstallBtn(){
+  function updateInstallBtn(){
     if(!installBtn) return;
-    installBtn.classList.add("install-btn--hidden");
+    if(isStandalone()){
+      installBtn.style.display = "none";
+      return;
+    }
+    installBtn.style.display = deferredPrompt ? "inline-flex" : "none";
+    installBtn.textContent = "Install App";
   }
 
-  async function registerPwaServiceWorker(){
-    if(!("serviceWorker" in navigator)) return null;
+  async function ensureServiceWorker(){
+    if(!("serviceWorker" in navigator)) return;
     try{
-      const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
       await navigator.serviceWorker.ready;
-      return reg;
-    }catch(err){
-      console.error("PWA service worker registration failed", err);
-      return null;
+    }catch(e){
+      console.error("SW register failed", e);
     }
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    showInstallBtn();
+    updateInstallBtn();
   });
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
-    hideInstallBtn();
+    updateInstallBtn();
   });
 
   if(installBtn){
@@ -4213,42 +4212,21 @@ function toggleAboutBox(){
       try{
         await deferredPrompt.prompt();
         await deferredPrompt.userChoice;
-      }catch(err){
-        console.error("Install prompt error", err);
+      }catch(e){
+        console.error("Install prompt failed", e);
+      }finally{
+        deferredPrompt = null;
+        updateInstallBtn();
       }
-      deferredPrompt = null;
-      hideInstallBtn();
     });
   }
 
   window.addEventListener("load", async () => {
-    if(isStandalone()){
-      hideInstallBtn();
-      return;
-    }
-    await registerPwaServiceWorker();
-    // Button stays hidden until browser actually says install is available.
+    await ensureServiceWorker();
+    updateInstallBtn();
   });
+
+  document.addEventListener("visibilitychange", updateInstallBtn);
+  window.addEventListener("focus", updateInstallBtn);
 })();
 
-
-
-// ===== FANCY SPLASH SCREEN =====
-(function () {
-  const splash = document.createElement('div');
-  splash.id = 'tdt-splash-screen';
-  document.body.classList.add('app-splashing');
-  document.body.appendChild(splash);
-
-  function hideSplash() {
-    splash.classList.add('is-hidden');
-    document.body.classList.remove('app-splashing');
-    setTimeout(() => {
-      if (splash.parentNode) splash.parentNode.removeChild(splash);
-    }, 700);
-  }
-
-  window.addEventListener('load', () => {
-    setTimeout(hideSplash, 1600);
-  });
-})();

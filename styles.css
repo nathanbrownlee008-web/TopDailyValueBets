@@ -6625,8 +6625,7 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-
-/* ===== PWA INSTALL BUTTON ===== */
+/* ===== CLEAN WORKING INSTALL BUTTON ===== */
 .top-controls{
   display:flex;
   align-items:center;
@@ -6635,43 +6634,28 @@ body.layout-wide .bets-table .table-market-text{
   flex-wrap:wrap;
   margin:8px 0 18px;
 }
-.install-btn{
-  display:inline-flex;
+.install-btn-cleanworking{
+  display:none;
   align-items:center;
   justify-content:center;
-  padding:8px 14px;
+  min-height:40px;
+  padding:8px 12px;
   border:none;
-  border-radius:999px;
-  background:linear-gradient(180deg,#22c55e,#16a34a);
-  color:#fff;
-  font-weight:900;
-  box-shadow:0 8px 20px rgba(22,163,74,.25);
+  border-radius:12px;
+  background:#16a34a;
+  color:#ffffff;
+  font-size:13px;
+  font-weight:800;
+  white-space:nowrap;
+  box-shadow:0 8px 18px rgba(0,0,0,.18);
 }
-.install-btn--hidden{
-  display:none !important;
+.install-btn-cleanworking:active{
+  transform:translateY(1px);
 }
 @media (max-width:600px){
-  .install-btn{
-    padding:8px 12px;
-    font-size:13px;
+  .install-btn-cleanworking{
+    min-height:38px;
+    padding:7px 11px;
+    font-size:12px;
   }
-}
-
-
-/* ===== FULL SCREEN FANCY SPLASH ===== */
-body.app-splashing {
-  overflow: hidden;
-}
-#tdt-splash-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background: #07152b url('/icons/splash-screen.png?v=10001') center center / cover no-repeat;
-  opacity: 1;
-  transition: opacity .55s ease;
-  pointer-events: all;
-}
-#tdt-splash-screen.is-hidden {
-  opacity: 0;
-  pointer-events: none;
 }
