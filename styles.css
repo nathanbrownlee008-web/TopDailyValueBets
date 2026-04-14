@@ -6681,3 +6681,44 @@ body.layout-wide .bets-table .table-market-text{
 .value-card * {
   min-width: 0;
 }
+/* FIX market pills wrapping on mobile */
+.bet-market,
+.bet-market-inline{
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  max-width: 100% !important;
+  width: fit-content !important;
+  flex-wrap: nowrap !important;
+  overflow: hidden !important;
+}
+
+.bet-market-text{
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  word-break: break-word !important;
+  line-height: 1.15 !important;
+  display: block !important;
+  max-width: 100% !important;
+}
+
+.bet-card{
+  overflow: hidden !important;
+}
+
+.bet-card *{
+  min-width: 0 !important;
+}
+
+@media (max-width: 600px){
+  .bet-market,
+  .bet-market-inline{
+    max-width: 78% !important;
+    padding: 8px 12px !important;
+  }
+
+  .bet-market-text{
+    font-size: 13px !important;
+  }
+}
