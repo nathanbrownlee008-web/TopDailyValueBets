@@ -6625,7 +6625,7 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== PROPER INSTALL BUTTON ===== */
+/* ===== INSTALL BUTTON STATE FIX ===== */
 .top-controls{
   display:flex;
   align-items:center;

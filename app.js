@@ -4161,49 +4161,39 @@ function toggleAboutBox(){
 })();
 
 
-// ===== PROPER INSTALL BUTTON =====
-(function(){
+// ===== INSTALL BUTTON STATE FIX =====
+(function () {
   let deferredPrompt = null;
   const installBtn = document.getElementById("installBtn");
-  const INSTALL_STATE_KEY = "tdt_app_installed";
 
-  function isStandalone(){
-    try{
-      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
-        || window.navigator.standalone === true;
-    }catch(e){
+  function isStandalone() {
+    try {
+      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+             window.navigator.standalone === true;
+    } catch (e) {
       return false;
     }
   }
 
-  function getInstalledState(){
-    try{
-      return localStorage.getItem(INSTALL_STATE_KEY) === "1" || isStandalone();
-    }catch(e){
-      return isStandalone();
+  function updateInstallBtn() {
+    if (!installBtn) return;
+
+    if (isStandalone()) {
+      installBtn.classList.add("is-installed");
+      installBtn.textContent = "App Installed";
+      return;
     }
+
+    installBtn.classList.remove("is-installed");
+    installBtn.textContent = "Install App";
   }
 
-  function setInstalledState(installed){
-    try{
-      localStorage.setItem(INSTALL_STATE_KEY, installed ? "1" : "0");
-    }catch(e){}
-    updateInstallBtn();
-  }
-
-  function updateInstallBtn(){
-    if(!installBtn) return;
-    const installed = getInstalledState();
-    installBtn.classList.toggle("is-installed", installed);
-    installBtn.textContent = installed ? "App Installed" : "Install App";
-  }
-
-  async function ensureServiceWorker(){
-    if(!("serviceWorker" in navigator)) return;
-    try{
+  async function ensureServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    try {
       await navigator.serviceWorker.register("/sw.js", { scope: "/" });
       await navigator.serviceWorker.ready;
-    }catch(e){
+    } catch (e) {
       console.error("SW register failed", e);
     }
   }
@@ -4216,26 +4206,36 @@ function toggleAboutBox(){
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
-    setInstalledState(true);
+    updateInstallBtn();
   });
 
-  if(installBtn){
+  window.addEventListener("load", async () => {
+    await ensureServiceWorker();
+    updateInstallBtn();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    updateInstallBtn();
+  });
+
+  window.addEventListener("focus", () => {
+    updateInstallBtn();
+  });
+
+  if (installBtn) {
     installBtn.addEventListener("click", async () => {
-      if(getInstalledState()){
+      if (isStandalone()) {
         alert("App already installed. Open it from your home screen.");
         return;
       }
 
-      if(deferredPrompt){
-        try{
+      if (deferredPrompt) {
+        try {
           await deferredPrompt.prompt();
-          const choice = await deferredPrompt.userChoice;
-          if(choice && choice.outcome === "accepted"){
-            setInstalledState(true);
-          }
-        }catch(e){
-          console.error("Install prompt failed", e);
-        }finally{
+          await deferredPrompt.userChoice;
+        } catch (err) {
+          console.error("Install failed:", err);
+        } finally {
           deferredPrompt = null;
           updateInstallBtn();
         }
@@ -4245,14 +4245,5 @@ function toggleAboutBox(){
       alert("Tap the 3 dots in Chrome and choose Install app.");
     });
   }
-
-  window.addEventListener("load", async () => {
-    await ensureServiceWorker();
-    if(isStandalone()){
-      setInstalledState(true);
-    }else{
-      updateInstallBtn();
-    }
-  });
 })();
 
