@@ -6625,7 +6625,7 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== INSTALL BUTTON STATE FIX ===== */
+/* ===== HIDE-AFTER-INSTALL BUTTON ===== */
 .top-controls{
   display:flex;
   align-items:center;
@@ -6635,7 +6635,7 @@ body.layout-wide .bets-table .table-market-text{
   margin:8px 0 18px;
 }
 .install-btn-proper{
-  display:inline-flex !important;
+  display:inline-flex;
   align-items:center;
   justify-content:center;
   min-height:40px;
@@ -6651,10 +6651,6 @@ body.layout-wide .bets-table .table-market-text{
 }
 .install-btn-proper:active{
   transform:translateY(1px);
-}
-.install-btn-proper.is-installed{
-  background:#475569;
-  color:#e5e7eb;
 }
 @media (max-width:600px){
   .install-btn-proper{

@@ -4161,7 +4161,7 @@ function toggleAboutBox(){
 })();
 
 
-// ===== INSTALL BUTTON STATE FIX =====
+// ===== HIDE-AFTER-INSTALL BUTTON =====
 (function () {
   let deferredPrompt = null;
   const installBtn = document.getElementById("installBtn");
@@ -4179,12 +4179,11 @@ function toggleAboutBox(){
     if (!installBtn) return;
 
     if (isStandalone()) {
-      installBtn.classList.add("is-installed");
-      installBtn.textContent = "App Installed";
+      installBtn.style.display = "none";
       return;
     }
 
-    installBtn.classList.remove("is-installed");
+    installBtn.style.display = "inline-flex";
     installBtn.textContent = "Install App";
   }
 
@@ -4214,18 +4213,12 @@ function toggleAboutBox(){
     updateInstallBtn();
   });
 
-  document.addEventListener("visibilitychange", () => {
-    updateInstallBtn();
-  });
-
-  window.addEventListener("focus", () => {
-    updateInstallBtn();
-  });
+  document.addEventListener("visibilitychange", updateInstallBtn);
+  window.addEventListener("focus", updateInstallBtn);
 
   if (installBtn) {
     installBtn.addEventListener("click", async () => {
       if (isStandalone()) {
-        alert("App already installed. Open it from your home screen.");
         return;
       }
 
