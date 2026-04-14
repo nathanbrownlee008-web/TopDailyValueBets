@@ -6625,7 +6625,8 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== RESET-AWARE INSTALL PILL ===== */
+
+/* ===== PWA INSTALL BUTTON ===== */
 .top-controls{
   display:flex;
   align-items:center;
@@ -6634,7 +6635,39 @@ body.layout-wide .bets-table .table-market-text{
   flex-wrap:wrap;
   margin:8px 0 18px;
 }
-.install-btn-clean{
+.install-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 14px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(180deg,#22c55e,#16a34a);
+  color:#fff;
+  font-weight:900;
+  box-shadow:0 8px 20px rgba(22,163,74,.25);
+}
+.install-btn--hidden{
+  display:none !important;
+}
+@media (max-width:600px){
+  .install-btn{
+    padding:8px 12px;
+    font-size:13px;
+  }
+}
+
+
+/* ===== REAL INSTALL-READY BUTTON ===== */
+.top-controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:8px 0 18px;
+}
+.install-btn-real{
   display:inline-flex !important;
   align-items:center;
   justify-content:center;
@@ -6648,23 +6681,23 @@ body.layout-wide .bets-table .table-market-text{
   transition:background .2s ease,color .2s ease,opacity .2s ease,transform .1s ease;
   box-shadow:0 8px 18px rgba(0,0,0,.18);
 }
-.install-btn-clean:active{
+.install-btn-real:active{
   transform:translateY(1px);
 }
-.install-btn-clean--ready{
+.install-btn-real--ready{
   background:#16a34a;
   color:#ffffff;
 }
-.install-btn-clean--waiting{
+.install-btn-real--disabled{
   background:#475569;
   color:#e5e7eb;
 }
-.install-btn-clean--installed{
+.install-btn-real--installed{
   background:#475569;
   color:#e5e7eb;
 }
 @media (max-width:600px){
-  .install-btn-clean{
+  .install-btn-real{
     min-height:38px;
     padding:7px 11px;
     font-size:12px;

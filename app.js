@@ -4161,12 +4161,11 @@ function toggleAboutBox(){
 })();
 
 
-// ===== RESET-AWARE INSTALL PILL =====
+// ===== REAL INSTALL-READY BUTTON =====
 (function(){
   let deferredPrompt = null;
   const installBtn = document.getElementById("installBtn");
   const INSTALL_STATE_KEY = "tdt_app_installed";
-  let preparing = false;
 
   function isStandalone(){
     try{
@@ -4192,31 +4191,31 @@ function toggleAboutBox(){
     updateInstallBtn();
   }
 
-  function setPreparingState(value){
-    preparing = !!value;
-    updateInstallBtn();
+  function setBtnClass(kind, text){
+    if(!installBtn) return;
+    installBtn.classList.remove(
+      "install-btn-real--ready",
+      "install-btn-real--disabled",
+      "install-btn-real--installed"
+    );
+    installBtn.classList.add(kind);
+    installBtn.textContent = text;
   }
 
   function updateInstallBtn(){
     if(!installBtn) return;
 
-    const installed = getInstalledState();
-    installBtn.classList.remove("install-btn-clean--ready", "install-btn-clean--waiting", "install-btn-clean--installed");
-
-    if(installed){
-      installBtn.classList.add("install-btn-clean--installed");
-      installBtn.textContent = "App Installed";
+    if(getInstalledState()){
+      setBtnClass("install-btn-real--installed", "App Installed");
       return;
     }
 
-    if(preparing && !deferredPrompt){
-      installBtn.classList.add("install-btn-clean--waiting");
-      installBtn.textContent = "Preparing install...";
+    if(deferredPrompt){
+      setBtnClass("install-btn-real--ready", "Install App");
       return;
     }
 
-    installBtn.classList.add("install-btn-clean--ready");
-    installBtn.textContent = "Install App";
+    setBtnClass("install-btn-real--disabled", "Install not ready");
   }
 
   async function ensureServiceWorker(){
@@ -4233,25 +4232,18 @@ function toggleAboutBox(){
     alert("App already installed. Open it from your home screen.");
   }
 
-  function showManualInstallHelp(){
-    const ua = navigator.userAgent || "";
-    if(/iPhone|iPad|iPod/i.test(ua)){
-      alert("Tap Share, then Add to Home Screen.");
-      return;
-    }
-    alert("Install is not ready yet. Wait a few seconds, tap or scroll once, then press Install App again.");
+  function showNotReadyMessage(){
+    alert("Install is not ready yet. Wait a few seconds, tap or scroll once, then try again.");
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    setPreparingState(false);
     updateInstallBtn();
   });
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
-    setPreparingState(false);
     setInstalledState(true);
   });
 
@@ -4262,68 +4254,47 @@ function toggleAboutBox(){
         return;
       }
 
-      if(deferredPrompt){
-        try{
-          await deferredPrompt.prompt();
-          const choice = await deferredPrompt.userChoice;
-          if(choice && choice.outcome === "accepted"){
-            setInstalledState(true);
-          }
-        }catch(e){
-          console.error("Install prompt failed", e);
-        }finally{
-          deferredPrompt = null;
-          updateInstallBtn();
-        }
+      if(!deferredPrompt){
+        showNotReadyMessage();
         return;
       }
 
-      setPreparingState(true);
-      showManualInstallHelp();
+      try{
+        await deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        if(choice && choice.outcome === "accepted"){
+          setInstalledState(true);
+        }else{
+          updateInstallBtn();
+        }
+      }catch(e){
+        console.error("Install prompt failed", e);
+        updateInstallBtn();
+      }finally{
+        deferredPrompt = null;
+      }
     });
   }
 
   window.addEventListener("load", async () => {
     await ensureServiceWorker();
-
     if(isStandalone()){
       setInstalledState(true);
-      return;
+    }else{
+      updateInstallBtn();
     }
-
-    setPreparingState(true);
-
-    // After reset, Chrome can take a bit to expose the install prompt.
-    setTimeout(() => {
-      if(!deferredPrompt && !getInstalledState()){
-        setPreparingState(true);
-      } else {
-        setPreparingState(false);
-      }
-    }, 2500);
-
-    setTimeout(() => {
-      if(deferredPrompt){
-        setPreparingState(false);
-        updateInstallBtn();
-      }
-    }, 6000);
-
-    setTimeout(() => {
-      if(deferredPrompt){
-        setPreparingState(false);
-        updateInstallBtn();
-      }
-    }, 10000);
   });
 
-  ["click", "scroll", "touchstart"].forEach(evt => {
+  ["click","scroll","touchstart"].forEach(evt => {
     window.addEventListener(evt, () => {
       if(deferredPrompt){
-        setPreparingState(false);
         updateInstallBtn();
       }
     }, { passive: true });
   });
+
+  setTimeout(updateInstallBtn, 2500);
+  setTimeout(updateInstallBtn, 6000);
+  setTimeout(updateInstallBtn, 10000);
 })();
 
