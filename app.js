@@ -4161,73 +4161,58 @@ function toggleAboutBox(){
 })();
 
 
-// ===== PWA INSTALL =====
+// ===== PERMANENT INSTALL BUTTON =====
 (function(){
-  const installBtn = document.getElementById("installBtn");
   let deferredPrompt = null;
+  const installBtn = document.getElementById("installBtn");
 
-  function isStandalone(){
+  async function ensureServiceWorker(){
+    if(!("serviceWorker" in navigator)) return;
     try{
-      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    }catch(e){
-      return false;
-    }
-  }
-
-  function showInstallBtn(){
-    if(!installBtn || isStandalone()) return;
-    installBtn.classList.remove("install-btn--hidden");
-  }
-
-  function hideInstallBtn(){
-    if(!installBtn) return;
-    installBtn.classList.add("install-btn--hidden");
-  }
-
-  async function registerPwaServiceWorker(){
-    if(!("serviceWorker" in navigator)) return null;
-    try{
-      const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
       await navigator.serviceWorker.ready;
-      return reg;
-    }catch(err){
-      console.error("PWA service worker registration failed", err);
-      return null;
+    }catch(e){
+      console.error("SW register failed", e);
     }
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    showInstallBtn();
   });
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
-    hideInstallBtn();
   });
 
+  function showManualHelp(){
+    const ua = navigator.userAgent || "";
+    if(/iPhone|iPad|iPod/i.test(ua)){
+      alert("Tap Share, then Add to Home Screen.");
+      return;
+    }
+    alert("Tap the 3 dots in Chrome and choose Install app.");
+  }
+
   if(installBtn){
+    installBtn.style.display = "inline-flex";
     installBtn.addEventListener("click", async () => {
-      if(!deferredPrompt) return;
-      try{
-        await deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-      }catch(err){
-        console.error("Install prompt error", err);
+      if(deferredPrompt){
+        try{
+          await deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+        }catch(e){
+          console.error("Install prompt failed", e);
+        }
+        deferredPrompt = null;
+      }else{
+        showManualHelp();
       }
-      deferredPrompt = null;
-      hideInstallBtn();
     });
   }
 
   window.addEventListener("load", async () => {
-    if(isStandalone()){
-      hideInstallBtn();
-      return;
-    }
-    await registerPwaServiceWorker();
-    // Button stays hidden until browser actually says install is available.
+    await ensureServiceWorker();
   });
 })();
 
