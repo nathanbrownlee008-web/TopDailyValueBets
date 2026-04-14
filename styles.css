@@ -6722,3 +6722,25 @@ body.layout-wide .bets-table .table-market-text{
     font-size: 13px !important;
   }
 }
+/* let market pill size itself naturally */
+.bet-market,
+.bet-market-inline{
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: auto !important;
+  max-width: none !important;
+  flex-wrap: nowrap !important;
+  overflow: visible !important;
+}
+
+.bet-market-text{
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  max-width: none !important;
+}
+
+.bet-card{
+  overflow: hidden !important;
+}
