@@ -4160,32 +4160,73 @@ function toggleAboutBox(){
   });
 })();
 
-// ===== FULL SCREEN ANIMATED SPLASH =====
-(function () {
-  function mountSplash() {
-    if (document.getElementById('tdt-splash-screen')) return;
-    const splash = document.createElement('div');
-    splash.id = 'tdt-splash-screen';
-    splash.innerHTML = '<div id="tdt-splash-center"></div>';
-    document.body.classList.add('app-splashing');
-    document.body.appendChild(splash);
 
-    function hideSplash() {
-      splash.classList.add('is-hidden');
-      document.body.classList.remove('app-splashing');
-      setTimeout(() => {
-        if (splash.parentNode) splash.parentNode.removeChild(splash);
-      }, 650);
+// ===== CLEAN WORKING INSTALL BUTTON =====
+(function(){
+  let deferredPrompt = null;
+  const installBtn = document.getElementById("installBtn");
+
+  function isStandalone(){
+    try{
+      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+             window.navigator.standalone === true;
+    }catch(e){
+      return false;
     }
-
-    window.addEventListener('load', () => {
-      setTimeout(hideSplash, 1550);
-    }, { once: true });
   }
 
-  if (document.readyState === 'loading') {
-    mountSplash();
-  } else {
-    mountSplash();
+  function updateInstallBtn(){
+    if(!installBtn) return;
+    if(isStandalone()){
+      installBtn.style.display = "none";
+      return;
+    }
+    installBtn.style.display = deferredPrompt ? "inline-flex" : "none";
+    installBtn.textContent = "Install App";
   }
+
+  async function ensureServiceWorker(){
+    if(!("serviceWorker" in navigator)) return;
+    try{
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await navigator.serviceWorker.ready;
+    }catch(e){
+      console.error("SW register failed", e);
+    }
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    updateInstallBtn();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    updateInstallBtn();
+  });
+
+  if(installBtn){
+    installBtn.addEventListener("click", async () => {
+      if(!deferredPrompt) return;
+      try{
+        await deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+      }catch(e){
+        console.error("Install prompt failed", e);
+      }finally{
+        deferredPrompt = null;
+        updateInstallBtn();
+      }
+    });
+  }
+
+  window.addEventListener("load", async () => {
+    await ensureServiceWorker();
+    updateInstallBtn();
+  });
+
+  document.addEventListener("visibilitychange", updateInstallBtn);
+  window.addEventListener("focus", updateInstallBtn);
 })();
+
