@@ -4161,82 +4161,56 @@ function toggleAboutBox(){
 })();
 
 
-// ===== HIDE-AFTER-INSTALL BUTTON =====
-(function () {
+// ===== NEAT INSTALL BUTTON =====
+(function(){
   let deferredPrompt = null;
-  const installBtn = document.getElementById("installBtn");
+  const installBtn = document.getElementById("installBtnForced");
 
-  function isStandalone() {
-    try {
-      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
-             window.navigator.standalone === true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function updateInstallBtn() {
-    if (!installBtn) return;
-
-    if (isStandalone()) {
-      installBtn.style.display = "none";
-      return;
-    }
-
-    installBtn.style.display = "inline-flex";
-    installBtn.textContent = "Install App";
-  }
-
-  async function ensureServiceWorker() {
-    if (!("serviceWorker" in navigator)) return;
-    try {
+  async function ensureServiceWorker(){
+    if(!("serviceWorker" in navigator)) return;
+    try{
       await navigator.serviceWorker.register("/sw.js", { scope: "/" });
       await navigator.serviceWorker.ready;
-    } catch (e) {
+    }catch(e){
       console.error("SW register failed", e);
     }
+  }
+
+  function manualHelp(){
+    const ua = navigator.userAgent || "";
+    if(/iPhone|iPad|iPod/i.test(ua)){
+      alert("Tap Share, then Add to Home Screen.");
+      return;
+    }
+    alert("Tap the 3 dots in Chrome and choose Install app.");
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    updateInstallBtn();
   });
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
-    updateInstallBtn();
   });
+
+  if(installBtn){
+    installBtn.addEventListener("click", async () => {
+      if(deferredPrompt){
+        try{
+          await deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+        }catch(e){
+          console.error("Install prompt failed", e);
+        }
+      }else{
+        manualHelp();
+      }
+    });
+  }
 
   window.addEventListener("load", async () => {
     await ensureServiceWorker();
-    updateInstallBtn();
   });
-
-  document.addEventListener("visibilitychange", updateInstallBtn);
-  window.addEventListener("focus", updateInstallBtn);
-
-  if (installBtn) {
-    installBtn.addEventListener("click", async () => {
-      if (isStandalone()) {
-        return;
-      }
-
-      if (deferredPrompt) {
-        try {
-          await deferredPrompt.prompt();
-          await deferredPrompt.userChoice;
-        } catch (err) {
-          console.error("Install failed:", err);
-        } finally {
-          deferredPrompt = null;
-          updateInstallBtn();
-        }
-        return;
-      }
-
-      alert("Tap the 3 dots in Chrome and choose Install app.");
-    });
-  }
 })();
 
