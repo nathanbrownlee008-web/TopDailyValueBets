@@ -1,13 +1,13 @@
 // Use absolute URLs so this works reliably on Vercel and ensures correct scope.
-const CACHE_NAME = "top-daily-tips-v301";
+const CACHE_NAME = "top-daily-tips-v401";
 const CORE_ASSETS = [
   "/",
   "/index.html",
   "/styles.css",
   "/app.js",
-  "/manifest.json?v=3001",
-  "/icons/icon-192-clean.png",
-  "/icons/icon-512-clean.png"
+  "/manifest.json?v=4001",
+  "/icons/icon-192-reset.png",
+  "/icons/icon-512-reset.png"
 ];
 
 self.addEventListener("install",(event)=>{

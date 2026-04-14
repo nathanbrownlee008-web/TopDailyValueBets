@@ -6625,7 +6625,7 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== CLEAN INSTALL PILL ===== */
+/* ===== RESET-AWARE INSTALL PILL ===== */
 .top-controls{
   display:flex;
   align-items:center;
@@ -6654,6 +6654,10 @@ body.layout-wide .bets-table .table-market-text{
 .install-btn-clean--ready{
   background:#16a34a;
   color:#ffffff;
+}
+.install-btn-clean--waiting{
+  background:#475569;
+  color:#e5e7eb;
 }
 .install-btn-clean--installed{
   background:#475569;

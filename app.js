@@ -4161,11 +4161,12 @@ function toggleAboutBox(){
 })();
 
 
-// ===== CLEAN INSTALL PILL =====
+// ===== RESET-AWARE INSTALL PILL =====
 (function(){
   let deferredPrompt = null;
   const installBtn = document.getElementById("installBtn");
   const INSTALL_STATE_KEY = "tdt_app_installed";
+  let preparing = false;
 
   function isStandalone(){
     try{
@@ -4191,19 +4192,31 @@ function toggleAboutBox(){
     updateInstallBtn();
   }
 
+  function setPreparingState(value){
+    preparing = !!value;
+    updateInstallBtn();
+  }
+
   function updateInstallBtn(){
     if(!installBtn) return;
-    const installed = getInstalledState();
 
-    installBtn.classList.remove("install-btn-clean--ready", "install-btn-clean--installed");
+    const installed = getInstalledState();
+    installBtn.classList.remove("install-btn-clean--ready", "install-btn-clean--waiting", "install-btn-clean--installed");
 
     if(installed){
       installBtn.classList.add("install-btn-clean--installed");
       installBtn.textContent = "App Installed";
-    }else{
-      installBtn.classList.add("install-btn-clean--ready");
-      installBtn.textContent = "Install App";
+      return;
     }
+
+    if(preparing && !deferredPrompt){
+      installBtn.classList.add("install-btn-clean--waiting");
+      installBtn.textContent = "Preparing install...";
+      return;
+    }
+
+    installBtn.classList.add("install-btn-clean--ready");
+    installBtn.textContent = "Install App";
   }
 
   async function ensureServiceWorker(){
@@ -4226,17 +4239,19 @@ function toggleAboutBox(){
       alert("Tap Share, then Add to Home Screen.");
       return;
     }
-    alert("Tap the 3 dots in Chrome and choose Install app.");
+    alert("Install is not ready yet. Wait a few seconds, tap or scroll once, then press Install App again.");
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    setPreparingState(false);
     updateInstallBtn();
   });
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
+    setPreparingState(false);
     setInstalledState(true);
   });
 
@@ -4260,19 +4275,55 @@ function toggleAboutBox(){
           deferredPrompt = null;
           updateInstallBtn();
         }
-      }else{
-        showManualInstallHelp();
+        return;
       }
+
+      setPreparingState(true);
+      showManualInstallHelp();
     });
   }
 
   window.addEventListener("load", async () => {
     await ensureServiceWorker();
+
     if(isStandalone()){
       setInstalledState(true);
-    }else{
-      updateInstallBtn();
+      return;
     }
+
+    setPreparingState(true);
+
+    // After reset, Chrome can take a bit to expose the install prompt.
+    setTimeout(() => {
+      if(!deferredPrompt && !getInstalledState()){
+        setPreparingState(true);
+      } else {
+        setPreparingState(false);
+      }
+    }, 2500);
+
+    setTimeout(() => {
+      if(deferredPrompt){
+        setPreparingState(false);
+        updateInstallBtn();
+      }
+    }, 6000);
+
+    setTimeout(() => {
+      if(deferredPrompt){
+        setPreparingState(false);
+        updateInstallBtn();
+      }
+    }, 10000);
+  });
+
+  ["click", "scroll", "touchstart"].forEach(evt => {
+    window.addEventListener(evt, () => {
+      if(deferredPrompt){
+        setPreparingState(false);
+        updateInstallBtn();
+      }
+    }, { passive: true });
   });
 })();
 
