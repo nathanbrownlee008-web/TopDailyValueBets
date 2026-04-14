@@ -6659,3 +6659,25 @@ body.layout-wide .bets-table .table-market-text{
     font-size:12px;
   }
 }
+.market-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  max-width: 100%;
+  padding: 6px 10px;
+
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
+
+  font-size: 13px;
+}
+
+.value-card {
+  overflow: hidden;
+}
+
+.value-card * {
+  min-width: 0;
+}
