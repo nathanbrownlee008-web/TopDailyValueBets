@@ -6625,7 +6625,7 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== PERMANENT INSTALL BUTTON ===== */
+/* ===== CLEAN INSTALL PILL ===== */
 .top-controls{
   display:flex;
   align-items:center;
@@ -6634,27 +6634,35 @@ body.layout-wide .bets-table .table-market-text{
   flex-wrap:wrap;
   margin:8px 0 18px;
 }
-.install-btn-permanent{
+.install-btn-clean{
   display:inline-flex !important;
   align-items:center;
   justify-content:center;
-  padding:8px 14px;
-  min-height:42px;
+  min-height:40px;
+  padding:8px 12px;
   border:none;
-  border-radius:999px;
-  background:#2b3445;
-  color:#ffffff;
-  font-size:14px;
+  border-radius:12px;
+  font-size:13px;
   font-weight:800;
   white-space:nowrap;
-  box-shadow:0 8px 20px rgba(0,0,0,.18);
+  transition:background .2s ease,color .2s ease,opacity .2s ease,transform .1s ease;
+  box-shadow:0 8px 18px rgba(0,0,0,.18);
 }
-.install-btn-permanent:active{
+.install-btn-clean:active{
   transform:translateY(1px);
 }
+.install-btn-clean--ready{
+  background:#16a34a;
+  color:#ffffff;
+}
+.install-btn-clean--installed{
+  background:#475569;
+  color:#e5e7eb;
+}
 @media (max-width:600px){
-  .install-btn-permanent{
-    padding:8px 12px;
-    font-size:13px;
+  .install-btn-clean{
+    min-height:38px;
+    padding:7px 11px;
+    font-size:12px;
   }
 }

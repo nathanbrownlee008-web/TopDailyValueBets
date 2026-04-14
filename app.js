@@ -4161,10 +4161,50 @@ function toggleAboutBox(){
 })();
 
 
-// ===== PERMANENT INSTALL BUTTON =====
+// ===== CLEAN INSTALL PILL =====
 (function(){
   let deferredPrompt = null;
   const installBtn = document.getElementById("installBtn");
+  const INSTALL_STATE_KEY = "tdt_app_installed";
+
+  function isStandalone(){
+    try{
+      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
+        || window.navigator.standalone === true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function getInstalledState(){
+    try{
+      return localStorage.getItem(INSTALL_STATE_KEY) === "1" || isStandalone();
+    }catch(e){
+      return isStandalone();
+    }
+  }
+
+  function setInstalledState(installed){
+    try{
+      localStorage.setItem(INSTALL_STATE_KEY, installed ? "1" : "0");
+    }catch(e){}
+    updateInstallBtn();
+  }
+
+  function updateInstallBtn(){
+    if(!installBtn) return;
+    const installed = getInstalledState();
+
+    installBtn.classList.remove("install-btn-clean--ready", "install-btn-clean--installed");
+
+    if(installed){
+      installBtn.classList.add("install-btn-clean--installed");
+      installBtn.textContent = "App Installed";
+    }else{
+      installBtn.classList.add("install-btn-clean--ready");
+      installBtn.textContent = "Install App";
+    }
+  }
 
   async function ensureServiceWorker(){
     if(!("serviceWorker" in navigator)) return;
@@ -4176,16 +4216,11 @@ function toggleAboutBox(){
     }
   }
 
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-  });
+  function showInstalledMessage(){
+    alert("App already installed. Open it from your home screen.");
+  }
 
-  window.addEventListener("appinstalled", () => {
-    deferredPrompt = null;
-  });
-
-  function showManualHelp(){
+  function showManualInstallHelp(){
     const ua = navigator.userAgent || "";
     if(/iPhone|iPad|iPod/i.test(ua)){
       alert("Tap Share, then Add to Home Screen.");
@@ -4194,25 +4229,50 @@ function toggleAboutBox(){
     alert("Tap the 3 dots in Chrome and choose Install app.");
   }
 
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    updateInstallBtn();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    setInstalledState(true);
+  });
+
   if(installBtn){
-    installBtn.style.display = "inline-flex";
     installBtn.addEventListener("click", async () => {
+      if(getInstalledState()){
+        showInstalledMessage();
+        return;
+      }
+
       if(deferredPrompt){
         try{
           await deferredPrompt.prompt();
-          await deferredPrompt.userChoice;
+          const choice = await deferredPrompt.userChoice;
+          if(choice && choice.outcome === "accepted"){
+            setInstalledState(true);
+          }
         }catch(e){
           console.error("Install prompt failed", e);
+        }finally{
+          deferredPrompt = null;
+          updateInstallBtn();
         }
-        deferredPrompt = null;
       }else{
-        showManualHelp();
+        showManualInstallHelp();
       }
     });
   }
 
   window.addEventListener("load", async () => {
     await ensureServiceWorker();
+    if(isStandalone()){
+      setInstalledState(true);
+    }else{
+      updateInstallBtn();
+    }
   });
 })();
 
