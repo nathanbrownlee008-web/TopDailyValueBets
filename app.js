@@ -4161,10 +4161,29 @@ function toggleAboutBox(){
 })();
 
 
-// ===== NEAT INSTALL BUTTON =====
+// ===== CLEAN WORKING INSTALL BUTTON =====
 (function(){
   let deferredPrompt = null;
-  const installBtn = document.getElementById("installBtnForced");
+  const installBtn = document.getElementById("installBtn");
+
+  function isStandalone(){
+    try{
+      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+             window.navigator.standalone === true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function updateInstallBtn(){
+    if(!installBtn) return;
+    if(isStandalone()){
+      installBtn.style.display = "none";
+      return;
+    }
+    installBtn.style.display = deferredPrompt ? "inline-flex" : "none";
+    installBtn.textContent = "Install App";
+  }
 
   async function ensureServiceWorker(){
     if(!("serviceWorker" in navigator)) return;
@@ -4176,41 +4195,38 @@ function toggleAboutBox(){
     }
   }
 
-  function manualHelp(){
-    const ua = navigator.userAgent || "";
-    if(/iPhone|iPad|iPod/i.test(ua)){
-      alert("Tap Share, then Add to Home Screen.");
-      return;
-    }
-    alert("Tap the 3 dots in Chrome and choose Install app.");
-  }
-
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    updateInstallBtn();
   });
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
+    updateInstallBtn();
   });
 
   if(installBtn){
     installBtn.addEventListener("click", async () => {
-      if(deferredPrompt){
-        try{
-          await deferredPrompt.prompt();
-          await deferredPrompt.userChoice;
-        }catch(e){
-          console.error("Install prompt failed", e);
-        }
-      }else{
-        manualHelp();
+      if(!deferredPrompt) return;
+      try{
+        await deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+      }catch(e){
+        console.error("Install prompt failed", e);
+      }finally{
+        deferredPrompt = null;
+        updateInstallBtn();
       }
     });
   }
 
   window.addEventListener("load", async () => {
     await ensureServiceWorker();
+    updateInstallBtn();
   });
+
+  document.addEventListener("visibilitychange", updateInstallBtn);
+  window.addEventListener("focus", updateInstallBtn);
 })();
 
