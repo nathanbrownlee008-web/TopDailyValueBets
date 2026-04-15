@@ -351,6 +351,23 @@ function getBetTitleSizeClass(match){
   if(len >= 24) return " bet-title--small";
   return "";
 }
+function getRowProbability(row){
+  const raw = row?.probability_pct ?? row?.probability ?? row?.prob ?? row?.true_probability ?? null;
+  const n = Number(raw);
+  if(!Number.isFinite(n)) return null;
+  return Math.round(n * 10) / 10;
+}
+function formatProbabilityLabel(row){
+  const p = getRowProbability(row);
+  return p == null ? '' : `${p}%`;
+}
+function getProbabilityClass(row){
+  const p = getRowProbability(row);
+  if(p == null) return '';
+  if(p >= 65) return 'probability-high';
+  if(p >= 55) return 'probability-mid';
+  return 'probability-low';
+}
 function getBookiePillClass(name){
   const n = String(name || '').toLowerCase();
   if(n.includes('365')) return 'bookie-bet365';
@@ -1146,6 +1163,7 @@ async function loadBets(){
       ${(!locked && (leagueName || kickoffLabel)) ? `<div class="bet-meta bet-league-row">${leagueName ? `<span class="bet-market bet-league">${escapeHtml(leagueName)}</span>` : ``}${kickoffLabel ? `<span class="bet-kickoff-inline">${escapeHtml(kickoffLabel)}</span>` : ``}</div>` : ``}
       <div class="bet-meta bet-meta--market-row">
         ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
+        ${!locked && formatProbabilityLabel(row) ? `<span class="bet-probability-inline ${getProbabilityClass(row)}">${escapeHtml(formatProbabilityLabel(row))}</span>` : ``}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
@@ -1174,6 +1192,7 @@ async function loadBets(){
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
+        <td>${!locked && formatProbabilityLabel(row) ? `<span class="probability-table-badge ${getProbabilityClass(row)}">${escapeHtml(formatProbabilityLabel(row))}</span>` : '—'}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>

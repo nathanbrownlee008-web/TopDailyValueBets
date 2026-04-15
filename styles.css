@@ -7045,3 +7045,69 @@ body.layout-wide .bets-table .table-market-text{
   border: 1px solid rgba(0,200,100,0.5) !important;
   box-shadow: 0 0 8px rgba(0,200,100,0.25) !important;
 }
+
+
+/* ===== SIMPLE PROBABILITY ADD (NO INSTALL / PWA TOUCH) ===== */
+#betsGrid .bet-meta--market-row{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+}
+
+#betsGrid .bet-meta--market-row .bet-market{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+}
+
+#betsGrid .bet-probability-inline{
+  flex:0 0 auto !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-width:58px !important;
+  padding:5px 10px !important;
+  border-radius:999px !important;
+  font-size:12px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  border:1px solid rgba(255,255,255,0.14) !important;
+  background:rgba(255,255,255,0.06) !important;
+  white-space:nowrap !important;
+}
+
+#betsGrid .bet-probability-inline.probability-high,
+.probability-table-badge.probability-high{
+  color:#22c55e !important;
+  border-color:rgba(34,197,94,0.4) !important;
+  background:rgba(34,197,94,0.10) !important;
+}
+
+#betsGrid .bet-probability-inline.probability-mid,
+.probability-table-badge.probability-mid{
+  color:#facc15 !important;
+  border-color:rgba(250,204,21,0.4) !important;
+  background:rgba(250,204,21,0.10) !important;
+}
+
+#betsGrid .bet-probability-inline.probability-low,
+.probability-table-badge.probability-low{
+  color:#f87171 !important;
+  border-color:rgba(248,113,113,0.4) !important;
+  background:rgba(248,113,113,0.10) !important;
+}
+
+.probability-table-badge{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-width:62px !important;
+  padding:6px 10px !important;
+  border-radius:999px !important;
+  font-size:12px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  border:1px solid rgba(255,255,255,0.14) !important;
+  background:rgba(255,255,255,0.06) !important;
+  white-space:nowrap !important;
+}
