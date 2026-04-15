@@ -351,6 +351,32 @@ function getBetTitleSizeClass(match){
   if(len >= 24) return " bet-title--small";
   return "";
 }
+function shortenTeamName(name){
+  let s = String(name || '').trim();
+  if(!s) return '';
+  s = s
+    .replace(/\bUnited\b/gi, 'Utd')
+    .replace(/\bCity\b/gi, 'City')
+    .replace(/\bFootball Club\b/gi, 'FC')
+    .replace(/\bDeportes\b/gi, 'Dep.')
+    .replace(/\bSporting Club\b/gi, 'SC')
+    .replace(/\bKnights\b/gi, 'Knts')
+    .replace(/\bSecond\b/gi, '2nd')
+    .replace(/\bWomen\b/gi, 'W')
+    .replace(/\bPrimera\b/gi, 'Prim.')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return s;
+}
+function shortenMatchForDisplay(match){
+  const raw = String(match || '').trim();
+  if(!raw) return '';
+  const parts = raw.split(/\s[-–]\s/);
+  if(parts.length >= 2){
+    return parts.map(shortenTeamName).join(' - ');
+  }
+  return shortenTeamName(raw);
+}
 function getBookiePillClass(name){
   const n = String(name || '').toLowerCase();
   if(n.includes('365')) return 'bookie-bet365';
@@ -1140,12 +1166,12 @@ async function loadBets(){
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
       <div class="bet-title-row">
-        <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
+        <h3 class="bet-title${getBetTitleSizeClass(shortenMatchForDisplay(row.match))}">${escapeHtml(shortenMatchForDisplay(row.match || ''))}</h3>
         <span class="bet-date">${escapeHtml(dateTimeLabel)}</span>
       </div>
       ${(!locked && (leagueName || kickoffLabel)) ? `<div class="bet-meta bet-league-row">${leagueName ? `<span class="bet-market bet-league">${escapeHtml(leagueName)}</span>` : ``}${kickoffLabel ? `<span class="bet-kickoff-inline">${escapeHtml(kickoffLabel)}</span>` : ``}</div>` : ``}
       <div class="bet-meta bet-meta--market-row">
-        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
+        ${locked ? `<span class="bet-market bet-market--locked"><span class="bet-market-icon">🔒</span><span class="bet-market-text">Hidden market</span></span>` : `<span class="bet-market"><span class="bet-market-icon">${getMarketIcon(row.market, getBetSport(row))}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
@@ -4159,74 +4185,3 @@ function toggleAboutBox(){
     setTimeout(applySafeTrackerNotes, 1200);
   });
 })();
-
-
-// ===== CLEAN WORKING INSTALL BUTTON =====
-(function(){
-  let deferredPrompt = null;
-  const installBtn = document.getElementById("installBtn");
-
-  function isStandalone(){
-    try{
-      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
-             window.navigator.standalone === true;
-    }catch(e){
-      return false;
-    }
-  }
-
-  function updateInstallBtn(){
-    if(!installBtn) return;
-    if(isStandalone()){
-      installBtn.style.display = "none";
-      return;
-    }
-    installBtn.style.display = deferredPrompt ? "inline-flex" : "none";
-    installBtn.textContent = "Install App";
-  }
-
-  async function ensureServiceWorker(){
-    if(!("serviceWorker" in navigator)) return;
-    try{
-      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-      await navigator.serviceWorker.ready;
-    }catch(e){
-      console.error("SW register failed", e);
-    }
-  }
-
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    updateInstallBtn();
-  });
-
-  window.addEventListener("appinstalled", () => {
-    deferredPrompt = null;
-    updateInstallBtn();
-  });
-
-  if(installBtn){
-    installBtn.addEventListener("click", async () => {
-      if(!deferredPrompt) return;
-      try{
-        await deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-      }catch(e){
-        console.error("Install prompt failed", e);
-      }finally{
-        deferredPrompt = null;
-        updateInstallBtn();
-      }
-    });
-  }
-
-  window.addEventListener("load", async () => {
-    await ensureServiceWorker();
-    updateInstallBtn();
-  });
-
-  document.addEventListener("visibilitychange", updateInstallBtn);
-  window.addEventListener("focus", updateInstallBtn);
-})();
-

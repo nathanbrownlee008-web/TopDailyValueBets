@@ -6625,122 +6625,100 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== CLEAN WORKING INSTALL BUTTON ===== */
-.top-controls{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-  margin:8px 0 18px;
-}
-.install-btn-cleanworking{
-  display:none;
-  align-items:center;
-  justify-content:center;
-  min-height:40px;
-  padding:8px 12px;
-  border:none;
-  border-radius:12px;
-  background:#16a34a;
-  color:#ffffff;
-  font-size:13px;
-  font-weight:800;
-  white-space:nowrap;
-  box-shadow:0 8px 18px rgba(0,0,0,.18);
-}
-.install-btn-cleanworking:active{
-  transform:translateY(1px);
-}
-@media (max-width:600px){
-  .install-btn-cleanworking{
-    min-height:38px;
-    padding:7px 11px;
-    font-size:12px;
-  }
-}
-.market-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  max-width: 100%;
-  padding: 6px 10px;
-
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.2;
-
-  font-size: 13px;
+/* ===== FINAL VALUE BETS TEAM + MARKET FIX ===== */
+#betsGrid .bet-title-row{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  align-items:start !important;
+  gap:12px !important;
 }
 
-.value-card {
-  overflow: hidden;
+#betsGrid .bet-title{
+  margin:0 !important;
+  padding-right:0 !important;
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:unset !important;
+  overflow-wrap:anywhere !important;
+  word-break:break-word !important;
+  line-height:1.12 !important;
 }
 
-.value-card * {
-  min-width: 0;
-}
-/* FIX market pills wrapping on mobile */
-.bet-market,
-.bet-market-inline{
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  max-width: 100% !important;
-  width: fit-content !important;
-  flex-wrap: nowrap !important;
-  overflow: hidden !important;
+#betsGrid .bet-date{
+  position:static !important;
+  top:auto !important;
+  right:auto !important;
+  margin-left:0 !important;
+  text-align:right !important;
+  white-space:nowrap !important;
+  flex:0 0 auto !important;
 }
 
-.bet-market-text{
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  word-break: break-word !important;
-  line-height: 1.15 !important;
-  display: block !important;
-  max-width: 100% !important;
+#betsGrid .bet-meta--market-row{
+  display:flex !important;
+  justify-content:flex-start !important;
+  align-items:center !important;
+  overflow:visible !important;
+  margin-top:8px !important;
 }
 
-.bet-card{
-  overflow: hidden !important;
+#betsGrid .bet-market,
+#betsGrid .bet-market-inline{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  width:max-content !important;
+  max-width:100% !important;
+  overflow:visible !important;
+  white-space:normal !important;
+  flex-wrap:nowrap !important;
 }
 
-.bet-card *{
-  min-width: 0 !important;
+#betsGrid .bet-market-icon{
+  flex:0 0 auto !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+#betsGrid .bet-market-text{
+  display:block !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:unset !important;
+  max-width:none !important;
+  min-width:0 !important;
 }
 
 @media (max-width: 600px){
-  .bet-market,
-  .bet-market-inline{
-    max-width: 78% !important;
-    padding: 8px 12px !important;
+  #betsGrid .bet-title-row{
+    grid-template-columns:minmax(0,1fr) auto !important;
+    gap:10px !important;
   }
 
-  .bet-market-text{
-    font-size: 13px !important;
+  #betsGrid .bet-title{
+    font-size:15px !important;
   }
-}
-/* let market pill size itself naturally */
-.bet-market,
-.bet-market-inline{
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  width: auto !important;
-  max-width: none !important;
-  flex-wrap: nowrap !important;
-  overflow: visible !important;
-}
 
-.bet-market-text{
-  white-space: nowrap !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-  max-width: none !important;
-}
+  #betsGrid .bet-title.bet-title--small{
+    font-size:14px !important;
+  }
 
-.bet-card{
-  overflow: hidden !important;
+  #betsGrid .bet-title.bet-title--tiny{
+    font-size:13px !important;
+  }
+
+  #betsGrid .bet-date{
+    font-size:12px !important;
+  }
+
+  #betsGrid .bet-market,
+  #betsGrid .bet-market-inline{
+    transform:none !important;
+    padding:9px 14px !important;
+  }
+
+  #betsGrid .bet-market-text{
+    font-size:14px !important;
+  }
 }
