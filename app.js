@@ -3445,7 +3445,6 @@ window.loadTdtTracker = async function(){
               <div class="tdt-month-title">${escapeHtml(__tdtMonthLabelSafe(group.key))}</div>
               <div class="tdt-month-sub">
                 ${group.rows.length} result${group.rows.length === 1 ? "" : "s"} •
-                <span class="${profitClass}">${profitSign}£${Math.abs(group.profit).toFixed(2)}</span>
               </div>
             </div>
             <div class="tdt-month-right">
