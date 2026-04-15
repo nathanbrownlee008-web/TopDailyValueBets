@@ -6722,3 +6722,78 @@ body.layout-wide .bets-table .table-market-text{
     font-size:14px !important;
   }
 }
+/* ===== FINAL VALUE BET CARD CLEAN FIX ===== */
+
+/* remove weird shine from the bookie pill */
+#betsGrid .bet-bookie::after{
+  content:none !important;
+  animation:none !important;
+  display:none !important;
+}
+
+/* stop the league row crashing into kickoff */
+#betsGrid .bet-meta{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  align-items:center !important;
+  gap:12px !important;
+}
+
+#betsGrid .bet-meta > *:first-child{
+  min-width:0 !important;
+}
+
+/* league pill can shrink nicely instead of smashing into kickoff */
+#betsGrid .bet-league,
+#betsGrid .bet-competition,
+#betsGrid .bet-meta .pill:first-child{
+  max-width:100% !important;
+  min-width:0 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+/* kickoff stays on the right */
+#betsGrid .bet-kickoff,
+#betsGrid .bet-meta > *:last-child{
+  white-space:nowrap !important;
+  text-align:right !important;
+  justify-self:end !important;
+}
+
+/* market pill back to normal size */
+#betsGrid .bet-market,
+#betsGrid .bet-market-inline{
+  width:auto !important;
+  max-width:none !important;
+  padding:6px 12px !important;
+  border-radius:999px !important;
+  transform:none !important;
+  box-shadow:none !important;
+}
+
+/* market text should show naturally */
+#betsGrid .bet-market-text{
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:unset !important;
+  font-size:13px !important;
+  line-height:1.1 !important;
+}
+
+/* mobile tighten */
+@media (max-width:600px){
+  #betsGrid .bet-meta{
+    gap:10px !important;
+  }
+
+  #betsGrid .bet-market,
+  #betsGrid .bet-market-inline{
+    padding:5px 10px !important;
+  }
+
+  #betsGrid .bet-market-text{
+    font-size:12px !important;
+  }
+}
