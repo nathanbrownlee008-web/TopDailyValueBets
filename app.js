@@ -1192,7 +1192,6 @@ async function loadBets(){
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td>${!locked && formatProbabilityLabel(row) ? `<span class="probability-table-badge ${getProbabilityClass(row)}">${escapeHtml(formatProbabilityLabel(row))}</span>` : '—'}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
@@ -4180,73 +4179,37 @@ function toggleAboutBox(){
 })();
 
 
-// ===== PWA INSTALL =====
-(function(){
-  const installBtn = document.getElementById("installBtn");
-  let deferredPrompt = null;
+// ===== INSTALL BUTTON RESTORE =====
+let deferredPrompt = null;
 
-  function isStandalone(){
-    try{
-      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    }catch(e){
-      return false;
-    }
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if(btn){
+    btn.style.display = 'inline-flex';
+    btn.disabled = false;
+    btn.textContent = 'Install App';
   }
+});
 
-  function showInstallBtn(){
-    if(!installBtn || isStandalone()) return;
-    installBtn.classList.remove("install-btn--hidden");
-  }
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('installBtn');
+  if(btn) btn.style.display = 'none';
+  deferredPrompt = null;
+});
 
-  function hideInstallBtn(){
-    if(!installBtn) return;
-    installBtn.classList.add("install-btn--hidden");
-  }
-
-  async function registerPwaServiceWorker(){
-    if(!("serviceWorker" in navigator)) return null;
-    try{
-      const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-      await navigator.serviceWorker.ready;
-      return reg;
-    }catch(err){
-      console.error("PWA service worker registration failed", err);
-      return null;
-    }
-  }
-
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    showInstallBtn();
-  });
-
-  window.addEventListener("appinstalled", () => {
-    deferredPrompt = null;
-    hideInstallBtn();
-  });
-
-  if(installBtn){
-    installBtn.addEventListener("click", async () => {
-      if(!deferredPrompt) return;
-      try{
-        await deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-      }catch(err){
-        console.error("Install prompt error", err);
-      }
-      deferredPrompt = null;
-      hideInstallBtn();
-    });
-  }
-
-  window.addEventListener("load", async () => {
-    if(isStandalone()){
-      hideInstallBtn();
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('installBtn');
+  if(!btn) return;
+  btn.addEventListener('click', async () => {
+    if(!deferredPrompt){
+      alert('Install is not ready yet. Refresh once, wait a few seconds, then try again.');
       return;
     }
-    await registerPwaServiceWorker();
-    // Button stays hidden until browser actually says install is available.
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    btn.style.display = 'none';
   });
-})();
-
+});
