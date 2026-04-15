@@ -6625,80 +6625,115 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== INSTALL BUTTON RESTORE ===== */
-#installBtn,
-.install-btn-cleanworking{
-  display:none;
+
+/* ===== PWA INSTALL BUTTON ===== */
+.top-controls{
+  display:flex;
   align-items:center;
   justify-content:center;
-  padding:10px 18px;
-  border-radius:16px;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:8px 0 18px;
+}
+.install-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 14px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(180deg,#22c55e,#16a34a);
+  color:#fff;
+  font-weight:900;
+  box-shadow:0 8px 20px rgba(22,163,74,.25);
+}
+.install-btn--hidden{
+  display:none !important;
+}
+@media (max-width:600px){
+  .install-btn{
+    padding:8px 12px;
+    font-size:13px;
+  }
 }
 
-/* ===== MOBILE PROBABILITY ABOVE ADD (CENTERED) ===== */
+
+/* ===== PROBABILITY BADGE REPOSITION ===== */
+
+/* make right slot stack probability above Add */
 #betsGrid .bet-footer-slot--right{
-  position:relative !important;
-  justify-self:end !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:flex-end !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
 }
 
-#betsGrid .bet-footer-slot--right .bet-btn{
-  position:relative !important;
-  z-index:2 !important;
-}
-
+/* probability on cards: right side above Add */
 #betsGrid .bet-probability{
-  position:absolute !important;
-  left:50% !important;
-  bottom:calc(100% + 10px) !important;
-  transform:translateX(-50%) !important;
+  position:static !important;
   display:inline-flex !important;
   align-items:center !important;
   justify-content:center !important;
-  min-width:66px !important;
-  height:30px !important;
-  padding:0 12px !important;
+  min-width:58px !important;
+  height:24px !important;
+  padding:0 8px !important;
   border-radius:999px !important;
-  font-size:13px !important;
+  font-size:11px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  box-sizing:border-box !important;
+  border:1px solid rgba(255,255,255,0.14) !important;
+  background:rgba(255,255,255,0.06) !important;
+  margin:0 !important;
+}
+
+#betsGrid .bet-probability.probability-high,
+.probability-table-badge.probability-high{
+  color:#22c55e !important;
+  border-color:rgba(34,197,94,0.4) !important;
+  background:rgba(34,197,94,0.10) !important;
+}
+
+#betsGrid .bet-probability.probability-mid,
+.probability-table-badge.probability-mid{
+  color:#facc15 !important;
+  border-color:rgba(250,204,21,0.4) !important;
+  background:rgba(250,204,21,0.10) !important;
+}
+
+#betsGrid .bet-probability.probability-low,
+.probability-table-badge.probability-low{
+  color:#f87171 !important;
+  border-color:rgba(248,113,113,0.4) !important;
+  background:rgba(248,113,113,0.10) !important;
+}
+
+/* desktop table badge */
+.probability-table-badge{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-width:62px !important;
+  padding:6px 10px !important;
+  border-radius:999px !important;
+  font-size:12px !important;
   font-weight:900 !important;
   line-height:1 !important;
   border:1px solid rgba(255,255,255,0.14) !important;
   background:rgba(255,255,255,0.06) !important;
   white-space:nowrap !important;
-  z-index:3 !important;
 }
 
-#betsGrid .bet-probability.probability-high{
-  color:#22c55e !important;
-  border-color:rgba(34,197,94,0.42) !important;
-  background:rgba(34,197,94,0.10) !important;
-}
-#betsGrid .bet-probability.probability-mid{
-  color:#facc15 !important;
-  border-color:rgba(250,204,21,0.42) !important;
-  background:rgba(250,204,21,0.10) !important;
-}
-#betsGrid .bet-probability.probability-low{
-  color:#f87171 !important;
-  border-color:rgba(248,113,113,0.42) !important;
-  background:rgba(248,113,113,0.10) !important;
-}
-
-/* keep Add where it was */
-#betsGrid .bet-footer{
-  align-items:end !important;
-}
-#betsGrid .bet-footer-slot--left,
-#betsGrid .bet-footer-slot--center,
-#betsGrid .bet-footer-slot--right{
-  align-self:end !important;
-}
-
+/* mobile tighten */
 @media (max-width: 600px){
+  #betsGrid .bet-footer-slot--right{
+    gap:6px !important;
+  }
   #betsGrid .bet-probability{
-    bottom:calc(100% + 8px) !important;
-    min-width:62px !important;
-    height:28px !important;
-    padding:0 10px !important;
-    font-size:12px !important;
+    min-width:54px !important;
+    height:22px !important;
+    padding:0 7px !important;
+    font-size:10px !important;
   }
 }
