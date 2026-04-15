@@ -7123,3 +7123,44 @@ body.layout-wide .bets-table .table-market-text{
   0% { left: -120%; }
   100% { left: 140%; }
 }
+/* ===== RESTORE INSTALL BUTTON + PILL SHIMMER ===== */
+
+#installBtn{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+#betsGrid .bet-league,
+#betsGrid .bet-market,
+#betsGrid .bet-market-inline{
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#betsGrid .bet-league::after,
+#betsGrid .bet-market::after,
+#betsGrid .bet-market-inline::after{
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -120% !important;
+  width: 55% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.20),
+    transparent
+  ) !important;
+  transform: skewX(-20deg) !important;
+  animation: pillShimmer 4s linear infinite !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+}
+
+@keyframes pillShimmer{
+  0% { left: -120%; }
+  100% { left: 140%; }
+}
