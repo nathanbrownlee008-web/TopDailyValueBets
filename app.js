@@ -4180,7 +4180,6 @@ function toggleAboutBox(){
 })();
 
 
-
 // ===== PWA INSTALL =====
 (function(){
   const installBtn = document.getElementById("installBtn");
@@ -4194,13 +4193,14 @@ function toggleAboutBox(){
     }
   }
 
-  function updateInstallBtn(){
-    if(!installBtn) return;
-    if(isStandalone()){
-      installBtn.classList.add("install-btn--hidden");
-      return;
-    }
+  function showInstallBtn(){
+    if(!installBtn || isStandalone()) return;
     installBtn.classList.remove("install-btn--hidden");
+  }
+
+  function hideInstallBtn(){
+    if(!installBtn) return;
+    installBtn.classList.add("install-btn--hidden");
   }
 
   async function registerPwaServiceWorker(){
@@ -4218,37 +4218,48 @@ function toggleAboutBox(){
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    updateInstallBtn();
+    showInstallBtn();
   });
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
-    updateInstallBtn();
+    hideInstallBtn();
   });
 
   if(installBtn){
     installBtn.addEventListener("click", async () => {
-      if(deferredPrompt){
-        try{
-          await deferredPrompt.prompt();
-          await deferredPrompt.userChoice;
-        }catch(err){
-          console.error("Install prompt error", err);
-        }
-        deferredPrompt = null;
-        updateInstallBtn();
+      if(!deferredPrompt){
+        alert("Tap the 3 dots in Chrome and choose Install app.");
         return;
       }
-
-      alert("Tap the 3 dots in Chrome and choose Install app.");
+      try{
+        await deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+      }catch(err){
+        console.error("Install prompt error", err);
+      }
+      deferredPrompt = null;
+      hideInstallBtn();
     });
   }
 
   window.addEventListener("load", async () => {
+    if(isStandalone()){
+      hideInstallBtn();
+      return;
+    }
     await registerPwaServiceWorker();
-    updateInstallBtn();
+    showInstallBtn();
   });
 
-  document.addEventListener("visibilitychange", updateInstallBtn);
-  window.addEventListener("focus", updateInstallBtn);
+  document.addEventListener("visibilitychange", () => {
+    if(isStandalone()) hideInstallBtn();
+    else showInstallBtn();
+  });
+
+  window.addEventListener("focus", () => {
+    if(isStandalone()) hideInstallBtn();
+    else showInstallBtn();
+  });
 })();
+
