@@ -6915,3 +6915,124 @@ body.layout-wide .bets-table .table-market-text{
     font-size:12px !important;
   }
 }
+/* ===== HARD RESET FOR VALUE BET CARD LAYOUT ===== */
+
+/* kill all shine */
+#betsGrid .bet-bookie::after,
+#betsGrid .bet-market::after,
+#betsGrid .bet-market-inline::after{
+  content:none !important;
+  display:none !important;
+  animation:none !important;
+}
+
+/* title + date */
+#betsGrid .bet-title-row{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  gap:12px !important;
+  align-items:start !important;
+}
+
+#betsGrid .bet-title{
+  margin:0 !important;
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:unset !important;
+  overflow-wrap:anywhere !important;
+  word-break:break-word !important;
+  line-height:1.1 !important;
+}
+
+#betsGrid .bet-date{
+  white-space:nowrap !important;
+  text-align:right !important;
+  justify-self:end !important;
+}
+
+/* league + kickoff row */
+#betsGrid .bet-league-row,
+#betsGrid .bet-meta{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  gap:12px !important;
+  align-items:center !important;
+}
+
+#betsGrid .bet-kickoff-inline,
+#betsGrid .bet-kickoff{
+  white-space:nowrap !important;
+  text-align:right !important;
+  justify-self:end !important;
+  margin-left:0 !important;
+}
+
+/* league pill can shrink cleanly */
+#betsGrid .bet-league,
+#betsGrid .bet-competition{
+  min-width:0 !important;
+  max-width:100% !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+/* market row stays on its own row, left aligned */
+#betsGrid .bet-meta--market-row{
+  display:flex !important;
+  justify-content:flex-start !important;
+  align-items:center !important;
+  margin-top:10px !important;
+  width:100% !important;
+}
+
+/* market pill back to normal size */
+#betsGrid .bet-market,
+#betsGrid .bet-market-inline{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  width:auto !important;
+  max-width:100% !important;
+  padding:6px 12px !important;
+  border-radius:999px !important;
+  background:rgba(255,255,255,0.08) !important;
+  border:1px solid rgba(255,255,255,0.18) !important;
+  box-shadow:none !important;
+  transform:none !important;
+  overflow:visible !important;
+}
+
+/* market text normal, no ellipsis */
+#betsGrid .bet-market-text{
+  color:#fff !important;
+  font-size:13px !important;
+  font-weight:700 !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:unset !important;
+  max-width:none !important;
+  line-height:1.1 !important;
+}
+
+#betsGrid .bet-card{
+  overflow:hidden !important;
+}
+
+@media (max-width:600px){
+  #betsGrid .bet-title{
+    font-size:15px !important;
+  }
+  #betsGrid .bet-date,
+  #betsGrid .bet-kickoff-inline,
+  #betsGrid .bet-kickoff{
+    font-size:12px !important;
+  }
+  #betsGrid .bet-market,
+  #betsGrid .bet-market-inline{
+    padding:5px 10px !important;
+  }
+  #betsGrid .bet-market-text{
+    font-size:12px !important;
+  }
+}
