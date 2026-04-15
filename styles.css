@@ -7111,3 +7111,9 @@ body.layout-wide .bets-table .table-market-text{
   background:rgba(255,255,255,0.06) !important;
   white-space:nowrap !important;
 }
+/* shorten market pill width */
+#betsGrid .bet-meta--market-row .bet-market{
+  flex: 0 1 auto !important;
+  width: auto !important;
+  max-width: 68% !important;
+}
