@@ -4185,3 +4185,42 @@ function toggleAboutBox(){
     setTimeout(applySafeTrackerNotes, 1200);
   });
 })();
+// ===== RESTORE INSTALL BUTTON =====
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const btn = document.getElementById('installBtn');
+  if (btn) {
+    btn.style.display = 'inline-flex';
+    btn.disabled = false;
+    btn.textContent = 'Install App';
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('installBtn');
+  if (btn) {
+    btn.style.display = 'none';
+  }
+  deferredPrompt = null;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('installBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    if (!deferredPrompt) {
+      alert('Install is not ready yet. Wait a few seconds, then try again.');
+      return;
+    }
+
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    btn.style.display = 'none';
+  });
+});
