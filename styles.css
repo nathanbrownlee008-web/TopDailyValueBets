@@ -6737,3 +6737,50 @@ body.layout-wide .bets-table .table-market-text{
     font-size:10px !important;
   }
 }
+
+
+/* ===== MOBILE ONLY FIX: probability above Add without pushing Add down ===== */
+.install-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.install-btn--hidden{
+  display:none !important;
+}
+
+@media (max-width: 949px){
+  #betsGrid .bet-footer--split{
+    grid-template-columns:auto auto auto !important;
+    align-items:end !important;
+  }
+
+  #betsGrid .bet-footer-slot--right{
+    position:relative !important;
+    display:flex !important;
+    justify-content:flex-end !important;
+    align-items:flex-end !important;
+    min-width:92px !important;
+    padding-top:34px !important;
+  }
+
+  #betsGrid .bet-footer-slot--right .bet-btn{
+    position:relative !important;
+    z-index:2 !important;
+    margin-top:0 !important;
+  }
+
+  #betsGrid .bet-footer-slot--right .bet-probability{
+    position:absolute !important;
+    left:50% !important;
+    transform:translateX(-50%) !important;
+    top:0 !important;
+    min-width:64px !important;
+    height:26px !important;
+    padding:0 10px !important;
+    font-size:12px !important;
+    line-height:1 !important;
+    z-index:1 !important;
+    margin:0 !important;
+  }
+}

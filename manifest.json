@@ -1,6 +1,6 @@
 {
   "name": "Top Daily Tips",
-  "short_name": "Daily Tips",
+  "short_name": "TDT",
   "id": "/",
   "start_url": "/",
   "scope": "/",
