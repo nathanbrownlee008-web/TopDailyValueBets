@@ -7,10 +7,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="styles.css?v=1774309616"/>
-<link rel="manifest" href="/manifest.json?v=9501"/>
-
+<!-- PWA manifest removed for now (Install App feature disabled) -->
 <meta name="theme-color" content="#0b1220"/>
-<link rel="apple-touch-icon" href="/icons/icon-192-cleanwork.png?v=9501"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
 
 <style>
 #vipModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.82);z-index:9999;padding:18px;}
@@ -59,7 +58,6 @@
     <button id="btnCompact" class="layout-btn">Compact</button>
     <button id="btnWide" class="layout-btn">Wide</button>
   </div>
-  <button id="installBtn" class="install-btn-cleanworking" type="button">Install App</button>
   <!-- Install App button removed for now -->
 </div>
 </header>
@@ -68,14 +66,14 @@
 
 <div class="card about-box">
   <div class="about-title" onclick="toggleAboutBox()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
-    Betting With TDT ( Top Daily Tips ) ✅
+    Betting With Value
     <span id="aboutArrow">▼</span>
   </div>
 
   <div id="aboutContent" style="display:none; margin-top:10px;">
-    ⚠️ This is not a tipster service built on guesswork or hype
+    ⚠️ These are not the typical “value bets” that quickly get accounts restricted or banned.
     <br><br>
-    We use data, performance tracking, and market analysis to uncover hidden value — targeting opportunities where the odds are in our favour long-term. pricing edges with deeper analysis across multiple factors for every bet.
+    We look to find value in smarter, more sustainable ways — combining pricing edges with deeper analysis across multiple factors for every bet.
     <br><br>
     We only post bets that we have already staked ourselves. You can track everything inside the <strong>TDT Tracker</strong>, while also using your own <strong>My Tracker</strong>.
     <br><br>
@@ -85,7 +83,7 @@
     <br><br>
     For long-term profitability, the best approach is to follow as <strong>singles</strong>. Accas are your choice, but come with higher risk.
     <br><br>
-    The goal is <strong>consistent, long-term profit</strong>, not short-term hype, the VIP preview box u see at the bottom is a Graph showing you How much we have made in total so far based on a example of £2.50 stakes for the people that bet very low stakes .. that way u have a clear idea of how well it can performcae even at low stakes .. if you stake higher stakes then as you know u would of made even more ! but stake wat you can afford at your own risk We Advise to bet Between 0.5% & 1% lowest, of your bankroll or no more then 2% Maximum ! ✅
+    The goal is <strong>consistent, long-term profit</strong>, not short-term hype.
   </div>
 </div>
 
@@ -145,6 +143,7 @@
         <th>Market</th>
         <th>Bookie</th>
         <th>Odds</th>
+        <th>Probability</th>
         <th>Value</th>
         <th></th>
       </tr>
