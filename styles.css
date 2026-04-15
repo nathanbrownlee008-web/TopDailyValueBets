@@ -7104,3 +7104,141 @@ button.install {
 .bet-market-inline:active {
   box-shadow: 0 0 10px rgba(0, 255, 150, 0.5) !important;
 }
+/* ===== EXACT OLD-STYLE LEAGUE + MARKET PILLS ===== */
+
+#betsGrid .bet-meta{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto !important;
+  align-items:center !important;
+  gap:12px !important;
+}
+
+#betsGrid .bet-league,
+#betsGrid .bet-competition{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:66% !important;
+  max-width:66% !important;
+  min-height:36px !important;
+  padding:0 16px !important;
+  border-radius:16px !important;
+  background:rgba(255,255,255,0.04) !important;
+  border:1px solid rgba(188,154,35,0.55) !important;
+  color:#dfe5ea !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  box-sizing:border-box !important;
+  position:relative !important;
+}
+
+#betsGrid .bet-kickoff,
+#betsGrid .bet-kickoff-inline{
+  white-space:nowrap !important;
+  text-align:right !important;
+  justify-self:end !important;
+}
+
+#betsGrid .bet-meta--market-row{
+  display:flex !important;
+  justify-content:flex-start !important;
+  align-items:center !important;
+  margin-top:10px !important;
+  width:100% !important;
+}
+
+#betsGrid .bet-market,
+#betsGrid .bet-market-inline{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:8px !important;
+  width:auto !important;
+  max-width:80% !important;
+  min-height:36px !important;
+  padding:0 16px !important;
+  border-radius:16px !important;
+  background:rgba(255,255,255,0.04) !important;
+  border:1px solid rgba(188,154,35,0.55) !important;
+  color:#eef2f6 !important;
+  box-sizing:border-box !important;
+  position:relative !important;
+  overflow:hidden !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+
+#betsGrid .bet-market-icon{
+  flex:0 0 auto !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-size:16px !important;
+}
+
+#betsGrid .bet-market-text{
+  display:block !important;
+  color:#eef2f6 !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  line-height:1.1 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  max-width:none !important;
+}
+
+/* subtle shine through both pills */
+#betsGrid .bet-league::after,
+#betsGrid .bet-competition::after,
+#betsGrid .bet-market::after,
+#betsGrid .bet-market-inline::after{
+  content:"" !important;
+  position:absolute !important;
+  top:0 !important;
+  left:-32% !important;
+  width:20% !important;
+  height:100% !important;
+  background:linear-gradient(
+    115deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.08) 44%,
+    rgba(255,255,255,0.18) 50%,
+    rgba(255,255,255,0.08) 56%,
+    rgba(255,255,255,0) 100%
+  ) !important;
+  transform:skewX(-20deg) !important;
+  animation:tdtPillShine 5.4s linear infinite !important;
+  pointer-events:none !important;
+}
+
+@keyframes tdtPillShine{
+  0%{ left:-32%; }
+  100%{ left:118%; }
+}
+
+@media (max-width:600px){
+  #betsGrid .bet-league,
+  #betsGrid .bet-competition{
+    width:64% !important;
+    max-width:64% !important;
+  }
+
+  #betsGrid .bet-market,
+  #betsGrid .bet-market-inline{
+    max-width:82% !important;
+  }
+}
+/* ===== SOFTER GREEN INSTALL BUTTON ===== */
+
+#installBtn,
+.install-btn,
+.install-btn-cleanworking{
+  background: linear-gradient(135deg, #009e4f, #00c865) !important; /* darker green */
+  border: 1px solid rgba(0,200,100,0.5) !important;
+  box-shadow: 0 0 8px rgba(0,200,100,0.25) !important;
+}
