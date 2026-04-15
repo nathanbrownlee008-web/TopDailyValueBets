@@ -351,32 +351,6 @@ function getBetTitleSizeClass(match){
   if(len >= 24) return " bet-title--small";
   return "";
 }
-function shortenTeamName(name){
-  let s = String(name || '').trim();
-  if(!s) return '';
-  s = s
-    .replace(/\bUnited\b/gi, 'Utd')
-    .replace(/\bCity\b/gi, 'City')
-    .replace(/\bFootball Club\b/gi, 'FC')
-    .replace(/\bDeportes\b/gi, 'Dep.')
-    .replace(/\bSporting Club\b/gi, 'SC')
-    .replace(/\bKnights\b/gi, 'Knts')
-    .replace(/\bSecond\b/gi, '2nd')
-    .replace(/\bWomen\b/gi, 'W')
-    .replace(/\bPrimera\b/gi, 'Prim.')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return s;
-}
-function shortenMatchForDisplay(match){
-  const raw = String(match || '').trim();
-  if(!raw) return '';
-  const parts = raw.split(/\s[-–]\s/);
-  if(parts.length >= 2){
-    return parts.map(shortenTeamName).join(' - ');
-  }
-  return shortenTeamName(raw);
-}
 function getRowProbability(row){
   const raw = row?.probability_pct ?? row?.probability ?? row?.prob ?? row?.true_probability ?? null;
   const n = Number(raw);
@@ -1183,13 +1157,12 @@ async function loadBets(){
   <div class="card bet-card ${row.high_value ? 'bet-card--hv' : ''} ${locked ? 'bet-card--locked' : ''}">
     <div class="bet-teaser">
       <div class="bet-title-row">
-        <h3 class="bet-title${getBetTitleSizeClass(shortenMatchForDisplay(row.match))}">${escapeHtml(shortenMatchForDisplay(row.match || ''))}</h3>
-        ${!locked && formatProbabilityLabel(row) ? `<span class="bet-probability ${getProbabilityClass(row)}">${escapeHtml(formatProbabilityLabel(row))}</span>` : ``}
+        <h3 class="bet-title${getBetTitleSizeClass(row.match)}">${escapeHtml(row.match || '')}</h3>
         <span class="bet-date">${escapeHtml(dateTimeLabel)}</span>
       </div>
       ${(!locked && (leagueName || kickoffLabel)) ? `<div class="bet-meta bet-league-row">${leagueName ? `<span class="bet-market bet-league">${escapeHtml(leagueName)}</span>` : ``}${kickoffLabel ? `<span class="bet-kickoff-inline">${escapeHtml(kickoffLabel)}</span>` : ``}</div>` : ``}
       <div class="bet-meta bet-meta--market-row">
-        ${locked ? `<span class="bet-market bet-market--locked"><span class="bet-market-icon">🔒</span><span class="bet-market-text">Hidden market</span></span>` : `<span class="bet-market"><span class="bet-market-icon">${getMarketIcon(row.market, getBetSport(row))}</span><span class="bet-market-text">${escapeHtml(row.market || '')}</span></span>`}
+        ${locked ? `<span class="bet-market bet-market--locked">🔒 Hidden market</span>` : `<span class="bet-market">${getMarketIcon(row.market, getBetSport(row))} ${escapeHtml(row.market || '')}</span>`}
       </div>
       ${locked ? `<div class="vip-teaser-line">${escapeHtml(teaser)}</div><div class="vip-teaser-subline">${escapeHtml(unlockLabel)}</div>` : ``}
     </div>
@@ -1202,6 +1175,7 @@ async function loadBets(){
           ${!locked ? `<div class="odds-pill">Odds ${escapeHtml(String(row.odds ?? ''))}</div>` : ``}
         </div>
         <div class="bet-footer-slot bet-footer-slot--right">
+          ${!locked && formatProbabilityLabel(row) ? `<span class="bet-probability ${getProbabilityClass(row)}">${escapeHtml(formatProbabilityLabel(row))}</span>` : ``}
           <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </div>
       </div>
@@ -1218,6 +1192,7 @@ async function loadBets(){
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
+        <td>${!locked && formatProbabilityLabel(row) ? `<span class="probability-table-badge ${getProbabilityClass(row)}">${escapeHtml(formatProbabilityLabel(row))}</span>` : '—'}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
@@ -4203,3 +4178,75 @@ function toggleAboutBox(){
     setTimeout(applySafeTrackerNotes, 1200);
   });
 })();
+
+
+// ===== PWA INSTALL =====
+(function(){
+  const installBtn = document.getElementById("installBtn");
+  let deferredPrompt = null;
+
+  function isStandalone(){
+    try{
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function showInstallBtn(){
+    if(!installBtn || isStandalone()) return;
+    installBtn.classList.remove("install-btn--hidden");
+  }
+
+  function hideInstallBtn(){
+    if(!installBtn) return;
+    installBtn.classList.add("install-btn--hidden");
+  }
+
+  async function registerPwaServiceWorker(){
+    if(!("serviceWorker" in navigator)) return null;
+    try{
+      const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await navigator.serviceWorker.ready;
+      return reg;
+    }catch(err){
+      console.error("PWA service worker registration failed", err);
+      return null;
+    }
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallBtn();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    hideInstallBtn();
+  });
+
+  if(installBtn){
+    installBtn.addEventListener("click", async () => {
+      if(!deferredPrompt) return;
+      try{
+        await deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+      }catch(err){
+        console.error("Install prompt error", err);
+      }
+      deferredPrompt = null;
+      hideInstallBtn();
+    });
+  }
+
+  window.addEventListener("load", async () => {
+    if(isStandalone()){
+      hideInstallBtn();
+      return;
+    }
+    await registerPwaServiceWorker();
+    // Button stays hidden until browser actually says install is available.
+  });
+})();
+
