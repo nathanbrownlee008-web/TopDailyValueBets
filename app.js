@@ -351,23 +351,6 @@ function getBetTitleSizeClass(match){
   if(len >= 24) return " bet-title--small";
   return "";
 }
-function getRowProbability(row){
-  const raw = row?.probability_pct ?? row?.probability ?? row?.prob ?? row?.true_probability ?? null;
-  const n = Number(raw);
-  if(!Number.isFinite(n)) return null;
-  return Math.round(n * 10) / 10;
-}
-function formatProbabilityLabel(row){
-  const p = getRowProbability(row);
-  return p == null ? '' : `${p}%`;
-}
-function getProbabilityClass(row){
-  const p = getRowProbability(row);
-  if(p == null) return '';
-  if(p >= 65) return 'probability-high';
-  if(p >= 55) return 'probability-mid';
-  return 'probability-low';
-}
 function getBookiePillClass(name){
   const n = String(name || '').toLowerCase();
   if(n.includes('365')) return 'bookie-bet365';
@@ -650,7 +633,7 @@ function applyLayout(mode){
   if(btnWide) btnWide.addEventListener("click", ()=>applyLayout("wide"));
 })();
 
-// (Install App / PWA install button removed for now)
+// Install button restored
 
 const bankrollElem=document.getElementById("bankroll");
 const profitElem=document.getElementById("profit");
@@ -1175,7 +1158,6 @@ async function loadBets(){
           ${!locked ? `<div class="odds-pill">Odds ${escapeHtml(String(row.odds ?? ''))}</div>` : ``}
         </div>
         <div class="bet-footer-slot bet-footer-slot--right">
-          ${!locked && formatProbabilityLabel(row) ? `<span class="bet-probability ${getProbabilityClass(row)}">${escapeHtml(formatProbabilityLabel(row))}</span>` : ``}
           <button class="bet-btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </div>
       </div>
@@ -1192,7 +1174,6 @@ async function loadBets(){
         <td>${locked ? '<span class="table-lock-copy">Hidden for VIP</span>' : `<div class="table-market-wrap"><div class="table-market-line table-market-pill"><span class="table-market-icon">${escapeHtml(getMarketIcon(row.market||'', getBetSport(row)))}</span><span class="table-market-text">${escapeHtml(row.market||'')}</span></div></div>`}</td>
         <td>${locked ? '—' : `<span class="table-bookie-pill">${escapeHtml(row.bookie||'—')}</span>`}</td>
         <td><span class="pill">${escapeHtml(String(row.odds??''))}</span></td>
-        <td>${!locked && formatProbabilityLabel(row) ? `<span class="probability-table-badge ${getProbabilityClass(row)}">${escapeHtml(formatProbabilityLabel(row))}</span>` : '—'}</td>
         <td>
           <button class="btn ${isAdded ? 'added' : ''}" ${(isAdded || locked) ? 'disabled' : ''} ${locked ? '' : `onclick='addToTracker(this, ${JSON.stringify(row)})'`}>${locked ? '🔒 VIP' : (isAdded ? 'Added' : 'Add')}</button>
         </td>
@@ -4180,86 +4161,72 @@ function toggleAboutBox(){
 })();
 
 
-// ===== PWA INSTALL =====
+// ===== CLEAN WORKING INSTALL BUTTON =====
 (function(){
-  const installBtn = document.getElementById("installBtn");
   let deferredPrompt = null;
+  const installBtn = document.getElementById("installBtn");
 
   function isStandalone(){
     try{
-      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+             window.navigator.standalone === true;
     }catch(e){
       return false;
     }
   }
 
-  function showInstallBtn(){
-    if(!installBtn || isStandalone()) return;
-    installBtn.classList.remove("install-btn--hidden");
-  }
-
-  function hideInstallBtn(){
+  function updateInstallBtn(){
     if(!installBtn) return;
-    installBtn.classList.add("install-btn--hidden");
+    if(isStandalone()){
+      installBtn.style.display = "none";
+      return;
+    }
+    installBtn.style.display = deferredPrompt ? "inline-flex" : "none";
+    installBtn.textContent = "Install App";
   }
 
-  async function registerPwaServiceWorker(){
-    if(!("serviceWorker" in navigator)) return null;
+  async function ensureServiceWorker(){
+    if(!("serviceWorker" in navigator)) return;
     try{
-      const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
       await navigator.serviceWorker.ready;
-      return reg;
-    }catch(err){
-      console.error("PWA service worker registration failed", err);
-      return null;
+    }catch(e){
+      console.error("SW register failed", e);
     }
   }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    showInstallBtn();
+    updateInstallBtn();
   });
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
-    hideInstallBtn();
+    updateInstallBtn();
   });
 
   if(installBtn){
     installBtn.addEventListener("click", async () => {
-      if(!deferredPrompt){
-        alert("Tap the 3 dots in Chrome and choose Install app.");
-        return;
-      }
+      if(!deferredPrompt) return;
       try{
         await deferredPrompt.prompt();
         await deferredPrompt.userChoice;
-      }catch(err){
-        console.error("Install prompt error", err);
+      }catch(e){
+        console.error("Install prompt failed", e);
+      }finally{
+        deferredPrompt = null;
+        updateInstallBtn();
       }
-      deferredPrompt = null;
-      hideInstallBtn();
     });
   }
 
   window.addEventListener("load", async () => {
-    if(isStandalone()){
-      hideInstallBtn();
-      return;
-    }
-    await registerPwaServiceWorker();
-    showInstallBtn();
+    await ensureServiceWorker();
+    updateInstallBtn();
   });
 
-  document.addEventListener("visibilitychange", () => {
-    if(isStandalone()) hideInstallBtn();
-    else showInstallBtn();
-  });
-
-  window.addEventListener("focus", () => {
-    if(isStandalone()) hideInstallBtn();
-    else showInstallBtn();
-  });
+  document.addEventListener("visibilitychange", updateInstallBtn);
+  window.addEventListener("focus", updateInstallBtn);
 })();
 
