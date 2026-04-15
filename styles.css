@@ -7036,3 +7036,71 @@ body.layout-wide .bets-table .table-market-text{
     font-size:12px !important;
   }
 }
+/* ===== INSTALL BUTTON → GREEN PILL ===== */
+
+#installBtn,
+.install-btn,
+button[aria-label*="Install"],
+button[onclick*="install"],
+button.install {
+  background: linear-gradient(135deg, #00c853, #00e676) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(0,255,150,0.4) !important;
+  border-radius: 999px !important;
+  padding: 10px 18px !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  box-shadow: 0 0 12px rgba(0, 255, 150, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* hover / tap effect */
+#installBtn:active,
+.install-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 0 6px rgba(0,255,150,0.4) !important;
+}
+
+/* optional glow pulse */
+#installBtn::after,
+.install-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  box-shadow: 0 0 20px rgba(0,255,150,0.3);
+  opacity: 0;
+  animation: installGlow 2.5s infinite;
+}
+
+@keyframes installGlow {
+  0% { opacity: 0; }
+  50% { opacity: 0.4; }
+  100% { opacity: 0; }
+}
+/* ===== MARKET + LEAGUE GOLD / GREEN OUTLINE ===== */
+
+/* LEAGUE PILL */
+.bet-league,
+.bet-competition {
+  border: 1.5px solid rgba(255, 215, 0, 0.6) !important; /* gold */
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.25) !important;
+}
+
+/* MARKET PILL */
+.bet-market,
+.bet-market-inline {
+  border: 1.5px solid rgba(0, 255, 150, 0.6) !important; /* green */
+  box-shadow: 0 0 6px rgba(0, 255, 150, 0.25) !important;
+}
+
+/* OPTIONAL: subtle hover glow */
+.bet-league:active,
+.bet-competition:active {
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5) !important;
+}
+
+.bet-market:active,
+.bet-market-inline:active {
+  box-shadow: 0 0 10px rgba(0, 255, 150, 0.5) !important;
+}
