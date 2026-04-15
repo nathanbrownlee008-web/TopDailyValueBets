@@ -7036,3 +7036,59 @@ body.layout-wide .bets-table .table-market-text{
     font-size:12px !important;
   }
 }
+/* ===== RESTORE CLEAN PILL STYLING (NO BREAKS) ===== */
+
+/* LEAGUE PILL */
+#betsGrid .bet-league,
+#betsGrid .bet-competition{
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,215,0,0.25) !important;
+  color: #ddd !important;
+  border-radius: 999px !important;
+  padding: 6px 12px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* MARKET PILL (main one) */
+#betsGrid .bet-market,
+#betsGrid .bet-market-inline{
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,215,0,0.35) !important;
+  border-radius: 999px !important;
+  padding: 6px 12px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* TEXT */
+#betsGrid .bet-market-text{
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+
+/* ===== SUBTLE SHIMMER (CONTROLLED) ===== */
+
+#betsGrid .bet-league::after,
+#betsGrid .bet-market::after,
+#betsGrid .bet-market-inline::after{
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.15),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: betShimmer 4s infinite;
+}
+
+@keyframes betShimmer{
+  0% { left: -120%; }
+  100% { left: 140%; }
+}
