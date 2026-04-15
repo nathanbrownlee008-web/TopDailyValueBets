@@ -6712,7 +6712,7 @@ body.layout-wide .bets-table .table-market-text{
   gap: 8px !important;
   min-height: 44px !important;
   padding: 0 18px !important;
-  border-radius: 999px !important;
+  border-radius: 14px !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
   background: rgba(255,255,255,0.04) !important;
