@@ -7036,3 +7036,12 @@ body.layout-wide .bets-table .table-market-text{
     font-size:12px !important;
   }
 }
+/* ===== SOFTER GREEN INSTALL BUTTON ===== */
+
+#installBtn,
+.install-btn,
+.install-btn-cleanworking{
+  background: linear-gradient(135deg, #009e4f, #00c865) !important; /* darker green */
+  border: 1px solid rgba(0,200,100,0.5) !important;
+  box-shadow: 0 0 8px rgba(0,200,100,0.25) !important;
+}
