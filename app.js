@@ -1,20 +1,4 @@
 
-const TDT_FIXED_STAKE = 2.5;
-
-function getTdtDisplayStake(){
-  return TDT_FIXED_STAKE;
-}
-
-function getTdtDisplayProfit(row){
-  const result = String(row?.result || "pending").toLowerCase();
-  const odds = Number(row?.odds || 0);
-  const stake = getTdtDisplayStake();
-  if(result === "won") return stake * (odds - 1);
-  if(result === "lost") return -stake;
-  return 0;
-}
-
-
 const SUPABASE_URL="https://krmmmutcejnzdfupexpv.supabase.co";
 const SUPABASE_KEY="sb_publishable_3NHjMMVw1lai9UNAA-0QZA_sKM21LgD";
 const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -446,10 +430,10 @@ async function upsertTdtMirror(row){
     match: row.match || "",
     market: row.market || "",
     odds: Number(row.odds || 0),
-    stake: getTdtDisplayStake(),
+    stake: Number(row.stake || 0),
     result: row.result || "pending",
-    profit: row.result === "won" ? getTdtDisplayStake() * (Number(row.odds || 0) - 1)
-           : row.result === "lost" ? -getTdtDisplayStake()
+    profit: row.result === "won" ? Number(row.stake || 0) * (Number(row.odds || 0) - 1)
+           : row.result === "lost" ? -Number(row.stake || 0)
            : 0,
     bet_date: row.bet_date || null,
     created_at: row.created_at || new Date().toISOString(),
@@ -1648,7 +1632,7 @@ function renderVipPromoChart(rows){
 
   safeRows.slice(-200).forEach((row)=>{
     running += rowProfit({
-      stake: getTdtDisplayStake(),
+      stake: Number(row.stake || 0),
       odds: Number(row.odds || 0),
       result: row.result || 'pending'
     });
@@ -1697,9 +1681,9 @@ async function loadVipPromoProof(){
       const result = row.result || 'pending';
       if(result === 'won') wins += 1;
       if(result === 'lost') losses += 1;
-      stake += getTdtDisplayStake();
+      stake += Number(row.stake || 0);
       profit += rowProfit({
-        stake: getTdtDisplayStake(),
+        stake: Number(row.stake || 0),
         odds: Number(row.odds || 0),
         result
       });
@@ -2197,7 +2181,7 @@ async function loadTdtTracker(){
       if(result !== 'pending') resolvedCount++;
       profit += p;
       if(result !== 'pending'){
-        totalStake += getTdtDisplayStake();
+        totalStake += Number(row.stake || 0);
         totalOdds += Number(row.odds || 0);
       }
     });
@@ -2279,7 +2263,7 @@ async function loadTdtTracker(){
           <tr class="tdt-row ${result}">
             <td class="tdt-match"><span class="tracker-sport-icon">${_getSportIconHTML(row)}</span>${escapeHtml(row.match || '')}</td>
             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
-            <td class="tdt-stake">£${getTdtDisplayStake().toFixed(2)}</td>
+            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
             <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
           </tr>
@@ -3332,11 +3316,11 @@ window.loadTdtTracker = async function(){
         result === "won"
           ? (row.profit != null
               ? Number(row.profit)
-              : getTdtDisplayStake() * (Number(row.odds || 0) - 1))
+              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
           : result === "lost"
           ? (row.profit != null
               ? Number(row.profit)
-              : -getTdtDisplayStake())
+              : -Number(row.stake || 0))
           : 0;
 
       profit += p;
@@ -3346,7 +3330,7 @@ window.loadTdtTracker = async function(){
 
       if(result !== "pending"){
         resolvedCount++;
-        totalStake += getTdtDisplayStake();
+        totalStake += Number(row.stake || 0);
         totalOdds += Number(row.odds || 0);
       }
     });
@@ -3368,11 +3352,11 @@ window.loadTdtTracker = async function(){
         result === "won"
           ? (row.profit != null
               ? Number(row.profit)
-              : getTdtDisplayStake() * (Number(row.odds || 0) - 1))
+              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
           : result === "lost"
           ? (row.profit != null
               ? Number(row.profit)
-              : -getTdtDisplayStake())
+              : -Number(row.stake || 0))
           : 0;
 
       if(!monthMap.has(monthKey)){
@@ -3547,7 +3531,7 @@ window.loadTdtTracker = async function(){
                           <tr class="tdt-row ${result}">
                             <td class="tdt-match">${escapeHtml(row.match || '')}</td>
                             <td class="tdt-market">${escapeHtml(row.market || '')}</td>
-                            <td class="tdt-stake">£${getTdtDisplayStake().toFixed(2)}</td>
+                            <td class="tdt-stake">£${Number(row.stake || 0).toFixed(2)}</td>
                             <td class="tdt-odds">${row.odds != null && row.odds !== '' ? escapeHtml(String(row.odds)) : '-'}</td>
                             <td class="tdt-result"><span class="tdt-result-icon ${result}">${resultIcon}</span></td>
                           </tr>
@@ -3653,7 +3637,7 @@ window.forgotVipPassword = forgotVipPassword;
   }
 
   function trackerProfit(row){
-    const stake = getTdtDisplayStake();
+    const stake = Number(row.stake || 0);
     const odds = Number(row.odds || 0);
     const res = row.result || "pending";
     if(res === "won") return row.profit != null ? Number(row.profit) : stake * (odds - 1);
@@ -3821,7 +3805,7 @@ window.forgotVipPassword = forgotVipPassword;
                     <span>Stake</span>
                     <input 
                       type="number" 
-                      value="${getTdtDisplayStake()}" 
+                      value="${Number(row.stake || 0)}" 
                       onchange="updateStake('${trackerEsc(row.id)}', this.value)">
                   </div>
                 </div>
@@ -3945,7 +3929,7 @@ window.forgotVipPassword = forgotVipPassword;
                   ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${trackerEsc(formatKickoffLabel(row))}</div>` : ``}
                 </td>
                 <td class="tracker-desktop-market">${trackerEsc(getMarketIcon(row.market, getBetSport(row)))}&nbsp;${trackerEsc(row.market || '—')}</td>
-                <td><input type="number" value="${getTdtDisplayStake()}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
+                <td><input type="number" value="${Number(row.stake || 0)}" onchange="updateStake('${trackerEsc(row.id)}',this.value)"></td>
                 <td><input type="number" step="0.01" value="${Number(row.odds ?? 0)}" onchange="updateOdds('${trackerEsc(row.id)}',this.value)"></td>
                 <td><select class="result-select result-${trackerEsc(row.result || 'pending')}" onchange="updateResult('${trackerEsc(row.id)}',this.value)"><option value="pending" ${(row.result==='pending'?'selected':'')}>pending</option><option value="won" ${(row.result==='won'?'selected':'')}>won</option><option value="lost" ${(row.result==='lost'?'selected':'')}>lost</option><option value="delete">🗑 delete</option></select></td>
                 <td class="profit-col"><span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${Number(p || 0).toFixed(2)}</span></td>
@@ -4160,7 +4144,7 @@ function toggleAboutBox(){
         if(!note){
           note = document.createElement('div');
           note.className = 'roi-subnote';
-          note.textContent = 'Based on £2.50 Stakes';
+          note.textContent = 'Based on £ staked';
           roiCard.appendChild(note);
         }
       }
@@ -4177,7 +4161,7 @@ function toggleAboutBox(){
             if(!note){
               note = document.createElement('div');
               note.className = 'roi-subnote';
-              note.textContent = 'Based on £2.50 Stakes';
+              note.textContent = 'Based on £ staked';
               roiLabel.parentElement.appendChild(note);
             }
           }
