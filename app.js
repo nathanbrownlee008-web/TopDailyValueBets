@@ -673,6 +673,7 @@ const valueFilterSportEl = document.getElementById("valueFilterSport");
 const valueFilterLeagueEl = document.getElementById("valueFilterLeague");
 const valueFilterMarketEl = document.getElementById("valueFilterMarket");
 const valueFilterBookieEl = document.getElementById("valueFilterBookie");
+const valueFilterSortEl = document.getElementById("valueFilterSort");
 const valueFiltersClearEl = document.getElementById("valueFiltersClear");
 const valueFiltersToggleEl = document.getElementById("valueFiltersToggle");
 const valueFiltersContentEl = document.getElementById("valueFiltersContent");
@@ -772,7 +773,8 @@ function getValueFilterState(){
     sport: normalizeFilterText(valueFilterSportEl?.value || ''),
     league: normalizeFilterText(valueFilterLeagueEl?.value || ''),
     market: normalizeFilterText(valueFilterMarketEl?.value || ''),
-    bookie: normalizeFilterText(valueFilterBookieEl?.value || '')
+    bookie: normalizeFilterText(valueFilterBookieEl?.value || ''),
+    sort: String(valueFilterSortEl?.value || '').trim()
   };
 }
 function uniqueSortedFilterValues(rows, getter){
@@ -809,6 +811,7 @@ function buildValueFiltersSummary(){
   if(state.league) parts.push(valueFilterLeagueEl?.value || '');
   if(state.market) parts.push(valueFilterMarketEl?.value || '');
   if(state.bookie) parts.push(valueFilterBookieEl?.value || '');
+  if(state.sort) parts.push(valueFilterSortEl?.selectedOptions?.[0]?.textContent || 'Sorted');
   return parts.length ? parts.join(' • ') : 'All bets';
 }
 function setValueFiltersOpen(open){
@@ -821,7 +824,7 @@ function setValueFiltersOpen(open){
   if(valueFiltersArrowEl) valueFiltersArrowEl.textContent = valueFiltersOpen ? '▲' : '▼';
 }
 function syncValueFilterActiveStates(){
-  [valueFilterSearchEl, valueFilterSportEl, valueFilterLeagueEl, valueFilterMarketEl, valueFilterBookieEl].forEach(el=>{
+  [valueFilterSearchEl, valueFilterSportEl, valueFilterLeagueEl, valueFilterMarketEl, valueFilterBookieEl, valueFilterSortEl].forEach(el=>{
     if(!el) return;
     const hasValue = String(el.value || '').trim() !== '';
     el.classList.toggle('is-active-filter', hasValue);
@@ -860,6 +863,37 @@ function applyValueBetFilters(rows){
     return true;
   });
 }
+
+function sortValueBetRows(rows){
+  const state = getValueFilterState();
+  const list = (rows || []).slice();
+
+  const timeAsc = (a, b) => {
+    const aDate = normalizeDateOnly(a?.bet_date || a?.created_at) || '9999-99-99';
+    const bDate = normalizeDateOnly(b?.bet_date || b?.created_at) || '9999-99-99';
+    if(aDate !== bDate) return aDate.localeCompare(bDate);
+    const aKick = kickoffSortValue(a);
+    const bKick = kickoffSortValue(b);
+    if(aKick !== bKick) return aKick.localeCompare(bKick);
+    return String(a?.match || '').localeCompare(String(b?.match || ''), undefined, { sensitivity:'base' });
+  };
+
+  switch(state.sort){
+    case 'time_desc':
+      return list.sort((a,b)=>timeAsc(b,a));
+    case 'prob_desc':
+      return list.sort((a,b)=>(getRowProbability(b) ?? -999) - (getRowProbability(a) ?? -999));
+    case 'prob_asc':
+      return list.sort((a,b)=>(getRowProbability(a) ?? 999) - (getRowProbability(b) ?? 999));
+    case 'odds_desc':
+      return list.sort((a,b)=>Number(b?.odds || 0) - Number(a?.odds || 0));
+    case 'odds_asc':
+      return list.sort((a,b)=>Number(a?.odds || 0) - Number(b?.odds || 0));
+    default:
+      return list.sort(timeAsc);
+  }
+}
+
 function wireValueBetFilters(){
   if(valueFiltersWired) return;
   valueFiltersWired = true;
@@ -870,6 +904,7 @@ function wireValueBetFilters(){
   if(valueFilterLeagueEl) valueFilterLeagueEl.addEventListener('change', rerender);
   if(valueFilterMarketEl) valueFilterMarketEl.addEventListener('change', rerender);
   if(valueFilterBookieEl) valueFilterBookieEl.addEventListener('change', rerender);
+  if(valueFilterSortEl) valueFilterSortEl.addEventListener('change', rerender);
   if(valueFiltersClearEl){
     valueFiltersClearEl.addEventListener('click', ()=>{
       if(valueFilterSearchEl) valueFilterSearchEl.value = '';
@@ -877,6 +912,7 @@ function wireValueBetFilters(){
       if(valueFilterLeagueEl) valueFilterLeagueEl.value = '';
       if(valueFilterMarketEl) valueFilterMarketEl.value = '';
       if(valueFilterBookieEl) valueFilterBookieEl.value = '';
+      if(valueFilterSortEl) valueFilterSortEl.value = '';
       syncValueFiltersUi();
       loadBets();
     });
@@ -1127,7 +1163,7 @@ async function loadBets(){
     return;
   }
 
-  const filtered = applyValueBetFilters(active);
+  const filtered = sortValueBetRows(applyValueBetFilters(active));
   if(!filtered.length){
     betsGrid.innerHTML = `<div class="card">No bets match those filters.</div>`;
     if(betsTbody) betsTbody.innerHTML = "";

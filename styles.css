@@ -7111,3 +7111,33 @@ body.layout-wide .bets-table .table-market-text{
   background:rgba(255,255,255,0.06) !important;
   white-space:nowrap !important;
 }
+
+
+/* ===== CLEAN VALUE BET SORT FILTER + TRACKER MARKET WRAP FIX ===== */
+#valueFilterSort.is-active-filter{
+  border-color: rgba(34,197,94,0.45) !important;
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.10);
+}
+
+/* Allow tracker result market text to wrap instead of cutting off */
+.tracker-grid-market-slot{
+  align-self: stretch !important;
+}
+
+.tracker-grid-market-inline{
+  height: auto !important;
+  min-height: 40px !important;
+  padding: 8px 12px !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  line-height: 1.15 !important;
+}
+
+@media (max-width:700px){
+  .tracker-grid-market-inline{
+    min-height: 38px !important;
+    padding: 8px 10px !important;
+  }
+}
