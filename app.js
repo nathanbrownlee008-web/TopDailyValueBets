@@ -4144,7 +4144,7 @@ function toggleAboutBox(){
         if(!note){
           note = document.createElement('div');
           note.className = 'roi-subnote';
-          note.textContent = '👉 Based on £2.50 stakes';
+          note.textContent = 'ROI based on £2.50 stakes';
           roiCard.appendChild(note);
         }
       }
@@ -4161,7 +4161,7 @@ function toggleAboutBox(){
             if(!note){
               note = document.createElement('div');
               note.className = 'roi-subnote';
-              note.textContent = 'Based on £ staked';
+              note.textContent = 'ROI based on £2.50 stakes';
               roiLabel.parentElement.appendChild(note);
             }
           }
