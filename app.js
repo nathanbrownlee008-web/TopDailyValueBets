@@ -673,7 +673,6 @@ const valueFilterSportEl = document.getElementById("valueFilterSport");
 const valueFilterLeagueEl = document.getElementById("valueFilterLeague");
 const valueFilterMarketEl = document.getElementById("valueFilterMarket");
 const valueFilterBookieEl = document.getElementById("valueFilterBookie");
-const valueFilterSortEl = document.getElementById("valueFilterSort");
 const valueFiltersClearEl = document.getElementById("valueFiltersClear");
 const valueFiltersToggleEl = document.getElementById("valueFiltersToggle");
 const valueFiltersContentEl = document.getElementById("valueFiltersContent");
@@ -773,8 +772,7 @@ function getValueFilterState(){
     sport: normalizeFilterText(valueFilterSportEl?.value || ''),
     league: normalizeFilterText(valueFilterLeagueEl?.value || ''),
     market: normalizeFilterText(valueFilterMarketEl?.value || ''),
-    bookie: normalizeFilterText(valueFilterBookieEl?.value || ''),
-    sort: String(valueFilterSortEl?.value || '').trim()
+    bookie: normalizeFilterText(valueFilterBookieEl?.value || '')
   };
 }
 function uniqueSortedFilterValues(rows, getter){
@@ -811,7 +809,6 @@ function buildValueFiltersSummary(){
   if(state.league) parts.push(valueFilterLeagueEl?.value || '');
   if(state.market) parts.push(valueFilterMarketEl?.value || '');
   if(state.bookie) parts.push(valueFilterBookieEl?.value || '');
-  if(state.sort) parts.push(valueFilterSortEl?.selectedOptions?.[0]?.textContent || 'Sorted');
   return parts.length ? parts.join(' • ') : 'All bets';
 }
 function setValueFiltersOpen(open){
@@ -824,7 +821,7 @@ function setValueFiltersOpen(open){
   if(valueFiltersArrowEl) valueFiltersArrowEl.textContent = valueFiltersOpen ? '▲' : '▼';
 }
 function syncValueFilterActiveStates(){
-  [valueFilterSearchEl, valueFilterSportEl, valueFilterLeagueEl, valueFilterMarketEl, valueFilterBookieEl, valueFilterSortEl].forEach(el=>{
+  [valueFilterSearchEl, valueFilterSportEl, valueFilterLeagueEl, valueFilterMarketEl, valueFilterBookieEl].forEach(el=>{
     if(!el) return;
     const hasValue = String(el.value || '').trim() !== '';
     el.classList.toggle('is-active-filter', hasValue);
@@ -863,40 +860,6 @@ function applyValueBetFilters(rows){
     return true;
   });
 }
-
-function sortValueBetRows(rows){
-  const state = getValueFilterState();
-  const list = (rows || []).slice();
-
-  const timeAsc = (a, b) => {
-    const aDate = normalizeDateOnly(a?.bet_date || a?.created_at) || '9999-99-99';
-    const bDate = normalizeDateOnly(b?.bet_date || b?.created_at) || '9999-99-99';
-    if(aDate !== bDate) return aDate.localeCompare(bDate);
-    const aKick = kickoffSortValue(a);
-    const bKick = kickoffSortValue(b);
-    if(aKick !== bKick) return aKick.localeCompare(bKick);
-    const aMatch = String(a?.match || '');
-    const bMatch = String(b?.match || '');
-    if(aMatch !== bMatch) return aMatch.localeCompare(bMatch, undefined, { sensitivity:'base' });
-    return String(a?.market || '').localeCompare(String(b?.market || ''), undefined, { sensitivity:'base' });
-  };
-
-  switch(state.sort){
-    case 'time_desc':
-      return list.sort((a, b) => timeAsc(b, a));
-    case 'prob_desc':
-      return list.sort((a, b) => (getRowProbability(b) ?? -999) - (getRowProbability(a) ?? -999));
-    case 'prob_asc':
-      return list.sort((a, b) => (getRowProbability(a) ?? 999) - (getRowProbability(b) ?? 999));
-    case 'odds_desc':
-      return list.sort((a, b) => Number(b?.odds || 0) - Number(a?.odds || 0));
-    case 'odds_asc':
-      return list.sort((a, b) => Number(a?.odds || 0) - Number(b?.odds || 0));
-    default:
-      return list.sort(timeAsc);
-  }
-}
-
 function wireValueBetFilters(){
   if(valueFiltersWired) return;
   valueFiltersWired = true;
@@ -907,7 +870,6 @@ function wireValueBetFilters(){
   if(valueFilterLeagueEl) valueFilterLeagueEl.addEventListener('change', rerender);
   if(valueFilterMarketEl) valueFilterMarketEl.addEventListener('change', rerender);
   if(valueFilterBookieEl) valueFilterBookieEl.addEventListener('change', rerender);
-  if(valueFilterSortEl) valueFilterSortEl.addEventListener('change', rerender);
   if(valueFiltersClearEl){
     valueFiltersClearEl.addEventListener('click', ()=>{
       if(valueFilterSearchEl) valueFilterSearchEl.value = '';
@@ -915,7 +877,6 @@ function wireValueBetFilters(){
       if(valueFilterLeagueEl) valueFilterLeagueEl.value = '';
       if(valueFilterMarketEl) valueFilterMarketEl.value = '';
       if(valueFilterBookieEl) valueFilterBookieEl.value = '';
-      if(valueFilterSortEl) valueFilterSortEl.value = '';
       syncValueFiltersUi();
       loadBets();
     });
@@ -1166,7 +1127,7 @@ async function loadBets(){
     return;
   }
 
-  const filtered = sortValueBetRows(applyValueBetFilters(active));
+  const filtered = applyValueBetFilters(active);
   if(!filtered.length){
     betsGrid.innerHTML = `<div class="card">No bets match those filters.</div>`;
     if(betsTbody) betsTbody.innerHTML = "";
@@ -1754,53 +1715,73 @@ const rows = sortRowsByDateTimeMatch(await readTrackerRows());
 trackerRowsCache = rows;
 trackerAllRows = rows;
 
-// Keep Value Bets \"Added\" state synced with tracker rows
+// Keep Value Bets "Added" state synced with tracker rows
 addedKeys.clear();
 rows.forEach(r => addedKeys.add(makeBetKey(r)));
 wireTrackerFilters();
 
-let start=parseFloat(document.getElementById("startingBankroll").value);
-let bankroll=start,profit=0,wins=0,losses=0,totalStake=0,totalOdds=0,history=[];
-let dailyLabels=[];
-let dayKeys=[];
+let start = parseFloat(document.getElementById("startingBankroll").value) || 0;
+let profit = 0;
+let wins = 0;
+let losses = 0;
+let totalStake = 0;
+let totalOdds = 0;
+let resolvedCount = 0;
+let bankroll = start;
+let history = [];
+let dailyLabels = [];
+let dayKeys = [];
 
-	const tableRows = [];
+const tableRows = [];
 
 rows.forEach(row=>{
-let p=0;
-if(row.result==="won"){p=row.stake*(row.odds-1);wins++;}
-if(row.result==="lost"){p=-row.stake;losses++;}
-profit+=p;totalStake+=row.stake;totalOdds+=row.odds;
-bankroll=start+profit;
+  const stake = Number(row.stake || 0);
+  const odds = Number(row.odds || 0);
+  const result = String(row.result || "pending").toLowerCase();
+  const safeRow = { ...row, stake, odds, result };
 
-const gameDate = row.match_date_date || row.bet_date || row.created_at;
-const dayKey = fmtDayLabel(gameDate);
-const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
-dayKeys.push(dayKey);
-dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
-history.push(bankroll);
+  const p = rowProfit(safeRow);
 
-tableRows.push(`<tr class="tracker-row-${row.result || 'pending'}">
+  if(result === "won") wins++;
+  if(result === "lost") losses++;
+
+  if(result !== "pending"){
+    profit += p;
+    totalStake += stake;
+    totalOdds += odds;
+    resolvedCount++;
+  }
+
+  bankroll = start + profit;
+
+  const gameDate = row.match_date_date || row.bet_date || row.created_at;
+  const dayKey = fmtDayLabel(gameDate);
+  const prevDayKey = dayKeys.length ? dayKeys[dayKeys.length - 1] : "";
+  dayKeys.push(dayKey);
+  dailyLabels.push(dayKey !== prevDayKey ? dayKey : "");
+  history.push(bankroll);
+
+  tableRows.push(`<tr class="tracker-row-${result || 'pending'}">
 <td class="match-market-cell">
   <div class="tracker-match-name">${row.match}</div>
   ${formatKickoffLabel(row) ? `<div class="tracker-kickoff">${escapeHtml(formatKickoffLabel(row))}</div>` : ``}
   <div class="tracker-market-sub">${getMarketIcon(row.market)}&nbsp;${row.market || "—"}</div>
 </td>
 <td class="tracker-market-col">${getMarketCategory(row.market) || row.market || "—"}</td>
-<td><input type="number" value="${row.stake}" onchange="updateStake('${row.id}',this.value)"></td>
-<td><input type="number" step="0.01" value="${row.odds ?? 0}" onchange="updateOdds('${row.id}',this.value)"></td>
+<td><input type="number" value="${stake}" onchange="updateStake('${row.id}',this.value)"></td>
+<td><input type="number" step="0.01" value="${odds}" onchange="updateOdds('${row.id}',this.value)"></td>
 <td>
-<select 
-class="result-select result-${row.result}" 
+<select
+class="result-select result-${result}"
 onchange="updateResult('${row.id}',this.value)">
-<option value="pending" ${row.result==="pending"?"selected":""}>pending</option>
-<option value="won" ${row.result==="won"?"selected":""}>won</option>
-<option value="lost" ${row.result==="lost"?"selected":""}>lost</option>
+<option value="pending" ${result==="pending"?"selected":""}>pending</option>
+<option value="won" ${result==="won"?"selected":""}>won</option>
+<option value="lost" ${result==="lost"?"selected":""}>lost</option>
 <option value="delete">🗑 delete</option>
 </select>
 </td>
 <td class="profit-col">
-<span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${p.toFixed(2)}</span>
+<span class="${p>0?'profit-win':p<0?'profit-loss':''}">£${Number(p || 0).toFixed(2)}</span>
 </td>
 </tr>`);
 });
@@ -1810,10 +1791,10 @@ html += tableRows.reverse().join("");
 html+="</table>";
 trackerTable.innerHTML=html;
 
-bankrollElem.innerText=bankroll.toFixed(2);
-profitElem.innerText=profit.toFixed(2);
-roiElem.innerText=totalStake?((profit/totalStake)*100).toFixed(1):0;
-winrateElem.innerText=(wins+losses)?((wins/(wins+losses))*100).toFixed(1):0;
+bankrollElem.innerText = bankroll.toFixed(2);
+profitElem.innerText = profit.toFixed(2);
+roiElem.innerText = totalStake ? ((profit / totalStake) * 100).toFixed(1) : 0;
+winrateElem.innerText = (wins + losses) ? ((wins / (wins + losses)) * 100).toFixed(1) : 0;
 const wonLostElem = document.getElementById("wonLost");
 if(wonLostElem){
   wonLostElem.innerHTML = `<span class="wl-split__win">${wins}</span><span class="wl-split__sep">-</span><span class="wl-split__loss">${losses}</span>`;
@@ -1821,7 +1802,7 @@ if(wonLostElem){
 
 const winrateCard = document.getElementById("winrateCard");
 if(winrateCard){
-  const avgOddsVal = rows.length ? (totalOdds / rows.length) : 0;
+  const avgOddsVal = resolvedCount ? (totalOdds / resolvedCount) : 0;
   const winrateVal = (wins + losses) ? ((wins / (wins + losses)) * 100) : 0;
   const breakEven = avgOddsVal > 0 ? (100 / avgOddsVal) : 0;
   const diff = winrateVal - breakEven;
@@ -1840,8 +1821,7 @@ if(totalStakedCard){
   totalStakedCard.innerText = totalStake.toFixed(2);
 }
 
-
-avgOddsElem.innerText=rows.length?(totalOdds/rows.length).toFixed(2):0;
+avgOddsElem.innerText = resolvedCount ? (totalOdds / resolvedCount).toFixed(2) : 0;
 
 profitCard.classList.remove("glow-green","glow-red","glow-green-soft","glow-red-soft","glow-grey-soft");
 if(profit>0) profitCard.classList.add("glow-green-soft");
@@ -2773,8 +2753,12 @@ function initChartTabs(){
 
 
 function rowProfit(row){
-  if(row.result === "won") return row.stake * (row.odds - 1);
-  if(row.result === "lost") return -row.stake;
+  const stake = Number(row?.stake || 0);
+  const odds = Number(row?.odds || 0);
+  const result = String(row?.result || "pending").toLowerCase();
+
+  if(result === "won") return stake * (odds - 1);
+  if(result === "lost") return -stake;
   return 0;
 }
 
