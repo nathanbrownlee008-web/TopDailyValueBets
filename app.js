@@ -875,20 +875,23 @@ function sortValueBetRows(rows){
     const aKick = kickoffSortValue(a);
     const bKick = kickoffSortValue(b);
     if(aKick !== bKick) return aKick.localeCompare(bKick);
-    return String(a?.match || '').localeCompare(String(b?.match || ''), undefined, { sensitivity:'base' });
+    const aMatch = String(a?.match || '');
+    const bMatch = String(b?.match || '');
+    if(aMatch !== bMatch) return aMatch.localeCompare(bMatch, undefined, { sensitivity:'base' });
+    return String(a?.market || '').localeCompare(String(b?.market || ''), undefined, { sensitivity:'base' });
   };
 
   switch(state.sort){
     case 'time_desc':
-      return list.sort((a,b)=>timeAsc(b,a));
+      return list.sort((a, b) => timeAsc(b, a));
     case 'prob_desc':
-      return list.sort((a,b)=>(getRowProbability(b) ?? -999) - (getRowProbability(a) ?? -999));
+      return list.sort((a, b) => (getRowProbability(b) ?? -999) - (getRowProbability(a) ?? -999));
     case 'prob_asc':
-      return list.sort((a,b)=>(getRowProbability(a) ?? 999) - (getRowProbability(b) ?? 999));
+      return list.sort((a, b) => (getRowProbability(a) ?? 999) - (getRowProbability(b) ?? 999));
     case 'odds_desc':
-      return list.sort((a,b)=>Number(b?.odds || 0) - Number(a?.odds || 0));
+      return list.sort((a, b) => Number(b?.odds || 0) - Number(a?.odds || 0));
     case 'odds_asc':
-      return list.sort((a,b)=>Number(a?.odds || 0) - Number(b?.odds || 0));
+      return list.sort((a, b) => Number(a?.odds || 0) - Number(b?.odds || 0));
     default:
       return list.sort(timeAsc);
   }
