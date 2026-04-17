@@ -1429,8 +1429,8 @@ function _buildTrackerTableHTML(rows){
     const stakeVal = row.stake ?? 0;
     const res = row.result || "pending";
     let profit = 0;
-    if(res === "won") profit = (row.profit != null ? row.profit : row.stake * (row.odds - 1));
-    if(res === "lost") profit = (row.profit != null ? row.profit : -row.stake);
+    if(res === "won") profit = rowProfit(row);
+    if(res === "lost") profit = rowProfit(row);
     if(res === "pending") profit = 0;
 
     const profitClass = profit >= 0 ? "profit-win" : "profit-loss";
@@ -2190,9 +2190,9 @@ async function loadTdtTracker(){
     rows.forEach(row=>{
       const result = String(row.result || 'pending').toLowerCase();
       const p = result==="won"
-        ? (row.profit != null ? Number(row.profit) : Number(row.stake||0)*(Number(row.odds||0)-1))
+        ? rowProfit(row)
         : result==="lost"
-        ? (row.profit != null ? Number(row.profit) : -Number(row.stake||0))
+        ? rowProfit(row)
         : 0;
 
       if(result==="won") wins++;
@@ -3336,15 +3336,7 @@ window.loadTdtTracker = async function(){
       const result = String(row.result || "pending").toLowerCase();
 
       const p =
-        result === "won"
-          ? (row.profit != null
-              ? Number(row.profit)
-              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
-          : result === "lost"
-          ? (row.profit != null
-              ? Number(row.profit)
-              : -Number(row.stake || 0))
-          : 0;
+        rowProfit(row);
 
       profit += p;
 
@@ -3372,15 +3364,7 @@ window.loadTdtTracker = async function(){
       const result = String(row.result || "pending").toLowerCase();
 
       const p =
-        result === "won"
-          ? (row.profit != null
-              ? Number(row.profit)
-              : Number(row.stake || 0) * (Number(row.odds || 0) - 1))
-          : result === "lost"
-          ? (row.profit != null
-              ? Number(row.profit)
-              : -Number(row.stake || 0))
-          : 0;
+        rowProfit(row);
 
       if(!monthMap.has(monthKey)){
         monthMap.set(monthKey, {
@@ -3663,8 +3647,8 @@ window.forgotVipPassword = forgotVipPassword;
     const stake = Number(row.stake || 0);
     const odds = Number(row.odds || 0);
     const res = row.result || "pending";
-    if(res === "won") return row.profit != null ? Number(row.profit) : stake * (odds - 1);
-    if(res === "lost") return row.profit != null ? Number(row.profit) : -stake;
+    if(res === "won") return rowProfit(row);
+    if(res === "lost") return rowProfit(row);
     return 0;
   }
 
