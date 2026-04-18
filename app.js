@@ -339,7 +339,7 @@ function getMarketIcon(market, sport){
   if(m.includes("card") || m.includes("booking")) return "🟨";
   if(m.includes("foul")) return "⚠️";
   if(m.includes("offside")) return "🚫";
-  if(m.includes("shot")) return "🎯";
+  if(m.includes("shot") || m.includes("sot")) return "🎯";
   if(m.includes("btts")) return "🥅";
   if(m.includes("handicap")) return "⚖️";
   if(m.includes("goal") || m.includes("fhg") || m.includes("fgh") || m.includes("team total")) return "⚽";
