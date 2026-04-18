@@ -7183,3 +7183,18 @@ main,
   overflow: visible !important;
   max-height: none !important;
 }
+/* TRACKER CUT-OFF FIX */
+.tracker-group-body,
+.tracker-day-body,
+.tracker-week-body,
+.tracker-month-body,
+.tracker-grouped-shell,
+.tracker-opt7-shell {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.is-collapsed {
+  display: none !important;
+}
