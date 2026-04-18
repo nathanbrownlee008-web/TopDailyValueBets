@@ -7148,3 +7148,38 @@ body.layout-wide .bets-table .table-market-text{
   border-color: rgba(34,197,94,0.45) !important;
   box-shadow: 0 0 0 2px rgba(34,197,94,0.10);
 }
+/* FIX TRACKER PAGE CUTTING OFF EARLY */
+html, body {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-y: auto !important;
+}
+
+body {
+  padding-bottom: 140px !important;
+}
+
+#trackerSection,
+.tracker-opt7-shell,
+.tracker-bet-list,
+#trackerTable,
+#trackerGrid,
+.tracker-results,
+.bet-results,
+.tdt-day-body,
+.tdt-week-body,
+.tdt-month-body {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+main,
+.app,
+.app-shell,
+.page-content,
+.content,
+.section {
+  overflow: visible !important;
+  max-height: none !important;
+}
