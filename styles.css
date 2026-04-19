@@ -7198,3 +7198,32 @@ main,
 .is-collapsed {
   display: none !important;
 }
+/* === FIX: Move league under match (clean mobile layout) === */
+
+/* Target your value bet card header */
+.value-bet-card .card-header,
+.bet-card .card-header,
+.card-header {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 4px;
+}
+
+/* League pill spacing + alignment */
+.value-bet-card .league,
+.value-bet-card .league-pill,
+.bet-card .league,
+.bet-card .league-pill,
+.league,
+.league-pill {
+  margin-top: 4px !important;
+  align-self: flex-start !important;
+}
+
+/* Kill any right-push styling */
+.value-bet-card .card-header > *,
+.bet-card .card-header > *,
+.card-header > * {
+  margin-left: 0 !important;
+}
