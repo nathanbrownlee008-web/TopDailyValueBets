@@ -7227,3 +7227,87 @@ main,
 .card-header > * {
   margin-left: 0 !important;
 }
+/* === FORCE value bet top row layout fix === */
+/* Put date + league on their own row under the match title */
+
+/* Main card title area */
+.value-bet-card .top-row,
+.value-card .top-row,
+.bet-card .top-row,
+.value-bet-card .bet-top-row,
+.value-card .bet-top-row,
+.bet-card .bet-top-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+}
+
+/* Match title takes full row */
+.value-bet-card .match,
+.value-card .match,
+.bet-card .match,
+.value-bet-card .match-name,
+.value-card .match-name,
+.bet-card .match-name {
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  margin: 0 0 6px 0 !important;
+}
+
+/* Date sits left under title */
+.value-bet-card .bet-date,
+.value-card .bet-date,
+.bet-card .bet-date,
+.value-bet-card .date,
+.value-card .date,
+.bet-card .date {
+  order: 2 !important;
+  margin: 0 !important;
+  text-align: left !important;
+}
+
+/* League pill sits next to date, not far right */
+.value-bet-card .league,
+.value-card .league,
+.bet-card .league,
+.value-bet-card .league-pill,
+.value-card .league-pill,
+.bet-card .league-pill {
+  order: 3 !important;
+  margin: 0 !important;
+  margin-left: 8px !important;
+  align-self: center !important;
+}
+
+/* Kill auto push-right rules */
+.value-bet-card .league,
+.value-card .league,
+.bet-card .league,
+.value-bet-card .league-pill,
+.value-card .league-pill,
+.bet-card .league-pill,
+.value-bet-card .bet-date,
+.value-card .bet-date,
+.bet-card .bet-date,
+.value-bet-card .date,
+.value-card .date,
+.bet-card .date {
+  right: auto !important;
+  left: auto !important;
+  float: none !important;
+}
+
+/* If parent row uses space-between, override it hard */
+.value-bet-card .top-row,
+.value-card .top-row,
+.bet-card .top-row,
+.value-bet-card .bet-top-row,
+.value-card .bet-top-row,
+.bet-card .bet-top-row,
+.value-bet-card .header-row,
+.value-card .header-row,
+.bet-card .header-row {
+  justify-content: flex-start !important;
+}
