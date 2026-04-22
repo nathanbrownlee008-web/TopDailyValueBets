@@ -7113,201 +7113,25 @@ body.layout-wide .bets-table .table-market-text{
 }
 
 
-/* ===== TDT About Box Title ===== */
-.tdt-about-title{
-  font-size:16px;
-  font-weight:900;
-  margin-bottom:6px;
-  color:#ffffff;
-  letter-spacing:0.3px;
-  text-shadow: 0 0 10px rgba(34,197,94,0.45),
-               0 0 20px rgba(34,197,94,0.25);
-  background: linear-gradient(90deg, #ffffff, #a7f3d0, #ffffff);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: tdtTitleShine 4s linear infinite;
-}
-
-.tdt-about-subtitle{
-  font-size:13px;
-  font-weight:600;
-  opacity:0.85;
-  margin-bottom:10px;
-  color:#dfffea;
-}
-
-@keyframes tdtTitleShine{
-  0%{ background-position: 200% center; }
-  100%{ background-position: -200% center; }
-}
-
-
-/* ===== Sort filter active state ===== */
-#valueFilterSort.is-active-filter{
-  border-color: rgba(34,197,94,0.45) !important;
-  box-shadow: 0 0 0 2px rgba(34,197,94,0.10);
-}
-/* FIX TRACKER PAGE CUTTING OFF EARLY */
-html, body {
-  height: auto !important;
-  min-height: 100% !important;
-  overflow-y: auto !important;
-}
-
-body {
-  padding-bottom: 140px !important;
-}
-
-#trackerSection,
-.tracker-opt7-shell,
-.tracker-bet-list,
-#trackerTable,
-#trackerGrid,
-.tracker-results,
-.bet-results,
-.tdt-day-body,
-.tdt-week-body,
-.tdt-month-body {
-  height: auto !important;
-  max-height: none !important;
-  overflow: visible !important;
-}
-
-main,
-.app,
-.app-shell,
-.page-content,
-.content,
-.section {
-  overflow: visible !important;
-  max-height: none !important;
-}
-/* TRACKER CUT-OFF FIX */
-.tracker-group-body,
-.tracker-day-body,
-.tracker-week-body,
-.tracker-month-body,
-.tracker-grouped-shell,
-.tracker-opt7-shell {
-  height: auto !important;
-  max-height: none !important;
-  overflow: visible !important;
-}
-
-.is-collapsed {
-  display: none !important;
-}
-/* === FIX: Move league under match (clean mobile layout) === */
-
-/* Target your value bet card header */
-.value-bet-card .card-header,
-.bet-card .card-header,
-.card-header {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  gap: 4px;
-}
-
-/* League pill spacing + alignment */
-.value-bet-card .league,
-.value-bet-card .league-pill,
-.bet-card .league,
-.bet-card .league-pill,
-.league,
-.league-pill {
-  margin-top: 4px !important;
-  align-self: flex-start !important;
-}
-
-/* Kill any right-push styling */
-.value-bet-card .card-header > *,
-.bet-card .card-header > *,
-.card-header > * {
-  margin-left: 0 !important;
-}
-/* === FORCE value bet top row layout fix === */
-/* Put date + league on their own row under the match title */
-
-/* Main card title area */
-.value-bet-card .top-row,
-.value-card .top-row,
-.bet-card .top-row,
-.value-bet-card .bet-top-row,
-.value-card .bet-top-row,
-.bet-card .bet-top-row {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
+/* ===== TRACKER MARKET WIDTH TWEAK (safe override only) ===== */
+.tracker-grid-meta--single-row{
+  grid-template-columns: 2.35fr 0.82fr 0.82fr !important;
   gap: 8px !important;
 }
 
-/* Match title takes full row */
-.value-bet-card .match,
-.value-card .match,
-.bet-card .match,
-.value-bet-card .match-name,
-.value-card .match-name,
-.bet-card .match-name {
-  flex: 0 0 100% !important;
+.tracker-grid-market-inline{
   width: 100% !important;
-  margin: 0 0 6px 0 !important;
+  min-width: 0 !important;
+  padding: 0 10px !important;
 }
 
-/* Date sits left under title */
-.value-bet-card .bet-date,
-.value-card .bet-date,
-.bet-card .bet-date,
-.value-bet-card .date,
-.value-card .date,
-.bet-card .date {
-  order: 2 !important;
-  margin: 0 !important;
-  text-align: left !important;
-}
+@media (max-width:700px){
+  .tracker-grid-meta--single-row{
+    grid-template-columns: 2.45fr 0.78fr 0.78fr !important;
+    gap: 8px !important;
+  }
 
-/* League pill sits next to date, not far right */
-.value-bet-card .league,
-.value-card .league,
-.bet-card .league,
-.value-bet-card .league-pill,
-.value-card .league-pill,
-.bet-card .league-pill {
-  order: 3 !important;
-  margin: 0 !important;
-  margin-left: 8px !important;
-  align-self: center !important;
-}
-
-/* Kill auto push-right rules */
-.value-bet-card .league,
-.value-card .league,
-.bet-card .league,
-.value-bet-card .league-pill,
-.value-card .league-pill,
-.bet-card .league-pill,
-.value-bet-card .bet-date,
-.value-card .bet-date,
-.bet-card .bet-date,
-.value-bet-card .date,
-.value-card .date,
-.bet-card .date {
-  right: auto !important;
-  left: auto !important;
-  float: none !important;
-}
-
-/* If parent row uses space-between, override it hard */
-.value-bet-card .top-row,
-.value-card .top-row,
-.bet-card .top-row,
-.value-bet-card .bet-top-row,
-.value-card .bet-top-row,
-.bet-card .bet-top-row,
-.value-bet-card .header-row,
-.value-card .header-row,
-.bet-card .header-row {
-  justify-content: flex-start !important;
+  .tracker-grid-market-inline{
+    padding: 0 8px !important;
+  }
 }
