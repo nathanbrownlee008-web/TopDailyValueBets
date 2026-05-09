@@ -7135,3 +7135,33 @@ body.layout-wide .bets-table .table-market-text{
     padding: 0 8px !important;
   }
 }
+/* ===== FIX SCROLL CUT OFF (TRACKER PAGE) ===== */
+
+/* Make sure page can fully scroll */
+html, body {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-y: auto !important;
+}
+
+/* Main app/container fix (adjust selector if needed) */
+#app, .app, .container, .tracker-opt7-shell {
+  min-height: 100vh !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* IMPORTANT: allow scrolling inside tracker */
+.tracker-opt7-shell {
+  padding-bottom: 120px !important; /* gives space at bottom */
+}
+
+/* Kill anything that might be blocking scroll */
+* {
+  overscroll-behavior: auto !important;
+}
+
+/* If any parent has overflow hidden — override it */
+body * {
+  overflow-y: visible !important;
+}
