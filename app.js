@@ -4255,4 +4255,24 @@ function toggleAboutBox(){
   document.addEventListener("visibilitychange", updateInstallBtn);
   window.addEventListener("focus", updateInstallBtn);
 })();
+let scrollPos = 0;
 
+function saveScroll() {
+  scrollPos = window.scrollY;
+}
+
+function restoreScroll() {
+  setTimeout(() => {
+    window.scrollTo(0, scrollPos);
+  }, 0);
+}
+
+document.querySelectorAll('.result-select').forEach(el => {
+  el.addEventListener('change', () => {
+    saveScroll();
+
+    // YOUR EXISTING UPDATE CODE RUNS HERE
+
+    restoreScroll();
+  });
+});
