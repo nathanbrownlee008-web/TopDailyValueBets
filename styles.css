@@ -7198,3 +7198,46 @@ main,
 .is-collapsed {
   display: none !important;
 }
+/* ===== FIX SCROLL CUT OFF + HIDE SCROLLBAR ===== */
+
+html, body {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+/* Make sure main app wrapper can grow */
+#root, 
+.app, 
+.main-container {
+  min-height: 100vh !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* REMOVE any scroll locks (this is usually the problem) */
+body,
+html,
+#root {
+  overflow-y: auto !important;
+}
+
+/* Hide scrollbar but KEEP scrolling */
+body::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Fix bottom cut-off spacing */
+.tracker-opt7-shell,
+.tracker-results-table,
+.tracker-grid-card:last-child {
+  margin-bottom: 80px !important;
+  padding-bottom: 40px !important;
+}
