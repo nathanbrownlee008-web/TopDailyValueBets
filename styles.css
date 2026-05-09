@@ -7165,3 +7165,14 @@ html, body {
 body * {
   overflow-y: visible !important;
 }
+html, body {
+  overflow-x: hidden !important;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
